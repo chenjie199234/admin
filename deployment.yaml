@@ -108,7 +108,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: admin-service-headless
+  name: admin-headless
   namespace: <GROUP>
   labels:
     app: admin
@@ -121,7 +121,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: admin-service
+  name: admin
   namespace: <GROUP>
   labels:
     app: admin
@@ -146,5 +146,5 @@ spec:
       paths:
       - path: /admin
         backend:
-          serviceName: admin-service
+          serviceName: admin
           servicePort: 8000

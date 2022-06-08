@@ -68,7 +68,7 @@ func getCGrpcClientConfig() *cgrpc.ClientConfig {
 
 func cgrpcDNS(group, name string) (map[string]*cgrpc.RegisterData, error) {
 	result := make(map[string]*cgrpc.RegisterData)
-	addrs, e := net.LookupHost(name + "-service-headless." + group)
+	addrs, e := net.LookupHost(name + "-headless." + group)
 	if e != nil {
 		return nil, e
 	}
@@ -96,7 +96,7 @@ func getCrpcClientConfig() *crpc.ClientConfig {
 
 func crpcDNS(group, name string) (map[string]*crpc.RegisterData, error) {
 	result := make(map[string]*crpc.RegisterData)
-	addrs, e := net.LookupHost(name + "-service-headless." + group)
+	addrs, e := net.LookupHost(name + "-headless." + group)
 	if e != nil {
 		return nil, e
 	}

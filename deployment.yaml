@@ -1,0 +1,150 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-deployment
+  namespace: <GROUP>
+  labels:
+    app: admin
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: admin
+  template:
+    metadata:
+      labels:
+        app: admin
+    spec:
+      containers:
+        - name: admin
+          image: <IMAGE>
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: 4096Mi
+              cpu: 4000m
+            requests:
+              memory: 256Mi
+              cpu: 250m
+          env:
+            - name: HOSTIP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: GROUP
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: LOG_LEVEL
+              value: <LOG_LEVEL>
+            - name: LOG_TRACE
+              value: <LOG_TRACE>
+            - name: LOG_TARGET
+              value: <LOG_TARGET>
+            - name: DEPLOY_ENV
+              value: <DEPLOY_ENV>
+            - name: RUN_ENV
+              value: <RUN_ENV>
+            - name: MONITOR
+              value: <MONITOR>
+            - name: CONFIG_TYPE
+              value: <CONFIG_TYPE>
+            - name: REMOTE_CONFIG_SERVICE_GROUP
+              value: <REMOTE_CONFIG_SERVICE_GROUP>
+            - name: REMOTE_CONFIG_SERVICE_HOST
+              value: <REMOTE_CONFIG_SERVICE_HOST>
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+      imagePullSecrets:
+        - name: <GROUP>-secret
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: admin-hpa
+  namespace: <GROUP>
+spec:
+  scaleTargetRef:   
+    apiVersion: apps/v1
+    kind: Deployment  
+    name: admin-deployment
+  maxReplicas: 10
+  minReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: AverageValue
+        averageValue: 3500Mi
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: AverageValue
+        averageValue: 3400m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service-headless
+  namespace: <GROUP>
+  labels:
+    app: admin
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: admin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service
+  namespace: <GROUP>
+  labels:
+    app: admin
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    protocol: TCP
+    port: 8000
+  selector:
+    app: admin
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: admin-ingress
+  namespace: <GROUP>
+spec:
+  rules: 
+  - host: <HOST>
+    http:
+      paths:
+      - path: /admin
+        backend:
+          serviceName: admin-service
+          servicePort: 8000

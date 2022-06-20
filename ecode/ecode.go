@@ -19,13 +19,12 @@ var (
 	ErrNotExist   = cerror.ErrNotExist   //10009 // http code 404
 
 	ErrAppNotExist     = cerror.MakeError(20001, http.StatusBadRequest, "app doesn't exist")
-	ErrAppAlreadyExist = cerror.MakeError(20002, http.StatusBadRequest, "app already exist")
-	ErrWrongCipher     = cerror.MakeError(20003, http.StatusBadRequest, "wrong cipher")
-	ErrCipherLength    = cerror.MakeError(20004, http.StatusBadRequest, "cipher must be empty or 32 byte length")
+	ErrKeyNotExist     = cerror.MakeError(20002, http.StatusBadRequest, "key doesn't exist")
+	ErrAppAlreadyExist = cerror.MakeError(20003, http.StatusBadRequest, "app already exist")
+	ErrKeyAlreadyExist = cerror.MakeError(20004, http.StatusBadRequest, "key already exist")
 	ErrIndexNotExist   = cerror.MakeError(20005, http.StatusBadRequest, "config index doesn't exist")
-	ErrConfigFormat    = cerror.MakeError(20006, http.StatusBadRequest, "config must use json object format")
+	ErrWrongCipher     = cerror.MakeError(20006, http.StatusBadRequest, "wrong cipher")
+	ErrCipherLength    = cerror.MakeError(20007, http.StatusBadRequest, "cipher must be empty or 32 byte length")
 
 	ErrPNodeReadPermission = cerror.MakeError(30001, http.StatusBadRequest, "missing read permission on parent nodes")
 )
-
-

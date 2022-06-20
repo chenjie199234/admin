@@ -30,8 +30,33 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
+### /admin.config/del_group
+//del one specific group
+#### Req:
+```
+Method:       POST
+Content-Type: application/json
+------------------------------------------------------------------------------------------------------------
+{
+	//value length must > 0
+	"groupname":"str"
+}
+------------------------------------------------------------------------------------------------------------
+```
+#### Resp:
+```
+Fail:    httpcode:4xx/5xx
+------------------------------------------------------------------------------------------------------------
+{"code":123,"msg":"error message"}
+------------------------------------------------------------------------------------------------------------
+Success: httpcode:200
+------------------------------------------------------------------------------------------------------------
+{
+}
+------------------------------------------------------------------------------------------------------------
+```
 ### /admin.config/apps
-//get all apps in specific group
+//get all apps in one specific group
 #### Req:
 ```
 Method:       POST
@@ -54,6 +79,90 @@ Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 {
 	"apps":["str","str"]
+}
+------------------------------------------------------------------------------------------------------------
+```
+### /admin.config/del_app
+//del one specific app in one specific group
+#### Req:
+```
+Method:       POST
+Content-Type: application/json
+------------------------------------------------------------------------------------------------------------
+{
+	//value length must > 0
+	"groupname":"str",
+	//value length must > 0
+	"appname":"str"
+}
+------------------------------------------------------------------------------------------------------------
+```
+#### Resp:
+```
+Fail:    httpcode:4xx/5xx
+------------------------------------------------------------------------------------------------------------
+{"code":123,"msg":"error message"}
+------------------------------------------------------------------------------------------------------------
+Success: httpcode:200
+------------------------------------------------------------------------------------------------------------
+{
+}
+------------------------------------------------------------------------------------------------------------
+```
+### /admin.config/keys
+//get all config's keys in one specific app
+#### Req:
+```
+Method:       POST
+Content-Type: application/json
+------------------------------------------------------------------------------------------------------------
+{
+	//value length must > 0
+	"groupname":"str",
+	//value length must > 0
+	"appname":"str"
+}
+------------------------------------------------------------------------------------------------------------
+```
+#### Resp:
+```
+Fail:    httpcode:4xx/5xx
+------------------------------------------------------------------------------------------------------------
+{"code":123,"msg":"error message"}
+------------------------------------------------------------------------------------------------------------
+Success: httpcode:200
+------------------------------------------------------------------------------------------------------------
+{
+	"keys":["str","str"]
+}
+------------------------------------------------------------------------------------------------------------
+```
+### /admin.config/del_key
+//del one specific key in one specific app
+#### Req:
+```
+Method:       POST
+Content-Type: application/json
+------------------------------------------------------------------------------------------------------------
+{
+	//value length must > 0
+	"groupname":"str",
+	//value length must > 0
+	"appname":"str",
+	//value length must > 0
+	"key":"str"
+}
+------------------------------------------------------------------------------------------------------------
+```
+#### Resp:
+```
+Fail:    httpcode:4xx/5xx
+------------------------------------------------------------------------------------------------------------
+{"code":123,"msg":"error message"}
+------------------------------------------------------------------------------------------------------------
+Success: httpcode:200
+------------------------------------------------------------------------------------------------------------
+{
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -116,7 +225,7 @@ Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 ```
 ### /admin.config/get
-//get one specific app's config
+//get config
 #### Req:
 ```
 Method:       POST
@@ -127,6 +236,8 @@ Content-Type: application/json
 	"groupname":"str",
 	//value length must > 0
 	"appname":"str",
+	//value length must > 0
+	"key":"str",
 	//0 means return current active config,config's index start from 1
 	//uint32
 	"index":0
@@ -154,13 +265,12 @@ Success: httpcode:200
 	//the config data below belong's to which index
 	//uint32
 	"this_index":0,
-	"app_config":"str",
-	"source_config":"str"
+	"value":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```
 ### /admin.config/set
-//set one specific app's config
+//set config
 #### Req:
 ```
 Method:       POST
@@ -171,8 +281,10 @@ Content-Type: application/json
 	"groupname":"str",
 	//value length must > 0
 	"appname":"str",
-	"app_config":"str",
-	"source_config":"str"
+	//value length must > 0
+	"key":"str",
+	//value length must > 0
+	"value":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -189,7 +301,7 @@ Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 ```
 ### /admin.config/rollback
-//rollback one specific app's config
+//rollback config
 #### Req:
 ```
 Method:       POST
@@ -200,6 +312,8 @@ Content-Type: application/json
 	"groupname":"str",
 	//value length must > 0
 	"appname":"str",
+	//value length must > 0
+	"key":"str",
 	//uint32
 	//value must > 0
 	"index":0
@@ -219,7 +333,7 @@ Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 ```
 ### /admin.config/watch
-//watch on specific app's config
+//watch config
 #### Req:
 ```
 Method:       POST
@@ -230,9 +344,13 @@ Content-Type: application/json
 	"groupname":"str",
 	//value length must > 0
 	"appname":"str",
-	//<0 means return current active config,if cur_version is the newest,the request will block until a new version come
-	//int32
-	"cur_version":0
+	//map's key is config's keyname,map's value is config's cur version
+	//if cur version < 0 means return current active config
+	//if all cur version is the newest,the request will block until a new version come
+	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
+	//kv map,value-int32
+	//element num must > 0
+	"keys":{"str":0,"str":0}
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -245,8 +363,13 @@ Fail:    httpcode:4xx/5xx
 Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 {
-	"app_config":"str",
-	"source_config":"str",
+	//kv map,value-object watch_data
+	"datas":{"str":{},"str":{}}
+}
+------------------------------------------------------------------------------------------------------------
+watch_data: {
+	"key":"str",
+	"value":"str",
 	//int32
 	"version":0
 }

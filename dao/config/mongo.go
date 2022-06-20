@@ -30,8 +30,33 @@ func (d *Dao) MongoGetAllGroups(ctx context.Context, searchfilter string) ([]str
 	}
 	return r, nil
 }
+func (d *Dao) MongoDelGroup(ctx context.Context, groupname string) error {
+	return d.mongo.Database("config_" + groupname).Drop(ctx)
+}
 func (d *Dao) MongoGetAllApps(ctx context.Context, groupname, searchfilter string) ([]string, error) {
 	return d.mongo.Database("config_"+groupname).ListCollectionNames(ctx, bson.M{"name": bson.M{"$regex": searchfilter}})
+}
+func (d *Dao) MongoDelApp(ctx context.Context, groupname, appname string) error {
+	return d.mongo.Database("config_" + groupname).Collection(appname).Drop(ctx)
+}
+func (d *Dao) MongoGetAllKeys(ctx context.Context, groupname, appname string) ([]string, error) {
+	appsummary := &model.AppSummary{}
+	e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(appsummary)
+	if e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrAppNotExist
+		}
+		return nil, e
+	}
+	result := make([]string, 0, len(appsummary.Keys))
+	for k := range appsummary.Keys {
+		result = append(result, k)
+	}
+	return result, nil
+}
+func (d *Dao) MongoDelKey(ctx context.Context, groupname, appname, key string) error {
+	_, e := d.mongo.Database("config_"+groupname).Collection(appname).UpdateOne(ctx, bson.M{"key": "", "index": 0}, bson.M{"$unset": bson.M{"keys." + key: 1}})
+	return e
 }
 
 func (d *Dao) MongoCreate(ctx context.Context, groupname, appname, cipher string, encrypt datahandler) (e error) {
@@ -57,26 +82,17 @@ func (d *Dao) MongoCreate(ctx context.Context, groupname, appname, cipher string
 	}()
 	col := d.mongo.Database("config_" + groupname).Collection(appname)
 	index := mongo.IndexModel{
-		Keys:    bson.D{primitive.E{Key: "index", Value: 1}},
+		Keys:    bson.D{primitive.E{Key: "index", Value: 1}, primitive.E{Key: "key", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 	if _, e = col.Indexes().CreateOne(sctx, index); e != nil {
 		return
 	}
-	appconfig := "{}"
-	sourceconfig := "{}"
-	if cipher != "" {
-		appconfig = encrypt(cipher, appconfig)
-		sourceconfig = encrypt(cipher, sourceconfig)
-	}
 	if _, e = col.InsertOne(sctx, bson.M{
-		"index":             0,
-		"cipher":            cipher,
-		"cur_index":         0,
-		"max_index":         0,
-		"cur_version":       0,
-		"cur_app_config":    appconfig,
-		"cur_source_config": sourceconfig,
+		"key":    "",
+		"index":  0,
+		"cipher": cipher,
+		"keys":   bson.M{},
 	}); e != nil {
 		return
 	}
@@ -104,46 +120,48 @@ func (d *Dao) MongoUpdateCipher(ctx context.Context, groupname, appname, oldciph
 		}
 	}()
 	col := d.mongo.Database("config_" + groupname).Collection(appname)
-	summary := &model.Summary{}
-	if e = col.FindOne(sctx, bson.M{"index": 0}).Decode(summary); e != nil {
+	appsummary := &model.AppSummary{}
+	if e = col.FindOne(sctx, bson.M{"key": "", "index": 0}).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
 		}
 		return
 	}
-	if summary.Cipher != oldcipher {
+	if appsummary.Cipher != oldcipher {
 		e = ecode.ErrWrongCipher
 		return
 	}
-	if oldcipher != "" {
-		summary.CurAppConfig = decrypt(oldcipher, summary.CurAppConfig)
-		summary.CurSourceConfig = decrypt(oldcipher, summary.CurSourceConfig)
+	updater := bson.M{
+		"cipher": newcipher,
 	}
-	if newcipher != "" {
-		summary.CurAppConfig = encrypt(newcipher, summary.CurAppConfig)
-		summary.CurSourceConfig = encrypt(newcipher, summary.CurSourceConfig)
+	for key, keysummary := range appsummary.Keys {
+		if oldcipher != "" {
+			keysummary.CurValue = decrypt(oldcipher, keysummary.CurValue)
+		}
+		if newcipher != "" {
+			keysummary.CurValue = encrypt(newcipher, keysummary.CurValue)
+		}
+		updater["keys."+key+".cur_value"] = keysummary.CurValue
 	}
-	if _, e = col.UpdateOne(sctx, bson.M{"index": 0}, bson.M{"$set": bson.M{"cipher": newcipher, "cur_app_config": summary.CurAppConfig, "cur_source_config": summary.CurSourceConfig}}); e != nil {
+	if _, e = col.UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$set": updater}); e != nil {
 		return
 	}
-	cursor, e := col.Find(sctx, bson.M{"index": bson.M{"$gt": 0}}, options.Find().SetSort(bson.M{"index": -1}))
-	if e != nil {
+	var cursor *mongo.Cursor
+	if cursor, e = col.Find(sctx, bson.M{"key": bson.M{"$ne": ""}, "index": bson.M{"$gt": 0}}, options.Find().SetSort(bson.M{"key": -1, "index": -1})); e != nil {
 		return
 	}
 	for cursor.Next(sctx) {
-		tmp := &model.Config{}
-		if e = cursor.Decode(tmp); e != nil {
+		log := &model.Log{}
+		if e = cursor.Decode(log); e != nil {
 			return
 		}
 		if oldcipher != "" {
-			tmp.AppConfig = decrypt(oldcipher, tmp.AppConfig)
-			tmp.SourceConfig = decrypt(oldcipher, tmp.SourceConfig)
+			log.Value = decrypt(oldcipher, log.Value)
 		}
 		if newcipher != "" {
-			tmp.AppConfig = encrypt(newcipher, tmp.AppConfig)
-			tmp.SourceConfig = encrypt(newcipher, tmp.SourceConfig)
+			log.Value = encrypt(newcipher, log.Value)
 		}
-		if _, e = col.UpdateOne(sctx, bson.M{"index": tmp.Index}, bson.M{"$set": bson.M{"app_config": tmp.AppConfig, "source_config": tmp.SourceConfig}}); e != nil {
+		if _, e = col.UpdateOne(sctx, bson.M{"key": log.Key, "index": log.Index}, bson.M{"$set": bson.M{"value": log.Value}}); e != nil {
 			return
 		}
 	}
@@ -152,59 +170,81 @@ func (d *Dao) MongoUpdateCipher(ctx context.Context, groupname, appname, oldciph
 }
 
 //index == 0 get the current index's config
-func (d *Dao) MongoGetConfig(ctx context.Context, groupname, appname string, index uint32, decrypt datahandler) (*model.Summary, *model.Config, error) {
+//index != 0 get the specific index's config
+func (d *Dao) MongoGetConfig(ctx context.Context, groupname, appname, key string, index uint32, decrypt datahandler) (*model.KeySummary, *model.Log, error) {
 	col := d.mongo.Database("config_"+groupname, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection(appname)
-	var summary *model.Summary
-	var config *model.Config
+	var appsummary *model.AppSummary
+	var log *model.Log
 	if index != 0 {
-		filter := bson.M{"$or": bson.A{bson.M{"index": 0}, bson.M{"index": index}}}
+		//get the specific index's config and the current status
+		filter := bson.M{"$or": bson.A{bson.M{"key": "", "index": 0}, bson.M{"key": key, "index": index}}}
 		cursor, e := col.Find(ctx, filter, options.Find().SetSort(bson.M{"index": 1}))
 		if e != nil {
 			return nil, nil, e
 		}
 		for cursor.Next(ctx) {
-			if summary == nil {
-				tmps := &model.Summary{}
+			if appsummary == nil {
+				tmps := &model.AppSummary{}
 				if e = cursor.Decode(tmps); e != nil {
 					return nil, nil, e
 				}
-				summary = tmps
+				appsummary = tmps
 			} else {
-				tmpc := &model.Config{}
+				tmpc := &model.Log{}
 				if e = cursor.Decode(tmpc); e != nil {
 					return nil, nil, e
 				}
-				config = tmpc
+				log = tmpc
 			}
 		}
 		if e := cursor.Err(); e != nil {
 			return nil, nil, e
 		}
-	} else {
-		summary = &model.Summary{}
-		if e := col.FindOne(ctx, bson.M{"index": 0}).Decode(summary); e != nil {
-			if e == mongo.ErrNoDocuments {
-				e = nil
-			}
-			return nil, nil, e
+		if appsummary == nil {
+			return nil, nil, ecode.ErrAppNotExist
 		}
-		config = &model.Config{
-			Index:        summary.CurIndex,
-			AppConfig:    summary.CurAppConfig,
-			SourceConfig: summary.CurSourceConfig,
+		if appsummary.Keys == nil {
+			return nil, nil, ecode.ErrKeyNotExist
 		}
+		keysummary, ok := appsummary.Keys[key]
+		if !ok {
+			return nil, nil, ecode.ErrKeyNotExist
+		}
+		if log == nil {
+			return nil, nil, ecode.ErrIndexNotExist
+		}
+		if appsummary.Cipher != "" {
+			keysummary.CurValue = decrypt(appsummary.Cipher, keysummary.CurValue)
+			log.Value = decrypt(appsummary.Cipher, log.Value)
+		}
+		return keysummary, log, nil
 	}
-	if summary != nil && summary.Cipher != "" {
-		summary.CurAppConfig = decrypt(summary.Cipher, summary.CurAppConfig)
-		summary.CurSourceConfig = decrypt(summary.Cipher, summary.CurSourceConfig)
-		if config != nil {
-			config.AppConfig = decrypt(summary.Cipher, config.AppConfig)
-			config.SourceConfig = decrypt(summary.Cipher, config.SourceConfig)
+	//get tge current index's config
+	appsummary = &model.AppSummary{}
+	if e := col.FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(appsummary); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrAppNotExist
 		}
+		return nil, nil, e
 	}
-	return summary, config, nil
+	if appsummary.Keys == nil {
+		return nil, nil, ecode.ErrKeyNotExist
+	}
+	keysummary, ok := appsummary.Keys[key]
+	if !ok {
+		return nil, nil, ecode.ErrKeyNotExist
+	}
+	if appsummary.Cipher != "" {
+		keysummary.CurValue = decrypt(appsummary.Cipher, keysummary.CurValue)
+	}
+	log = &model.Log{
+		Key:   key,
+		Index: keysummary.CurIndex,
+		Value: keysummary.CurValue,
+	}
+	return keysummary, log, nil
 }
-func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, appconfig, sourceconfig string, encrypt datahandler) (newindex uint32, e error) {
+func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value string, encrypt datahandler) (newindex uint32, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -223,38 +263,39 @@ func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, appconfig,
 		}
 	}()
 	col := d.mongo.Database("config_" + groupname).Collection(appname)
-	summary := &model.Summary{}
-	if e = col.FindOne(sctx, bson.M{"index": 0}).Decode(summary); e != nil {
+	appsummary := &model.AppSummary{}
+	if e = col.FindOne(sctx, bson.M{"key": "", "index": 0}).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
 		}
 		return
 	}
-	if summary.Cipher != "" {
-		appconfig = encrypt(summary.Cipher, appconfig)
-		sourceconfig = encrypt(summary.Cipher, sourceconfig)
+	if appsummary.Cipher != "" {
+		value = encrypt(appsummary.Cipher, value)
 	}
-	updateSummary := bson.M{
-		"cur_version":       summary.CurVersion + 1,
-		"max_index":         summary.MaxIndex + 1,
-		"cur_index":         summary.MaxIndex + 1,
-		"cur_app_config":    appconfig,
-		"cur_source_config": sourceconfig,
+	keysummary, ok := appsummary.Keys[key]
+	if !ok {
+		keysummary = &model.KeySummary{
+			CurIndex:   0,
+			MaxIndex:   0,
+			CurVersion: 0,
+			CurValue:   "",
+		}
 	}
-	if _, e = col.UpdateOne(sctx, bson.M{"index": 0}, bson.M{"$set": updateSummary}); e != nil {
+	keysummary.MaxIndex += 1
+	keysummary.CurIndex = keysummary.MaxIndex
+	keysummary.CurVersion += 1
+	keysummary.CurValue = value
+	if _, e = col.UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$set": bson.M{"keys." + key: keysummary}}); e != nil {
 		return
 	}
-	updateConfig := bson.M{
-		"app_config":    appconfig,
-		"source_config": sourceconfig,
-	}
-	if _, e = col.UpdateOne(sctx, bson.M{"index": summary.MaxIndex + 1}, bson.M{"$set": updateConfig}, options.Update().SetUpsert(true)); e != nil {
+	if _, e = col.UpdateOne(sctx, bson.M{"key": key, "index": keysummary.CurIndex}, bson.M{"$set": bson.M{"value": value}}, options.Update().SetUpsert(true)); e != nil {
 		return
 	}
-	newindex = summary.MaxIndex + 1
+	newindex = keysummary.CurIndex
 	return
 }
-func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname string, index uint32) (e error) {
+func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname, key string, index uint32) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -273,8 +314,8 @@ func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname string
 		}
 	}()
 	col := d.mongo.Database("config_" + groupname).Collection(appname)
-	config := &model.Config{}
-	if e = col.FindOne(sctx, bson.M{"index": index}).Decode(config); e != nil {
+	log := &model.Log{}
+	if e = col.FindOne(sctx, bson.M{"key": key, "index": index}).Decode(log); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrIndexNotExist
 		}
@@ -282,15 +323,14 @@ func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname string
 	}
 	updateSummary := bson.M{
 		"$set": bson.M{
-			"cur_index":         index,
-			"cur_app_config":    config.AppConfig,
-			"cur_source_config": config.SourceConfig,
+			"keys." + key + ".cur_index": index,
+			"keys." + key + ".cur_value": log.Value,
 		},
 		"$inc": bson.M{
-			"cur_version": 1,
+			"keys." + key + "+.cur_version": 1,
 		},
 	}
-	if r := col.FindOneAndUpdate(sctx, bson.M{"index": 0}, updateSummary); r.Err() != nil {
+	if r := col.FindOneAndUpdate(sctx, bson.M{"key": "", "index": 0}, updateSummary); r.Err() != nil {
 		if r.Err() == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
 		} else {
@@ -301,33 +341,40 @@ func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname string
 }
 
 //first key groupname,second key appname,value curconfig
-type WatchRefreshHandler func(map[string]map[string]*model.Summary)
-type WatchUpdateHandler func(string, string, *model.Summary)
+type WatchRefreshHandler func(map[string]map[string]*model.AppSummary)
+type WatchUpdateHandler func(string, string, *model.AppSummary)
 type WatchDeleteGroupHandler func(groupname string)
 type WatchDeleteAppHandler func(groupname, appname string)
 type WatchDeleteConfigHandler func(groupname, appname string, id string)
 
-func (d *Dao) getall(decrypt datahandler) (map[string]map[string]*model.Summary, error) {
+func (d *Dao) getall(decrypt datahandler) (map[string]map[string]*model.AppSummary, error) {
 	groups, e := d.MongoGetAllGroups(context.Background(), "")
 	if e != nil {
 		return nil, e
 	}
-	result := make(map[string]map[string]*model.Summary, len(groups))
+	result := make(map[string]map[string]*model.AppSummary, len(groups))
 	for _, group := range groups {
-		tmpgroup := make(map[string]*model.Summary)
+		tmpgroup := make(map[string]*model.AppSummary)
 		apps, e := d.MongoGetAllApps(context.Background(), group, "")
 		if e != nil {
 			return nil, e
 		}
 		for _, app := range apps {
-			summary, _, e := d.MongoGetConfig(context.Background(), group, app, 0, decrypt)
-			if e != nil {
-				return nil, e
-			}
-			if summary == nil || summary.CurVersion == 0 {
+			tmpapp := &model.AppSummary{}
+			if e := d.mongo.Database("config_"+group).Collection(app).FindOne(context.Background(), bson.M{"key": "", "index": 0}).Decode(tmpapp); e != nil {
+				if e == mongo.ErrNoDocuments {
+					log.Error(nil, "[MongoWatchConfig.getall] group:", group, "app:", app, "doesn't exist app summary")
+					continue
+				}
+				log.Error(nil, "[MongoWatchConfig.getall] group:", group, "app:", app, "get app summary error:", e)
 				continue
 			}
-			tmpgroup[app] = summary
+			if tmpapp.Cipher != "" {
+				for _, keysummary := range tmpapp.Keys {
+					keysummary.CurValue = decrypt(tmpapp.Cipher, keysummary.CurValue)
+				}
+			}
+			tmpgroup[app] = tmpapp
 		}
 		if len(tmpgroup) != 0 {
 			result[group] = tmpgroup
@@ -383,24 +430,26 @@ func (d *Dao) MongoWatchConfig(refresh WatchRefreshHandler, update WatchUpdateHa
 					//update document
 					groupname := stream.Current.Lookup("ns").Document().Lookup("db").StringValue()[7:]
 					appname := stream.Current.Lookup("ns").Document().Lookup("coll").StringValue()
-					index, ok := stream.Current.Lookup("fullDocument").Document().Lookup("index").Int32OK()
-					if !ok {
+					key, ok1 := stream.Current.Lookup("fullDocument").Document().Lookup("key").StringValueOK()
+					index, ok2 := stream.Current.Lookup("fullDocument").Document().Lookup("index").Int32OK()
+					if !ok1 || !ok2 {
 						//unknown doc
 						continue
 					}
-					if index != 0 {
-						//this is not the summary
+					if key != "" || index != 0 {
+						//this is not the app summary
 						continue
 					}
-					//this is the summary
-					s := &model.Summary{}
+					//this is the app summary
+					s := &model.AppSummary{}
 					if e := stream.Current.Lookup("fullDocument").Unmarshal(s); e != nil {
 						log.Error(nil, "[dao.MongoWatchConfig] group:", groupname, "app:", appname, "summary data broken:", e)
 						continue
 					}
 					if s.Cipher != "" {
-						s.CurAppConfig = decrypt(s.Cipher, s.CurAppConfig)
-						s.CurSourceConfig = decrypt(s.Cipher, s.CurSourceConfig)
+						for _, keysummary := range s.Keys {
+							keysummary.CurValue = decrypt(s.Cipher, keysummary.CurValue)
+						}
 					}
 					update(groupname, appname, s)
 				case "delete":

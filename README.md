@@ -45,21 +45,31 @@ database: config_{groupname}
 collection: {appname}
 {
 	"_id":ObjectId("xxxx"),
+	"key":"",//always empty
 	"index":0,//always be 0
 	"cipher":"",
-	"cur_index":0,
-	"max_index":0,//auto increment(every time insert a new config log)
-	"cur_version":0,//auto increment(every time insert or rollback)
-	"cur_app_config":"",
-	"cur_source_config":"",
+	"keys":{
+		"config_key1":{
+			"cur_index":0,
+			"max_index":0,//auto increment(every time insert a new config log)
+			"cur_version":0,//auto increment(every time insert or rollback)
+			"cur_value":"xxx"
+		},
+		"config_key2":{
+			"cur_index":0,
+			"max_index":0,//auto increment(every time insert a new config log)
+			"cur_version":0,//auto increment(every time insert or rollback)
+			"cur_value":"xxx"
+		}
+	}
 }//summary
 {
 	"_id":ObjectId("xxx"),
+	"key":"config_key1",//always not empty
 	"index":1,//always > 0
-	"app_config":"",
-	"source_config":""
+	"value":""
 }//log
-//index field add unique index
+//key+index field add unique index
 ```
 #### admin
 ```

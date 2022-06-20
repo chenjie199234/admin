@@ -1,9 +1,8 @@
 package config
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
+	"strings"
 	"sync"
 
 	"github.com/chenjie199234/admin/api"
@@ -15,7 +14,6 @@ import (
 
 	cerror "github.com/chenjie199234/Corelib/error"
 	"github.com/chenjie199234/Corelib/log"
-	"github.com/chenjie199234/Corelib/util/common"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
 	//"github.com/chenjie199234/Corelib/web"
@@ -30,8 +28,8 @@ type Service struct {
 	status bool
 }
 type app struct {
-	summary *model.Summary
-	notices map[chan *struct{}]*struct{}
+	appsummary *model.AppSummary
+	notices    map[chan *struct{}]*struct{}
 }
 
 //Start -
@@ -49,7 +47,7 @@ func Start() *Service {
 }
 
 //first key groupname,second key appname,value curconfig
-func (s *Service) refresh(curs map[string]map[string]*model.Summary) {
+func (s *Service) refresh(curs map[string]map[string]*model.AppSummary) {
 	s.Lock()
 	defer s.Unlock()
 	//delete not exist
@@ -63,10 +61,13 @@ func (s *Service) refresh(curs map[string]map[string]*model.Summary) {
 					delete(g, aname)
 				} else {
 					//if there are watchers,clean will happened when watcher return
-					a.summary.Cipher = ""
-					a.summary.CurVersion = 0
-					a.summary.CurAppConfig = "{}"
-					a.summary.CurSourceConfig = "{}"
+					a.appsummary.Cipher = ""
+					for _, keysummary := range a.appsummary.Keys {
+						keysummary.CurVersion = 0
+						keysummary.CurIndex = 0
+						keysummary.MaxIndex = 0
+						keysummary.CurValue = ""
+					}
 					for notice := range a.notices {
 						notice <- nil
 					}
@@ -86,10 +87,13 @@ func (s *Service) refresh(curs map[string]map[string]*model.Summary) {
 					delete(g, aname)
 				} else {
 					//if there are watchers,clean will happened when watcher return
-					a.summary.Cipher = ""
-					a.summary.CurVersion = 0
-					a.summary.CurAppConfig = "{}"
-					a.summary.CurSourceConfig = "{}"
+					a.appsummary.Cipher = ""
+					for _, keysummary := range a.appsummary.Keys {
+						keysummary.CurVersion = 0
+						keysummary.CurIndex = 0
+						keysummary.MaxIndex = 0
+						keysummary.CurValue = ""
+					}
 					for notice := range a.notices {
 						notice <- nil
 					}
@@ -108,29 +112,43 @@ func (s *Service) refresh(curs map[string]map[string]*model.Summary) {
 			g = make(map[string]*app)
 		}
 		for aname, cura := range curg {
-			log.Debug(nil, "[refresh.update] group:", gname, "app:", aname, "version:", cura.CurVersion, "AppConfig:", cura.CurAppConfig, "SourceConfig:", cura.CurSourceConfig)
+			log.Debug(nil, "[refresh.update] group:", gname, "app:", aname, "cipher:", cura.Cipher, "keys:", cura.Keys)
 			a, ok := g[aname]
 			if !ok {
 				//this is a new
-				if cura.CurVersion == 0 {
+				if len(cura.Keys) == 0 {
+					//this is same as not exist
+					continue
+				}
+				has := false
+				for _, keysummary := range cura.Keys {
+					if keysummary.CurVersion > 0 {
+						has = true
+						break
+					}
+
+				}
+				if !has {
 					//this is same as not exist
 					continue
 				}
 				g[aname] = &app{
-					summary: cura,
-					notices: make(map[chan *struct{}]*struct{}),
+					appsummary: cura,
+					notices:    make(map[chan *struct{}]*struct{}),
 				}
-				continue
-			}
-			//already exist
-			if cura.CurVersion == 0 && len(a.notices) == 0 {
-				//this is same as not exist and there are no watchers,clean right now
-				delete(g, aname)
-				continue
-			}
-			a.summary = cura
-			for notice := range a.notices {
-				notice <- nil
+			} else {
+				//already exist
+				if len(cura.Keys) > 0 {
+					a.appsummary = cura
+					for notice := range a.notices {
+						notice <- nil
+					}
+					continue
+				}
+				if len(a.notices) == 0 {
+					//this is same as not exist and there are no watchers,clean right now
+					delete(g, aname)
+				}
 			}
 		}
 		if !gok && len(g) > 0 {
@@ -140,8 +158,8 @@ func (s *Service) refresh(curs map[string]map[string]*model.Summary) {
 		}
 	}
 }
-func (s *Service) update(gname, aname string, cur *model.Summary) {
-	log.Debug(nil, "[update] group:", gname, "app:", aname, "version:", cur.CurVersion, "AppConfig:", cur.CurAppConfig, "SourceConfig:", cur.CurSourceConfig)
+func (s *Service) update(gname, aname string, cur *model.AppSummary) {
+	log.Debug(nil, "[update] group:", gname, "app:", aname, "cipher:", cur.Cipher, "keys:", cur.Keys)
 	s.Lock()
 	defer s.Unlock()
 	g, gok := s.apps[gname]
@@ -158,25 +176,37 @@ func (s *Service) update(gname, aname string, cur *model.Summary) {
 	a, ok := g[aname]
 	if !ok {
 		//this is a new
-		if cur.CurVersion == 0 {
+		if len(cur.Keys) == 0 {
+			//this is same as not exist
+			return
+		}
+		has := false
+		for _, keysummary := range cur.Keys {
+			if keysummary.CurVersion > 0 {
+				break
+			}
+		}
+		if !has {
 			//this is same as not exist
 			return
 		}
 		g[aname] = &app{
-			summary: cur,
-			notices: make(map[chan *struct{}]*struct{}),
+			appsummary: cur,
+			notices:    make(map[chan *struct{}]*struct{}),
 		}
 		return
 	}
 	//already exist
-	if cur.CurVersion == 0 && len(a.notices) == 0 {
-		//this is same as not exist and there are no watchers,clean right now
-		delete(g, aname)
+	if len(cur.Keys) > 0 {
+		a.appsummary = cur
+		for notice := range a.notices {
+			notice <- nil
+		}
 		return
 	}
-	a.summary = cur
-	for notice := range a.notices {
-		notice <- nil
+	if len(a.notices) == 0 {
+		//this is same as not exist and there are no watchers,clean right now
+		delete(g, aname)
 	}
 }
 func (s *Service) delgroup(groupname string) {
@@ -193,10 +223,13 @@ func (s *Service) delgroup(groupname string) {
 			delete(g, aname)
 		} else {
 			//if there are watchers,clean will happened when watcher return
-			a.summary.Cipher = ""
-			a.summary.CurVersion = 0
-			a.summary.CurAppConfig = "{}"
-			a.summary.CurSourceConfig = "{}"
+			a.appsummary.Cipher = ""
+			for _, keysummary := range a.appsummary.Keys {
+				keysummary.CurVersion = 0
+				keysummary.CurIndex = 0
+				keysummary.MaxIndex = 0
+				keysummary.CurValue = ""
+			}
 			for notice := range a.notices {
 				notice <- nil
 			}
@@ -227,10 +260,13 @@ func (s *Service) delapp(groupname, appname string) {
 		}
 	} else {
 		//if there are watchers,clean will happened when watcher return
-		a.summary.Cipher = ""
-		a.summary.CurVersion = 0
-		a.summary.CurAppConfig = "{}"
-		a.summary.CurSourceConfig = "{}"
+		a.appsummary.Cipher = ""
+		for _, keysummary := range a.appsummary.Keys {
+			keysummary.CurVersion = 0
+			keysummary.CurIndex = 0
+			keysummary.MaxIndex = 0
+			keysummary.CurValue = ""
+		}
 		for notice := range a.notices {
 			notice <- nil
 		}
@@ -247,12 +283,12 @@ func (s *Service) delconfig(groupname, appname, summaryid string) {
 	if !ok {
 		return
 	}
-	if a.summary.ID.Hex() != summaryid {
-		log.Debug(nil, "[delconfig] group:", groupname, "app:", appname, "config")
+	if a.appsummary.ID.Hex() != summaryid {
+		log.Debug(nil, "[delconfig] group:", groupname, "app:", appname, "config log")
 		return
 	}
 	//delete the summary,this is same as delete the app
-	log.Debug(nil, "[delconfig] group:", groupname, "app:", appname, "summary")
+	log.Debug(nil, "[delconfig] group:", groupname, "app:", appname)
 	if len(a.notices) == 0 {
 		//if there are no watchers,clean right now
 		delete(g, appname)
@@ -261,10 +297,13 @@ func (s *Service) delconfig(groupname, appname, summaryid string) {
 		}
 	} else {
 		//if there are watchers,clean will happened when watcher return
-		a.summary.Cipher = ""
-		a.summary.CurVersion = 0
-		a.summary.CurAppConfig = "{}"
-		a.summary.CurSourceConfig = "{}"
+		a.appsummary.Cipher = ""
+		for _, keysummary := range a.appsummary.Keys {
+			keysummary.CurVersion = 0
+			keysummary.CurIndex = 0
+			keysummary.MaxIndex = 0
+			keysummary.CurValue = ""
+		}
 		for notice := range a.notices {
 			notice <- nil
 		}
@@ -276,33 +315,91 @@ func (s *Service) Groups(ctx context.Context, req *api.GroupsReq) (*api.GroupsRe
 	groups, e := s.configDao.MongoGetAllGroups(ctx, req.SearchFilter)
 	if e != nil {
 		log.Error(ctx, "[Groups]", e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	return &api.GroupsResp{Groups: groups}, nil
 }
 
-//get all apps
+//del one specific group
+func (s *Service) DelGroup(ctx context.Context, req *api.DelGroupReq) (*api.DelGroupResp, error) {
+	e := s.configDao.MongoDelGroup(ctx, req.Groupname)
+	if e != nil {
+		log.Error(ctx, "[DelGroup] group:", req.Groupname, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
+		return nil, ecode.ErrSystem
+	}
+	return &api.DelGroupResp{}, nil
+}
+
+//get all apps in one specific group
 func (s *Service) Apps(ctx context.Context, req *api.AppsReq) (*api.AppsResp, error) {
 	apps, e := s.configDao.MongoGetAllApps(ctx, req.Groupname, req.SearchFilter)
 	if e != nil {
-		log.Error(ctx, "[Apps] group:", req.Groupname, "error:", e)
+		log.Error(ctx, "[Apps] group:", req.Groupname, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	return &api.AppsResp{Apps: apps}, nil
 }
 
+//del one specific app in one specific group
+func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppResp, error) {
+	e := s.configDao.MongoDelApp(ctx, req.Groupname, req.Appname)
+	if e != nil {
+		log.Error(ctx, "[DelApp] group:", req.Groupname, "app:", req.Appname, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
+		return nil, ecode.ErrSystem
+	}
+	return &api.DelAppResp{}, nil
+}
+
+//get all config's keys in this app
+func (s *Service) Keys(ctx context.Context, req *api.KeysReq) (*api.KeysResp, error) {
+	keys, e := s.configDao.MongoGetAllKeys(ctx, req.Groupname, req.Appname)
+	if e != nil {
+		log.Error(ctx, "[Keys] group:", req.Groupname, "app:", req.Appname, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
+		return nil, ecode.ErrSystem
+	}
+	return &api.KeysResp{Keys: keys}, nil
+}
+
+//del one specific key in one specific app
+func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyResp, error) {
+	e := s.configDao.MongoDelKey(ctx, req.Groupname, req.Appname, req.Key)
+	if e != nil {
+		log.Error(ctx, "[DelKey] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
+		return nil, ecode.ErrSystem
+	}
+	return &api.DelKeyResp{}, nil
+}
+
 //create one specific app
 func (s *Service) Create(ctx context.Context, req *api.CreateReq) (*api.CreateResp, error) {
 	if req.Cipher != "" && len(req.Cipher) != 32 {
-		log.Error(ctx, "[Create] group:", req.Groupname, "app:", req.Appname, "error:", ecode.ErrCipherLength)
+		log.Error(ctx, "[Create] group:", req.Groupname, "app:", req.Appname, ecode.ErrCipherLength)
 		return nil, ecode.ErrCipherLength
 	}
 	if e := s.configDao.MongoCreate(ctx, req.Groupname, req.Appname, req.Cipher, util.Encrypt); e != nil {
-		log.Error(ctx, "[Create] group:", req.Groupname, "app:", req.Appname, "error:", e)
-		if e != ecode.ErrAppAlreadyExist {
-			e = ecode.ErrSystem
+		log.Error(ctx, "[Create] group:", req.Groupname, "app:", req.Appname, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
 		}
-		return nil, e
+		return nil, ecode.ErrSystem
 	}
 	log.Info(ctx, "[Create] group:", req.Groupname, "app:", req.Appname, "success")
 	return &api.CreateResp{}, nil
@@ -311,98 +408,76 @@ func (s *Service) Create(ctx context.Context, req *api.CreateReq) (*api.CreateRe
 //update one specific app's cipher
 func (s *Service) Updatecipher(ctx context.Context, req *api.UpdatecipherReq) (*api.UpdatecipherResp, error) {
 	if req.New != "" && len(req.New) != 32 {
-		log.Error(ctx, "[Updatechiper] group:", req.Groupname, "app:", req.Appname, "error:", ecode.ErrCipherLength)
+		log.Error(ctx, "[Updatechiper] group:", req.Groupname, "app:", req.Appname, ecode.ErrCipherLength)
 		return nil, ecode.ErrCipherLength
 	}
 	if req.Old == req.New {
 		return &api.UpdatecipherResp{}, nil
 	}
 	if e := s.configDao.MongoUpdateCipher(ctx, req.Groupname, req.Appname, req.Old, req.New, util.Decrypt, util.Encrypt); e != nil {
-		log.Error(ctx, "[Updatechiper] group:", req.Groupname, "app:", req.Appname, "error:", e)
-		if e != ecode.ErrAppNotExist && e != ecode.ErrWrongCipher {
-			e = ecode.ErrSystem
+		log.Error(ctx, "[Updatechiper] group:", req.Groupname, "app:", req.Appname, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
 		}
-		return nil, e
+		return nil, ecode.ErrSystem
 	}
 	log.Info(ctx, "[Updatecipher] group:", req.GetGroupname, "app:", req.Appname, "success")
 	return &api.UpdatecipherResp{}, nil
 }
 
-//get one specific app's config
+//get config
 func (s *Service) Get(ctx context.Context, req *api.GetReq) (*api.GetResp, error) {
-	summary, config, e := s.configDao.MongoGetConfig(ctx, req.Groupname, req.Appname, req.Index, util.Decrypt)
+	keysummary, configlog, e := s.configDao.MongoGetConfig(ctx, req.Groupname, req.Appname, req.Key, req.Index, util.Decrypt)
 	if e != nil {
-		log.Error(ctx, "[Get] group:", req.Groupname, "app:", req.Appname, "error:", e)
+		log.Error(ctx, "[Get] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, "index:", req.Index, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
-	if summary == nil {
-		return nil, ecode.ErrAppNotExist
-	}
-	if config == nil {
-		//this can only happened when the index is not 0
-		log.Error(ctx, "[Get] group:", req.Groupname, "app:", req.Appname, "index:", req.Index, "error: doesn't exist")
-		return nil, ecode.ErrIndexNotExist
-	}
 	return &api.GetResp{
-		CurIndex:     summary.CurIndex,
-		MaxIndex:     summary.MaxIndex,
-		CurVersion:   summary.CurVersion,
-		ThisIndex:    config.Index,
-		AppConfig:    config.AppConfig,
-		SourceConfig: config.SourceConfig,
+		CurIndex:   keysummary.CurIndex,
+		MaxIndex:   keysummary.MaxIndex,
+		CurVersion: keysummary.CurVersion,
+		ThisIndex:  configlog.Index,
+		Value:      configlog.Value,
 	}, nil
 }
 
-//set one specific app's config
+//set config
 func (s *Service) Set(ctx context.Context, req *api.SetReq) (*api.SetResp, error) {
-	if req.AppConfig == "" {
-		req.AppConfig = "{}"
-	} else {
-		buf := bytes.NewBuffer(nil)
-		e := json.Compact(buf, common.Str2byte(req.AppConfig))
-		if e != nil {
-			return nil, ecode.ErrConfigFormat
-		}
-		if buf.Bytes()[0] != '{' || buf.Bytes()[buf.Len()-1] != '}' {
-			return nil, ecode.ErrConfigFormat
-		}
-		req.AppConfig = buf.String()
+	req.Key = strings.TrimSpace(req.Key)
+	if req.Key == "" {
+		log.Error(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "key empty")
+		return nil, ecode.ErrReq
 	}
-	if req.SourceConfig == "" {
-		req.SourceConfig = "{}"
-	} else {
-		buf := bytes.NewBuffer(nil)
-		e := json.Compact(buf, common.Str2byte(req.SourceConfig))
-		if e != nil {
-			return nil, ecode.ErrConfigFormat
-		}
-		if buf.Bytes()[0] != '{' || buf.Bytes()[buf.Len()-1] != '}' {
-			return nil, ecode.ErrConfigFormat
-		}
-		req.SourceConfig = buf.String()
+	req.Value = strings.TrimSpace(req.Value)
+	if req.Value == "" {
+		log.Error(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "value empty")
+		return nil, ecode.ErrReq
 	}
-	index, e := s.configDao.MongoSetConfig(ctx, req.Groupname, req.Appname, req.AppConfig, req.SourceConfig, util.Encrypt)
+	index, e := s.configDao.MongoSetConfig(ctx, req.Groupname, req.Appname, req.Key, req.Value, util.Encrypt)
 	if e != nil {
-		log.Error(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "error:", e)
-		if e != ecode.ErrAppNotExist {
-			e = ecode.ErrSystem
+		log.Error(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
 		}
-		return nil, e
+		return nil, ecode.ErrSystem
 	}
-	log.Info(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "index:", index, "success")
+	log.Info(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, "index:", index, "success")
 	return &api.SetResp{}, nil
 }
 
-//rollback one specific app's config
+//rollback config
 func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.RollbackResp, error) {
-	if e := s.configDao.MongoRollbackConfig(ctx, req.Groupname, req.Appname, req.Index); e != nil {
-		log.Error(ctx, "[Rollback] group:", req.Groupname, "app:", req.Appname, "error:e", e)
+	if e := s.configDao.MongoRollbackConfig(ctx, req.Groupname, req.Appname, req.Key, req.Index); e != nil {
+		log.Error(ctx, "[Rollback] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, e)
 		if e != ecode.ErrAppNotExist && e != ecode.ErrIndexNotExist {
 			e = ecode.ErrSystem
 		}
 		return nil, e
 	}
-	log.Info(ctx, "[Rollback] group:", req.Groupname, "app:", req.Appname, "index:", req.Index, "success")
+	log.Info(ctx, "[Rollback] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, "index:", req.Index, "success")
 	return &api.RollbackResp{}, nil
 }
 
@@ -417,8 +492,11 @@ func (s *Service) putnotice(ch chan *struct{}) {
 	s.noticepool.Put(ch)
 }
 
-//watch on specific app's config
+//watch config
 func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp, error) {
+	resp := &api.WatchResp{
+		Datas: make(map[string]*api.WatchData, len(req.Keys)+3),
+	}
 	s.Lock()
 	if !s.status {
 		s.Unlock()
@@ -432,25 +510,55 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 	a, ok := g[req.Appname]
 	if !ok {
 		a = &app{
-			summary: &model.Summary{
-				Cipher:          "",
-				CurVersion:      0,
-				CurAppConfig:    "{}",
-				CurSourceConfig: "{}",
-			},
-			notices: make(map[chan *struct{}]*struct{}),
+			appsummary: &model.AppSummary{},
+			notices:    make(map[chan *struct{}]*struct{}),
 		}
-		g[req.Appname] = a
 	}
-	if int32(a.summary.CurVersion) != req.CurVersion {
-		resp := &api.WatchResp{
-			Version:      int32(a.summary.CurVersion),
-			AppConfig:    a.summary.CurAppConfig,
-			SourceConfig: a.summary.CurSourceConfig,
+	needreturn := false
+	for key, clientversion := range req.Keys {
+		keysummary, ok := a.appsummary.Keys[key]
+		if !ok {
+			resp.Datas[key] = &api.WatchData{
+				Key:     key,
+				Value:   "",
+				Version: 0,
+			}
+			if clientversion != 0 {
+				needreturn = true
+			}
+			continue
 		}
+		if clientversion != int32(keysummary.CurVersion) {
+			resp.Datas[key] = &api.WatchData{
+				Key:     key,
+				Value:   keysummary.CurValue,
+				Version: int32(keysummary.CurVersion),
+			}
+			needreturn = true
+		} else {
+			resp.Datas[key] = &api.WatchData{
+				Key:     key,
+				Value:   "",
+				Version: clientversion,
+			}
+		}
+	}
+	if needreturn {
 		s.Unlock()
 		return resp, nil
 	}
+	if !ok {
+		g[req.Appname] = a
+	}
+	//if int32(a.summary.CurVersion) != req.CurVersion {
+	//        resp := &api.WatchResp{
+	//                Version:      int32(a.summary.CurVersion),
+	//                AppConfig:    a.summary.CurAppConfig,
+	//                SourceConfig: a.summary.CurSourceConfig,
+	//        }
+	//        s.Unlock()
+	//        return resp, nil
+	//}
 	for {
 		ch := s.getnotice()
 		a.notices[ch] = nil
@@ -460,8 +568,22 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 			s.Lock()
 			delete(a.notices, ch)
 			s.putnotice(ch)
-			if len(a.notices) == 0 && a.summary.CurVersion == 0 {
-				delete(g, req.Appname)
+			if len(a.notices) == 0 {
+				if len(a.appsummary.Keys) == 0 {
+					delete(g, req.Appname)
+				} else {
+					has := false
+					for _, keysmmary := range a.appsummary.Keys {
+						if keysmmary.CurVersion > 0 {
+							has = true
+							break
+						}
+					}
+					if !has {
+						//this is same as not exist
+						delete(g, req.Appname)
+					}
+				}
 			}
 			if len(g) == 0 {
 				delete(s.apps, req.Groupname)

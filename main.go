@@ -29,11 +29,12 @@ func main() {
 		xweb.UpdateWebPathRewrite(ac.WebPathRewrite)
 		publicmids.UpdateRateConfig(ac.HandlerRate)
 		publicmids.UpdateAccessKeyConfig(ac.AccessKeys)
+		publicmids.UpdateIpConfig(ac.WhiteIP, ac.BlackIP)
 	})
 	defer config.Close()
 	//start the whole business service
 	if e := service.StartService(); e != nil {
-		log.Error(nil,e)
+		log.Error(nil, e)
 		return
 	}
 	//start low level net service

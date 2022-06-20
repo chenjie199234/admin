@@ -26,8 +26,24 @@ service config{
 	rpc groups(groups_req)returns(groups_resp){
 		option (pbex.method)="post";
 	}
-	//get all apps in specific group
+	//del one specific group
+	rpc del_group(del_group_req)returns(del_group_resp){
+		option (pbex.method)="post";
+	}
+	//get all apps in one specific group
 	rpc apps(apps_req)returns(apps_resp){
+		option (pbex.method)="post";
+	}
+	//del one specific app in one specific group
+	rpc del_app(del_app_req)returns(del_app_resp){
+		option (pbex.method)="post";
+	}
+	//get all config's keys in one specific app
+	rpc keys(keys_req)returns(keys_resp){
+		option (pbex.method)="post";
+	}
+	//del one specific key in one specific app
+	rpc del_key(del_key_req)returns(del_key_resp){
 		option (pbex.method)="post";
 	}
 	//create one specific app
@@ -38,19 +54,19 @@ service config{
 	rpc updatecipher(updatecipher_req)returns(updatecipher_resp){
 		option (pbex.method)="post";
 	}
-	//get one specific app's config
+	//get config
 	rpc get(get_req)returns(get_resp){
 		option (pbex.method)="post";
 	}
-	//set one specific app's config
+	//set config
 	rpc set(set_req)returns(set_resp){
 		option (pbex.method)="post";
 	}
-	//rollback one specific app's config
+	//rollback config
 	rpc rollback(rollback_req)returns(rollback_resp){
 		option (pbex.method)="post";
 	}
-	//watch on specific app's config
+	//watch config
 	rpc watch(watch_req)returns(watch_resp){
 		option (pbex.method)="post";
 	}
@@ -71,12 +87,40 @@ message groups_req {
 message groups_resp {
 	repeated string groups=1;
 }
+message del_group_req {
+	string groupname=1[(pbex.string_bytes_len_gt)=0];
+}
+message del_group_resp {
+
+}
 message apps_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string search_filter=2;
 }
 message apps_resp {
 	repeated string apps=1;
+}
+message del_app_req {
+	string groupname=1[(pbex.string_bytes_len_gt)=0];
+	string appname=2[(pbex.string_bytes_len_gt)=0];
+}
+message del_app_resp {
+
+}
+message keys_req {
+	string groupname=1[(pbex.string_bytes_len_gt)=0];
+	string appname=2[(pbex.string_bytes_len_gt)=0];
+}
+message keys_resp {
+	repeated string keys=1;
+}
+message del_key_req {
+	string groupname=1[(pbex.string_bytes_len_gt)=0];
+	string appname=2[(pbex.string_bytes_len_gt)=0];
+	string key=3[(pbex.string_bytes_len_gt)=0];
+}
+message del_key_resp {
+
 }
 message create_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
@@ -85,7 +129,7 @@ message create_req {
 }
 message create_resp {
 }
-message updatecipher_req{
+message updatecipher_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
 	string old=3;
@@ -97,38 +141,46 @@ message updatecipher_resp{
 message get_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
-	uint32 index=3;//0 means return current active config,config's index start from 1
+	string key=3[(pbex.string_bytes_len_gt)=0];
+	uint32 index=4;//0 means return current active config,config's index start from 1
 }
 message get_resp {
 	uint32 cur_index=1;//current active config index,0 means not exist
 	uint32 max_index=2;//current max config index,0 means not exist
 	uint32 cur_version=3;//current active config version,config's version start from 1
 	uint32 this_index=4;//the config data below belong's to which index
-	string app_config=5;
-	string source_config=6;
+	string value=5;
 }
 message set_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
-	string app_config=3;
-	string source_config=4;
+	string key=3[(pbex.string_bytes_len_gt)=0];
+	string value=4[(pbex.string_bytes_len_gt)=0];
 }
 message set_resp {
 }
 message rollback_req{
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
-	uint32 index=3[(pbex.uint_gt)=0];
+	string key=3[(pbex.string_bytes_len_gt)=0];
+	uint32 index=4[(pbex.uint_gt)=0];
 }
 message rollback_resp{
 }
 message watch_req{
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
-	int32 cur_version=3;//<0 means return current active config,if cur_version is the newest,the request will block until a new version come
+	//map's key is config's keyname,map's value is config's cur version
+	//if cur version < 0 means return current active config
+	//if all cur version is the newest,the request will block until a new version come
+	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
+	map<string,int32> keys=3[(pbex.map_repeated_len_gt)=0];
 }
 message watch_resp{
-	string app_config=1;
-	string source_config=2;
+	map<string,watch_data> datas=1;
+}
+message watch_data{
+	string key=1;
+	string value=2;
 	int32 version=3;
 }

@@ -7,9 +7,53 @@
 package api
 
 //return empty means pass
+func (m *DelGroupReq) Validate() (errstr string) {
+	if len(m.GetGroupname()) <= 0 {
+		return "field: groupname in object: del_group_req check value str len gt failed"
+	}
+	return ""
+}
+
+//return empty means pass
 func (m *AppsReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: apps_req check value str len gt failed"
+	}
+	return ""
+}
+
+//return empty means pass
+func (m *DelAppReq) Validate() (errstr string) {
+	if len(m.GetGroupname()) <= 0 {
+		return "field: groupname in object: del_app_req check value str len gt failed"
+	}
+	if len(m.GetAppname()) <= 0 {
+		return "field: appname in object: del_app_req check value str len gt failed"
+	}
+	return ""
+}
+
+//return empty means pass
+func (m *KeysReq) Validate() (errstr string) {
+	if len(m.GetGroupname()) <= 0 {
+		return "field: groupname in object: keys_req check value str len gt failed"
+	}
+	if len(m.GetAppname()) <= 0 {
+		return "field: appname in object: keys_req check value str len gt failed"
+	}
+	return ""
+}
+
+//return empty means pass
+func (m *DelKeyReq) Validate() (errstr string) {
+	if len(m.GetGroupname()) <= 0 {
+		return "field: groupname in object: del_key_req check value str len gt failed"
+	}
+	if len(m.GetAppname()) <= 0 {
+		return "field: appname in object: del_key_req check value str len gt failed"
+	}
+	if len(m.GetKey()) <= 0 {
+		return "field: key in object: del_key_req check value str len gt failed"
 	}
 	return ""
 }
@@ -44,6 +88,9 @@ func (m *GetReq) Validate() (errstr string) {
 	if len(m.GetAppname()) <= 0 {
 		return "field: appname in object: get_req check value str len gt failed"
 	}
+	if len(m.GetKey()) <= 0 {
+		return "field: key in object: get_req check value str len gt failed"
+	}
 	return ""
 }
 
@@ -55,6 +102,12 @@ func (m *SetReq) Validate() (errstr string) {
 	if len(m.GetAppname()) <= 0 {
 		return "field: appname in object: set_req check value str len gt failed"
 	}
+	if len(m.GetKey()) <= 0 {
+		return "field: key in object: set_req check value str len gt failed"
+	}
+	if len(m.GetValue()) <= 0 {
+		return "field: value in object: set_req check value str len gt failed"
+	}
 	return ""
 }
 
@@ -65,6 +118,9 @@ func (m *RollbackReq) Validate() (errstr string) {
 	}
 	if len(m.GetAppname()) <= 0 {
 		return "field: appname in object: rollback_req check value str len gt failed"
+	}
+	if len(m.GetKey()) <= 0 {
+		return "field: key in object: rollback_req check value str len gt failed"
 	}
 	if m.GetIndex() <= 0 {
 		return "field: index in object: rollback_req check value uint gt failed"
@@ -79,6 +135,9 @@ func (m *WatchReq) Validate() (errstr string) {
 	}
 	if len(m.GetAppname()) <= 0 {
 		return "field: appname in object: watch_req check value str len gt failed"
+	}
+	if len(m.GetKeys()) <= 0 {
+		return "field: keys in object: watch_req check len gt failed"
 	}
 	return ""
 }

@@ -54,9 +54,30 @@ func (d *Dao) MongoGetAllKeys(ctx context.Context, groupname, appname string) ([
 	}
 	return result, nil
 }
-func (d *Dao) MongoDelKey(ctx context.Context, groupname, appname, key string) error {
-	_, e := d.mongo.Database("config_"+groupname).Collection(appname).UpdateOne(ctx, bson.M{"key": "", "index": 0}, bson.M{"$unset": bson.M{"keys." + key: 1}})
-	return e
+func (d *Dao) MongoDelKey(ctx context.Context, groupname, appname, key string) (e error) {
+	var s mongo.Session
+	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
+	if e != nil {
+		return
+	}
+	defer s.EndSession(ctx)
+	sctx := mongo.NewSessionContext(ctx, s)
+	if e = s.StartTransaction(); e != nil {
+		return
+	}
+	defer func() {
+		if e != nil {
+			s.AbortTransaction(sctx)
+		} else if e = s.CommitTransaction(sctx); e != nil {
+			s.AbortTransaction(sctx)
+		}
+	}()
+	_, e = d.mongo.Database("config_"+groupname).Collection(appname).UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$unset": bson.M{"keys." + key: 1}})
+	if e != nil {
+		return
+	}
+	_, e = d.mongo.Database("config_"+groupname).Collection(appname).DeleteMany(sctx, bson.M{"key": key})
+	return
 }
 
 func (d *Dao) MongoCreate(ctx context.Context, groupname, appname, cipher string, encrypt datahandler) (e error) {
@@ -82,7 +103,7 @@ func (d *Dao) MongoCreate(ctx context.Context, groupname, appname, cipher string
 	}()
 	col := d.mongo.Database("config_" + groupname).Collection(appname)
 	index := mongo.IndexModel{
-		Keys:    bson.D{primitive.E{Key: "index", Value: 1}, primitive.E{Key: "key", Value: 1}},
+		Keys:    bson.D{primitive.E{Key: "key", Value: 1}, primitive.E{Key: "index", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 	if _, e = col.Indexes().CreateOne(sctx, index); e != nil {
@@ -147,7 +168,7 @@ func (d *Dao) MongoUpdateCipher(ctx context.Context, groupname, appname, oldciph
 		return
 	}
 	var cursor *mongo.Cursor
-	if cursor, e = col.Find(sctx, bson.M{"key": bson.M{"$ne": ""}, "index": bson.M{"$gt": 0}}, options.Find().SetSort(bson.M{"key": -1, "index": -1})); e != nil {
+	if cursor, e = col.Find(sctx, bson.M{"key": bson.M{"$ne": ""}, "index": bson.M{"$gt": 0}}, options.Find().SetSort(bson.M{"key": -1})); e != nil {
 		return
 	}
 	for cursor.Next(sctx) {
@@ -171,7 +192,7 @@ func (d *Dao) MongoUpdateCipher(ctx context.Context, groupname, appname, oldciph
 
 //index == 0 get the current index's config
 //index != 0 get the specific index's config
-func (d *Dao) MongoGetConfig(ctx context.Context, groupname, appname, key string, index uint32, decrypt datahandler) (*model.KeySummary, *model.Log, error) {
+func (d *Dao) MongoGetKeyConfig(ctx context.Context, groupname, appname, key string, index uint32, decrypt datahandler) (*model.KeySummary, *model.Log, error) {
 	col := d.mongo.Database("config_"+groupname, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection(appname)
 	var appsummary *model.AppSummary
 	var log *model.Log
@@ -244,7 +265,24 @@ func (d *Dao) MongoGetConfig(ctx context.Context, groupname, appname, key string
 	}
 	return keysummary, log, nil
 }
-func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value string, encrypt datahandler) (newindex uint32, e error) {
+
+//get the app's all keys' current config
+func (d *Dao) MongoGetAppConfig(ctx context.Context, groupname, appname string, decrypt datahandler) (*model.AppSummary, error) {
+	app := &model.AppSummary{}
+	if e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(app); e != nil {
+		if e == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, e
+	}
+	if app.Cipher != "" {
+		for _, keysummary := range app.Keys {
+			keysummary.CurValue = decrypt(app.Cipher, keysummary.CurValue)
+		}
+	}
+	return app, nil
+}
+func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value string, encrypt datahandler) (newindex, newversion uint32, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -293,6 +331,7 @@ func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value
 		return
 	}
 	newindex = keysummary.CurIndex
+	newversion = keysummary.CurVersion
 	return
 }
 func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname, key string, index uint32) (e error) {
@@ -327,7 +366,7 @@ func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname, key s
 			"keys." + key + ".cur_value": log.Value,
 		},
 		"$inc": bson.M{
-			"keys." + key + "+.cur_version": 1,
+			"keys." + key + ".cur_version": 1,
 		},
 	}
 	if r := col.FindOneAndUpdate(sctx, bson.M{"key": "", "index": 0}, updateSummary); r.Err() != nil {
@@ -341,9 +380,7 @@ func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname, key s
 }
 
 //first key groupname,second key appname,value curconfig
-type WatchRefreshHandler func(map[string]map[string]*model.AppSummary)
 type WatchUpdateHandler func(string, string, *model.AppSummary)
-type WatchDeleteGroupHandler func(groupname string)
 type WatchDeleteAppHandler func(groupname, appname string)
 type WatchDeleteConfigHandler func(groupname, appname string, id string)
 
@@ -382,42 +419,27 @@ func (d *Dao) getall(decrypt datahandler) (map[string]map[string]*model.AppSumma
 	}
 	return result, nil
 }
-func (d *Dao) MongoWatchConfig(refresh WatchRefreshHandler, update WatchUpdateHandler, delG WatchDeleteGroupHandler, delA WatchDeleteAppHandler, delC WatchDeleteConfigHandler, decrypt datahandler) error {
+func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHandler, delC WatchDeleteConfigHandler, decrypt datahandler) error {
+	starttime := &primitive.Timestamp{T: uint32(time.Now().Unix()), I: uint32(0)}
 	watchfilter := mongo.Pipeline{bson.D{primitive.E{Key: "$match", Value: bson.M{"ns.db": bson.M{"$regex": "^config_"}}}}}
-	stream, e := d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup))
+	stream, e := d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime))
 	if e != nil {
 		return e
 	}
-	datas, e := d.getall(decrypt)
-	if e != nil {
-		return e
-	}
-	refresh(datas)
 	go func() {
 		for {
 			for stream == nil {
 				//reconnect
 				time.Sleep(time.Millisecond * 5)
-				if stream, e = d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup)); e != nil {
+				if stream, e = d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime)); e != nil {
 					log.Error(nil, "[dao.MongoWatchConfig] reconnect stream error:", e)
 					stream = nil
 					continue
 				}
-				datas, e = d.getall(decrypt)
-				if e != nil {
-					log.Error(nil, "[dao.MongoWatchConfig] refresh after reconnect stream error:", e)
-					stream.Close(context.Background())
-					stream = nil
-					continue
-				}
-				refresh(datas)
 			}
 			for stream.Next(context.Background()) {
+				starttime.T, starttime.I = stream.Current.Lookup("clusterTime").Timestamp()
 				switch stream.Current.Lookup("operationType").StringValue() {
-				case "dropDatabase":
-					//drop database
-					groupname := stream.Current.Lookup("ns").Document().Lookup("db").StringValue()[7:]
-					delG(groupname)
 				case "drop":
 					//drop collection
 					groupname := stream.Current.Lookup("ns").Document().Lookup("db").StringValue()[7:]

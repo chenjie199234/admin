@@ -13,14 +13,13 @@ import (
 )
 
 type Sdk struct {
-	pingclient   api.StatusWebClient
-	configclient api.ConfigWebClient
-	wait         chan *struct{}
-	lker         sync.Mutex
-	keys         map[string]*api.WatchData
-	keysnotice   map[string]NoticeHandler
-	ctx          context.Context
-	cancel       context.CancelFunc
+	client     api.ConfigWebClient
+	wait       chan *struct{}
+	lker       sync.Mutex
+	keys       map[string]*api.WatchData
+	keysnotice map[string]NoticeHandler
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 //keyvalue: map's key is the key name,map's value is the key's data
@@ -30,15 +29,10 @@ type NoticeHandler func(key, keyvalue, keytype string)
 func NewConfigSdk(selfgroup, selfname, servergroup, serverhost string) (*Sdk, error) {
 	tmpclient, _ := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost)
 	instance := &Sdk{
-		pingclient:   api.NewStatusWebClient(tmpclient),
-		configclient: api.NewConfigWebClient(tmpclient),
-		wait:         make(chan *struct{}, 1),
-		keys:         make(map[string]*api.WatchData),
-		keysnotice:   make(map[string]NoticeHandler),
-	}
-	if _, e := instance.pingclient.Ping(context.Background(), &api.Pingreq{Timestamp: time.Now().UnixNano()}, nil); e != nil {
-		log.Error(nil, "[config.sdk.init] ping server:", serverhost, "error:", e)
-		return nil, e
+		client:     api.NewConfigWebClient(tmpclient),
+		wait:       make(chan *struct{}, 1),
+		keys:       make(map[string]*api.WatchData),
+		keysnotice: make(map[string]NoticeHandler),
 	}
 	go instance.watch(selfgroup, selfname)
 	return instance, nil
@@ -57,7 +51,7 @@ func (instance *Sdk) watch(selfgroup, selfname string) {
 		}
 		instance.ctx, instance.cancel = context.WithCancel(context.Background())
 		instance.lker.Unlock()
-		resp, e := instance.configclient.Watch(instance.ctx, &api.WatchReq{Groupname: selfgroup, Appname: selfname, Keys: keys}, nil)
+		resp, e := instance.client.Watch(instance.ctx, &api.WatchReq{Groupname: selfgroup, Appname: selfname, Keys: keys}, nil)
 		if e != nil && !cerror.Equal(e, cerror.ErrCanceled) && e != context.Canceled {
 			log.Error(nil, "[config.sdk.watch] keys:", keys, "error:", e)
 			time.Sleep(time.Millisecond * 100)

@@ -108,6 +108,9 @@ func (m *SetReq) Validate() (errstr string) {
 	if len(m.GetValue()) <= 0 {
 		return "field: value in object: set_req check value str len gt failed"
 	}
+	if m.GetValueType() != "raw" && m.GetValueType() != "json" && m.GetValueType() != "yaml" && m.GetValueType() != "toml" {
+		return "field: value_type in object: set_req check value str in failed"
+	}
 	return ""
 }
 

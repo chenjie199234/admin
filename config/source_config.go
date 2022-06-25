@@ -9,6 +9,7 @@ import (
 
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/redis"
+	"github.com/chenjie199234/Corelib/util/common"
 	ctime "github.com/chenjie199234/Corelib/util/time"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/segmentio/kafka-go"
@@ -27,9 +28,9 @@ type sourceConfig struct {
 	CrpcClient  *CrpcClientConfig       `json:"crpc_client"`
 	WebServer   *WebServerConfig        `json:"web_server"`
 	WebClient   *WebClientConfig        `json:"web_client"`
-	Mongo       map[string]*MongoConfig `json:"mongo"`     //key example:xxx_mongo
-	Sql         map[string]*SqlConfig   `json:"sql"`       //key example:xx_sql
-	Redis       map[string]*RedisConfig `json:"redis"`     //key example:xx_redis
+	Mongo       map[string]*MongoConfig `json:"mongo"` //key example:xxx_mongo
+	Sql         map[string]*SqlConfig   `json:"sql"`   //key example:xx_sql
+	Redis       map[string]*RedisConfig `json:"redis"` //key example:xx_redis
 	KafkaPub    []*KafkaPubConfig       `json:"kafka_pub"`
 	KafkaSub    []*KafkaSubConfig       `json:"kafka_sub"`
 }
@@ -91,29 +92,29 @@ type WebClientConfig struct {
 
 //RedisConfig -
 type RedisConfig struct {
-	URL         string         `json:"url"`           //[redis/rediss]://[[username:]password@]host/[dbindex]
-	MaxOpen     int            `json:"max_open"`      //default 100   //this will overwrite the param in url
-	MaxIdletime ctime.Duration `json:"max_idletime"`  //default 10min //this will overwrite the param in url
-	IOTimeout   ctime.Duration `json:"io_timeout"`    //default 500ms //this will overwrite the param in url
-	ConnTimeout ctime.Duration `json:"conn_timeout"`  //default 250ms //this will overwrite the param in url
+	URL         string         `json:"url"`          //[redis/rediss]://[[username:]password@]host/[dbindex]
+	MaxOpen     int            `json:"max_open"`     //default 100   //this will overwrite the param in url
+	MaxIdletime ctime.Duration `json:"max_idletime"` //default 10min //this will overwrite the param in url
+	IOTimeout   ctime.Duration `json:"io_timeout"`   //default 500ms //this will overwrite the param in url
+	ConnTimeout ctime.Duration `json:"conn_timeout"` //default 250ms //this will overwrite the param in url
 }
 
 //SqlConfig -
 type SqlConfig struct {
-	URL         string         `json:"url"`           //[username:password@][protocol(address)]/[dbname][?param1=value1&...&paramN=valueN]
-	MaxOpen     int            `json:"max_open"`      //default 100   //this will overwrite the param in url
-	MaxIdletime ctime.Duration `json:"max_idletime"`  //default 10min //this will overwrite the param in url
-	IOTimeout   ctime.Duration `json:"io_timeout"`    //default 500ms //this will overwrite the param in url
-	ConnTimeout ctime.Duration `json:"conn_timeout"`  //default 250ms //this will overwrite the param in url
+	URL         string         `json:"url"`          //[username:password@][protocol(address)]/[dbname][?param1=value1&...&paramN=valueN]
+	MaxOpen     int            `json:"max_open"`     //default 100   //this will overwrite the param in url
+	MaxIdletime ctime.Duration `json:"max_idletime"` //default 10min //this will overwrite the param in url
+	IOTimeout   ctime.Duration `json:"io_timeout"`   //default 500ms //this will overwrite the param in url
+	ConnTimeout ctime.Duration `json:"conn_timeout"` //default 250ms //this will overwrite the param in url
 }
 
 //MongoConfig -
 type MongoConfig struct {
-	URL         string         `json:"url"`           //[mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
-	MaxOpen     uint64         `json:"max_open"`      //default 100   //this will overwrite the param in url
-	MaxIdletime ctime.Duration `json:"max_idletime"`  //default 10min //this will overwrite the param in url
-	IOTimeout   ctime.Duration `json:"io_timeout"`    //default 500ms //this will overwrite the param in url
-	ConnTimeout ctime.Duration `json:"conn_timeout"`  //default 250ms //this will overwrite the param in url
+	URL         string         `json:"url"`          //[mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
+	MaxOpen     uint64         `json:"max_open"`     //default 100   //this will overwrite the param in url
+	MaxIdletime ctime.Duration `json:"max_idletime"` //default 10min //this will overwrite the param in url
+	IOTimeout   ctime.Duration `json:"io_timeout"`   //default 500ms //this will overwrite the param in url
+	ConnTimeout ctime.Duration `json:"conn_timeout"` //default 250ms //this will overwrite the param in url
 }
 
 //KafkaPubConfig -
@@ -160,7 +161,7 @@ var kafkaSubers map[string]*kafka.Reader
 
 var kafkaPubers map[string]*kafka.Writer
 
-func initsource() {
+func initlocalsource() {
 	data, e := os.ReadFile("./SourceConfig.json")
 	if e != nil {
 		log.Error(nil, "[config.initsource] read config file error:", e)
@@ -185,6 +186,36 @@ func initsource() {
 	initsql()
 	initkafkapub()
 	initkafkasub()
+}
+func initremotesource(wait chan *struct{}) (stopwatch func()) {
+	return RemoteConfigSdk.Watch("SourceConfig", func(key, keyvalue, keytype string) {
+		//source config only init once
+		if sc != nil {
+			return
+		}
+		//only support json now,so keytype will be ignore
+		c := &sourceConfig{}
+		if e := json.Unmarshal(common.Str2byte(keyvalue), c); e != nil {
+			log.Error(nil, "[config.initremotesource] config data format error:", e)
+			return
+		}
+		sc = c
+		initgrpcserver()
+		initgrpcclient()
+		initcrpcserver()
+		initcrpcclient()
+		initwebserver()
+		initwebclient()
+		initredis()
+		initmongo()
+		initsql()
+		initkafkapub()
+		initkafkasub()
+		select {
+		case wait <- nil:
+		default:
+		}
+	})
 }
 func initgrpcserver() {
 	if sc.CGrpcServer == nil {
@@ -322,7 +353,7 @@ func initwebclient() {
 		}
 	}
 }
-func initredis(){
+func initredis() {
 	for k, redisc := range sc.Redis {
 		if k == "example_redis" {
 			continue
@@ -364,7 +395,7 @@ func initredis(){
 		rediss[k] = tempredis
 	}
 }
-func initmongo(){
+func initmongo() {
 	for k, mongoc := range sc.Mongo {
 		if k == "example_mongo" {
 			continue
@@ -410,7 +441,7 @@ func initmongo(){
 		mongos[k] = tempdb
 	}
 }
-func initsql(){
+func initsql() {
 	for _, sqlc := range sc.Sql {
 		if sqlc.MaxOpen == 0 {
 			sqlc.MaxOpen = 100
@@ -451,7 +482,7 @@ func initsql(){
 		sqls[k] = tempdb
 	}
 }
-func initkafkapub(){
+func initkafkapub() {
 	for _, pubc := range sc.KafkaPub {
 		if pubc.TopicName == "example_topic" || pubc.TopicName == "" {
 			continue
@@ -520,7 +551,7 @@ func initkafkapub(){
 		kafkaPubers[pubc.TopicName] = writer
 	}
 }
-func initkafkasub(){
+func initkafkasub() {
 	for _, subc := range sc.KafkaSub {
 		if subc.TopicName == "example_topic" || subc.TopicName == "" {
 			continue

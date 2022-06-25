@@ -265,7 +265,8 @@ Success: httpcode:200
 	//the config data below belong's to which index
 	//uint32
 	"this_index":0,
-	"value":"str"
+	"value":"str",
+	"value_type":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -284,7 +285,9 @@ Content-Type: application/json
 	//value length must > 0
 	"key":"str",
 	//value length must > 0
-	"value":"str"
+	"value":"str",
+	//value must in ["raw","json","yaml","toml"]
+	"value_type":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -370,6 +373,7 @@ Success: httpcode:200
 watch_data: {
 	"key":"str",
 	"value":"str",
+	"value_type":"str",
 	//int32
 	"version":0
 }

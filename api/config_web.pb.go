@@ -1286,6 +1286,17 @@ func _Config_Set_WebHandler(handler func(context.Context, *SetReq) (*SetResp, er
 			} else {
 				data.AppendString(form)
 			}
+			data.AppendByte(',')
+			data.AppendString("\"value_type\":")
+			if form := ctx.GetForm("value_type"); len(form) == 0 {
+				data.AppendString("\"\"")
+			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
+				data.AppendByte('"')
+				data.AppendString(form)
+				data.AppendByte('"')
+			} else {
+				data.AppendString(form)
+			}
 			data.AppendByte('}')
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)

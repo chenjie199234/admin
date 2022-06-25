@@ -245,6 +245,7 @@ func (s *Service) Get(ctx context.Context, req *api.GetReq) (*api.GetResp, error
 		CurVersion: keysummary.CurVersion,
 		ThisIndex:  configlog.Index,
 		Value:      configlog.Value,
+		ValueType:  configlog.ValueType,
 	}, nil
 }
 
@@ -260,7 +261,7 @@ func (s *Service) Set(ctx context.Context, req *api.SetReq) (*api.SetResp, error
 		log.Error(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "value empty")
 		return nil, ecode.ErrReq
 	}
-	index, version, e := s.configDao.MongoSetConfig(ctx, req.Groupname, req.Appname, req.Key, req.Value, util.Encrypt)
+	index, version, e := s.configDao.MongoSetConfig(ctx, req.Groupname, req.Appname, req.Key, req.Value, req.ValueType, util.Encrypt)
 	if e != nil {
 		log.Error(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, e)
 		if _, ok := e.(*cerror.Error); ok {
@@ -343,21 +344,24 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 			}
 			if clientversion != 0 {
 				needreturn = true
+				resp.Datas[key].ValueType = "raw"
 			}
 			continue
 		}
 		if clientversion != int32(keysummary.CurVersion) {
 			resp.Datas[key] = &api.WatchData{
-				Key:     key,
-				Value:   keysummary.CurValue,
-				Version: int32(keysummary.CurVersion),
+				Key:       key,
+				Value:     keysummary.CurValue,
+				ValueType: keysummary.CurValueType,
+				Version:   int32(keysummary.CurVersion),
 			}
 			needreturn = true
 		} else {
 			resp.Datas[key] = &api.WatchData{
-				Key:     key,
-				Value:   "",
-				Version: clientversion,
+				Key:       key,
+				Value:     "",
+				ValueType: "",
+				Version:   clientversion,
 			}
 		}
 	}
@@ -388,8 +392,10 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 			keysummary, ok := a.appsummary.Keys[key]
 			if !ok {
 				respdata.Value = ""
+				respdata.ValueType = ""
 				if respdata.Version != 0 {
 					needreturn = true
+					respdata.ValueType = "raw"
 				}
 				respdata.Version = 0
 				continue
@@ -397,9 +403,11 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 			if int32(keysummary.CurVersion) != respdata.Version {
 				needreturn = true
 				respdata.Value = keysummary.CurValue
+				respdata.ValueType = keysummary.CurValueType
 				respdata.Version = int32(keysummary.CurVersion)
 			} else {
 				respdata.Value = ""
+				respdata.ValueType = ""
 			}
 		}
 		if needreturn {

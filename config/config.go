@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config/internal/selfsdk"
@@ -21,13 +22,41 @@ type EnvConfig struct {
 //EC -
 var EC *EnvConfig
 
+//RemoteConfigSdk -
+var RemoteConfigSdk *selfsdk.Sdk
+
 //notice is a sync function
 //don't write block logic inside it
 func Init(notice func(c *AppConfig)) {
 	initenv()
-	initremote()
-	initsource()
-	initapp(notice)
+	if EC.ConfigType != nil && *EC.ConfigType == 1 {
+		tmer := time.NewTimer(time.Second * 2)
+		waitapp := make(chan *struct{})
+		waitsource := make(chan *struct{})
+		initremoteapp(notice, waitapp)
+		stopwatchsource := initremotesource(waitsource)
+		appinit := false
+		sourceinit := false
+		for {
+			select {
+			case <-waitapp:
+				appinit = true
+			case <-waitsource:
+				sourceinit = true
+				stopwatchsource()
+			case <-tmer.C:
+				log.Error(nil, "[config.initremote] timeout")
+				Close()
+				os.Exit(1)
+			}
+			if appinit && sourceinit {
+				break
+			}
+		}
+	} else {
+		initlocalapp(notice)
+		initlocalsource()
+	}
 }
 
 //Close -
@@ -48,6 +77,22 @@ func initenv() {
 	} else {
 		log.Warning(nil, "[config.initenv] missing env CONFIG_TYPE")
 	}
+	if EC.ConfigType != nil && *EC.ConfigType == 1 {
+		var mongourl string
+		if str, ok := os.LookupEnv("REMOTE_CONFIG_MONGO_URL"); ok && str != "<REMOTE_CONFIG_MONGO_URL>" && str != "" {
+			mongourl = str
+		} else {
+			log.Error(nil, "[config.initenv] missing env REMOTE_CONFIG_MONGO_URL")
+			Close()
+			os.Exit(1)
+		}
+		var e error
+		if RemoteConfigSdk, e = selfsdk.NewDirectSdk(api.Group, api.Name, mongourl); e != nil {
+			log.Error(nil, "[config.initenv] new remote config sdk error:", e)
+			Close()
+			os.Exit(1)
+		}
+	}
 	if str, ok := os.LookupEnv("RUN_ENV"); ok && str != "<RUN_ENV>" && str != "" {
 		EC.RunEnv = &str
 	} else {
@@ -57,24 +102,5 @@ func initenv() {
 		EC.DeployEnv = &str
 	} else {
 		log.Warning(nil, "[config.initenv] missing env DEPLOY_ENV")
-	}
-}
-
-func initremote() {
-	if EC.ConfigType == nil || *EC.ConfigType == 0 {
-		return
-	}
-	if *EC.ConfigType == 1 {
-		var mongourl string
-		if str, ok := os.LookupEnv("REMOTE_CONFIG_MONGO_URL"); ok && str != "<REMOTE_CONFIG_MONGO_URL>" && str != "" {
-			mongourl = str
-		} else {
-			panic("[config.initremote] missing env REMOTE_CONFIG_MONGO_URL")
-		}
-		if e := selfsdk.NewDirectSdk(api.Group, mongourl); e != nil {
-			log.Error(nil, "[config.initremote] new sdk error:", e)
-			Close()
-			os.Exit(1)
-		}
 	}
 }

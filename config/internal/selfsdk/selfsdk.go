@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"os"
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/chenjie199234/admin/model"
@@ -23,125 +21,132 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-var status int32
+type Sdk struct {
+	client     *mongo.Client
+	lker       sync.Mutex
+	appsummary *model.AppSummary
+	notices    map[string]NoticeHandler
+}
 
-//url format [mongodb/mongodb+srv]://[username:password@]host1,...,hostN[/dbname][?param1=value1&...&paramN=valueN]
-func NewDirectSdk(selfgroup string, url string) error {
-	if !atomic.CompareAndSwapInt32(&status, 0, 1) {
-		return nil
-	}
-	client, e := newMongo(url, selfgroup)
+//keyvalue: map's key is the key name,map's value is the key's data
+//keytype: map's key is the key name,map's value is the type of the key's data
+type NoticeHandler func(key, keyvalue, keytype string)
+
+//url format [mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
+func NewDirectSdk(selfgroup, selfname string, mongodburl string) (*Sdk, error) {
+	client, e := newMongo(mongodburl, selfgroup, selfname)
 	if e != nil {
-		return e
+		return nil, e
 	}
-	watchfilter := mongo.Pipeline{bson.D{bson.E{Key: "$match", Value: bson.M{"$or": bson.A{bson.M{"operationType": "delete"}, bson.M{"fullDocument.index": 0}}}}}}
-	watchop := options.ChangeStream().SetFullDocument(options.UpdateLookup)
-	stream, e := client.Database("config_"+selfgroup).Collection("config").Watch(context.Background(), watchfilter, watchop)
+	starttime := &primitive.Timestamp{T: uint32(time.Now().Unix()), I: 0}
+	watchfilter := mongo.Pipeline{bson.D{bson.E{Key: "$match", Value: bson.M{"ns.db": "config_" + selfgroup, "ns.coll": selfname}}}}
+	stream, e := client.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime))
 	if e != nil {
-		return e
+		return nil, e
 	}
-	col := client.Database("config_"+selfgroup, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection("config")
+	col := client.Database("config_"+selfgroup, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection(selfname)
 	//get first,then watch change stream
-	s := &model.Summary{}
-	if e = col.FindOne(context.Background(), bson.M{"index": 0}).Decode(s); e != nil && e != mongo.ErrNoDocuments {
-		return e
-	} else if e != nil {
-		//not exist
-		s.CurAppConfig = "{}"
-		s.CurSourceConfig = "{}"
+	appsummary := &model.AppSummary{}
+	if e = col.FindOne(context.Background(), bson.M{"index": 0}).Decode(appsummary); e != nil && e != mongo.ErrNoDocuments {
+		return nil, e
 	}
-	if s.Cipher != "" {
-		s.CurAppConfig = util.Decrypt(s.Cipher, s.CurAppConfig)
-		s.CurSourceConfig = util.Decrypt(s.Cipher, s.CurSourceConfig)
+	if appsummary.Cipher != "" {
+		for _, keysummary := range appsummary.Keys {
+			keysummary.CurValue = util.Decrypt(appsummary.Cipher, keysummary.CurValue)
+		}
 	}
-	if e = updateApp(common.Str2byte(s.CurAppConfig)); e != nil {
-		return e
-	}
-	if e = updateSource(common.Str2byte(s.CurSourceConfig)); e != nil {
-		return e
+	instance := &Sdk{
+		client:     client,
+		appsummary: appsummary,
+		notices:    make(map[string]NoticeHandler),
 	}
 	go func() {
 		for {
 			for stream == nil {
 				//reconnect
 				time.Sleep(time.Millisecond * 100)
-				if stream, e = client.Database("config_"+selfgroup).Collection("config").Watch(context.Background(), watchfilter, watchop); e != nil {
+				if stream, e = client.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime)); e != nil {
 					log.Error(nil, "[config.selfsdk.watch] reconnect error:", e)
-					stream = nil
-					continue
-				}
-				//refresh after reconnect
-				tmps := &model.Summary{}
-				if e = col.FindOne(context.Background(), bson.M{"index": 0}).Decode(tmps); e != nil && e != mongo.ErrNoDocuments {
-					log.Error(nil, "[config.selfsdk.watch] refresh after reconnect error:", e)
-					stream.Close(context.Background())
-					stream = nil
-					continue
-				} else if e != nil {
-					//not exist
-					tmps.CurAppConfig = "{}"
-					tmps.CurSourceConfig = "{}"
-				}
-				s = tmps
-				if s.Cipher != "" {
-					s.CurAppConfig = util.Decrypt(s.Cipher, s.CurAppConfig)
-					s.CurSourceConfig = util.Decrypt(s.Cipher, s.CurSourceConfig)
-				}
-				if e = updateApp(common.Str2byte(s.CurAppConfig)); e != nil {
-					log.Error(nil, "[config.selfsdk.watch] refresh after reconnect error:", e)
-					stream.Close(context.Background())
-					stream = nil
-					continue
-				}
-				if e = updateSource(common.Str2byte(s.CurSourceConfig)); e != nil {
-					log.Error(nil, "[config.selfsdk.watch] refresh after reconnect error:", e)
-					stream.Close(context.Background())
 					stream = nil
 					continue
 				}
 			}
 			for stream.Next(context.Background()) {
-				if stream.Current.Lookup("operationType").StringValue() == "delete" {
-					if s.ID.Hex() == stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex() {
-						//delete the summary,need to refresh
-						s.ID = primitive.ObjectID{}
-						s.Cipher = ""
-						s.CurIndex = 0
-						s.MaxIndex = 0
-						s.CurVersion = 0
-						s.CurAppConfig = "{}"
-						s.CurSourceConfig = "{}"
-						if e = updateApp(common.Str2byte(s.CurAppConfig)); e != nil {
-							log.Error(nil, "[config.selfsdk.watch] update appconfig error:", e)
-							break
-						}
-						if e = updateSource(common.Str2byte(s.CurSourceConfig)); e != nil {
-							log.Error(nil, "[config.selfsdk.watch] update sourceconfig error:", e)
-							break
+				starttime.T, starttime.I = stream.Current.Lookup("clusterTime").Timestamp()
+				starttime.I++
+				switch stream.Current.Lookup("operationType").StringValue() {
+				case "drop":
+					//drop collection
+					instance.lker.Lock()
+					for key, notice := range instance.notices {
+						old, ok := instance.appsummary.Keys[key]
+						if ok && old.CurVersion != 0 {
+							notice(key, "", "raw")
 						}
 					}
-					continue
-				}
-				tmps := &model.Summary{}
-				if e := stream.Current.Lookup("fullDocument").Unmarshal(tmps); e != nil {
-					log.Error(nil, "[config.selfsdk.watch] summary info broken,error:", e)
-					continue
-				}
-				if tmps.CurVersion <= s.CurVersion {
-					continue
-				}
-				s = tmps
-				if s.Cipher != "" {
-					s.CurAppConfig = util.Decrypt(s.Cipher, s.CurAppConfig)
-					s.CurSourceConfig = util.Decrypt(s.Cipher, s.CurSourceConfig)
-				}
-				if e = updateApp(common.Str2byte(s.CurAppConfig)); e != nil {
-					log.Error(nil, "[config.selfsdk.watch] update appconfig error:", e)
-					break
-				}
-				if e = updateSource(common.Str2byte(s.CurSourceConfig)); e != nil {
-					log.Error(nil, "[config.selfsdk.watch] update sourceconfig error:", e)
-					break
+					instance.appsummary = &model.AppSummary{}
+					instance.lker.Unlock()
+				case "insert":
+					//insert
+					fallthrough
+				case "update":
+					//update
+					key, kok := stream.Current.Lookup("fullDocument").Document().Lookup("key").StringValueOK()
+					index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").Int32OK()
+					if !kok || !iok {
+						//unknown doc
+						continue
+					}
+					if key != "" || index != 0 {
+						//this is not the appsummary
+						continue
+					}
+					tmp := &model.AppSummary{}
+					if e := stream.Current.Lookup("fullDocument").Unmarshal(tmp); e != nil {
+						log.Error(nil, "[config.selfsdk.watch] group:", selfgroup, "app:", selfname, "appsummary data broken,error:", e)
+						continue
+					}
+					if tmp.Cipher != "" {
+						for _, keysummary := range tmp.Keys {
+							keysummary.CurValue = util.Decrypt(tmp.Cipher, keysummary.CurValue)
+						}
+					}
+					instance.lker.Lock()
+					for key, notice := range instance.notices {
+						old, oldok := instance.appsummary.Keys[key]
+						new, newok := tmp.Keys[key]
+						if oldok {
+							if !newok {
+								notice(key, "", "raw")
+							} else if old.CurVersion == new.CurVersion {
+								continue
+							} else {
+								notice(key, new.CurValue, new.CurValueType)
+							}
+						} else {
+							if !newok {
+								continue
+							} else {
+								notice(key, new.CurValue, new.CurValueType)
+							}
+						}
+					}
+					instance.appsummary = tmp
+					instance.lker.Unlock()
+				case "delete":
+					if stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex() != appsummary.ID.Hex() {
+						//this is not the appsummary
+						continue
+					}
+					instance.lker.Lock()
+					for key, notice := range instance.notices {
+						old, ok := instance.appsummary.Keys[key]
+						if ok && old.CurVersion != 0 {
+							notice(key, "", "raw")
+						}
+					}
+					appsummary = &model.AppSummary{}
+					instance.lker.Unlock()
 				}
 			}
 			if stream.Err() != nil {
@@ -151,7 +156,31 @@ func NewDirectSdk(selfgroup string, url string) error {
 			stream = nil
 		}
 	}()
-	return nil
+	return instance, nil
+}
+
+//watch the same key will overwrite the old one's notice function
+//but the old's cancel function can still work
+func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {
+	instance.lker.Lock()
+	defer instance.lker.Unlock()
+	if _, ok := instance.notices[key]; ok {
+		instance.notices[key] = notice
+		return func() {
+			instance.lker.Lock()
+			delete(instance.notices, key)
+			instance.lker.Unlock()
+		}
+	}
+	instance.notices[key] = notice
+	if keysummary, ok := instance.appsummary.Keys[key]; ok {
+		go notice(key, keysummary.CurValue, keysummary.CurValueType)
+	}
+	return func() {
+		instance.lker.Lock()
+		delete(instance.notices, key)
+		instance.lker.Unlock()
+	}
 }
 
 var defaultAppConfig = `{
@@ -173,17 +202,19 @@ var defaultAppConfig = `{
 		"Method":["GET","GRPC","CRPC"],
 		"MaxPerSec":10
 	}],
+	"white_ip":[],
+	"black_ip":[],
 	"web_path_rewrite":{
 		"GET":{
 			"/example/origin/url":"/example/new/url"
 		}
 	},
+	"access_keys":{
+		"default":["default_sec_key"],
+		"/admin.status/ping":["specific_sec_key"]
+	},
 	"token_secret":"test",
 	"token_expire":"24h",
-	"access_keys":{
-		"default":"default_sec_key",
-		"/admin.status/ping":"specific_sec_key"
-	},
 	"service":{
 
 	}
@@ -282,7 +313,7 @@ var defaultSourceConfig = `{
 	]
 }`
 
-func newMongo(url string, groupname string) (db *mongo.Client, e error) {
+func newMongo(url string, groupname, appname string) (db *mongo.Client, e error) {
 	op := options.Client().ApplyURI(url)
 	op = op.SetMaxPoolSize(2)
 	op = op.SetHeartbeatInterval(time.Second * 5)
@@ -314,9 +345,9 @@ func newMongo(url string, groupname string) (db *mongo.Client, e error) {
 			s.AbortTransaction(sctx)
 		}
 	}()
-	col := db.Database("config_" + groupname).Collection("config")
+	col := db.Database("config_" + groupname).Collection(appname)
 	index := mongo.IndexModel{
-		Keys:    bson.D{primitive.E{Key: "index", Value: 1}},
+		Keys:    bson.D{primitive.E{Key: "key", Value: 1}, primitive.E{Key: "index", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 	if _, e = col.Indexes().CreateOne(sctx, index); e != nil {
@@ -333,83 +364,33 @@ func newMongo(url string, groupname string) (db *mongo.Client, e error) {
 	}
 	sourceconfig := buf.String()
 	if _, e = col.InsertOne(sctx, bson.M{
-		"index":             0,
-		"cipher":            "",
-		"cur_index":         1,
-		"max_index":         1,
-		"cur_version":       1,
-		"cur_app_config":    appconfig,
-		"cur_source_config": sourceconfig,
+		"key":    "",
+		"index":  0,
+		"cipher": "",
+		"keys": map[string]*model.KeySummary{
+			"AppConfig": {
+				CurIndex:     1,
+				CurVersion:   1,
+				MaxIndex:     1,
+				CurValue:     appconfig,
+				CurValueType: "json",
+			},
+			"SourceConfig": {
+				CurIndex:     1,
+				CurVersion:   1,
+				MaxIndex:     1,
+				CurValue:     sourceconfig,
+				CurValueType: "json",
+			},
+		},
 	}); e != nil {
 		return
 	}
-	if _, e = col.UpdateOne(sctx, bson.M{"index": 1}, bson.M{"$set": bson.M{"app_config": appconfig, "source_config": sourceconfig}}, options.Update().SetUpsert(true)); e != nil {
+	if _, e = col.UpdateOne(sctx, bson.M{"key": "AppConfig", "index": 1}, bson.M{"$set": bson.M{"value": appconfig, "value_type": "json"}}, options.Update().SetUpsert(true)); e != nil {
+		return
+	}
+	if _, e = col.UpdateOne(sctx, bson.M{"key": "SourceConfig", "index": 1}, bson.M{"$set": bson.M{"value": sourceconfig, "value_type": "json"}}, options.Update().SetUpsert(true)); e != nil {
 		return
 	}
 	return db, nil
-}
-
-func updateApp(appconfig []byte) error {
-	appconfig = bytes.TrimSpace(appconfig)
-	if len(appconfig) == 0 {
-		appconfig = []byte{'{', '}'}
-	}
-	if len(appconfig) < 2 || appconfig[0] != '{' || appconfig[len(appconfig)-1] != '}' || !json.Valid(appconfig) {
-		return errors.New("[config.selfsdk.updateApp] data format error")
-	}
-	appfile, e := os.OpenFile("./AppConfig_tmp.json", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
-	if e != nil {
-		log.Error(nil, "[config.selfsdk.updateApp] open tmp file error:", e)
-		return e
-	}
-	_, e = appfile.Write(appconfig)
-	if e != nil {
-		log.Error(nil, "[config.selfsdk.updateApp] write temp file error:", e)
-		return e
-	}
-	if e = appfile.Sync(); e != nil {
-		log.Error(nil, "[config.selfsdk.updateApp] sync tmp file to disk error:", e)
-		return e
-	}
-	if e = appfile.Close(); e != nil {
-		log.Error(nil, "[config.selfsdk.updateApp] close tmp file error:", e)
-		return e
-	}
-	if e = os.Rename("./AppConfig_tmp.json", "./AppConfig.json"); e != nil {
-		log.Error(nil, "[config.selfsdk.updateApp] rename error:", e)
-		return e
-	}
-	return nil
-}
-func updateSource(sourceconfig []byte) error {
-	sourceconfig = bytes.TrimSpace(sourceconfig)
-	if len(sourceconfig) == 0 {
-		sourceconfig = []byte{'{', '}'}
-	}
-	if len(sourceconfig) < 2 || sourceconfig[0] != '{' || sourceconfig[len(sourceconfig)-1] != '}' || !json.Valid(sourceconfig) {
-		return errors.New("[config.selfsdk.updateSource] data format error")
-	}
-	sourcefile, e := os.OpenFile("./SourceConfig_tmp.json", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
-	if e != nil {
-		log.Error(nil, "[config.selfsdk.updateSource] open tmp file error:", e)
-		return e
-	}
-	_, e = sourcefile.Write(sourceconfig)
-	if e != nil {
-		log.Error(nil, "[config.selfsdk.updateSource] write tmp file error:", e)
-		return e
-	}
-	if e = sourcefile.Sync(); e != nil {
-		log.Error(nil, "[config.selfsdk.updateSource] sync tmp file to disk error:", e)
-		return e
-	}
-	if e = sourcefile.Close(); e != nil {
-		log.Error(nil, "[config.selfsdk.updateSource] close tmp file error:", e)
-		return e
-	}
-	if e = os.Rename("./SourceConfig_tmp.json", "./SourceConfig.json"); e != nil {
-		log.Error(nil, "[config.selfsdk.updateSource] rename error:", e)
-		return e
-	}
-	return nil
 }

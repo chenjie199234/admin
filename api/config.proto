@@ -150,12 +150,17 @@ message get_resp {
 	uint32 cur_version=3;//current active config version,config's version start from 1
 	uint32 this_index=4;//the config data below belong's to which index
 	string value=5;
+	string value_type=6;
 }
 message set_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
 	string key=3[(pbex.string_bytes_len_gt)=0];
 	string value=4[(pbex.string_bytes_len_gt)=0];
+	string value_type=5[(pbex.string_bytes_in)="raw",
+		(pbex.string_bytes_in)="json",
+		(pbex.string_bytes_in)="yaml",
+		(pbex.string_bytes_in)="toml"];
 }
 message set_resp {
 }
@@ -182,5 +187,6 @@ message watch_resp{
 message watch_data{
 	string key=1;
 	string value=2;
-	int32 version=3;
+	string value_type=3;
+	int32 version=4;
 }

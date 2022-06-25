@@ -259,9 +259,10 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, groupname, appname, key str
 		keysummary.CurValue = decrypt(appsummary.Cipher, keysummary.CurValue)
 	}
 	log = &model.Log{
-		Key:   key,
-		Index: keysummary.CurIndex,
-		Value: keysummary.CurValue,
+		Key:       key,
+		Index:     keysummary.CurIndex,
+		Value:     keysummary.CurValue,
+		ValueType: keysummary.CurValueType,
 	}
 	return keysummary, log, nil
 }
@@ -282,7 +283,7 @@ func (d *Dao) MongoGetAppConfig(ctx context.Context, groupname, appname string, 
 	}
 	return app, nil
 }
-func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value string, encrypt datahandler) (newindex, newversion uint32, e error) {
+func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value, valuetype string, encrypt datahandler) (newindex, newversion uint32, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -324,10 +325,11 @@ func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value
 	keysummary.CurIndex = keysummary.MaxIndex
 	keysummary.CurVersion += 1
 	keysummary.CurValue = value
+	keysummary.CurValueType = valuetype
 	if _, e = col.UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$set": bson.M{"keys." + key: keysummary}}); e != nil {
 		return
 	}
-	if _, e = col.UpdateOne(sctx, bson.M{"key": key, "index": keysummary.CurIndex}, bson.M{"$set": bson.M{"value": value}}, options.Update().SetUpsert(true)); e != nil {
+	if _, e = col.UpdateOne(sctx, bson.M{"key": key, "index": keysummary.CurIndex}, bson.M{"$set": bson.M{"value": value, "value_type": valuetype}}, options.Update().SetUpsert(true)); e != nil {
 		return
 	}
 	newindex = keysummary.CurIndex
@@ -362,8 +364,9 @@ func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname, key s
 	}
 	updateSummary := bson.M{
 		"$set": bson.M{
-			"keys." + key + ".cur_index": index,
-			"keys." + key + ".cur_value": log.Value,
+			"keys." + key + ".cur_index":      index,
+			"keys." + key + ".cur_value":      log.Value,
+			"keys." + key + ".cur_value_type": log.ValueType,
 		},
 		"$inc": bson.M{
 			"keys." + key + ".cur_version": 1,
@@ -384,41 +387,6 @@ type WatchUpdateHandler func(string, string, *model.AppSummary)
 type WatchDeleteAppHandler func(groupname, appname string)
 type WatchDeleteConfigHandler func(groupname, appname string, id string)
 
-func (d *Dao) getall(decrypt datahandler) (map[string]map[string]*model.AppSummary, error) {
-	groups, e := d.MongoGetAllGroups(context.Background(), "")
-	if e != nil {
-		return nil, e
-	}
-	result := make(map[string]map[string]*model.AppSummary, len(groups))
-	for _, group := range groups {
-		tmpgroup := make(map[string]*model.AppSummary)
-		apps, e := d.MongoGetAllApps(context.Background(), group, "")
-		if e != nil {
-			return nil, e
-		}
-		for _, app := range apps {
-			tmpapp := &model.AppSummary{}
-			if e := d.mongo.Database("config_"+group).Collection(app).FindOne(context.Background(), bson.M{"key": "", "index": 0}).Decode(tmpapp); e != nil {
-				if e == mongo.ErrNoDocuments {
-					log.Error(nil, "[MongoWatchConfig.getall] group:", group, "app:", app, "doesn't exist app summary")
-					continue
-				}
-				log.Error(nil, "[MongoWatchConfig.getall] group:", group, "app:", app, "get app summary error:", e)
-				continue
-			}
-			if tmpapp.Cipher != "" {
-				for _, keysummary := range tmpapp.Keys {
-					keysummary.CurValue = decrypt(tmpapp.Cipher, keysummary.CurValue)
-				}
-			}
-			tmpgroup[app] = tmpapp
-		}
-		if len(tmpgroup) != 0 {
-			result[group] = tmpgroup
-		}
-	}
-	return result, nil
-}
 func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHandler, delC WatchDeleteConfigHandler, decrypt datahandler) error {
 	starttime := &primitive.Timestamp{T: uint32(time.Now().Unix()), I: uint32(0)}
 	watchfilter := mongo.Pipeline{bson.D{primitive.E{Key: "$match", Value: bson.M{"ns.db": bson.M{"$regex": "^config_"}}}}}
@@ -439,6 +407,7 @@ func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHan
 			}
 			for stream.Next(context.Background()) {
 				starttime.T, starttime.I = stream.Current.Lookup("clusterTime").Timestamp()
+				starttime.I++
 				switch stream.Current.Lookup("operationType").StringValue() {
 				case "drop":
 					//drop collection

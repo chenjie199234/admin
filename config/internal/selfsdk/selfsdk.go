@@ -326,6 +326,24 @@ func newMongo(url string, groupname, appname string) (db *mongo.Client, e error)
 		return nil, e
 	}
 	//init self mongo
+	col := db.Database("config_" + groupname).Collection(appname)
+	index := mongo.IndexModel{
+		Keys:    bson.D{primitive.E{Key: "key", Value: 1}, primitive.E{Key: "index", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+	if _, e = col.Indexes().CreateOne(context.Background(), index); e != nil && !mongo.IsDuplicateKeyError(e) {
+		return
+	}
+	buf := bytes.NewBuffer(nil)
+	if e = json.Compact(buf, common.Str2byte(defaultAppConfig)); e != nil {
+		return
+	}
+	appconfig := buf.String()
+	buf.Reset()
+	if e = json.Compact(buf, common.Str2byte(fmt.Sprintf(defaultSourceConfig, url))); e != nil {
+		return
+	}
+	sourceconfig := buf.String()
 	var s mongo.Session
 	if s, e = db.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local())); e != nil {
 		return
@@ -345,25 +363,7 @@ func newMongo(url string, groupname, appname string) (db *mongo.Client, e error)
 			s.AbortTransaction(sctx)
 		}
 	}()
-	col := db.Database("config_" + groupname).Collection(appname)
-	index := mongo.IndexModel{
-		Keys:    bson.D{primitive.E{Key: "key", Value: 1}, primitive.E{Key: "index", Value: 1}},
-		Options: options.Index().SetUnique(true),
-	}
-	if _, e = col.Indexes().CreateOne(sctx, index); e != nil {
-		return
-	}
-	buf := bytes.NewBuffer(nil)
-	if e = json.Compact(buf, common.Str2byte(defaultAppConfig)); e != nil {
-		return
-	}
-	appconfig := buf.String()
-	buf.Reset()
-	if e = json.Compact(buf, common.Str2byte(fmt.Sprintf(defaultSourceConfig, url))); e != nil {
-		return
-	}
-	sourceconfig := buf.String()
-	if _, e = col.InsertOne(sctx, bson.M{
+	if _, e = col.InsertOne(context.Background(), bson.M{
 		"key":    "",
 		"index":  0,
 		"cipher": "",

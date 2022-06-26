@@ -81,41 +81,21 @@ func (d *Dao) MongoDelKey(ctx context.Context, groupname, appname, key string) (
 }
 
 func (d *Dao) MongoCreate(ctx context.Context, groupname, appname, cipher string, encrypt datahandler) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
-		return
-	}
-	defer s.EndSession(ctx)
-	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
-		return
-	}
-	defer func() {
-		if e != nil {
-			s.AbortTransaction(sctx)
-			if mongo.IsDuplicateKeyError(e) {
-				e = ecode.ErrAppAlreadyExist
-			}
-		} else if e = s.CommitTransaction(sctx); e != nil {
-			s.AbortTransaction(sctx)
-		}
-	}()
 	col := d.mongo.Database("config_" + groupname).Collection(appname)
 	index := mongo.IndexModel{
 		Keys:    bson.D{primitive.E{Key: "key", Value: 1}, primitive.E{Key: "index", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
-	if _, e = col.Indexes().CreateOne(sctx, index); e != nil {
+	if _, e = col.Indexes().CreateOne(ctx, index); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	}
-	if _, e = col.InsertOne(sctx, bson.M{
+	if _, e = col.InsertOne(ctx, bson.M{
 		"key":    "",
 		"index":  0,
 		"cipher": cipher,
 		"keys":   bson.M{},
-	}); e != nil {
-		return
+	}); e != nil && mongo.IsDuplicateKeyError(e) {
+		e = ecode.ErrAppAlreadyExist
 	}
 	return
 }

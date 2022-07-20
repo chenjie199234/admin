@@ -5,10 +5,11 @@
 // source: api/permission.proto<br />
 
 ## permission
-### /admin.permission/update_user_permission
+### update_user_permission
 
 #### Req:
 ```
+Path:         /admin.permission/update_user_permission
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -41,10 +42,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.permission/add_node
+### add_node
 
 #### Req:
 ```
+Path:         /admin.permission/add_node
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -71,10 +73,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.permission/update_node
+### update_node
 
 #### Req:
 ```
+Path:         /admin.permission/update_node
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -101,10 +104,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.permission/move_node
+### move_node
 
 #### Req:
 ```
+Path:         /admin.permission/move_node
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -132,10 +136,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.permission/del_node
+### del_node
 
 #### Req:
 ```
+Path:         /admin.permission/del_node
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -159,18 +164,15 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.permission/list_user_node
+### list_user_node
 
 #### Req:
 ```
+Path:         /admin.permission/list_user_node
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
-	//first element must be 0
-	//uint32
-	//element num must != 0
-	"pnode_id":[1,2]
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -191,14 +193,23 @@ node_info: {
 	//uint32
 	"node_id":[1,2],
 	"node_name":"str",
-	"node_data":"str"
+	"node_data":"str",
+	//uint32
+	"canread":0,
+	//uint32
+	"canwrite":0,
+	//uint32
+	"admin":0,
+	//object node_info
+	"children":[{},{}]
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.permission/list_node_user
+### list_node_user
 
 #### Req:
 ```
+Path:         /admin.permission/list_node_user
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------

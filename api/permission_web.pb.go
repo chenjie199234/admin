@@ -760,21 +760,6 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"pnode_id\":")
-			if forms := ctx.GetForms("pnode_id"); len(forms) == 0 {
-				data.AppendString("null")
-			} else {
-				data.AppendByte('[')
-				for _, form := range forms {
-					if len(form) == 0 {
-						data.AppendString("0")
-					} else {
-						data.AppendString(form)
-					}
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-			}
 			data.AppendByte('}')
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
@@ -783,11 +768,6 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 					return
 				}
 			}
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_user_node]", errstr)
-			ctx.Abort(error1.ErrReq)
-			return
 		}
 		resp, e := handler(ctx, req)
 		ee := error1.ConvertStdError(e)

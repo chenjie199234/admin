@@ -131,10 +131,12 @@ message node_info {
 	repeated uint32 node_id=1;
 	string node_name=2;
 	string node_data=3;
+	uint32 canread=4;
+	uint32 canwrite=5;
+	uint32 admin=6;
+	repeated node_info children=7;
 }
 message list_user_node_req {
-	//first element must be 0
-	repeated uint32 pnode_id=1[(pbex.map_repeated_len_not_eq)=0];
 }
 message list_user_node_resp {
 	repeated node_info nodes=1;

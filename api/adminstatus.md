@@ -5,10 +5,11 @@
 // source: api/adminstatus.proto<br />
 
 ## status
-### /admin.status/ping
+### ping
 //ping check server's health
 #### Req:
 ```
+Path:         /admin.status/ping
 Method:       GET
 Content-Type: application/x-www-form-urlencoded
 //don't forget the url encode

@@ -70,14 +70,6 @@ func (m *DelNodeReq) Validate() (errstr string) {
 }
 
 //return empty means pass
-func (m *ListUserNodeReq) Validate() (errstr string) {
-	if len(m.GetPnodeId()) == 0 {
-		return "field: pnode_id in object: list_user_node_req check len not eq failed"
-	}
-	return ""
-}
-
-//return empty means pass
 func (m *ListNodeUserReq) Validate() (errstr string) {
 	if len(m.GetNodeId()) == 0 {
 		return "field: node_id in object: list_node_user_req check len not eq failed"

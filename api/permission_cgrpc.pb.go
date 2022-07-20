@@ -279,11 +279,6 @@ func _Permission_ListUserNode_CGrpcHandler(handler func(context.Context, *ListUs
 			ctx.Abort(error1.ErrReq)
 			return
 		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_user_node]", errstr)
-			ctx.Abort(error1.ErrReq)
-			return
-		}
 		resp, e := handler(ctx, req)
 		if e != nil {
 			ctx.Abort(e)

@@ -1,6 +1,10 @@
 package model
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"sort"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Node struct {
 	NodeId       []uint32 `bson:"node_id"` //self's id
@@ -15,103 +19,45 @@ type UserNode struct {
 	W      bool               `bson:"w"`
 	X      bool               `bson:"x"`
 }
-type UserNodes struct {
-	R [][]uint32
-	W [][]uint32
-	X [][]uint32
-}
+type UserNodes []*UserNode
+
 type NodeUsers struct {
 	R []primitive.ObjectID
 	W []primitive.ObjectID
 	X []primitive.ObjectID
 }
 
-func (u *UserNodes) CheckNode(nodeid []uint32) (canread, canwrite, admin bool) {
-	for i := 0; i < len(nodeid); i++ {
-		tmp := nodeid[:i+1]
-		//check admin first
-		has := false
-		for _, x := range u.X {
-			if len(x) != len(tmp) {
-				continue
-			}
-			same := true
-			for j := range x {
-				if x[j] != tmp[j] {
-					same = false
-					break
-				}
-			}
-			if same {
-				has = true
-				break
-			}
-		}
-		if has {
-			return true, true, true
-		}
-		//check can read
-		has = false
-		for _, r := range u.R {
-			if len(r) != len(tmp) {
-				continue
-			}
-			same := true
-			for j := range r {
-				if r[j] != tmp[j] {
-					same = false
-					break
-				}
-			}
-			if same {
-				has = true
-				break
-			}
-		}
-		if !has {
+func (u UserNodes) CheckNode(nodeid []uint32) (canread, canwrite, admin bool) {
+	sort.Slice(u, func(i, j int) bool {
+		return len(u[i].NodeId) < len(u[j].NodeId)
+	})
+	for _, usernode := range u {
+		if len(usernode.NodeId) > len(nodeid) {
 			return false, false, false
 		}
-	}
-	canread = true
-	admin = false
-	for _, w := range u.W {
-		if len(w) != len(nodeid) {
-			continue
-		}
-		same := true
-		for j := range w {
-			if w[j] != nodeid[j] {
-				same = false
-				break
+		isprefix := true
+		for _, id := range usernode.NodeId {
+			for _, reqid := range nodeid {
+				if id != reqid {
+					isprefix = false
+					break
+				}
 			}
 		}
-		if same {
-			canwrite = true
-			break
+		if !isprefix {
+			continue
 		}
-	}
-	return
-}
-func (n *NodeUsers) CheckUser(userid string) (canread, canwrite, admin bool) {
-	for _, x := range n.X {
-		if x.Hex() == userid {
+		//check admin
+		if usernode.X {
 			return true, true, true
 		}
-	}
-	for _, r := range n.R {
-		if r.Hex() == userid {
-			canread = true
-			break
+		if len(usernode.NodeId) == len(nodeid) {
+			//this is the target usernode
+			if !usernode.R {
+				return false, false, false
+			}
+			return usernode.R, usernode.W, false
 		}
 	}
-	if !canread {
-		return false, false, false
-	}
-	for _, w := range n.W {
-		if w.Hex() == userid {
-			canwrite = true
-			break
-		}
-	}
-	return
+	return false, false, false
 }

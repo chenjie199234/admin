@@ -11,7 +11,7 @@ import (
 )
 
 func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (map[primitive.ObjectID]*model.User, error) {
-	cursor, e := d.mongo.Database("admin").Collection("user").Find(ctx, bson.M{"_id": bson.M{"$in": userids}})
+	cursor, e := d.mongo.Database("permission").Collection("user").Find(ctx, bson.M{"_id": bson.M{"$in": userids}})
 	if e != nil {
 		return nil, e
 	}
@@ -28,7 +28,7 @@ func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (
 }
 
 func (d *Dao) MongoSearchUsers(ctx context.Context, name string, limit int64) (map[primitive.ObjectID]*model.User, error) {
-	cursor, e := d.mongo.Database("admin").Collection("user").Find(ctx, bson.M{"name": bson.M{"$regex": name}}, options.Find().SetLimit(limit))
+	cursor, e := d.mongo.Database("permission").Collection("user").Find(ctx, bson.M{"name": bson.M{"$regex": name}}, options.Find().SetLimit(limit))
 	if e != nil {
 		return nil, e
 	}

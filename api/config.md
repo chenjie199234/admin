@@ -5,10 +5,11 @@
 // source: api/config.proto<br />
 
 ## config
-### /admin.config/groups
+### groups
 //get all groups
 #### Req:
 ```
+Path:         /admin.config/groups
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -30,10 +31,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/del_group
+### del_group
 //del one specific group
 #### Req:
 ```
+Path:         /admin.config/del_group
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -55,10 +57,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/apps
+### apps
 //get all apps in one specific group
 #### Req:
 ```
+Path:         /admin.config/apps
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -82,10 +85,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/del_app
+### del_app
 //del one specific app in one specific group
 #### Req:
 ```
+Path:         /admin.config/del_app
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -109,10 +113,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/keys
+### keys
 //get all config's keys in one specific app
 #### Req:
 ```
+Path:         /admin.config/keys
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -137,10 +142,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/del_key
+### del_key
 //del one specific key in one specific app
 #### Req:
 ```
+Path:         /admin.config/del_key
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -166,10 +172,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/create
+### create
 //create one specific app
 #### Req:
 ```
+Path:         /admin.config/create
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -194,10 +201,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/updatecipher
+### updatecipher
 //update one specific app's cipher
 #### Req:
 ```
+Path:         /admin.config/updatecipher
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -224,10 +232,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/get
+### get
 //get config
 #### Req:
 ```
+Path:         /admin.config/get
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -270,10 +279,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/set
+### set
 //set config
 #### Req:
 ```
+Path:         /admin.config/set
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -303,10 +313,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/rollback
+### rollback
 //rollback config
 #### Req:
 ```
+Path:         /admin.config/rollback
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -335,10 +346,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.config/watch
+### watch
 //watch config
 #### Req:
 ```
+Path:         /admin.config/watch
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------

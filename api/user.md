@@ -5,10 +5,11 @@
 // source: api/user.proto<br />
 
 ## user
-### /admin.user/login
+### login
 
 #### Req:
 ```
+Path:         /admin.user/login
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -29,10 +30,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.user/get_users
+### get_users
 
 #### Req:
 ```
+Path:         /admin.user/get_users
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -65,10 +67,11 @@ user_info: {
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### /admin.user/search_users
+### search_users
 
 #### Req:
 ```
+Path:         /admin.user/search_users
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------

@@ -42,6 +42,7 @@ SourceConfig.json该文件配置了该服务需要使用的资源配置,不热�
 #### config
 ```
 database: config_{groupname}
+
 collection: {appname}
 {
 	"_id":ObjectId("xxxx"),
@@ -70,10 +71,12 @@ collection: {appname}
 	"value":""
 }//log
 //key+index field add unique index
+//由代码自动创建,无需手动创建
 ```
-#### admin
+#### permission
 ```
-database: admin
+database: permission
+
 collection: node
 {
 	"_id":ObjectId("xxx"),//meaningless
@@ -82,7 +85,10 @@ collection: node
 	"node_data":"",
 	"cur_node_index":0,//auto increment,this is for child's last node_id element
 }
-//node_id field add unique index
+//手动mongo创建数据库
+use permission;
+db.createCollection("node");
+db.node.createIndex({node_id:1},{unique:true});
 
 collection: user
 {
@@ -91,7 +97,10 @@ collection: user
 	"department":["",""],
 	"ctime":123,//unixtimestamp,unit second
 }
-//name field add index
+//手动mongo创建数据库
+use permission;
+db.createCollection("user");
+db.user.createIndex({name:1});
 
 collection: usernode
 {
@@ -101,6 +110,9 @@ collection: usernode
 	"r":true,//can read
 	"w":true,//can write
 }
-//user_id+node_id field add unique index
-//node_id field add index
+//手动mongo创建数据库
+use permission;
+db.createCollection("usernode");
+db.usernode.createIndex({user_id:1,node_id:1},{unique:true});
+db.usernode.createIndex({node_id:1})
 ```

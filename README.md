@@ -73,6 +73,23 @@ collection: {appname}
 //key+index field add unique index
 //由代码自动创建,无需手动创建
 ```
+#### user
+```
+database: user
+
+collection: user
+{
+	"_id":ObjectId("xxx"),//userid
+	"name":"",
+	"password":"",
+	"department":["",""],
+	"ctime":123,//unixtimestamp,unit second
+}
+//手动mongo创建数据库
+use user;
+db.createCollection("user");
+db.user.createIndex({name:1});
+```
 #### permission
 ```
 database: permission
@@ -90,18 +107,6 @@ use permission;
 db.createCollection("node");
 db.node.createIndex({node_id:1},{unique:true});
 
-collection: user
-{
-	"_id":ObjectId("xxx"),//userid
-	"name":"",
-	"department":["",""],
-	"ctime":123,//unixtimestamp,unit second
-}
-//手动mongo创建数据库
-use permission;
-db.createCollection("user");
-db.user.createIndex({name:1});
-
 collection: usernode
 {
 	"_id":ObjectId("xxx"),//meaningless
@@ -109,6 +114,7 @@ collection: usernode
 	"node_id":[0,1],
 	"r":true,//can read
 	"w":true,//can write
+	"x":true,//admin
 }
 //手动mongo创建数据库
 use permission;

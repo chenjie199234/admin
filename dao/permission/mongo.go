@@ -92,7 +92,7 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operateUserid, targ
 	//update
 	//check target user exist
 	var num int64
-	num, e = d.mongo.Database("permission").Collection("user").CountDocuments(sctx, bson.M{"_id": targetUserid})
+	num, e = d.mongo.Database("user").Collection("user").CountDocuments(sctx, bson.M{"_id": targetUserid})
 	if e != nil {
 		return
 	}

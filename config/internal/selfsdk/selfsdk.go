@@ -201,6 +201,10 @@ var defaultAppConfig = `{
 		"Path":"/admin.status/ping",
 		"Method":["GET","GRPC","CRPC"],
 		"MaxPerSec":10
+	},{
+		"Path":"/admin.init/init",
+		"Method":["POST","GRPC","CRPC"],
+		"MaxPerSec":1
 	}],
 	"white_ip":[],
 	"black_ip":[],

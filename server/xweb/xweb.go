@@ -40,7 +40,7 @@ func StartWebServer() {
 	}
 	var e error
 	if s, e = web.NewWebServer(webc, api.Group, api.Name); e != nil {
-		log.Error(nil,"[xweb] new error:", e)
+		log.Error(nil, "[xweb] new error:", e)
 		return
 	}
 	UpdateHandlerTimeout(config.AC.HandlerTimeout)
@@ -51,17 +51,18 @@ func StartWebServer() {
 
 	//you just need to register your service here
 	api.RegisterStatusWebServer(s, service.SvcStatus, mids.AllMids())
-	api.RegisterConfigWebServer(s,service.SvcConfig,mids.AllMids())
-	api.RegisterUserWebServer(s, service.SvcUser, mids.AllMids()) 
+	api.RegisterConfigWebServer(s, service.SvcConfig, mids.AllMids())
+	api.RegisterUserWebServer(s, service.SvcUser, mids.AllMids())
 	api.RegisterPermissionWebServer(s, service.SvcPermission, mids.AllMids())
+	api.RegisterInitializeWebServer(s, service.SvcInitialize, mids.AllMids())
 	//example
 	//api.RegisterExampleWebServer(s, service.SvcExample, mids.AllMids())
 
 	if e = s.StartWebServer(":8000"); e != nil && e != web.ErrServerClosed {
-		log.Error(nil,"[xweb] start error:", e)
+		log.Error(nil, "[xweb] start error:", e)
 		return
 	}
-	log.Info(nil,"[xweb] server closed")
+	log.Info(nil, "[xweb] server closed")
 }
 
 //UpdateHandlerTimeout -

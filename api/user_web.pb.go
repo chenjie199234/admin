@@ -19,11 +19,13 @@ import (
 	strings "strings"
 )
 
+var _WebPathUserSuperAdminLogin = "/admin.user/super_admin_login"
 var _WebPathUserLogin = "/admin.user/login"
 var _WebPathUserGetUsers = "/admin.user/get_users"
 var _WebPathUserSearchUsers = "/admin.user/search_users"
 
 type UserWebClient interface {
+	SuperAdminLogin(context.Context, *SuperAdminLoginReq, http.Header) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq, http.Header) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq, http.Header) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq, http.Header) (*SearchUsersResp, error)
@@ -37,6 +39,29 @@ func NewUserWebClient(c *web.WebClient) UserWebClient {
 	return &userWebClient{cc: c}
 }
 
+func (c *userWebClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLoginReq, header http.Header) (*SuperAdminLoginResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	data, e := c.cc.Post(ctx, _WebPathUserSuperAdminLogin, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	resp := new(SuperAdminLoginResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(data, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
 func (c *userWebClient) Login(ctx context.Context, req *LoginReq, header http.Header) (*LoginResp, error) {
 	if req == nil {
 		return nil, error1.ErrReq
@@ -108,11 +133,90 @@ func (c *userWebClient) SearchUsers(ctx context.Context, req *SearchUsersReq, he
 }
 
 type UserWebServer interface {
+	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
 }
 
+func _User_SuperAdminLogin_WebHandler(handler func(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(SuperAdminLoginReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
+				if e != nil {
+					ctx.Abort(error1.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(error1.ErrReq)
+					return
+				}
+			}
+		} else {
+			if e := ctx.ParseForm(); e != nil {
+				ctx.Abort(error1.ErrReq)
+				return
+			}
+			data := pool.GetBuffer()
+			defer pool.PutBuffer(data)
+			data.AppendByte('{')
+			data.AppendString("\"password\":")
+			if form := ctx.GetForm("password"); len(form) == 0 {
+				data.AppendString("\"\"")
+			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
+				data.AppendByte('"')
+				data.AppendString(form)
+				data.AppendByte('"')
+			} else {
+				data.AppendString(form)
+			}
+			data.AppendByte('}')
+			if data.Len() > 2 {
+				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
+				if e != nil {
+					ctx.Abort(error1.ErrReq)
+					return
+				}
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/super_admin_login]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := error1.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(SuperAdminLoginResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
 func _User_Login_WebHandler(handler func(context.Context, *LoginReq) (*LoginResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
 		req := new(LoginReq)
@@ -344,6 +448,7 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 func RegisterUserWebServer(engine *web.WebServer, svc UserWebServer, allmids map[string]web.OutsideHandler) {
 	//avoid lint
 	_ = allmids
+	engine.Post(_WebPathUserSuperAdminLogin, _User_SuperAdminLogin_WebHandler(svc.SuperAdminLogin))
 	engine.Post(_WebPathUserLogin, _User_Login_WebHandler(svc.Login))
 	{
 		requiredMids := []string{"token"}

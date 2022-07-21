@@ -26,7 +26,7 @@ func StartCGrpcServer() {
 	}
 	var e error
 	if s, e = cgrpc.NewCGrpcServer(cgrpcc, api.Group, api.Name); e != nil {
-		log.Error(nil,"[xgrpc] new error:", e)
+		log.Error(nil, "[xgrpc] new error:", e)
 		return
 	}
 	UpdateHandlerTimeout(config.AC.HandlerTimeout)
@@ -36,17 +36,18 @@ func StartCGrpcServer() {
 
 	//you just need to register your service here
 	api.RegisterStatusCGrpcServer(s, service.SvcStatus, mids.AllMids())
-	api.RegisterConfigCGrpcServer(s,service.SvcConfig,mids.AllMids())
-	api.RegisterUserCGrpcServer(s, service.SvcUser, mids.AllMids()) 
+	api.RegisterConfigCGrpcServer(s, service.SvcConfig, mids.AllMids())
+	api.RegisterUserCGrpcServer(s, service.SvcUser, mids.AllMids())
 	api.RegisterPermissionCGrpcServer(s, service.SvcPermission, mids.AllMids())
+	api.RegisterInitializeCGrpcServer(s, service.SvcInitialize, mids.AllMids())
 	//example
 	//api.RegisterExampleCGrpcServer(s, service.SvcExample, mids.AllMids())
 
 	if e = s.StartCGrpcServer(":10000"); e != nil && e != cgrpc.ErrServerClosed {
-		log.Error(nil,"[xgrpc] start error:", e)
+		log.Error(nil, "[xgrpc] start error:", e)
 		return
 	}
-	log.Info(nil,"[xgrpc] server closed")
+	log.Info(nil, "[xgrpc] server closed")
 }
 
 //UpdateHandlerTimeout -

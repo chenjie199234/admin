@@ -79,7 +79,7 @@ database: user
 
 collection: user
 {
-	"_id":ObjectId("xxx"),//userid
+	"_id":ObjectId("xxx"),//userid,if this is empty,means this is the super admin user
 	"name":"",
 	"password":"",
 	"department":["",""],
@@ -105,7 +105,7 @@ collection: node
 //手动mongo创建数据库
 use permission;
 db.createCollection("node");
-db.node.createIndex({node_id:1},{unique:true});
+db.node.createIndex({node_id:1});
 
 collection: usernode
 {
@@ -119,6 +119,6 @@ collection: usernode
 //手动mongo创建数据库
 use permission;
 db.createCollection("usernode");
-db.usernode.createIndex({user_id:1,node_id:1},{unique:true});
+db.usernode.createIndex({user_id:1});
 db.usernode.createIndex({node_id:1})
 ```

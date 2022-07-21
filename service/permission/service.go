@@ -218,12 +218,12 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	for _, nodeid := range nodeids {
 		var usernode *model.UserNode
 		for _, v := range usernodes {
-			if len(nodeid) != len(usernode.NodeId) {
+			if len(nodeid) != len(v.NodeId) {
 				continue
 			}
 			same := true
 			for i := range nodeid {
-				if nodeid[i] != usernode.NodeId[i] {
+				if nodeid[i] != v.NodeId[i] {
 					same = false
 					break
 				}

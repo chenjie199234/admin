@@ -29,6 +29,27 @@ func Start() *Service {
 		userDao: userdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 	}
 }
+func (s *Service) SuperAdminLogin(ctx context.Context, req *api.SuperAdminLoginReq) (*api.SuperAdminLoginResp, error) {
+	users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{primitive.NilObjectID})
+	if e != nil {
+		log.Error(ctx, "[SuperAdminLogin]", e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
+		return nil, ecode.ErrSystem
+	}
+	user, ok := users[primitive.NilObjectID]
+	if !ok {
+		return nil, ecode.ErrNotInited
+	}
+	if user.Password != req.Password {
+		return nil, ecode.ErrAuth
+	}
+	start := time.Now()
+	end := start.Add(config.AC.TokenExpire.StdDuration())
+	tokenstr := publicmids.MakeToken(config.AC.TokenSecret, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, user.ID.Hex(), uint64(start.Unix()), uint64(end.Unix()))
+	return &api.SuperAdminLoginResp{Token: tokenstr}, nil
+}
 func (s *Service) Login(ctx context.Context, req *api.LoginReq) (*api.LoginResp, error) {
 	var userid string
 	//TODO get userid
@@ -48,6 +69,9 @@ func (s *Service) GetUsers(ctx context.Context, req *api.GetUsersReq) (*api.GetU
 		undup[obj] = nil
 	}
 	userids := make([]primitive.ObjectID, 0, len(undup))
+	for userid := range undup {
+		userids = append(userids, userid)
+	}
 	users, e := s.userDao.MongoGetUsers(ctx, userids)
 	if e != nil {
 		log.Error(ctx, "[GetUsers]", e)

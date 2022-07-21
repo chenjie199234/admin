@@ -34,8 +34,8 @@ func (d *Dao) MongoGetUserPermission(ctx context.Context, userid primitive.Objec
 func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operateUserid, targetUserid primitive.ObjectID, nodeid []uint32, admin, canread, canwrite bool) (e error) {
 	if admin {
 		//ignore
-		canread = false
-		canwrite = false
+		canread = true
+		canwrite = true
 	} else if !canread && canwrite {
 		e = ecode.ErrReq
 		return
@@ -408,26 +408,53 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operateUserid primitive.ObjectI
 	if _, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": pnodeid}, bson.M{"$inc": bson.M{"cur_node_index": 1}}); e != nil {
 		return
 	}
-	filter := bson.M{}
+	filter1 := bson.M{}
 	unset := bson.M{}
 	for i, v := range nodeid {
-		filter["node_id."+strconv.Itoa(i)] = v
+		filter1["node_id."+strconv.Itoa(i)] = v
 		unset["node_id."+strconv.Itoa(i)] = 1
 	}
-	updater := bson.A{
-		bson.M{"$unset": unset},
-		bson.M{"$push": bson.M{
-			"$each":     append(parent.NodeId, parent.CurNodeIndex+1),
-			"$position": 0,
-		}},
-		bson.M{"$pull": bson.M{"node_id": nil}},
-	}
+	updater1 := bson.M{"$unset": unset}
 	//update the node
-	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter, updater); e != nil {
+	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter1, updater1); e != nil {
 		return
 	}
 	//update the usernode
-	_, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter, updater)
+	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter1, updater1); e != nil {
+		return
+	}
+	filter2 := bson.M{}
+	for i := range nodeid {
+		filter2["node_id."+strconv.Itoa(i)] = nil
+	}
+	newnodeid := append(parent.NodeId, parent.CurNodeIndex+1)
+	updater2 := bson.M{"$push": bson.M{
+		"node_id": bson.M{
+			"$each":     newnodeid,
+			"$position": 0,
+		},
+	}}
+	//update the node
+	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter2, updater2); e != nil {
+		return
+	}
+	//update the usernode
+	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter2, updater2); e != nil {
+		return
+	}
+	filter3 := bson.M{}
+	for i, v := range newnodeid {
+		filter3["node_id."+strconv.Itoa(i)] = v
+	}
+	updater3 := bson.M{"$pull": bson.M{"node_id": nil}}
+	//update the node
+	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter3, updater3); e != nil {
+		return
+	}
+	//update the usernode
+	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter3, updater3); e != nil {
+		return
+	}
 	return
 }
 func (d *Dao) MongoDeleteNode(ctx context.Context, operateUserid primitive.ObjectID, nodeid []uint32) (e error) {

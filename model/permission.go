@@ -36,12 +36,10 @@ func (u UserNodes) CheckNode(nodeid []uint32) (canread, canwrite, admin bool) {
 			return false, false, false
 		}
 		isprefix := true
-		for _, id := range usernode.NodeId {
-			for _, reqid := range nodeid {
-				if id != reqid {
-					isprefix = false
-					break
-				}
+		for i := range usernode.NodeId {
+			if usernode.NodeId[i] != nodeid[i] {
+				isprefix = false
+				break
 			}
 		}
 		if !isprefix {

@@ -14,11 +14,13 @@ import (
 	metadata "github.com/chenjie199234/Corelib/metadata"
 )
 
+var _CGrpcPathUserSuperAdminLogin = "/admin.user/super_admin_login"
 var _CGrpcPathUserLogin = "/admin.user/login"
 var _CGrpcPathUserGetUsers = "/admin.user/get_users"
 var _CGrpcPathUserSearchUsers = "/admin.user/search_users"
 
 type UserCGrpcClient interface {
+	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
@@ -32,6 +34,16 @@ func NewUserCGrpcClient(c *cgrpc.CGrpcClient) UserCGrpcClient {
 	return &userCGrpcClient{cc: c}
 }
 
+func (c *userCGrpcClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLoginReq) (*SuperAdminLoginResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(SuperAdminLoginResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserSuperAdminLogin, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
 func (c *userCGrpcClient) Login(ctx context.Context, req *LoginReq) (*LoginResp, error) {
 	if req == nil {
 		return nil, error1.ErrReq
@@ -64,11 +76,35 @@ func (c *userCGrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) 
 }
 
 type UserCGrpcServer interface {
+	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
 }
 
+func _User_SuperAdminLogin_CGrpcHandler(handler func(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(SuperAdminLoginReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/super_admin_login]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(SuperAdminLoginResp)
+		}
+		ctx.Write(resp)
+	}
+}
 func _User_Login_CGrpcHandler(handler func(context.Context, *LoginReq) (*LoginResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(LoginReq)
@@ -136,6 +172,7 @@ func _User_SearchUsers_CGrpcHandler(handler func(context.Context, *SearchUsersRe
 func RegisterUserCGrpcServer(engine *cgrpc.CGrpcServer, svc UserCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
 	//avoid lint
 	_ = allmids
+	engine.RegisterHandler("admin.user", "super_admin_login", _User_SuperAdminLogin_CGrpcHandler(svc.SuperAdminLogin))
 	engine.RegisterHandler("admin.user", "login", _User_Login_CGrpcHandler(svc.Login))
 	engine.RegisterHandler("admin.user", "get_users", _User_GetUsers_CGrpcHandler(svc.GetUsers))
 	engine.RegisterHandler("admin.user", "search_users", _User_SearchUsers_CGrpcHandler(svc.SearchUsers))

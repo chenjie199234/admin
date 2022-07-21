@@ -15,11 +15,13 @@ import (
 	proto "google.golang.org/protobuf/proto"
 )
 
+var _CrpcPathUserSuperAdminLogin = "/admin.user/super_admin_login"
 var _CrpcPathUserLogin = "/admin.user/login"
 var _CrpcPathUserGetUsers = "/admin.user/get_users"
 var _CrpcPathUserSearchUsers = "/admin.user/search_users"
 
 type UserCrpcClient interface {
+	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
@@ -33,6 +35,24 @@ func NewUserCrpcClient(c *crpc.CrpcClient) UserCrpcClient {
 	return &userCrpcClient{cc: c}
 }
 
+func (c *userCrpcClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLoginReq) (*SuperAdminLoginResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserSuperAdminLogin, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(SuperAdminLoginResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
 func (c *userCrpcClient) Login(ctx context.Context, req *LoginReq) (*LoginResp, error) {
 	if req == nil {
 		return nil, error1.ErrReq
@@ -89,11 +109,36 @@ func (c *userCrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) (
 }
 
 type UserCrpcServer interface {
+	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
 }
 
+func _User_SuperAdminLogin_CrpcHandler(handler func(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(SuperAdminLoginReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/super_admin_login]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(SuperAdminLoginResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
 func _User_Login_CrpcHandler(handler func(context.Context, *LoginReq) (*LoginResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		req := new(LoginReq)
@@ -164,6 +209,7 @@ func _User_SearchUsers_CrpcHandler(handler func(context.Context, *SearchUsersReq
 func RegisterUserCrpcServer(engine *crpc.CrpcServer, svc UserCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	//avoid lint
 	_ = allmids
+	engine.RegisterHandler(_CrpcPathUserSuperAdminLogin, _User_SuperAdminLogin_CrpcHandler(svc.SuperAdminLogin))
 	engine.RegisterHandler(_CrpcPathUserLogin, _User_Login_CrpcHandler(svc.Login))
 	engine.RegisterHandler(_CrpcPathUserGetUsers, _User_GetUsers_CrpcHandler(svc.GetUsers))
 	engine.RegisterHandler(_CrpcPathUserSearchUsers, _User_SearchUsers_CrpcHandler(svc.SearchUsers))

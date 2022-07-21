@@ -7,6 +7,14 @@
 package api
 
 //return empty means pass
+func (m *SuperAdminLoginReq) Validate() (errstr string) {
+	if len(m.GetPassword()) == 0 {
+		return "field: password in object: super_admin_login_req check value str len not eq failed"
+	}
+	return ""
+}
+
+//return empty means pass
 func (m *GetUsersReq) Validate() (errstr string) {
 	if len(m.GetUserIds()) == 0 {
 		return "field: user_ids in object: get_users_req check len not eq failed"

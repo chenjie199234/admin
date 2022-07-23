@@ -76,3 +76,11 @@ func (m *ListNodeUserReq) Validate() (errstr string) {
 	}
 	return ""
 }
+
+//return empty means pass
+func (m *ListAdminReq) Validate() (errstr string) {
+	if len(m.GetNodeId()) == 0 {
+		return "field: node_id in object: list_admin_req check len not eq failed"
+	}
+	return ""
+}

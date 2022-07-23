@@ -202,7 +202,7 @@ var defaultAppConfig = `{
 		"Method":["GET","GRPC","CRPC"],
 		"MaxPerSec":10
 	},{
-		"Path":"/admin.init/init",
+		"Path":"/admin.initialize/initialize",
 		"Method":["POST","GRPC","CRPC"],
 		"MaxPerSec":1
 	}],

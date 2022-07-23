@@ -55,7 +55,17 @@ service permission{
 		option (pbex.web_midwares)="token";
 	}
 
+	rpc list_all_node(list_all_node_req)returns(list_all_node_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
 	rpc list_node_user(list_node_user_req)returns(list_node_user_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc list_admin(list_admin_req)returns(list_admin_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -141,6 +151,12 @@ message list_user_node_req {
 message list_user_node_resp {
 	repeated node_info nodes=1;
 }
+message list_all_node_req{
+}
+message list_all_node_resp{
+	//this will only return the node name,other node's info will not return
+	node_info nodes=1;
+}
 message list_node_user_req {
 	repeated uint32 node_id=1[(pbex.map_repeated_len_not_eq)=0];
 }
@@ -148,4 +164,10 @@ message list_node_user_resp {
 	map<string,user_info> canread=1;//key userid,value username
 	map<string,user_info> canwrite=2;//key userid,value username
 	map<string,user_info> admin=3;//key userid,value username
+}
+message list_admin_req{
+	repeated uint32 node_id=1[(pbex.map_repeated_len_not_eq)=0];
+}
+message list_admin_resp{
+	repeated user_info users=1;
 }

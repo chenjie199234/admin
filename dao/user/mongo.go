@@ -10,6 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func (d *Dao) MongoLogin(ctx context.Context) (userid primitive.ObjectID, e error) {
+	// TODO
+	return primitive.NewObjectID(), nil
+}
 func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (map[primitive.ObjectID]*model.User, error) {
 	cursor, e := d.mongo.Database("user").Collection("user").Find(ctx, bson.M{"_id": bson.M{"$in": userids}})
 	if e != nil {

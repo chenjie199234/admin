@@ -28,6 +28,53 @@ func (d *Dao) MongoGetUserPermission(ctx context.Context, userid primitive.Objec
 	return
 }
 
+func (d *Dao) MongoListAdmin(ctx context.Context, nodeid []uint32) ([]*model.User, error) {
+	noderoute := make([][]uint32, 0, len(nodeid))
+	for i := range nodeid {
+		noderoute = append(noderoute, nodeid[:i+1])
+	}
+	cur, e := d.mongo.Database("permission").Collection("usernode").Find(ctx, bson.M{"node_id": bson.M{"$in": noderoute}, "x": true})
+	if e != nil {
+		return nil, e
+	}
+	tmp := make([]*model.UserNode, 0, cur.RemainingBatchLength())
+	for cur.Next(ctx) {
+		usernode := &model.UserNode{}
+		if e := cur.Decode(usernode); e != nil {
+			cur.Close(context.Background())
+			return nil, e
+		}
+		tmp = append(tmp, usernode)
+	}
+	if e := cur.Err(); e != nil {
+		cur.Close(context.Background())
+		return nil, e
+	}
+	cur.Close(context.Background())
+	undup := make(map[primitive.ObjectID]*struct{})
+	for _, v := range tmp {
+		undup[v.UserId] = nil
+	}
+	userids := make([]primitive.ObjectID, 0, len(undup))
+	for k := range undup {
+		userids = append(userids, k)
+	}
+	cur, e = d.mongo.Database("user").Collection("user").Find(ctx, bson.M{"_id": bson.M{"$in": userids}})
+	if e != nil {
+		return nil, e
+	}
+	defer cur.Close(context.Background())
+	result := make([]*model.User, 0, cur.RemainingBatchLength())
+	for cur.Next(ctx) {
+		user := &model.User{}
+		if e := cur.Decode(user); e != nil {
+			return nil, e
+		}
+		result = append(result, user)
+	}
+	return result, nil
+}
+
 //if admin is true,canread and canwrite will be ignore
 //if admin is false and canread is false too,means delete this user from this node
 //if admin is false and canwrite is true,then canread must be tree too

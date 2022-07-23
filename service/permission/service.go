@@ -315,6 +315,38 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		Nodes: root.Children,
 	}, nil
 }
+func (s *Service) ListAllNode(ctx context.Context, req *api.ListAllNodeReq) (*api.ListAllNodeResp, error) {
+	nodes, e := s.permissionDao.MongoListNode(ctx, nil)
+	if e != nil {
+		log.Error(ctx, "[ListAllNode]", e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
+		return nil, ecode.ErrSystem
+	}
+	root := &api.NodeInfo{}
+	//find the root
+	for _, node := range nodes {
+		if len(node.NodeId) == 1 {
+			root.NodeId = node.NodeId
+			root.NodeName = node.NodeName
+			break
+		}
+	}
+	if len(root.NodeId) == 0 {
+		return nil, ecode.ErrNotInited
+	}
+	for _, node := range nodes {
+		if len(node.NodeId) > 1 {
+			addTreeNode(root, &api.NodeInfo{
+				NodeId:   node.NodeId,
+				NodeName: node.NodeName,
+				Children: make([]*api.NodeInfo, 0),
+			})
+		}
+	}
+	return &api.ListAllNodeResp{Nodes: root}, nil
+}
 func addTreeNode(root, node *api.NodeInfo) bool {
 	if len(root.NodeId) > len(node.NodeId) {
 		return false
@@ -427,6 +459,28 @@ func (s *Service) ListNodeUser(ctx context.Context, req *api.ListNodeUserReq) (*
 				Ctime:      userinfo.Ctime,
 			}
 		}
+	}
+	return resp, nil
+}
+
+func (s *Service) ListAdmin(ctx context.Context, req *api.ListAdminReq) (*api.ListAdminResp, error) {
+	users, e := s.permissionDao.MongoListAdmin(ctx, req.NodeId)
+	if e != nil {
+		log.Error(ctx, "[ListAdmin] node_id:", req.NodeId, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
+		return nil, ecode.ErrSystem
+	}
+	resp := &api.ListAdminResp{
+		Users: make([]*api.UserInfo, 0, len(users)),
+	}
+	for _, user := range users {
+		resp.Users = append(resp.Users, &api.UserInfo{
+			UserId:     user.ID.Hex(),
+			UserName:   user.Name,
+			Department: user.Department,
+		})
 	}
 	return resp, nil
 }

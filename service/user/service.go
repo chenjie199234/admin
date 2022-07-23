@@ -52,7 +52,7 @@ func (s *Service) SuperAdminLogin(ctx context.Context, req *api.SuperAdminLoginR
 }
 func (s *Service) Login(ctx context.Context, req *api.LoginReq) (*api.LoginResp, error) {
 	var userid string
-	//TODO get userid
+	//TODO login and get userid
 	start := time.Now()
 	end := start.Add(config.AC.TokenExpire.StdDuration())
 	tokenstr := publicmids.MakeToken(config.AC.TokenSecret, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, userid, uint64(start.Unix()), uint64(end.Unix()))

@@ -1535,16 +1535,148 @@ func _Config_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchRe
 func RegisterConfigWebServer(engine *web.WebServer, svc ConfigWebServer, allmids map[string]web.OutsideHandler) {
 	//avoid lint
 	_ = allmids
-	engine.Post(_WebPathConfigGroups, _Config_Groups_WebHandler(svc.Groups))
-	engine.Post(_WebPathConfigDelGroup, _Config_DelGroup_WebHandler(svc.DelGroup))
-	engine.Post(_WebPathConfigApps, _Config_Apps_WebHandler(svc.Apps))
-	engine.Post(_WebPathConfigDelApp, _Config_DelApp_WebHandler(svc.DelApp))
-	engine.Post(_WebPathConfigKeys, _Config_Keys_WebHandler(svc.Keys))
-	engine.Post(_WebPathConfigDelKey, _Config_DelKey_WebHandler(svc.DelKey))
-	engine.Post(_WebPathConfigCreate, _Config_Create_WebHandler(svc.Create))
-	engine.Post(_WebPathConfigUpdatecipher, _Config_Updatecipher_WebHandler(svc.Updatecipher))
-	engine.Post(_WebPathConfigGet, _Config_Get_WebHandler(svc.Get))
-	engine.Post(_WebPathConfigSet, _Config_Set_WebHandler(svc.Set))
-	engine.Post(_WebPathConfigRollback, _Config_Rollback_WebHandler(svc.Rollback))
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_Groups_WebHandler(svc.Groups))
+		engine.Post(_WebPathConfigGroups, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_DelGroup_WebHandler(svc.DelGroup))
+		engine.Post(_WebPathConfigDelGroup, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_Apps_WebHandler(svc.Apps))
+		engine.Post(_WebPathConfigApps, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_DelApp_WebHandler(svc.DelApp))
+		engine.Post(_WebPathConfigDelApp, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_Keys_WebHandler(svc.Keys))
+		engine.Post(_WebPathConfigKeys, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_DelKey_WebHandler(svc.DelKey))
+		engine.Post(_WebPathConfigDelKey, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_Create_WebHandler(svc.Create))
+		engine.Post(_WebPathConfigCreate, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_Updatecipher_WebHandler(svc.Updatecipher))
+		engine.Post(_WebPathConfigUpdatecipher, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_Get_WebHandler(svc.Get))
+		engine.Post(_WebPathConfigGet, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_Set_WebHandler(svc.Set))
+		engine.Post(_WebPathConfigSet, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_Rollback_WebHandler(svc.Rollback))
+		engine.Post(_WebPathConfigRollback, mids...)
+	}
 	engine.Post(_WebPathConfigWatch, _Config_Watch_WebHandler(svc.Watch))
 }

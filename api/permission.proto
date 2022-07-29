@@ -23,7 +23,9 @@ service permission{
 	//	option (pbex.cgrpc_midwares)="a";//this function on grpc protocol has 3 midwares,it's order is b,c,a
 	//}
 
-	rpc get_user_permission(get_user_permission_req)returns(get_user_permission_resp);
+	rpc get_user_permission(get_user_permission_req)returns(get_user_permission_resp){
+		option (pbex.method)="post";
+	}
 
 	rpc update_user_permission(update_user_permission_req)returns(update_user_permission_resp){
 		option (pbex.method)="post";

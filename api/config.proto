@@ -25,46 +25,57 @@ service config{
 	//get all groups
 	rpc groups(groups_req)returns(groups_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//del one specific group
 	rpc del_group(del_group_req)returns(del_group_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//get all apps in one specific group
 	rpc apps(apps_req)returns(apps_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//del one specific app in one specific group
 	rpc del_app(del_app_req)returns(del_app_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//get all config's keys in one specific app
 	rpc keys(keys_req)returns(keys_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//del one specific key in one specific app
 	rpc del_key(del_key_req)returns(del_key_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//create one specific app
 	rpc create(create_req)returns(create_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//update one specific app's cipher
 	rpc updatecipher(updatecipher_req)returns(updatecipher_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//get config
 	rpc get(get_req)returns(get_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//set config
 	rpc set(set_req)returns(set_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//rollback config
 	rpc rollback(rollback_req)returns(rollback_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 	//watch config
 	rpc watch(watch_req)returns(watch_resp){

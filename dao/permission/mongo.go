@@ -79,6 +79,9 @@ func (d *Dao) MongoListAdmin(ctx context.Context, nodeid []uint32) ([]*model.Use
 //if admin is false and canread is false too,means delete this user from this node
 //if admin is false and canwrite is true,then canread must be tree too
 func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operateUserid, targetUserid primitive.ObjectID, nodeid []uint32, admin, canread, canwrite bool) (e error) {
+	if len(nodeid) == 0 {
+		return ecode.ErrReq
+	}
 	if admin {
 		//ignore
 		canread = true
@@ -108,7 +111,10 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operateUserid, targ
 		//delete
 		//first get target user permission on this node
 		target := &model.UserNode{}
-		if e = d.mongo.Database("permission").Collection("usernode").FindOne(sctx, bson.M{"user_id": targetUserid, "node_id": nodeid}).Decode(target); e != nil && e != mongo.ErrNoDocuments {
+		if e = d.mongo.Database("permission").Collection("usernode").FindOne(sctx, bson.M{"user_id": targetUserid, "node_id": nodeid}).Decode(target); e != nil {
+			if e == mongo.ErrNoDocuments {
+				e = nil
+			}
 			return
 		} else if e == nil {
 			var x bool
@@ -259,25 +265,6 @@ func (d *Dao) MongoGetNode(ctx context.Context, nodeid []uint32) (*model.Node, e
 
 //get all specific nodes' info in the nodeids
 func (d *Dao) MongoGetNodes(ctx context.Context, nodeids [][]uint32) ([]*model.Node, error) {
-	if len(nodeids) == 0 {
-		return nil, nil
-	}
-	tail := len(nodeids) - 1
-	pos := 0
-	for {
-		if len(nodeids[pos]) == 0 {
-			//don't need
-			nodeids[pos], nodeids[tail] = nodeids[tail], nodeids[pos]
-			tail--
-		} else {
-			//need
-			pos++
-		}
-		if pos > tail {
-			break
-		}
-	}
-	nodeids = nodeids[:tail+1]
 	if len(nodeids) == 0 {
 		return nil, nil
 	}

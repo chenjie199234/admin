@@ -164,13 +164,13 @@ var kafkaPubers map[string]*kafka.Writer
 func initlocalsource() {
 	data, e := os.ReadFile("./SourceConfig.json")
 	if e != nil {
-		log.Error(nil, "[config.initsource] read config file error:", e)
+		log.Error(nil, "[config.initlocalsource] read config file error:", e)
 		Close()
 		os.Exit(1)
 	}
 	sc = &sourceConfig{}
 	if e = json.Unmarshal(data, sc); e != nil {
-		log.Error(nil, "[config.initsource] config file format error:", e)
+		log.Error(nil, "[config.initlocalsource] config file format error:", e)
 		Close()
 		os.Exit(1)
 	}

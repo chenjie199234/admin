@@ -21,8 +21,6 @@
 		"Method":["POST","GRPC","CRPC"],
 		"MaxPerSec":1
 	}],
-	"white_ip":[],
-	"black_ip":[],
 	"web_path_rewrite":{
 		"GET":{
 			"/example/origin/url":"/example/new/url"

@@ -17,7 +17,7 @@ import (
 var _CGrpcPathInitializeInitialize = "/admin.initialize/initialize"
 
 type InitializeCGrpcClient interface {
-	//初始化
+	// 初始化
 	Initialize(context.Context, *InitializeReq) (*InitializeResp, error)
 }
 
@@ -41,7 +41,7 @@ func (c *initializeCGrpcClient) Initialize(ctx context.Context, req *InitializeR
 }
 
 type InitializeCGrpcServer interface {
-	//初始化
+	// 初始化
 	Initialize(context.Context, *InitializeReq) (*InitializeResp, error)
 }
 
@@ -69,7 +69,7 @@ func _Initialize_Initialize_CGrpcHandler(handler func(context.Context, *Initiali
 	}
 }
 func RegisterInitializeCGrpcServer(engine *cgrpc.CGrpcServer, svc InitializeCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	engine.RegisterHandler("admin.initialize", "initialize", _Initialize_Initialize_CGrpcHandler(svc.Initialize))
 }

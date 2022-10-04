@@ -17,7 +17,7 @@ import (
 var _CGrpcPathStatusPing = "/admin.status/ping"
 
 type StatusCGrpcClient interface {
-	//ping check server's health
+	// ping check server's health
 	Ping(context.Context, *Pingreq) (*Pingresp, error)
 }
 
@@ -41,7 +41,7 @@ func (c *statusCGrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, 
 }
 
 type StatusCGrpcServer interface {
-	//ping check server's health
+	// ping check server's health
 	Ping(context.Context, *Pingreq) (*Pingresp, error)
 }
 
@@ -69,7 +69,7 @@ func _Status_Ping_CGrpcHandler(handler func(context.Context, *Pingreq) (*Pingres
 	}
 }
 func RegisterStatusCGrpcServer(engine *cgrpc.CGrpcServer, svc StatusCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	{
 		requiredMids := []string{"accesskey", "rate"}

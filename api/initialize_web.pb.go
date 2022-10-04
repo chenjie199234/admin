@@ -22,7 +22,7 @@ import (
 var _WebPathInitializeInitialize = "/admin.initialize/initialize"
 
 type InitializeWebClient interface {
-	//初始化
+	// 初始化
 	Initialize(context.Context, *InitializeReq, http.Header) (*InitializeResp, error)
 }
 
@@ -59,7 +59,7 @@ func (c *initializeWebClient) Initialize(ctx context.Context, req *InitializeReq
 }
 
 type InitializeWebServer interface {
-	//初始化
+	// 初始化
 	Initialize(context.Context, *InitializeReq) (*InitializeResp, error)
 }
 
@@ -142,7 +142,7 @@ func _Initialize_Initialize_WebHandler(handler func(context.Context, *Initialize
 	}
 }
 func RegisterInitializeWebServer(engine *web.WebServer, svc InitializeWebServer, allmids map[string]web.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	engine.Post(_WebPathInitializeInitialize, _Initialize_Initialize_WebHandler(svc.Initialize))
 }

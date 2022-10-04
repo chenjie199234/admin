@@ -19,12 +19,30 @@ var _CrpcPathUserSuperAdminLogin = "/admin.user/super_admin_login"
 var _CrpcPathUserLogin = "/admin.user/login"
 var _CrpcPathUserGetUsers = "/admin.user/get_users"
 var _CrpcPathUserSearchUsers = "/admin.user/search_users"
+var _CrpcPathUserUpdateUser = "/admin.user/update_user"
+var _CrpcPathUserDelUsers = "/admin.user/del_users"
+var _CrpcPathUserCreateRole = "/admin.user/create_role"
+var _CrpcPathUserGetRoles = "/admin.user/get_roles"
+var _CrpcPathUserSearchRoles = "/admin.user/search_roles"
+var _CrpcPathUserUpdateRole = "/admin.user/update_role"
+var _CrpcPathUserDelRoles = "/admin.user/del_roles"
+var _CrpcPathUserAddUserRole = "/admin.user/add_user_role"
+var _CrpcPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserCrpcClient interface {
 	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
+	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
+	DelUsers(context.Context, *DelUsersReq) (*DelUsersResp, error)
+	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
+	GetRoles(context.Context, *GetRolesReq) (*GetRolesResp, error)
+	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
+	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
+	DelRoles(context.Context, *DelRolesReq) (*DelRolesResp, error)
+	AddUserRole(context.Context, *AddUserRoleReq) (*AddUserRoleResp, error)
+	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
 }
 
 type userCrpcClient struct {
@@ -107,12 +125,183 @@ func (c *userCrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) (
 	}
 	return resp, nil
 }
+func (c *userCrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*UpdateUserResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserUpdateUser, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(UpdateUserResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) DelUsers(ctx context.Context, req *DelUsersReq) (*DelUsersResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserDelUsers, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(DelUsersResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq) (*CreateRoleResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserCreateRole, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(CreateRoleResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) GetRoles(ctx context.Context, req *GetRolesReq) (*GetRolesResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserGetRoles, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(GetRolesResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) SearchRoles(ctx context.Context, req *SearchRolesReq) (*SearchRolesResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserSearchRoles, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(SearchRolesResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) UpdateRole(ctx context.Context, req *UpdateRoleReq) (*UpdateRoleResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserUpdateRole, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(UpdateRoleResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) DelRoles(ctx context.Context, req *DelRolesReq) (*DelRolesResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserDelRoles, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(DelRolesResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) AddUserRole(ctx context.Context, req *AddUserRoleReq) (*AddUserRoleResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserAddUserRole, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(AddUserRoleResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) (*DelUserRoleResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserDelUserRole, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(DelUserRoleResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, error1.ErrResp
+	}
+	return resp, nil
+}
 
 type UserCrpcServer interface {
 	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
+	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
+	DelUsers(context.Context, *DelUsersReq) (*DelUsersResp, error)
+	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
+	GetRoles(context.Context, *GetRolesReq) (*GetRolesResp, error)
+	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
+	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
+	DelRoles(context.Context, *DelRolesReq) (*DelRolesResp, error)
+	AddUserRole(context.Context, *AddUserRoleReq) (*AddUserRoleResp, error)
+	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
 }
 
 func _User_SuperAdminLogin_CrpcHandler(handler func(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)) crpc.OutsideHandler {
@@ -206,11 +395,236 @@ func _User_SearchUsers_CrpcHandler(handler func(context.Context, *SearchUsersReq
 		ctx.Write(respd)
 	}
 }
+func _User_UpdateUser_CrpcHandler(handler func(context.Context, *UpdateUserReq) (*UpdateUserResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(UpdateUserReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/update_user]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(UpdateUserResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_DelUsers_CrpcHandler(handler func(context.Context, *DelUsersReq) (*DelUsersResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(DelUsersReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/del_users]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(DelUsersResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_CreateRole_CrpcHandler(handler func(context.Context, *CreateRoleReq) (*CreateRoleResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(CreateRoleReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/create_role]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(CreateRoleResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_GetRoles_CrpcHandler(handler func(context.Context, *GetRolesReq) (*GetRolesResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(GetRolesReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/get_roles]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetRolesResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_SearchRoles_CrpcHandler(handler func(context.Context, *SearchRolesReq) (*SearchRolesResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(SearchRolesReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/search_roles]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(SearchRolesResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_UpdateRole_CrpcHandler(handler func(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(UpdateRoleReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/update_role]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(UpdateRoleResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_DelRoles_CrpcHandler(handler func(context.Context, *DelRolesReq) (*DelRolesResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(DelRolesReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/del_roles]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(DelRolesResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_AddUserRole_CrpcHandler(handler func(context.Context, *AddUserRoleReq) (*AddUserRoleResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(AddUserRoleReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/add_user_role]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(AddUserRoleResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_DelUserRole_CrpcHandler(handler func(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(DelUserRoleReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/del_user_role]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(DelUserRoleResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
 func RegisterUserCrpcServer(engine *crpc.CrpcServer, svc UserCrpcServer, allmids map[string]crpc.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	engine.RegisterHandler(_CrpcPathUserSuperAdminLogin, _User_SuperAdminLogin_CrpcHandler(svc.SuperAdminLogin))
 	engine.RegisterHandler(_CrpcPathUserLogin, _User_Login_CrpcHandler(svc.Login))
 	engine.RegisterHandler(_CrpcPathUserGetUsers, _User_GetUsers_CrpcHandler(svc.GetUsers))
 	engine.RegisterHandler(_CrpcPathUserSearchUsers, _User_SearchUsers_CrpcHandler(svc.SearchUsers))
+	engine.RegisterHandler(_CrpcPathUserUpdateUser, _User_UpdateUser_CrpcHandler(svc.UpdateUser))
+	engine.RegisterHandler(_CrpcPathUserDelUsers, _User_DelUsers_CrpcHandler(svc.DelUsers))
+	engine.RegisterHandler(_CrpcPathUserCreateRole, _User_CreateRole_CrpcHandler(svc.CreateRole))
+	engine.RegisterHandler(_CrpcPathUserGetRoles, _User_GetRoles_CrpcHandler(svc.GetRoles))
+	engine.RegisterHandler(_CrpcPathUserSearchRoles, _User_SearchRoles_CrpcHandler(svc.SearchRoles))
+	engine.RegisterHandler(_CrpcPathUserUpdateRole, _User_UpdateRole_CrpcHandler(svc.UpdateRole))
+	engine.RegisterHandler(_CrpcPathUserDelRoles, _User_DelRoles_CrpcHandler(svc.DelRoles))
+	engine.RegisterHandler(_CrpcPathUserAddUserRole, _User_AddUserRole_CrpcHandler(svc.AddUserRole))
+	engine.RegisterHandler(_CrpcPathUserDelUserRole, _User_DelUserRole_CrpcHandler(svc.DelUserRole))
 }

@@ -33,29 +33,29 @@ var _WebPathConfigRollback = "/admin.config/rollback"
 var _WebPathConfigWatch = "/admin.config/watch"
 
 type ConfigWebClient interface {
-	//get all groups
+	// get all groups
 	Groups(context.Context, *GroupsReq, http.Header) (*GroupsResp, error)
-	//del one specific group
+	// del one specific group
 	DelGroup(context.Context, *DelGroupReq, http.Header) (*DelGroupResp, error)
-	//get all apps in one specific group
+	// get all apps in one specific group
 	Apps(context.Context, *AppsReq, http.Header) (*AppsResp, error)
-	//del one specific app in one specific group
+	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq, http.Header) (*DelAppResp, error)
-	//get all config's keys in one specific app
+	// get all config's keys in one specific app
 	Keys(context.Context, *KeysReq, http.Header) (*KeysResp, error)
-	//del one specific key in one specific app
+	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq, http.Header) (*DelKeyResp, error)
-	//create one specific app
+	// create one specific app
 	Create(context.Context, *CreateReq, http.Header) (*CreateResp, error)
-	//update one specific app's cipher
+	// update one specific app's cipher
 	Updatecipher(context.Context, *UpdatecipherReq, http.Header) (*UpdatecipherResp, error)
-	//get config
+	// get config
 	Get(context.Context, *GetReq, http.Header) (*GetResp, error)
-	//set config
+	// set config
 	Set(context.Context, *SetReq, http.Header) (*SetResp, error)
-	//rollback config
+	// rollback config
 	Rollback(context.Context, *RollbackReq, http.Header) (*RollbackResp, error)
-	//watch config
+	// watch config
 	Watch(context.Context, *WatchReq, http.Header) (*WatchResp, error)
 }
 
@@ -345,29 +345,29 @@ func (c *configWebClient) Watch(ctx context.Context, req *WatchReq, header http.
 }
 
 type ConfigWebServer interface {
-	//get all groups
+	// get all groups
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
-	//del one specific group
+	// del one specific group
 	DelGroup(context.Context, *DelGroupReq) (*DelGroupResp, error)
-	//get all apps in one specific group
+	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
-	//del one specific app in one specific group
+	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
-	//get all config's keys in one specific app
+	// get all config's keys in one specific app
 	Keys(context.Context, *KeysReq) (*KeysResp, error)
-	//del one specific key in one specific app
+	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	//create one specific app
+	// create one specific app
 	Create(context.Context, *CreateReq) (*CreateResp, error)
-	//update one specific app's cipher
+	// update one specific app's cipher
 	Updatecipher(context.Context, *UpdatecipherReq) (*UpdatecipherResp, error)
-	//get config
+	// get config
 	Get(context.Context, *GetReq) (*GetResp, error)
-	//set config
+	// set config
 	Set(context.Context, *SetReq) (*SetResp, error)
-	//rollback config
+	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	//watch config
+	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
 }
 
@@ -1533,7 +1533,7 @@ func _Config_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchRe
 	}
 }
 func RegisterConfigWebServer(engine *web.WebServer, svc ConfigWebServer, allmids map[string]web.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	{
 		requiredMids := []string{"token"}

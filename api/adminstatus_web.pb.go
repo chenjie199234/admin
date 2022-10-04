@@ -22,7 +22,7 @@ import (
 var _WebPathStatusPing = "/admin.status/ping"
 
 type StatusWebClient interface {
-	//ping check server's health
+	// ping check server's health
 	Ping(context.Context, *Pingreq, http.Header) (*Pingresp, error)
 }
 
@@ -52,7 +52,7 @@ func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.He
 	}
 	querystr := query.String()
 	if len(querystr) > 0 {
-		//drop last &
+		// drop last &
 		querystr = querystr[:len(querystr)-1]
 	}
 	data, e := c.cc.Get(ctx, _WebPathStatusPing, querystr, header, metadata.GetMetadata(ctx))
@@ -70,7 +70,7 @@ func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.He
 }
 
 type StatusWebServer interface {
-	//ping check server's health
+	// ping check server's health
 	Ping(context.Context, *Pingreq) (*Pingresp, error)
 }
 
@@ -149,7 +149,7 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 	}
 }
 func RegisterStatusWebServer(engine *web.WebServer, svc StatusWebServer, allmids map[string]web.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	{
 		requiredMids := []string{"accesskey", "rate"}

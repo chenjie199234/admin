@@ -18,12 +18,30 @@ var _CGrpcPathUserSuperAdminLogin = "/admin.user/super_admin_login"
 var _CGrpcPathUserLogin = "/admin.user/login"
 var _CGrpcPathUserGetUsers = "/admin.user/get_users"
 var _CGrpcPathUserSearchUsers = "/admin.user/search_users"
+var _CGrpcPathUserUpdateUser = "/admin.user/update_user"
+var _CGrpcPathUserDelUsers = "/admin.user/del_users"
+var _CGrpcPathUserCreateRole = "/admin.user/create_role"
+var _CGrpcPathUserGetRoles = "/admin.user/get_roles"
+var _CGrpcPathUserSearchRoles = "/admin.user/search_roles"
+var _CGrpcPathUserUpdateRole = "/admin.user/update_role"
+var _CGrpcPathUserDelRoles = "/admin.user/del_roles"
+var _CGrpcPathUserAddUserRole = "/admin.user/add_user_role"
+var _CGrpcPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserCGrpcClient interface {
 	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
+	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
+	DelUsers(context.Context, *DelUsersReq) (*DelUsersResp, error)
+	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
+	GetRoles(context.Context, *GetRolesReq) (*GetRolesResp, error)
+	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
+	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
+	DelRoles(context.Context, *DelRolesReq) (*DelRolesResp, error)
+	AddUserRole(context.Context, *AddUserRoleReq) (*AddUserRoleResp, error)
+	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
 }
 
 type userCGrpcClient struct {
@@ -74,12 +92,111 @@ func (c *userCGrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) 
 	}
 	return resp, nil
 }
+func (c *userCGrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*UpdateUserResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(UpdateUserResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateUser, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *userCGrpcClient) DelUsers(ctx context.Context, req *DelUsersReq) (*DelUsersResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(DelUsersResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserDelUsers, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *userCGrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq) (*CreateRoleResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(CreateRoleResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserCreateRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *userCGrpcClient) GetRoles(ctx context.Context, req *GetRolesReq) (*GetRolesResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(GetRolesResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserGetRoles, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *userCGrpcClient) SearchRoles(ctx context.Context, req *SearchRolesReq) (*SearchRolesResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(SearchRolesResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserSearchRoles, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *userCGrpcClient) UpdateRole(ctx context.Context, req *UpdateRoleReq) (*UpdateRoleResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(UpdateRoleResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *userCGrpcClient) DelRoles(ctx context.Context, req *DelRolesReq) (*DelRolesResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(DelRolesResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserDelRoles, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *userCGrpcClient) AddUserRole(ctx context.Context, req *AddUserRoleReq) (*AddUserRoleResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(AddUserRoleResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserAddUserRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *userCGrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) (*DelUserRoleResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(DelUserRoleResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserDelUserRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
 
 type UserCGrpcServer interface {
 	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
+	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
+	DelUsers(context.Context, *DelUsersReq) (*DelUsersResp, error)
+	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
+	GetRoles(context.Context, *GetRolesReq) (*GetRolesResp, error)
+	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
+	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
+	DelRoles(context.Context, *DelRolesReq) (*DelRolesResp, error)
+	AddUserRole(context.Context, *AddUserRoleReq) (*AddUserRoleResp, error)
+	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
 }
 
 func _User_SuperAdminLogin_CGrpcHandler(handler func(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)) cgrpc.OutsideHandler {
@@ -169,11 +286,227 @@ func _User_SearchUsers_CGrpcHandler(handler func(context.Context, *SearchUsersRe
 		ctx.Write(resp)
 	}
 }
+func _User_UpdateUser_CGrpcHandler(handler func(context.Context, *UpdateUserReq) (*UpdateUserResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(UpdateUserReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/update_user]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(UpdateUserResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _User_DelUsers_CGrpcHandler(handler func(context.Context, *DelUsersReq) (*DelUsersResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(DelUsersReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/del_users]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(DelUsersResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _User_CreateRole_CGrpcHandler(handler func(context.Context, *CreateRoleReq) (*CreateRoleResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(CreateRoleReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/create_role]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(CreateRoleResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _User_GetRoles_CGrpcHandler(handler func(context.Context, *GetRolesReq) (*GetRolesResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(GetRolesReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/get_roles]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetRolesResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _User_SearchRoles_CGrpcHandler(handler func(context.Context, *SearchRolesReq) (*SearchRolesResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(SearchRolesReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/search_roles]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(SearchRolesResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _User_UpdateRole_CGrpcHandler(handler func(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(UpdateRoleReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/update_role]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(UpdateRoleResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _User_DelRoles_CGrpcHandler(handler func(context.Context, *DelRolesReq) (*DelRolesResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(DelRolesReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/del_roles]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(DelRolesResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _User_AddUserRole_CGrpcHandler(handler func(context.Context, *AddUserRoleReq) (*AddUserRoleResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(AddUserRoleReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/add_user_role]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(AddUserRoleResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _User_DelUserRole_CGrpcHandler(handler func(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(DelUserRoleReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/del_user_role]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(DelUserRoleResp)
+		}
+		ctx.Write(resp)
+	}
+}
 func RegisterUserCGrpcServer(engine *cgrpc.CGrpcServer, svc UserCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	engine.RegisterHandler("admin.user", "super_admin_login", _User_SuperAdminLogin_CGrpcHandler(svc.SuperAdminLogin))
 	engine.RegisterHandler("admin.user", "login", _User_Login_CGrpcHandler(svc.Login))
 	engine.RegisterHandler("admin.user", "get_users", _User_GetUsers_CGrpcHandler(svc.GetUsers))
 	engine.RegisterHandler("admin.user", "search_users", _User_SearchUsers_CGrpcHandler(svc.SearchUsers))
+	engine.RegisterHandler("admin.user", "update_user", _User_UpdateUser_CGrpcHandler(svc.UpdateUser))
+	engine.RegisterHandler("admin.user", "del_users", _User_DelUsers_CGrpcHandler(svc.DelUsers))
+	engine.RegisterHandler("admin.user", "create_role", _User_CreateRole_CGrpcHandler(svc.CreateRole))
+	engine.RegisterHandler("admin.user", "get_roles", _User_GetRoles_CGrpcHandler(svc.GetRoles))
+	engine.RegisterHandler("admin.user", "search_roles", _User_SearchRoles_CGrpcHandler(svc.SearchRoles))
+	engine.RegisterHandler("admin.user", "update_role", _User_UpdateRole_CGrpcHandler(svc.UpdateRole))
+	engine.RegisterHandler("admin.user", "del_roles", _User_DelRoles_CGrpcHandler(svc.DelRoles))
+	engine.RegisterHandler("admin.user", "add_user_role", _User_AddUserRole_CGrpcHandler(svc.AddUserRole))
+	engine.RegisterHandler("admin.user", "del_user_role", _User_DelUserRole_CGrpcHandler(svc.DelUserRole))
 }

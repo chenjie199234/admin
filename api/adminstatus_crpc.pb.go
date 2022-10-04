@@ -18,7 +18,7 @@ import (
 var _CrpcPathStatusPing = "/admin.status/ping"
 
 type StatusCrpcClient interface {
-	//ping check server's health
+	// ping check server's health
 	Ping(context.Context, *Pingreq) (*Pingresp, error)
 }
 
@@ -50,7 +50,7 @@ func (c *statusCrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, e
 }
 
 type StatusCrpcServer interface {
-	//ping check server's health
+	// ping check server's health
 	Ping(context.Context, *Pingreq) (*Pingresp, error)
 }
 
@@ -79,7 +79,7 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 	}
 }
 func RegisterStatusCrpcServer(engine *crpc.CrpcServer, svc StatusCrpcServer, allmids map[string]crpc.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	{
 		requiredMids := []string{"accesskey", "rate"}

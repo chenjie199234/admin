@@ -16,26 +16,26 @@ import (
 
 var _CGrpcPathPermissionGetUserPermission = "/admin.permission/get_user_permission"
 var _CGrpcPathPermissionUpdateUserPermission = "/admin.permission/update_user_permission"
+var _CGrpcPathPermissionUpdateRolePermission = "/admin.permission/update_role_permission"
 var _CGrpcPathPermissionAddNode = "/admin.permission/add_node"
 var _CGrpcPathPermissionUpdateNode = "/admin.permission/update_node"
 var _CGrpcPathPermissionMoveNode = "/admin.permission/move_node"
 var _CGrpcPathPermissionDelNode = "/admin.permission/del_node"
 var _CGrpcPathPermissionListUserNode = "/admin.permission/list_user_node"
+var _CGrpcPathPermissionListRoleNode = "/admin.permission/list_role_node"
 var _CGrpcPathPermissionListAllNode = "/admin.permission/list_all_node"
-var _CGrpcPathPermissionListNodeUser = "/admin.permission/list_node_user"
-var _CGrpcPathPermissionListAdmin = "/admin.permission/list_admin"
 
 type PermissionCGrpcClient interface {
 	GetUserPermission(context.Context, *GetUserPermissionReq) (*GetUserPermissionResp, error)
 	UpdateUserPermission(context.Context, *UpdateUserPermissionReq) (*UpdateUserPermissionResp, error)
+	UpdateRolePermission(context.Context, *UpdateRolePermissionReq) (*UpdateRolePermissionResp, error)
 	AddNode(context.Context, *AddNodeReq) (*AddNodeResp, error)
 	UpdateNode(context.Context, *UpdateNodeReq) (*UpdateNodeResp, error)
 	MoveNode(context.Context, *MoveNodeReq) (*MoveNodeResp, error)
 	DelNode(context.Context, *DelNodeReq) (*DelNodeResp, error)
 	ListUserNode(context.Context, *ListUserNodeReq) (*ListUserNodeResp, error)
+	ListRoleNode(context.Context, *ListRoleNodeReq) (*ListRoleNodeResp, error)
 	ListAllNode(context.Context, *ListAllNodeReq) (*ListAllNodeResp, error)
-	ListNodeUser(context.Context, *ListNodeUserReq) (*ListNodeUserResp, error)
-	ListAdmin(context.Context, *ListAdminReq) (*ListAdminResp, error)
 }
 
 type permissionCGrpcClient struct {
@@ -62,6 +62,16 @@ func (c *permissionCGrpcClient) UpdateUserPermission(ctx context.Context, req *U
 	}
 	resp := new(UpdateUserPermissionResp)
 	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateUserPermission, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *permissionCGrpcClient) UpdateRolePermission(ctx context.Context, req *UpdateRolePermissionReq) (*UpdateRolePermissionResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(UpdateRolePermissionResp)
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateRolePermission, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -116,6 +126,16 @@ func (c *permissionCGrpcClient) ListUserNode(ctx context.Context, req *ListUserN
 	}
 	return resp, nil
 }
+func (c *permissionCGrpcClient) ListRoleNode(ctx context.Context, req *ListRoleNodeReq) (*ListRoleNodeResp, error) {
+	if req == nil {
+		return nil, error1.ErrReq
+	}
+	resp := new(ListRoleNodeResp)
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionListRoleNode, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
 func (c *permissionCGrpcClient) ListAllNode(ctx context.Context, req *ListAllNodeReq) (*ListAllNodeResp, error) {
 	if req == nil {
 		return nil, error1.ErrReq
@@ -126,38 +146,18 @@ func (c *permissionCGrpcClient) ListAllNode(ctx context.Context, req *ListAllNod
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) ListNodeUser(ctx context.Context, req *ListNodeUserReq) (*ListNodeUserResp, error) {
-	if req == nil {
-		return nil, error1.ErrReq
-	}
-	resp := new(ListNodeUserResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionListNodeUser, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
-func (c *permissionCGrpcClient) ListAdmin(ctx context.Context, req *ListAdminReq) (*ListAdminResp, error) {
-	if req == nil {
-		return nil, error1.ErrReq
-	}
-	resp := new(ListAdminResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionListAdmin, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
 
 type PermissionCGrpcServer interface {
 	GetUserPermission(context.Context, *GetUserPermissionReq) (*GetUserPermissionResp, error)
 	UpdateUserPermission(context.Context, *UpdateUserPermissionReq) (*UpdateUserPermissionResp, error)
+	UpdateRolePermission(context.Context, *UpdateRolePermissionReq) (*UpdateRolePermissionResp, error)
 	AddNode(context.Context, *AddNodeReq) (*AddNodeResp, error)
 	UpdateNode(context.Context, *UpdateNodeReq) (*UpdateNodeResp, error)
 	MoveNode(context.Context, *MoveNodeReq) (*MoveNodeResp, error)
 	DelNode(context.Context, *DelNodeReq) (*DelNodeResp, error)
 	ListUserNode(context.Context, *ListUserNodeReq) (*ListUserNodeResp, error)
+	ListRoleNode(context.Context, *ListRoleNodeReq) (*ListRoleNodeResp, error)
 	ListAllNode(context.Context, *ListAllNodeReq) (*ListAllNodeResp, error)
-	ListNodeUser(context.Context, *ListNodeUserReq) (*ListNodeUserResp, error)
-	ListAdmin(context.Context, *ListAdminReq) (*ListAdminResp, error)
 }
 
 func _Permission_GetUserPermission_CGrpcHandler(handler func(context.Context, *GetUserPermissionReq) (*GetUserPermissionResp, error)) cgrpc.OutsideHandler {
@@ -202,6 +202,29 @@ func _Permission_UpdateUserPermission_CGrpcHandler(handler func(context.Context,
 		}
 		if resp == nil {
 			resp = new(UpdateUserPermissionResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _Permission_UpdateRolePermission_CGrpcHandler(handler func(context.Context, *UpdateRolePermissionReq) (*UpdateRolePermissionResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(UpdateRolePermissionReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.permission/update_role_permission]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(UpdateRolePermissionResp)
 		}
 		ctx.Write(resp)
 	}
@@ -316,6 +339,29 @@ func _Permission_ListUserNode_CGrpcHandler(handler func(context.Context, *ListUs
 		ctx.Write(resp)
 	}
 }
+func _Permission_ListRoleNode_CGrpcHandler(handler func(context.Context, *ListRoleNodeReq) (*ListRoleNodeResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(ListRoleNodeReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.permission/list_role_node]", errstr)
+			ctx.Abort(error1.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(ListRoleNodeResp)
+		}
+		ctx.Write(resp)
+	}
+}
 func _Permission_ListAllNode_CGrpcHandler(handler func(context.Context, *ListAllNodeReq) (*ListAllNodeResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(ListAllNodeReq)
@@ -334,63 +380,17 @@ func _Permission_ListAllNode_CGrpcHandler(handler func(context.Context, *ListAll
 		ctx.Write(resp)
 	}
 }
-func _Permission_ListNodeUser_CGrpcHandler(handler func(context.Context, *ListNodeUserReq) (*ListNodeUserResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(ListNodeUserReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_node_user]", errstr)
-			ctx.Abort(error1.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(ListNodeUserResp)
-		}
-		ctx.Write(resp)
-	}
-}
-func _Permission_ListAdmin_CGrpcHandler(handler func(context.Context, *ListAdminReq) (*ListAdminResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(ListAdminReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_admin]", errstr)
-			ctx.Abort(error1.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(ListAdminResp)
-		}
-		ctx.Write(resp)
-	}
-}
 func RegisterPermissionCGrpcServer(engine *cgrpc.CGrpcServer, svc PermissionCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	engine.RegisterHandler("admin.permission", "get_user_permission", _Permission_GetUserPermission_CGrpcHandler(svc.GetUserPermission))
 	engine.RegisterHandler("admin.permission", "update_user_permission", _Permission_UpdateUserPermission_CGrpcHandler(svc.UpdateUserPermission))
+	engine.RegisterHandler("admin.permission", "update_role_permission", _Permission_UpdateRolePermission_CGrpcHandler(svc.UpdateRolePermission))
 	engine.RegisterHandler("admin.permission", "add_node", _Permission_AddNode_CGrpcHandler(svc.AddNode))
 	engine.RegisterHandler("admin.permission", "update_node", _Permission_UpdateNode_CGrpcHandler(svc.UpdateNode))
 	engine.RegisterHandler("admin.permission", "move_node", _Permission_MoveNode_CGrpcHandler(svc.MoveNode))
 	engine.RegisterHandler("admin.permission", "del_node", _Permission_DelNode_CGrpcHandler(svc.DelNode))
 	engine.RegisterHandler("admin.permission", "list_user_node", _Permission_ListUserNode_CGrpcHandler(svc.ListUserNode))
+	engine.RegisterHandler("admin.permission", "list_role_node", _Permission_ListRoleNode_CGrpcHandler(svc.ListRoleNode))
 	engine.RegisterHandler("admin.permission", "list_all_node", _Permission_ListAllNode_CGrpcHandler(svc.ListAllNode))
-	engine.RegisterHandler("admin.permission", "list_node_user", _Permission_ListNodeUser_CGrpcHandler(svc.ListNodeUser))
-	engine.RegisterHandler("admin.permission", "list_admin", _Permission_ListAdmin_CGrpcHandler(svc.ListAdmin))
 }

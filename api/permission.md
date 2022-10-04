@@ -51,7 +51,44 @@ Content-Type: application/json
 	"user_id":"str",
 	//first element must be 0
 	//uint32
-	//element num must != 0
+	//element num must > 1
+	"node_id":[1,2],
+	//if admin is true,canread and canwrite will be ignore
+	"admin":true,
+	//if admin is false,and canread is false too,means delete this user from this node
+	//if admin is false,and canread is false and node_id's length is 1,means delete this user completely
+	"canread":true,
+	//if canwrite is true,canread must be true too
+	"canwrite":true
+}
+------------------------------------------------------------------------------------------------------------
+```
+#### Resp:
+```
+Fail:    httpcode:4xx/5xx
+------------------------------------------------------------------------------------------------------------
+{"code":123,"msg":"error message"}
+------------------------------------------------------------------------------------------------------------
+Success: httpcode:200
+------------------------------------------------------------------------------------------------------------
+{
+}
+------------------------------------------------------------------------------------------------------------
+```
+### update_role_permission
+
+#### Req:
+```
+Path:         /admin.permission/update_role_permission
+Method:       POST
+Content-Type: application/json
+------------------------------------------------------------------------------------------------------------
+{
+	//value length must != 0
+	"role_name":"str",
+	//first element must be 0
+	//uint32
+	//element num must > 1
 	"node_id":[1,2],
 	//if admin is true,canread and canwrite will be ignore
 	"admin":true,
@@ -206,6 +243,10 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//if this is empty means return self's
+	"user_id":"str",
+	//false - only return user's base node,true - return user's base node and user's roles' node
+	"need_user_role_node":true
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -227,12 +268,49 @@ node_info: {
 	"node_id":[1,2],
 	"node_name":"str",
 	"node_data":"str",
+	"canread":true,
+	"canwrite":true,
+	"admin":true,
+	//object node_info
+	"children":[{},{}]
+}
+------------------------------------------------------------------------------------------------------------
+```
+### list_role_node
+
+#### Req:
+```
+Path:         /admin.permission/list_role_node
+Method:       POST
+Content-Type: application/json
+------------------------------------------------------------------------------------------------------------
+{
+	//value length must != 0
+	"role_name":"str"
+}
+------------------------------------------------------------------------------------------------------------
+```
+#### Resp:
+```
+Fail:    httpcode:4xx/5xx
+------------------------------------------------------------------------------------------------------------
+{"code":123,"msg":"error message"}
+------------------------------------------------------------------------------------------------------------
+Success: httpcode:200
+------------------------------------------------------------------------------------------------------------
+{
+	//object node_info
+	"nodes":[{},{}]
+}
+------------------------------------------------------------------------------------------------------------
+node_info: {
 	//uint32
-	"canread":0,
-	//uint32
-	"canwrite":0,
-	//uint32
-	"admin":0,
+	"node_id":[1,2],
+	"node_name":"str",
+	"node_data":"str",
+	"canread":true,
+	"canwrite":true,
+	"admin":true,
 	//object node_info
 	"children":[{},{}]
 }
@@ -261,7 +339,7 @@ Success: httpcode:200
 {
 	//this will only return the node name,other node's info will not return
 	//object node_info
-	"nodes":{}
+	"nodes":[{},{}]
 }
 ------------------------------------------------------------------------------------------------------------
 node_info: {
@@ -269,95 +347,11 @@ node_info: {
 	"node_id":[1,2],
 	"node_name":"str",
 	"node_data":"str",
-	//uint32
-	"canread":0,
-	//uint32
-	"canwrite":0,
-	//uint32
-	"admin":0,
+	"canread":true,
+	"canwrite":true,
+	"admin":true,
 	//object node_info
 	"children":[{},{}]
-}
-------------------------------------------------------------------------------------------------------------
-```
-### list_node_user
-
-#### Req:
-```
-Path:         /admin.permission/list_node_user
-Method:       POST
-Content-Type: application/json
-------------------------------------------------------------------------------------------------------------
-{
-	//uint32
-	//element num must != 0
-	"node_id":[1,2]
-}
-------------------------------------------------------------------------------------------------------------
-```
-#### Resp:
-```
-Fail:    httpcode:4xx/5xx
-------------------------------------------------------------------------------------------------------------
-{"code":123,"msg":"error message"}
-------------------------------------------------------------------------------------------------------------
-Success: httpcode:200
-------------------------------------------------------------------------------------------------------------
-{
-	//key userid,value username
-	//kv map,value-object user_info
-	"canread":{"str":{},"str":{}},
-	//key userid,value username
-	//kv map,value-object user_info
-	"canwrite":{"str":{},"str":{}},
-	//key userid,value username
-	//kv map,value-object user_info
-	"admin":{"str":{},"str":{}}
-}
-------------------------------------------------------------------------------------------------------------
-user_info: {
-	"user_id":"str",
-	"user_name":"str",
-	"department":["str","str"],
-	//uint32
-	"ctime":0
-}
-------------------------------------------------------------------------------------------------------------
-```
-### list_admin
-
-#### Req:
-```
-Path:         /admin.permission/list_admin
-Method:       POST
-Content-Type: application/json
-------------------------------------------------------------------------------------------------------------
-{
-	//uint32
-	//element num must != 0
-	"node_id":[1,2]
-}
-------------------------------------------------------------------------------------------------------------
-```
-#### Resp:
-```
-Fail:    httpcode:4xx/5xx
-------------------------------------------------------------------------------------------------------------
-{"code":123,"msg":"error message"}
-------------------------------------------------------------------------------------------------------------
-Success: httpcode:200
-------------------------------------------------------------------------------------------------------------
-{
-	//object user_info
-	"users":[{},{}]
-}
-------------------------------------------------------------------------------------------------------------
-user_info: {
-	"user_id":"str",
-	"user_name":"str",
-	"department":["str","str"],
-	//uint32
-	"ctime":0
 }
 ------------------------------------------------------------------------------------------------------------
 ```

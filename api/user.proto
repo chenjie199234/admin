@@ -39,6 +39,51 @@ service user{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
+
+	rpc update_user(update_user_req)returns(update_user_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc del_users(del_users_req)returns(del_users_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	
+	rpc create_role(create_role_req)returns(create_role_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc get_roles(get_roles_req)returns(get_roles_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc search_roles(search_roles_req)returns(search_roles_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	
+	rpc update_role(update_role_req)returns(update_role_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc del_roles(del_roles_req)returns(del_roles_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc add_user_role(add_user_role_req)returns(add_user_role_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc del_user_role(del_user_role_req)returns(del_user_role_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
 }
 //req can be set with pbex extentions
 //message examplereq{
@@ -67,14 +112,87 @@ message user_info {
 	uint32 ctime=4;
 }
 message get_users_req {
-	repeated string user_ids=1[(pbex.map_repeated_len_not_eq)=0];
+	repeated string user_ids=1[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
 }
 message get_users_resp {
 	repeated user_info users=1;//key userid,value username
 }
 message search_users_req {
 	string user_name=1[(pbex.string_bytes_len_not_eq)=0];
+	uint32 page=2;//if page is 0,means return all result
 }
 message search_users_resp {
 	repeated user_info users=1;//key userid,value username
+	uint32 page=2;
+	uint32 pagesize=3;
+	uint32 totalsize=4;
+}
+message update_user_req {
+	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
+	string user_name=2[(pbex.string_bytes_len_not_eq)=0];
+	repeated string department=3[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
+}
+message update_user_resp {
+
+}
+message del_users_req {
+	repeated string user_ids=1[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
+}
+message del_users_resp {
+
+}
+message create_role_req {
+	string role_name=1[(pbex.string_bytes_len_not_eq)=0];
+	string comment=2;
+}
+message create_role_resp {
+
+}
+message role_info {
+	string role_name=1;
+	string comment=2;
+	uint32 ctime=3;
+}
+message get_roles_req {
+	repeated string role_names=1[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
+}
+message get_roles_resp {
+	repeated role_info roles=1;
+}
+message search_roles_req {
+	string role_name=1[(pbex.string_bytes_len_not_eq)=0];
+	uint32 page=2;//if page is 0,means return all result
+}
+message search_roles_resp {
+	repeated role_info roles=1;
+	uint32 page=2;
+	uint32 pagesize=3;
+	uint32 totalsize=4;
+}
+message update_role_req {
+	string role_name=1[(pbex.string_bytes_len_not_eq)=0];
+	string comment=2;
+}
+message update_role_resp {
+
+}
+message del_roles_req {
+	repeated string role_names=1[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
+}
+message del_roles_resp {
+
+}
+message add_user_role_req {
+	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
+	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
+}
+message add_user_role_resp {
+
+}
+message del_user_role_req {
+	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
+	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
+}
+message del_user_role_resp {
+
 }

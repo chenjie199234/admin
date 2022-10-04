@@ -70,7 +70,7 @@ collection: {appname}
 	"index":1,//always > 0
 	"value":""
 }//log
-//key+index field add unique index
+//key+index增加唯一索引
 //由代码自动创建,无需手动创建
 ```
 #### user
@@ -80,15 +80,28 @@ database: user
 collection: user
 {
 	"_id":ObjectId("xxx"),//userid,if this is empty,means this is the super admin user
-	"name":"",
+	"user_name":"",
 	"password":"",
 	"department":["",""],
 	"ctime":123,//unixtimestamp,unit second
+	"roles":["role_name1","role_name2"]
 }
-//手动mongo创建数据库
+//手动创建数据库
 use user;
 db.createCollection("user");
 db.user.createIndex({name:1});
+db.user.createIndex({roles:1});
+
+collection: role
+{
+	"role_name":"",
+	"comment":"",
+	"ctime":123,//unixtimestamp,unit second
+}
+//手动创建数据库
+use user;
+db.createCollection("role");
+db.user.createIndex({name:1},{unique:true});
 ```
 #### permission
 ```
@@ -96,21 +109,33 @@ database: permission
 
 collection: node
 {
-	"_id":ObjectId("xxx"),//meaningless
 	"node_id":[0,1],
 	"node_name":"",
 	"node_data":"",
 	"cur_node_index":0,//auto increment,this is for child's last node_id element
 }
-//手动mongo创建数据库
+//手动创建数据库
 use permission;
 db.createCollection("node");
 db.node.createIndex({node_id:1});
 
 collection: usernode
 {
-	"_id":ObjectId("xxx"),//meaningless
 	"user_id":ObjectId("xxx"),
+	"node_id":[0,1],
+	"r":true,//can read
+	"w":true,//can write
+	"x":true,//admin
+}
+//手动创建数据库
+use permission;
+db.createCollection("usernode");
+db.usernode.createIndex({user_id:1});
+db.usernode.createIndex({node_id:1})
+
+collection: rolenode
+{
+	"role_name":"",
 	"node_id":[0,1],
 	"r":true,//can read
 	"w":true,//can write
@@ -118,7 +143,6 @@ collection: usernode
 }
 //手动mongo创建数据库
 use permission;
-db.createCollection("usernode");
-db.usernode.createIndex({user_id:1});
-db.usernode.createIndex({node_id:1})
+db.createCollection("rolenode");
+db.rolenode.createIndex({role_name:1});
 ```

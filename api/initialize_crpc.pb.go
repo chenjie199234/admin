@@ -18,7 +18,7 @@ import (
 var _CrpcPathInitializeInitialize = "/admin.initialize/initialize"
 
 type InitializeCrpcClient interface {
-	//初始化
+	// 初始化
 	Initialize(context.Context, *InitializeReq) (*InitializeResp, error)
 }
 
@@ -50,7 +50,7 @@ func (c *initializeCrpcClient) Initialize(ctx context.Context, req *InitializeRe
 }
 
 type InitializeCrpcServer interface {
-	//初始化
+	// 初始化
 	Initialize(context.Context, *InitializeReq) (*InitializeResp, error)
 }
 
@@ -79,7 +79,7 @@ func _Initialize_Initialize_CrpcHandler(handler func(context.Context, *Initializ
 	}
 }
 func RegisterInitializeCrpcServer(engine *crpc.CrpcServer, svc InitializeCrpcServer, allmids map[string]crpc.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	engine.RegisterHandler(_CrpcPathInitializeInitialize, _Initialize_Initialize_CrpcHandler(svc.Initialize))
 }

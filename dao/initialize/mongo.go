@@ -34,22 +34,37 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 	}()
 	if _, e = d.mongo.Database("user").Collection("user").InsertOne(sctx, &model.User{
 		ID:         primitive.NilObjectID,
-		Name:       "superadmin",
+		UserName:   "superadmin",
 		Password:   password,
 		Department: []string{},
 		Ctime:      uint32(time.Now().Unix()),
+		Roles:      []string{},
 	}); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	} else if e != nil {
 		e = ecode.ErrAlreadyInited
 		return
 	}
-	if _, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
-		NodeId:       []uint32{0},
+	docs := make([]interface{}, 0, 3)
+	docs = append(docs, &model.Node{
+		NodeId:       model.RootNodeId,
 		NodeName:     "root",
 		NodeData:     "",
+		CurNodeIndex: 2,
+	})
+	docs = append(docs, &model.Node{
+		NodeId:       model.UserControlNodeId,
+		NodeName:     "UserControl",
+		NodeData:     "",
 		CurNodeIndex: 0,
-	}); e != nil && !mongo.IsDuplicateKeyError(e) {
+	})
+	docs = append(docs, &model.Node{
+		NodeId:       model.RoleControlNodeId,
+		NodeName:     "RoleControl",
+		NodeData:     "",
+		CurNodeIndex: 0,
+	})
+	if _, e = d.mongo.Database("permission").Collection("node").InsertMany(sctx, docs); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	} else if e != nil {
 		e = ecode.ErrAlreadyInited

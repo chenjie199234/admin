@@ -6,7 +6,7 @@
 
 package api
 
-//return empty means pass
+// return empty means pass
 func (m *InitializeReq) Validate() (errstr string) {
 	if len(m.GetSuperAdminPassword()) == 0 {
 		return "field: super_admin_password in object: initialize_req check value str len not eq failed"

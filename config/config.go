@@ -5,28 +5,28 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config/internal/selfsdk"
+	"github.com/chenjie199234/admin/model"
 
 	"github.com/chenjie199234/Corelib/log"
 )
 
-//EnvConfig can't hot update,all these data is from system env setting
-//nil field means that system env not exist
+// EnvConfig can't hot update,all these data is from system env setting
+// nil field means that system env not exist
 type EnvConfig struct {
 	ConfigType *int
 	RunEnv     *string
 	DeployEnv  *string
 }
 
-//EC -
+// EC -
 var EC *EnvConfig
 
-//RemoteConfigSdk -
+// RemoteConfigSdk -
 var RemoteConfigSdk *selfsdk.Sdk
 
-//notice is a sync function
-//don't write block logic inside it
+// notice is a sync function
+// don't write block logic inside it
 func Init(notice func(c *AppConfig)) {
 	initenv()
 	if EC.ConfigType != nil && *EC.ConfigType == 1 {
@@ -59,7 +59,7 @@ func Init(notice func(c *AppConfig)) {
 	}
 }
 
-//Close -
+// Close -
 func Close() {
 	log.Close()
 }
@@ -87,7 +87,7 @@ func initenv() {
 			os.Exit(1)
 		}
 		var e error
-		if RemoteConfigSdk, e = selfsdk.NewDirectSdk(api.Group, api.Name, mongourl); e != nil {
+		if RemoteConfigSdk, e = selfsdk.NewDirectSdk(model.Group, model.Name, mongourl); e != nil {
 			log.Error(nil, "[config.initenv] new remote config sdk error:", e)
 			Close()
 			os.Exit(1)

@@ -28,29 +28,29 @@ var _CGrpcPathConfigRollback = "/admin.config/rollback"
 var _CGrpcPathConfigWatch = "/admin.config/watch"
 
 type ConfigCGrpcClient interface {
-	//get all groups
+	// get all groups
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
-	//del one specific group
+	// del one specific group
 	DelGroup(context.Context, *DelGroupReq) (*DelGroupResp, error)
-	//get all apps in one specific group
+	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
-	//del one specific app in one specific group
+	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
-	//get all config's keys in one specific app
+	// get all config's keys in one specific app
 	Keys(context.Context, *KeysReq) (*KeysResp, error)
-	//del one specific key in one specific app
+	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	//create one specific app
+	// create one specific app
 	Create(context.Context, *CreateReq) (*CreateResp, error)
-	//update one specific app's cipher
+	// update one specific app's cipher
 	Updatecipher(context.Context, *UpdatecipherReq) (*UpdatecipherResp, error)
-	//get config
+	// get config
 	Get(context.Context, *GetReq) (*GetResp, error)
-	//set config
+	// set config
 	Set(context.Context, *SetReq) (*SetResp, error)
-	//rollback config
+	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	//watch config
+	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
 }
 
@@ -184,29 +184,29 @@ func (c *configCGrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchRes
 }
 
 type ConfigCGrpcServer interface {
-	//get all groups
+	// get all groups
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
-	//del one specific group
+	// del one specific group
 	DelGroup(context.Context, *DelGroupReq) (*DelGroupResp, error)
-	//get all apps in one specific group
+	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
-	//del one specific app in one specific group
+	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
-	//get all config's keys in one specific app
+	// get all config's keys in one specific app
 	Keys(context.Context, *KeysReq) (*KeysResp, error)
-	//del one specific key in one specific app
+	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	//create one specific app
+	// create one specific app
 	Create(context.Context, *CreateReq) (*CreateResp, error)
-	//update one specific app's cipher
+	// update one specific app's cipher
 	Updatecipher(context.Context, *UpdatecipherReq) (*UpdatecipherResp, error)
-	//get config
+	// get config
 	Get(context.Context, *GetReq) (*GetResp, error)
-	//set config
+	// set config
 	Set(context.Context, *SetReq) (*SetResp, error)
-	//rollback config
+	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	//watch config
+	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
 }
 
@@ -482,7 +482,7 @@ func _Config_Watch_CGrpcHandler(handler func(context.Context, *WatchReq) (*Watch
 	}
 }
 func RegisterConfigCGrpcServer(engine *cgrpc.CGrpcServer, svc ConfigCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
-	//avoid lint
+	// avoid lint
 	_ = allmids
 	engine.RegisterHandler("admin.config", "groups", _Config_Groups_CGrpcHandler(svc.Groups))
 	engine.RegisterHandler("admin.config", "del_group", _Config_DelGroup_CGrpcHandler(svc.DelGroup))

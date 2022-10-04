@@ -6,7 +6,7 @@
 
 package api
 
-//return empty means pass
+// return empty means pass
 func (m *DelGroupReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: del_group_req check value str len gt failed"
@@ -14,7 +14,7 @@ func (m *DelGroupReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *AppsReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: apps_req check value str len gt failed"
@@ -22,7 +22,7 @@ func (m *AppsReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *DelAppReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: del_app_req check value str len gt failed"
@@ -33,7 +33,7 @@ func (m *DelAppReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *KeysReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: keys_req check value str len gt failed"
@@ -44,7 +44,7 @@ func (m *KeysReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *DelKeyReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: del_key_req check value str len gt failed"
@@ -58,7 +58,7 @@ func (m *DelKeyReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *CreateReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: create_req check value str len gt failed"
@@ -69,7 +69,7 @@ func (m *CreateReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *UpdatecipherReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: updatecipher_req check value str len gt failed"
@@ -80,7 +80,7 @@ func (m *UpdatecipherReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *GetReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: get_req check value str len gt failed"
@@ -94,7 +94,7 @@ func (m *GetReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *SetReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: set_req check value str len gt failed"
@@ -114,7 +114,7 @@ func (m *SetReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *RollbackReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: rollback_req check value str len gt failed"
@@ -131,7 +131,7 @@ func (m *RollbackReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *WatchReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: watch_req check value str len gt failed"

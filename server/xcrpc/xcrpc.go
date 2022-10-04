@@ -6,6 +6,7 @@ import (
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"
+	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/service"
 
 	"github.com/chenjie199234/Corelib/crpc"
@@ -16,7 +17,7 @@ import (
 
 var s *crpc.CrpcServer
 
-//StartCrpcServer -
+// StartCrpcServer -
 func StartCrpcServer() {
 	c := config.GetCrpcServerConfig()
 	crpcc := &crpc.ServerConfig{
@@ -25,7 +26,7 @@ func StartCrpcServer() {
 		HeartPorbe:     time.Duration(c.HeartProbe),
 	}
 	var e error
-	if s, e = crpc.NewCrpcServer(crpcc, api.Group, api.Name); e != nil {
+	if s, e = crpc.NewCrpcServer(crpcc, model.Group, model.Name); e != nil {
 		log.Error(nil, "[xcrpc] new error:", e)
 		return
 	}
@@ -50,8 +51,8 @@ func StartCrpcServer() {
 	log.Info(nil, "[xcrpc] server closed")
 }
 
-//UpdateHandlerTimeout -
-//first key path,second key method,value timeout duration
+// UpdateHandlerTimeout -
+// first key path,second key method,value timeout duration
 func UpdateHandlerTimeout(hts map[string]map[string]ctime.Duration) {
 	if s == nil {
 		return
@@ -68,7 +69,7 @@ func UpdateHandlerTimeout(hts map[string]map[string]ctime.Duration) {
 	s.UpdateHandlerTimeout(cc)
 }
 
-//StopCrpcServer -
+// StopCrpcServer -
 func StopCrpcServer() {
 	if s != nil {
 		s.StopCrpcServer()

@@ -6,7 +6,7 @@
 
 package api
 
-//return empty means pass
+// return empty means pass
 func (m *SuperAdminLoginReq) Validate() (errstr string) {
 	if len(m.GetPassword()) == 0 {
 		return "field: password in object: super_admin_login_req check value str len not eq failed"
@@ -14,18 +14,127 @@ func (m *SuperAdminLoginReq) Validate() (errstr string) {
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *GetUsersReq) Validate() (errstr string) {
 	if len(m.GetUserIds()) == 0 {
 		return "field: user_ids in object: get_users_req check len not eq failed"
 	}
+	for _, v := range m.GetUserIds() {
+		if len(v) == 0 {
+			return "field: user_ids in object: get_users_req check value str len not eq failed"
+		}
+	}
 	return ""
 }
 
-//return empty means pass
+// return empty means pass
 func (m *SearchUsersReq) Validate() (errstr string) {
 	if len(m.GetUserName()) == 0 {
 		return "field: user_name in object: search_users_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *UpdateUserReq) Validate() (errstr string) {
+	if len(m.GetUserId()) == 0 {
+		return "field: user_id in object: update_user_req check value str len not eq failed"
+	}
+	if len(m.GetUserName()) == 0 {
+		return "field: user_name in object: update_user_req check value str len not eq failed"
+	}
+	if len(m.GetDepartment()) == 0 {
+		return "field: department in object: update_user_req check len not eq failed"
+	}
+	for _, v := range m.GetDepartment() {
+		if len(v) == 0 {
+			return "field: department in object: update_user_req check value str len not eq failed"
+		}
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *DelUsersReq) Validate() (errstr string) {
+	if len(m.GetUserIds()) == 0 {
+		return "field: user_ids in object: del_users_req check len not eq failed"
+	}
+	for _, v := range m.GetUserIds() {
+		if len(v) == 0 {
+			return "field: user_ids in object: del_users_req check value str len not eq failed"
+		}
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *CreateRoleReq) Validate() (errstr string) {
+	if len(m.GetRoleName()) == 0 {
+		return "field: role_name in object: create_role_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *GetRolesReq) Validate() (errstr string) {
+	if len(m.GetRoleNames()) == 0 {
+		return "field: role_names in object: get_roles_req check len not eq failed"
+	}
+	for _, v := range m.GetRoleNames() {
+		if len(v) == 0 {
+			return "field: role_names in object: get_roles_req check value str len not eq failed"
+		}
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *SearchRolesReq) Validate() (errstr string) {
+	if len(m.GetRoleName()) == 0 {
+		return "field: role_name in object: search_roles_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *UpdateRoleReq) Validate() (errstr string) {
+	if len(m.GetRoleName()) == 0 {
+		return "field: role_name in object: update_role_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *DelRolesReq) Validate() (errstr string) {
+	if len(m.GetRoleNames()) == 0 {
+		return "field: role_names in object: del_roles_req check len not eq failed"
+	}
+	for _, v := range m.GetRoleNames() {
+		if len(v) == 0 {
+			return "field: role_names in object: del_roles_req check value str len not eq failed"
+		}
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *AddUserRoleReq) Validate() (errstr string) {
+	if len(m.GetUserId()) == 0 {
+		return "field: user_id in object: add_user_role_req check value str len not eq failed"
+	}
+	if len(m.GetRoleName()) == 0 {
+		return "field: role_name in object: add_user_role_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *DelUserRoleReq) Validate() (errstr string) {
+	if len(m.GetUserId()) == 0 {
+		return "field: user_id in object: del_user_role_req check value str len not eq failed"
+	}
+	if len(m.GetRoleName()) == 0 {
+		return "field: role_name in object: del_user_role_req check value str len not eq failed"
 	}
 	return ""
 }

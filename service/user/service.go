@@ -207,6 +207,10 @@ func (s *Service) DelUsers(ctx context.Context, req *api.DelUsersReq) (*api.DelU
 	//logic
 	undup := make(map[primitive.ObjectID]*struct{})
 	for _, userid := range req.UserIds {
+		if userid == md["Token-Data"] {
+			//can't delete self
+			continue
+		}
 		obj, e := primitive.ObjectIDFromHex(userid)
 		if e != nil {
 			log.Error(ctx, "[DelUsers] userid:", userid, "format wrong:", e)

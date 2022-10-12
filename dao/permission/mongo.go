@@ -435,7 +435,7 @@ func (d *Dao) MongoAddNode(ctx context.Context, operateUserid primitive.ObjectID
 	e = d.mongo.Database("permission").Collection("node").FindOne(sctx, bson.M{"node_id": pnodeid}).Decode(parent)
 	if e != nil {
 		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrReq
+			e = ecode.ErrPNodeNotExist
 		}
 		return
 	}
@@ -488,7 +488,10 @@ func (d *Dao) MongoUpdateNode(ctx context.Context, operateUserid primitive.Objec
 		return
 	}
 	//all check success,update database
-	_, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": nodeid}, bson.M{"$set": bson.M{"node_name": name, "node_data": data}})
+	r, e := d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": nodeid}, bson.M{"$set": bson.M{"node_name": name, "node_data": data}})
+	if e == nil && r.MatchedCount == 0 {
+		e = ecode.ErrNodeNotExist
+	}
 	return
 }
 func (d *Dao) MongoMoveNode(ctx context.Context, operateUserid primitive.ObjectID, nodeid, pnodeid []uint32) (e error) {
@@ -516,14 +519,14 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operateUserid primitive.ObjectI
 		return
 	}
 	if self == 0 {
-		e = ecode.ErrReq
+		e = ecode.ErrNodeNotExist
 		return
 	}
 	//check parent exist
 	parent := &model.Node{}
 	if e = d.mongo.Database("permission").Collection("node").FindOne(sctx, bson.M{"node_id": pnodeid}).Decode(parent); e != nil {
 		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrReq
+			e = ecode.ErrPNodeNotExist
 		}
 		return
 	}

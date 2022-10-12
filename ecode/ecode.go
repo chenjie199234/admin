@@ -30,6 +30,8 @@ var (
 	ErrRoleNotExist     = cerror.MakeError(20010, http.StatusBadRequest, "role doesn't exist")
 	ErrRoleAlreadyExist = cerror.MakeError(20011, http.StatusBadRequest, "role already exist")
 	ErrUserNotExist     = cerror.MakeError(20012, http.StatusBadRequest, "user not exist")
+	ErrNodeNotExist     = cerror.MakeError(20013, http.StatusBadRequest, "node not exist")
+	ErrPNodeNotExist    = cerror.MakeError(20014, http.StatusBadRequest, "parent node not exist")
 
 	ErrPageOverflow = cerror.MakeError(30001, http.StatusBadRequest, "page overflow")
 )

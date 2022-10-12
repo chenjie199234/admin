@@ -191,7 +191,7 @@ func (d *Dao) MongoGetUserNodes(ctx context.Context, userid primitive.ObjectID, 
 	}
 	defer cursor.Close(ctx)
 	result := make(model.UserNodes, 0, cursor.RemainingBatchLength())
-	e = cursor.Decode(result)
+	e = cursor.All(ctx, &result)
 	return result, e
 }
 
@@ -324,7 +324,7 @@ func (d *Dao) MongoGetRoleNodes(ctx context.Context, rolename string, nodeids []
 	}
 	defer cursor.Close(ctx)
 	result := make(model.RoleNodes, 0, cursor.RemainingBatchLength())
-	e = cursor.Decode(result)
+	e = cursor.All(ctx, &result)
 	return result, e
 }
 
@@ -353,7 +353,7 @@ func (d *Dao) MongoGetUserRoleNodes(ctx context.Context, userid primitive.Object
 	}
 	defer cursor.Close(ctx)
 	tmp := make([]*model.RoleNode, 0, cursor.RemainingBatchLength())
-	if e = cursor.Decode(tmp); e != nil {
+	if e = cursor.All(ctx, &tmp); e != nil {
 		return nil, e
 	}
 	result := make(map[string]model.RoleNodes)
@@ -386,45 +386,31 @@ func (d *Dao) MongoGetNodes(ctx context.Context, nodeids [][]uint32) ([]*model.N
 	if len(nodeids) == 0 {
 		return nil, nil
 	}
-	cur, e := d.mongo.Database("permission").Collection("node").Find(ctx, bson.M{"node_id": bson.M{"$in": nodeids}})
+	cursor, e := d.mongo.Database("permission").Collection("node").Find(ctx, bson.M{"node_id": bson.M{"$in": nodeids}})
 	if e != nil {
 		return nil, e
 	}
-	defer cur.Close(context.Background())
-	result := make([]*model.Node, 0, cur.RemainingBatchLength())
-	for cur.Next(ctx) {
-		tmp := &model.Node{}
-		if e := cur.Decode(tmp); e != nil {
-			return nil, e
-		}
-		result = append(result, tmp)
-	}
-	return result, nil
+	defer cursor.Close(context.Background())
+	nodes := make([]*model.Node, 0, cursor.RemainingBatchLength())
+	e = cursor.All(ctx, &nodes)
+	return nodes, e
 }
 
 // get one specific node's children,if pnodeid is empty or nil,return all nodes
-func (d *Dao) MongoListNode(ctx context.Context, pnodeid []uint32) (nodes []*model.Node, e error) {
+func (d *Dao) MongoListNode(ctx context.Context, pnodeid []uint32) ([]*model.Node, error) {
 	filter := bson.M{}
 	for i, v := range pnodeid {
 		filter["node_id."+strconv.Itoa(i)] = v
 	}
 	filter["node_id."+strconv.Itoa(len(pnodeid))] = bson.M{"$exists": true}
-	var cursor *mongo.Cursor
-	cursor, e = d.mongo.Database("permission").Collection("node").Find(ctx, filter)
+	cursor, e := d.mongo.Database("permission").Collection("node").Find(ctx, filter)
 	if e != nil {
-		return
+		return nil, e
 	}
 	defer cursor.Close(ctx)
-	nodes = make([]*model.Node, 0, cursor.RemainingBatchLength())
-	for cursor.Next(ctx) {
-		tmp := &model.Node{}
-		if e = cursor.Decode(tmp); e != nil {
-			return
-		}
-		nodes = append(nodes, tmp)
-	}
-	e = cursor.Err()
-	return
+	nodes := make([]*model.Node, 0, cursor.RemainingBatchLength())
+	e = cursor.All(ctx, &nodes)
+	return nodes, e
 }
 func (d *Dao) MongoAddNode(ctx context.Context, operateUserid primitive.ObjectID, pnodeid []uint32, name, data string) (e error) {
 	var s mongo.Session

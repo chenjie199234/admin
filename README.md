@@ -101,7 +101,7 @@ collection: role
 //手动创建数据库
 use user;
 db.createCollection("role");
-db.user.createIndex({name:1},{unique:true});
+db.role.createIndex({name:1},{unique:true});
 ```
 #### permission
 ```
@@ -131,7 +131,7 @@ collection: usernode
 use permission;
 db.createCollection("usernode");
 db.usernode.createIndex({user_id:1});
-db.usernode.createIndex({node_id:1})
+db.usernode.createIndex({node_id:1});
 
 collection: rolenode
 {

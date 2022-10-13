@@ -29,6 +29,7 @@ func StartWebServer() {
 		HeartProbe:     time.Duration(c.HeartProbe),
 		SrcRoot:        c.SrcRoot,
 		MaxHeader:      1024,
+		Certs:          c.Certs,
 	}
 	if c.Cors != nil {
 		webc.Cors = &web.CorsConfig{

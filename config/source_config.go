@@ -20,7 +20,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-//sourceConfig can't hot update
+// sourceConfig can't hot update
 type sourceConfig struct {
 	CGrpcServer *CGrpcServerConfig      `json:"cgrpc_server"`
 	CGrpcClient *CGrpcClientConfig      `json:"cgrpc_client"`
@@ -35,54 +35,55 @@ type sourceConfig struct {
 	KafkaSub    []*KafkaSubConfig       `json:"kafka_sub"`
 }
 
-//CGrpcServerConfig
+// CGrpcServerConfig
 type CGrpcServerConfig struct {
 	ConnectTimeout ctime.Duration `json:"connect_timeout"` //default 500ms,max time to finish the handshake
 	GlobalTimeout  ctime.Duration `json:"global_timeout"`  //default 500ms,max time to handle the request,unless the specific handle timeout is used in HandlerTimeout in AppConfig,handler's timeout will also be effected by caller's deadline
 	HeartProbe     ctime.Duration `json:"heart_probe"`     //default 1.5s
 }
 
-//CGrpcClientConfig
+// CGrpcClientConfig
 type CGrpcClientConfig struct {
 	ConnectTimeout ctime.Duration `json:"conn_timeout"`   //default 500ms,max time to finish the handshake
 	GlobalTimeout  ctime.Duration `json:"global_timeout"` //max time to handle the request,0 means no default timeout
 	HeartProbe     ctime.Duration `json:"heart_probe"`    //default 1.5s
 }
 
-//CrpcServerConfig -
+// CrpcServerConfig -
 type CrpcServerConfig struct {
 	ConnectTimeout ctime.Duration `json:"connect_timeout"` //default 500ms,max time to finish the handshake
 	GlobalTimeout  ctime.Duration `json:"global_timeout"`  //default 500ms,max time to handle the request,unless the specific handle timeout is used in HandlerTimeout in AppConfig,handler's timeout will also be effected by caller's deadline
 	HeartProbe     ctime.Duration `json:"heart_probe"`     //default 1.5s
 }
 
-//CrpcClientConfig -
+// CrpcClientConfig -
 type CrpcClientConfig struct {
 	ConnectTimeout ctime.Duration `json:"conn_timeout"`   //default 500ms,max time to finish the handshake
 	GlobalTimeout  ctime.Duration `json:"global_timeout"` //max time to handle the request,0 means no default timeout
 	HeartProbe     ctime.Duration `json:"heart_probe"`    //default 1.5s
 }
 
-//WebServerConfig -
+// WebServerConfig -
 type WebServerConfig struct {
-	CloseMode      int            `json:"close_mode"`
-	ConnectTimeout ctime.Duration `json:"connect_timeout"` //default 500ms,max time to finish the handshake and read each whole request
-	GlobalTimeout  ctime.Duration `json:"global_timeout"`  //default 500ms,max time to handle the request,unless the specific handle timeout is used in HandlerTimeout in AppConfig,handler's timeout will also be effected by caller's deadline
-	IdleTimeout    ctime.Duration `json:"idle_timeout"`    //default 5s
-	HeartProbe     ctime.Duration `json:"heart_probe"`     //default 1.5s
-	SrcRoot        string         `json:"src_root"`
+	CloseMode      int               `json:"close_mode"`
+	ConnectTimeout ctime.Duration    `json:"connect_timeout"` //default 500ms,max time to finish the handshake and read each whole request
+	GlobalTimeout  ctime.Duration    `json:"global_timeout"`  //default 500ms,max time to handle the request,unless the specific handle timeout is used in HandlerTimeout in AppConfig,handler's timeout will also be effected by caller's deadline
+	IdleTimeout    ctime.Duration    `json:"idle_timeout"`    //default 5s
+	HeartProbe     ctime.Duration    `json:"heart_probe"`     //default 1.5s
+	SrcRoot        string            `json:"src_root"`
+	Certs          map[string]string `json:"certs"` //key cert path,value private key path
 	//cors
 	Cors *WebCorsConfig `json:"cors"`
 }
 
-//WebCorsConfig -
+// WebCorsConfig -
 type WebCorsConfig struct {
 	CorsOrigin []string `json:"cors_origin"`
 	CorsHeader []string `json:"cors_header"`
 	CorsExpose []string `json:"cors_expose"`
 }
 
-//WebClientConfig -
+// WebClientConfig -
 type WebClientConfig struct {
 	ConnectTimeout ctime.Duration `json:"conn_timeout"`   //default 500ms,max time to finish the handshake
 	GlobalTimeout  ctime.Duration `json:"global_timeout"` //max time to handle the request,0 means no default timeout
@@ -90,7 +91,7 @@ type WebClientConfig struct {
 	HeartProbe     ctime.Duration `json:"heart_probe"`    //default 1.5s
 }
 
-//RedisConfig -
+// RedisConfig -
 type RedisConfig struct {
 	URL         string         `json:"url"`          //[redis/rediss]://[[username:]password@]host/[dbindex]
 	MaxOpen     int            `json:"max_open"`     //default 100   //this will overwrite the param in url
@@ -99,7 +100,7 @@ type RedisConfig struct {
 	ConnTimeout ctime.Duration `json:"conn_timeout"` //default 250ms //this will overwrite the param in url
 }
 
-//SqlConfig -
+// SqlConfig -
 type SqlConfig struct {
 	URL         string         `json:"url"`          //[username:password@][protocol(address)]/[dbname][?param1=value1&...&paramN=valueN]
 	MaxOpen     int            `json:"max_open"`     //default 100   //this will overwrite the param in url
@@ -108,7 +109,7 @@ type SqlConfig struct {
 	ConnTimeout ctime.Duration `json:"conn_timeout"` //default 250ms //this will overwrite the param in url
 }
 
-//MongoConfig -
+// MongoConfig -
 type MongoConfig struct {
 	URL         string         `json:"url"`          //[mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
 	MaxOpen     uint64         `json:"max_open"`     //default 100   //this will overwrite the param in url
@@ -117,7 +118,7 @@ type MongoConfig struct {
 	ConnTimeout ctime.Duration `json:"conn_timeout"` //default 250ms //this will overwrite the param in url
 }
 
-//KafkaPubConfig -
+// KafkaPubConfig -
 type KafkaPubConfig struct {
 	Addrs          []string       `json:"addrs"`
 	Username       string         `json:"username"`
@@ -129,7 +130,7 @@ type KafkaPubConfig struct {
 	ConnTimeout    ctime.Duration `json:"conn_timeout"` //default 250ms
 }
 
-//KafkaSubConfig -
+// KafkaSubConfig -
 type KafkaSubConfig struct {
 	Addrs       []string       `json:"addrs"`
 	Username    string         `json:"username"`
@@ -148,7 +149,7 @@ type KafkaSubConfig struct {
 	CommitInterval ctime.Duration `json:"commit_interval"`
 }
 
-//SC total source config instance
+// SC total source config instance
 var sc *sourceConfig
 
 var mongos map[string]*mongo.Client
@@ -614,60 +615,60 @@ func initkafkasub() {
 	}
 }
 
-//GetCGrpcServerConfig get the grpc net config
+// GetCGrpcServerConfig get the grpc net config
 func GetCGrpcServerConfig() *CGrpcServerConfig {
 	return sc.CGrpcServer
 }
 
-//GetCGrpcClientConfig get the grpc net config
+// GetCGrpcClientConfig get the grpc net config
 func GetCGrpcClientConfig() *CGrpcClientConfig {
 	return sc.CGrpcClient
 }
 
-//GetCrpcServerConfig get the crpc net config
+// GetCrpcServerConfig get the crpc net config
 func GetCrpcServerConfig() *CrpcServerConfig {
 	return sc.CrpcServer
 }
 
-//GetCrpcClientConfig get the crpc net config
+// GetCrpcClientConfig get the crpc net config
 func GetCrpcClientConfig() *CrpcClientConfig {
 	return sc.CrpcClient
 }
 
-//GetWebServerConfig get the web net config
+// GetWebServerConfig get the web net config
 func GetWebServerConfig() *WebServerConfig {
 	return sc.WebServer
 }
 
-//GetWebClientConfig get the web net config
+// GetWebClientConfig get the web net config
 func GetWebClientConfig() *WebClientConfig {
 	return sc.WebClient
 }
 
-//GetMongo get a mongodb client by db's instance name
-//return nil means not exist
+// GetMongo get a mongodb client by db's instance name
+// return nil means not exist
 func GetMongo(mongoname string) *mongo.Client {
 	return mongos[mongoname]
 }
 
-//GetSql get a mysql db client by db's instance name
-//return nil means not exist
+// GetSql get a mysql db client by db's instance name
+// return nil means not exist
 func GetSql(mysqlname string) *sql.DB {
 	return sqls[mysqlname]
 }
 
-//GetRedis get a redis client by redis's instance name
-//return nil means not exist
+// GetRedis get a redis client by redis's instance name
+// return nil means not exist
 func GetRedis(redisname string) *redis.Pool {
 	return rediss[redisname]
 }
 
-//GetKafkaSuber get a kafka sub client by topic and groupid
+// GetKafkaSuber get a kafka sub client by topic and groupid
 func GetKafkaSuber(topic string, groupid string) *kafka.Reader {
 	return kafkaSubers[topic+groupid]
 }
 
-//GetKafkaPuber get a kafka pub client by topic name
+// GetKafkaPuber get a kafka pub client by topic name
 func GetKafkaPuber(topic string) *kafka.Writer {
 	return kafkaPubers[topic]
 }

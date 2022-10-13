@@ -2,6 +2,7 @@ package permission
 
 import (
 	"context"
+	"math"
 	"strconv"
 
 	"github.com/chenjie199234/admin/ecode"
@@ -549,63 +550,22 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operateUserid primitive.ObjectI
 	if _, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": pnodeid}, bson.M{"$inc": bson.M{"cur_node_index": 1}}); e != nil {
 		return
 	}
-	filter1 := bson.M{}
-	unset := bson.M{}
-	for i, v := range nodeid {
-		filter1["node_id."+strconv.Itoa(i)] = v
-		unset["node_id."+strconv.Itoa(i)] = 1
-	}
-	updater1 := bson.M{"$unset": unset}
-	//update the node
-	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter1, updater1); e != nil {
-		return
-	}
-	//update the usernode
-	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter1, updater1); e != nil {
-		return
-	}
-	//update the rolenode
-	if _, e = d.mongo.Database("permission").Collection("rolenode").UpdateMany(sctx, filter1, updater1); e != nil {
-		return
-	}
-	filter2 := bson.M{}
-	for i := range nodeid {
-		filter2["node_id."+strconv.Itoa(i)] = nil
-	}
 	newnodeid := append(parent.NodeId, parent.CurNodeIndex+1)
-	updater2 := bson.M{"$push": bson.M{
-		"node_id": bson.M{
-			"$each":     newnodeid,
-			"$position": 0,
-		},
-	}}
+	filter := bson.M{}
+	for i, v := range nodeid {
+		filter["node_id."+strconv.Itoa(i)] = v
+	}
+	updater := bson.A{bson.M{"$set": bson.M{"node_id": bson.M{"$concatArrays": bson.A{newnodeid, bson.M{"$slice": bson.A{"$node_id", len(nodeid), math.MaxInt32}}}}}}}
 	//update the node
-	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter2, updater2); e != nil {
+	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter, updater); e != nil {
 		return
 	}
 	//update the usernode
-	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter2, updater2); e != nil {
+	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter, updater); e != nil {
 		return
 	}
 	//update the rolenode
-	if _, e = d.mongo.Database("permission").Collection("rolenode").UpdateMany(sctx, filter2, updater2); e != nil {
-		return
-	}
-	filter3 := bson.M{}
-	for i, v := range newnodeid {
-		filter3["node_id."+strconv.Itoa(i)] = v
-	}
-	updater3 := bson.M{"$pull": bson.M{"node_id": nil}}
-	//update the node
-	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter3, updater3); e != nil {
-		return
-	}
-	//update the usernode
-	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter3, updater3); e != nil {
-		return
-	}
-	//update the rolenode
-	if _, e = d.mongo.Database("permission").Collection("rolenode").UpdateMany(sctx, filter3, updater3); e != nil {
+	if _, e = d.mongo.Database("permission").Collection("rolenode").UpdateMany(sctx, filter, updater); e != nil {
 		return
 	}
 	return

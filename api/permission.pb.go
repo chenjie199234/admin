@@ -1105,7 +1105,7 @@ type ListAllNodeResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	//this will only return the node name,other node's info will not return
+	//this will only return the node name and node data,other node's info will not return
 	Nodes []*NodeInfo `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
 }
 

@@ -89,7 +89,7 @@ collection: user
 //手动创建数据库
 use user;
 db.createCollection("user");
-db.user.createIndex({name:1});
+db.user.createIndex({user_name:1});
 db.user.createIndex({roles:1});
 
 collection: role
@@ -101,7 +101,7 @@ collection: role
 //手动创建数据库
 use user;
 db.createCollection("role");
-db.role.createIndex({name:1},{unique:true});
+db.role.createIndex({role_name:1},{unique:true});
 ```
 #### permission
 ```

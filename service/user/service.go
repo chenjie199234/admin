@@ -71,7 +71,7 @@ func (s *Service) GetUsers(ctx context.Context, req *api.GetUsersReq) (*api.GetU
 		log.Error(ctx, "[GetUsers] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId)
+	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[GetUsers] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -97,6 +97,9 @@ func (s *Service) GetUsers(ctx context.Context, req *api.GetUsersReq) (*api.GetU
 	users, e := s.userDao.MongoGetUsers(ctx, userids)
 	if e != nil {
 		log.Error(ctx, "[GetUsers]", req.UserIds, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	resp := &api.GetUsersResp{
@@ -120,7 +123,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 		log.Error(ctx, "[SearchUsers] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId)
+	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[SearchUsers] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -140,6 +143,9 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	}
 	if e != nil {
 		log.Error(ctx, "[SearchUsers]", req.UserName, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	resp := &api.SearchUsersResp{
@@ -147,6 +153,9 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 		Page:      req.Page,
 		Pagesize:  20,
 		Totalsize: uint32(totalsize),
+	}
+	if resp.Page == 0 {
+		resp.Pagesize = resp.Totalsize
 	}
 	for _, user := range users {
 		resp.Users = append(resp.Users, &api.UserInfo{
@@ -166,7 +175,7 @@ func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.
 		log.Error(ctx, "[UpdateUser] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId)
+	_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[UpdateUser] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -183,6 +192,9 @@ func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.
 	}
 	if e := s.userDao.MongoUpdateUser(ctx, userid, req.UserName, req.Department); e != nil {
 		log.Error(ctx, "[UpdateUser]", req.UserId, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	return &api.UpdateUserResp{}, nil
@@ -195,7 +207,7 @@ func (s *Service) DelUsers(ctx context.Context, req *api.DelUsersReq) (*api.DelU
 		log.Error(ctx, "[DelUsers] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId)
+	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[DelUsers] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -224,6 +236,9 @@ func (s *Service) DelUsers(ctx context.Context, req *api.DelUsersReq) (*api.DelU
 	}
 	if e := s.userDao.MongoDelUsers(ctx, userids); e != nil {
 		log.Error(ctx, "[DelUsers]", req.UserIds, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	return &api.DelUsersResp{}, nil
@@ -236,7 +251,7 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 		log.Error(ctx, "[CreateRole] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId)
+	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[CreateRole] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -248,6 +263,9 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 	//logic
 	if e := s.userDao.MongoCreateRole(ctx, req.RoleName, req.Comment); e != nil {
 		log.Error(ctx, "[CreateRole]", req.RoleName, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	return &api.CreateRoleResp{}, nil
@@ -260,7 +278,7 @@ func (s *Service) GetRoles(ctx context.Context, req *api.GetRolesReq) (*api.GetR
 		log.Error(ctx, "[GetRoles] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId)
+	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[GetRoles] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -273,6 +291,9 @@ func (s *Service) GetRoles(ctx context.Context, req *api.GetRolesReq) (*api.GetR
 	roles, e := s.userDao.MongoGetRoles(ctx, req.RoleNames)
 	if e != nil {
 		log.Error(ctx, "[GetRoles]", req.RoleNames, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	resp := &api.GetRolesResp{
@@ -295,7 +316,7 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 		log.Error(ctx, "[SearchRoles] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId)
+	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[SearchRoles] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -315,6 +336,9 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 	}
 	if e != nil {
 		log.Error(ctx, "[SearchRoles]", req.RoleName, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	resp := &api.SearchRolesResp{
@@ -322,6 +346,9 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 		Page:      req.Page,
 		Pagesize:  20,
 		Totalsize: uint32(totalsize),
+	}
+	if resp.Page == 0 {
+		resp.Pagesize = resp.Totalsize
 	}
 	for _, role := range roles {
 		resp.Roles = append(resp.Roles, &api.RoleInfo{
@@ -340,7 +367,7 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 		log.Error(ctx, "[UpdateRole] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId)
+	_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[UpdateRole] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -352,6 +379,9 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 	//logic
 	if e := s.userDao.MongoUpdateRole(ctx, req.RoleName, req.Comment); e != nil {
 		log.Error(ctx, "[UpdateRole]", req.RoleName, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	return &api.UpdateRoleResp{}, nil
@@ -364,7 +394,7 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 		log.Error(ctx, "[DelRoles] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId)
+	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[DelRoles] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -376,11 +406,13 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 	//logic
 	if e := s.userDao.MongoDelRoles(ctx, req.RoleNames); e != nil {
 		log.Error(ctx, "[DelRoles]", req.RoleNames, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	return &api.DelRolesResp{}, nil
 }
-
 func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*api.AddUserRoleResp, error) {
 	//permission check
 	md := metadata.GetMetadata(ctx)
@@ -389,7 +421,7 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 		log.Error(ctx, "[AddUserRole] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId)
+	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[AddUserRole] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -397,7 +429,7 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 	if !admin {
 		return nil, ecode.ErrPermission
 	}
-	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId)
+	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[AddUserRole] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -429,7 +461,7 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 		log.Error(ctx, "[DelUserRole] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrAuth
 	}
-	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId)
+	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[DelUserRole] operator:", md["Token-Data"], "get permission failed:", e)
 		return nil, ecode.ErrSystem
@@ -446,6 +478,9 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 	}
 	if e = s.userDao.MongoDelUserRole(ctx, userid, req.RoleName); e != nil {
 		log.Error(ctx, "[DelUserRole]", req.UserId, req.RoleName, e)
+		if _, ok := e.(*cerror.Error); ok {
+			return nil, e
+		}
 		return nil, ecode.ErrSystem
 	}
 	return &api.DelUserRoleResp{}, nil

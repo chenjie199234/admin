@@ -178,6 +178,6 @@ message list_role_node_resp {
 message list_all_node_req{
 }
 message list_all_node_resp{
-	//this will only return the node name,other node's info will not return
+	//this will only return the node name and node data,other node's info will not return
 	repeated node_info nodes=1;
 }

@@ -2,6 +2,7 @@ package permission
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"strconv"
 
@@ -16,7 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func (d *Dao) MongoGetUserPermission(ctx context.Context, userid primitive.ObjectID, nodeid []uint32) (canread, canwrite, admin bool, e error) {
+func (d *Dao) MongoGetUserPermission(ctx context.Context, userid primitive.ObjectID, nodeid []uint32, withrole bool) (canread, canwrite, admin bool, e error) {
 	noderoute := make([][]uint32, 0, len(nodeid))
 	for i := range nodeid {
 		noderoute = append(noderoute, nodeid[:i+1])
@@ -27,6 +28,9 @@ func (d *Dao) MongoGetUserPermission(ctx context.Context, userid primitive.Objec
 	}
 	canread, canwrite, admin = usernodes.CheckNode(nodeid)
 	if admin {
+		return
+	}
+	if !withrole {
 		return
 	}
 	userrolenodes, e := d.MongoGetUserRoleNodes(ctx, userid, noderoute)
@@ -111,11 +115,11 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operateUserid, targ
 		if target.X {
 			//target is admin on this node
 			//operator must be admin on this node's parent node
-			_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1])
+			_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1], true)
 		} else {
 			//target is not admin on this node
 			//operator must be admin on this node
-			_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid)
+			_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid, true)
 		}
 		if e != nil || !x {
 			if e == nil {
@@ -143,17 +147,18 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operateUserid, targ
 	//get target user permission on parent path
 	//if target is admin on parent path,nothing need to do
 	var x bool
-	if _, _, x, e = d.MongoGetUserPermission(sctx, targetUserid, nodeid[:len(nodeid)-1]); e != nil || x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, targetUserid, nodeid[:len(nodeid)-1], false); e != nil || x {
+		fmt.Println(x)
 		return
 	}
 	if admin || target.X {
 		//want to give target admin or remove target's admin permission
 		//operator must be admin to this node's parent node
-		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1])
+		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1], true)
 	} else {
 		//want to change target's R or W
 		//operator must be admin on this node
-		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid)
+		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid, true)
 	}
 	if e != nil || !x {
 		if e == nil {
@@ -243,11 +248,11 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operateUserid primi
 		if target.X {
 			//target is admin on this node
 			//operator must be admin on this node's parent node
-			_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1])
+			_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1], true)
 		} else {
 			//target is not admin on this node
 			//operator must be admin on this node
-			_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid)
+			_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid, true)
 		}
 		if e != nil || !x {
 			if e == nil {
@@ -280,11 +285,11 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operateUserid primi
 	if x || target.X {
 		//want to give target admin or remove target's admin permission
 		//operator must be admin to this node's parent node
-		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1])
+		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1], true)
 	} else {
 		//want to change target's R or W
 		//operator must be admin on this node
-		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid)
+		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid, true)
 	}
 	if e != nil || !x {
 		if e == nil {
@@ -319,7 +324,7 @@ func (d *Dao) MongoGetRoleNodes(ctx context.Context, rolename string, nodeids []
 	if len(nodeids) > 0 {
 		filter["node_id"] = bson.M{"$in": nodeids}
 	}
-	cursor, e := d.mongo.Database("permission").Collection("rolename").Find(ctx, filter)
+	cursor, e := d.mongo.Database("permission").Collection("rolenode").Find(ctx, filter)
 	if e != nil {
 		return nil, e
 	}
@@ -341,6 +346,9 @@ func (d *Dao) MongoGetUserRoleNodes(ctx context.Context, userid primitive.Object
 	userinfo := &model.User{}
 	if e := r.Decode(userinfo); e != nil {
 		return nil, e
+	}
+	if len(userinfo.Roles) == 0 {
+		return nil, nil
 	}
 	filter := bson.M{
 		"role_name": bson.M{"$in": userinfo.Roles},
@@ -442,7 +450,7 @@ func (d *Dao) MongoAddNode(ctx context.Context, operateUserid primitive.ObjectID
 	}
 	//check admin
 	var x bool
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, pnodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, pnodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}
@@ -482,7 +490,7 @@ func (d *Dao) MongoUpdateNode(ctx context.Context, operateUserid primitive.Objec
 	}()
 	//check admin
 	var x bool
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}
@@ -533,14 +541,14 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operateUserid primitive.ObjectI
 	}
 	//check admin in current path
 	var x bool
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}
 		return
 	}
 	//check admin in new path
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, pnodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, pnodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}
@@ -590,7 +598,7 @@ func (d *Dao) MongoDeleteNode(ctx context.Context, operateUserid primitive.Objec
 	}()
 	//check admin
 	var x bool
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}

@@ -337,7 +337,7 @@ Fail:    httpcode:4xx/5xx
 Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 {
-	//this will only return the node name,other node's info will not return
+	//this will only return the node name and node data,other node's info will not return
 	//object node_info
 	"nodes":[{},{}]
 }

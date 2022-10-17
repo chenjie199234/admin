@@ -22,12 +22,15 @@ type Sdk struct {
 	cancel     context.CancelFunc
 }
 
-//keyvalue: map's key is the key name,map's value is the key's data
-//keytype: map's key is the key name,map's value is the type of the key's data
+// keyvalue: map's key is the key name,map's value is the key's data
+// keytype: map's key is the key name,map's value is the type of the key's data
 type NoticeHandler func(key, keyvalue, keytype string)
 
 func NewConfigSdk(selfgroup, selfname, servergroup, serverhost string) (*Sdk, error) {
-	tmpclient, _ := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost)
+	tmpclient, e := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost)
+	if e != nil {
+		return nil, e
+	}
 	instance := &Sdk{
 		client:     api.NewConfigWebClient(tmpclient),
 		wait:       make(chan *struct{}, 1),
@@ -80,8 +83,8 @@ func (instance *Sdk) watch(selfgroup, selfname string) {
 	}
 }
 
-//watch the same key will overwrite the old one's notice function
-//but the old's cancel function can still work
+// watch the same key will overwrite the old one's notice function
+// but the old's cancel function can still work
 func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {
 	instance.lker.Lock()
 	defer instance.lker.Unlock()

@@ -12,7 +12,6 @@ import (
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
 
-	cerror "github.com/chenjie199234/Corelib/error"
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	"github.com/chenjie199234/Corelib/util/common"
@@ -48,10 +47,7 @@ func (s *Service) GetUserPermission(ctx context.Context, req *api.GetUserPermiss
 	canread, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, target, req.NodeId, true)
 	if e != nil {
 		log.Error(ctx, "[GetUserPermission] userid:", req.UserId, "nodeid:", req.NodeId, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.GetUserPermissionResp{Canread: canread, Canwrite: canwrite, Admin: admin}, nil
 }
@@ -77,7 +73,7 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[UpdateUserPermission] operator:", md["Token-Data"], "get permission failed:", e)
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	if !admin {
 		return nil, ecode.ErrPermission
@@ -85,10 +81,7 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	//logic
 	if e = s.permissionDao.MongoUpdateUserPermission(ctx, operator, target, req.NodeId, req.Admin, req.Canread, req.Canwrite); e != nil {
 		log.Error(ctx, "[UpdateUserPermission] operator:", md["Token-Data"], "target:", req.UserId, "nodeid:", req.NodeId, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.UpdateUserPermissionResp{}, nil
 }
@@ -109,7 +102,7 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[UpdateRolePermission] operator:", md["Token-Data"], "get permission failed:", e)
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	if !admin {
 		return nil, ecode.ErrPermission
@@ -117,10 +110,7 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	//logic
 	if e = s.permissionDao.MongoUpdateRolePermission(ctx, operator, req.RoleName, req.NodeId, req.Admin, req.Canread, req.Canwrite); e != nil {
 		log.Error(ctx, "[UpdateRolePermission] operator:", md["Token-Data"], "rolename:", req.RoleName, "nodeid:", req.NodeId, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.UpdateRolePermissionResp{}, nil
 }
@@ -136,10 +126,7 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 	}
 	if e = s.permissionDao.MongoAddNode(ctx, operator, req.PnodeId, req.NodeName, req.NodeData); e != nil {
 		log.Error(ctx, "[AddNode] operator:", md["Token-Data"], "name:", req.NodeName, "data:", req.NodeData, "parent nodeid:", req.PnodeId, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.AddNodeResp{}, nil
 }
@@ -155,10 +142,7 @@ func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.
 	}
 	if e = s.permissionDao.MongoUpdateNode(ctx, operator, req.NodeId, req.NodeName, req.NodeData); e != nil {
 		log.Error(ctx, "[UpdateNode] operator:", md["Token-Data"], "nodeid:", req.NodeId, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.UpdateNodeResp{}, nil
 }
@@ -174,10 +158,7 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 	}
 	if e := s.permissionDao.MongoMoveNode(ctx, operator, req.NodeId, req.PnodeId); e != nil {
 		log.Error(ctx, "[MoveNode] operator:", md["Token-Data"], "nodeid:", req.NodeId, "new parent nodeid:", req.PnodeId, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.MoveNodeResp{}, nil
 }
@@ -193,10 +174,7 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 	}
 	if e = s.permissionDao.MongoDeleteNode(ctx, operator, req.NodeId); e != nil {
 		log.Error(ctx, "[DelNode] operator:", md["Token-Data"], "nodeid:", req.NodeId, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.DelNodeResp{}, nil
 }
@@ -217,7 +195,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.UserControlNodeId, true)
 		if e != nil {
 			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "get permission failed:", e)
-			return nil, ecode.ErrSystem
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !canread && !admin {
 			return nil, ecode.ErrPermission
@@ -232,10 +210,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	usernodes, e := s.permissionDao.MongoGetUserNodes(ctx, target, nil)
 	if e != nil {
 		log.Error(ctx, "[ListUserNode] target:", req.UserId, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	for _, usernode := range usernodes {
 		nodeidstr, _ := json.Marshal(usernode.NodeId)
@@ -265,10 +240,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		userrolenodes, e := s.permissionDao.MongoGetUserRoleNodes(ctx, target, nil)
 		if e != nil {
 			log.Error(ctx, "[ListUserNode] target:", req.UserId, e)
-			if _, ok := e.(*cerror.Error); ok {
-				return nil, e
-			}
-			return nil, ecode.ErrSystem
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		for _, v := range userrolenodes {
 			for _, userrolenode := range v {
@@ -333,10 +305,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	nodeinfos, e := s.permissionDao.MongoGetNodes(ctx, nodeids)
 	if e != nil {
 		log.Error(ctx, "[ListUserNode] target:", req.UserId, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	for _, nodeinfo := range nodeinfos {
 		nodeidstr, _ := json.Marshal(nodeinfo.NodeId)
@@ -378,10 +347,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		})
 	}
 	if e := egroup.PutGroup(g); e != nil {
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	root := &api.NodeInfo{
 		NodeId: []uint32{},
@@ -401,7 +367,7 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.RoleControlNodeId, true)
 	if e != nil {
 		log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "get permission failed:", e)
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	if !canread && !admin {
 		return nil, ecode.ErrPermission
@@ -409,7 +375,7 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	rolenodes, e := s.permissionDao.MongoGetRoleNodes(ctx, req.RoleName, nil)
 	if e != nil {
 		log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "rolename:", req.RoleName, e)
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	nodes := make([]*api.NodeInfo, 0, len(rolenodes))
 	undup := make(map[string]*api.NodeInfo, len(rolenodes))
@@ -470,10 +436,7 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	nodeinfos, e := s.permissionDao.MongoGetNodes(ctx, nodeids)
 	if e != nil {
 		log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "rolename:", req.RoleName, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	for _, nodeinfo := range nodeinfos {
 		nodeidstr, _ := json.Marshal(nodeinfo.NodeId)
@@ -515,10 +478,7 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 		})
 	}
 	if e := egroup.PutGroup(g); e != nil {
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	root := &api.NodeInfo{
 		NodeId: []uint32{},
@@ -533,10 +493,7 @@ func (s *Service) ListAllNode(ctx context.Context, req *api.ListAllNodeReq) (*ap
 	nodes, e := s.permissionDao.MongoListNode(ctx, nil)
 	if e != nil {
 		log.Error(ctx, "[ListAllNode] operator:", md["Token-Data"], e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	root := &api.NodeInfo{
 		Children: make([]*api.NodeInfo, 0, 10),

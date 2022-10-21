@@ -7,7 +7,7 @@ import (
 
 	"github.com/chenjie199234/admin/api"
 
-	cerror "github.com/chenjie199234/Corelib/error"
+	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/web"
 )

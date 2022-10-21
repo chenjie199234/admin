@@ -3,7 +3,7 @@ package ecode
 import (
 	"net/http"
 
-	cerror "github.com/chenjie199234/Corelib/error"
+	"github.com/chenjie199234/Corelib/cerror"
 )
 
 var (
@@ -35,3 +35,10 @@ var (
 
 	ErrPageOverflow = cerror.MakeError(30001, http.StatusBadRequest, "page overflow")
 )
+
+func ReturnEcode(originerror error, defaulterror *cerror.Error) error {
+	if _, ok := originerror.(*cerror.Error); ok {
+		return originerror
+	}
+	return defaulterror
+}

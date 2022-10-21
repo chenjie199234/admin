@@ -8,7 +8,7 @@ import (
 	"github.com/chenjie199234/Corelib/log"
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	"github.com/chenjie199234/Corelib/util/common"
-	ctime "github.com/chenjie199234/Corelib/util/time"
+	"github.com/chenjie199234/Corelib/util/ctime"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -18,7 +18,7 @@ type AppConfig struct {
 	HandlerTimeout map[string]map[string]ctime.Duration `json:"handler_timeout"` //first key handler path,second key method(GET,POST,PUT,PATCH,DELETE,CRPC,GRPC),value timeout
 	HandlerRate    []*publicmids.RateConfig             `json:"handler_rate"`
 	WebPathRewrite map[string]map[string]string         `json:"web_path_rewrite"` //first key method(GET,POST,PUT,PATCH,DELETE),second key origin url,value new url
-	AccessKeys     map[string][]string                  `json:"access_keys"`      //key-specific path,value specific seckey,key-"default",value default seckey
+	Accesses       map[string]map[string]string         `json:"accesses"`         //key-specific path,value specific seckey,key-"default",value default seckey
 	TokenSecret    string                               `json:"token_secret"`
 	TokenExpire    ctime.Duration                       `json:"token_expire"`
 	Service        *ServiceConfig                       `json:"service"`
@@ -72,7 +72,7 @@ func initlocalapp(notice func(*AppConfig)) {
 				if !ok {
 					return
 				}
-				if filepath.Base(event.Name) != "AppConfig.json" || (event.Op&fsnotify.Create == 0 && event.Op&fsnotify.Write == 0) {
+				if filepath.Base(event.Name) != "AppConfig.json" || (!event.Has(fsnotify.Create) && !event.Has(fsnotify.Write)) {
 					continue
 				}
 				data, e := os.ReadFile("./AppConfig.json")

@@ -8,7 +8,7 @@ package api
 
 import (
 	context "context"
-	error1 "github.com/chenjie199234/Corelib/error"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 	pool "github.com/chenjie199234/Corelib/pool"
@@ -69,7 +69,7 @@ func NewConfigWebClient(c *web.WebClient) ConfigWebClient {
 
 func (c *configWebClient) Groups(ctx context.Context, req *GroupsReq, header http.Header) (*GroupsResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -86,13 +86,13 @@ func (c *configWebClient) Groups(ctx context.Context, req *GroupsReq, header htt
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) DelGroup(ctx context.Context, req *DelGroupReq, header http.Header) (*DelGroupResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -109,13 +109,13 @@ func (c *configWebClient) DelGroup(ctx context.Context, req *DelGroupReq, header
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) Apps(ctx context.Context, req *AppsReq, header http.Header) (*AppsResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -132,13 +132,13 @@ func (c *configWebClient) Apps(ctx context.Context, req *AppsReq, header http.He
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) DelApp(ctx context.Context, req *DelAppReq, header http.Header) (*DelAppResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -155,13 +155,13 @@ func (c *configWebClient) DelApp(ctx context.Context, req *DelAppReq, header htt
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) Keys(ctx context.Context, req *KeysReq, header http.Header) (*KeysResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -178,13 +178,13 @@ func (c *configWebClient) Keys(ctx context.Context, req *KeysReq, header http.He
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) DelKey(ctx context.Context, req *DelKeyReq, header http.Header) (*DelKeyResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -201,13 +201,13 @@ func (c *configWebClient) DelKey(ctx context.Context, req *DelKeyReq, header htt
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) Create(ctx context.Context, req *CreateReq, header http.Header) (*CreateResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -224,13 +224,13 @@ func (c *configWebClient) Create(ctx context.Context, req *CreateReq, header htt
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) Updatecipher(ctx context.Context, req *UpdatecipherReq, header http.Header) (*UpdatecipherResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -247,13 +247,13 @@ func (c *configWebClient) Updatecipher(ctx context.Context, req *UpdatecipherReq
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) Get(ctx context.Context, req *GetReq, header http.Header) (*GetResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -270,13 +270,13 @@ func (c *configWebClient) Get(ctx context.Context, req *GetReq, header http.Head
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) Set(ctx context.Context, req *SetReq, header http.Header) (*SetResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -293,13 +293,13 @@ func (c *configWebClient) Set(ctx context.Context, req *SetReq, header http.Head
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) Rollback(ctx context.Context, req *RollbackReq, header http.Header) (*RollbackResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -316,13 +316,13 @@ func (c *configWebClient) Rollback(ctx context.Context, req *RollbackReq, header
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configWebClient) Watch(ctx context.Context, req *WatchReq, header http.Header) (*WatchResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -339,7 +339,7 @@ func (c *configWebClient) Watch(ctx context.Context, req *WatchReq, header http.
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -383,7 +383,7 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -395,13 +395,13 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -421,13 +421,13 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -456,7 +456,7 @@ func _Config_DelGroup_WebHandler(handler func(context.Context, *DelGroupReq) (*D
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -468,13 +468,13 @@ func _Config_DelGroup_WebHandler(handler func(context.Context, *DelGroupReq) (*D
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -494,18 +494,18 @@ func _Config_DelGroup_WebHandler(handler func(context.Context, *DelGroupReq) (*D
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_group]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -534,7 +534,7 @@ func _Config_Apps_WebHandler(handler func(context.Context, *AppsReq) (*AppsResp,
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -546,13 +546,13 @@ func _Config_Apps_WebHandler(handler func(context.Context, *AppsReq) (*AppsResp,
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -583,18 +583,18 @@ func _Config_Apps_WebHandler(handler func(context.Context, *AppsReq) (*AppsResp,
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/apps]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -623,7 +623,7 @@ func _Config_DelApp_WebHandler(handler func(context.Context, *DelAppReq) (*DelAp
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -635,13 +635,13 @@ func _Config_DelApp_WebHandler(handler func(context.Context, *DelAppReq) (*DelAp
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -672,18 +672,18 @@ func _Config_DelApp_WebHandler(handler func(context.Context, *DelAppReq) (*DelAp
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_app]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -712,7 +712,7 @@ func _Config_Keys_WebHandler(handler func(context.Context, *KeysReq) (*KeysResp,
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -724,13 +724,13 @@ func _Config_Keys_WebHandler(handler func(context.Context, *KeysReq) (*KeysResp,
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -761,18 +761,18 @@ func _Config_Keys_WebHandler(handler func(context.Context, *KeysReq) (*KeysResp,
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/keys]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -801,7 +801,7 @@ func _Config_DelKey_WebHandler(handler func(context.Context, *DelKeyReq) (*DelKe
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -813,13 +813,13 @@ func _Config_DelKey_WebHandler(handler func(context.Context, *DelKeyReq) (*DelKe
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -861,18 +861,18 @@ func _Config_DelKey_WebHandler(handler func(context.Context, *DelKeyReq) (*DelKe
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_key]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -901,7 +901,7 @@ func _Config_Create_WebHandler(handler func(context.Context, *CreateReq) (*Creat
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -913,13 +913,13 @@ func _Config_Create_WebHandler(handler func(context.Context, *CreateReq) (*Creat
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -961,18 +961,18 @@ func _Config_Create_WebHandler(handler func(context.Context, *CreateReq) (*Creat
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/create]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1001,7 +1001,7 @@ func _Config_Updatecipher_WebHandler(handler func(context.Context, *Updatecipher
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1013,13 +1013,13 @@ func _Config_Updatecipher_WebHandler(handler func(context.Context, *Updatecipher
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1072,18 +1072,18 @@ func _Config_Updatecipher_WebHandler(handler func(context.Context, *Updatecipher
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/updatecipher]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1112,7 +1112,7 @@ func _Config_Get_WebHandler(handler func(context.Context, *GetReq) (*GetResp, er
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1124,13 +1124,13 @@ func _Config_Get_WebHandler(handler func(context.Context, *GetReq) (*GetResp, er
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1179,18 +1179,18 @@ func _Config_Get_WebHandler(handler func(context.Context, *GetReq) (*GetResp, er
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/get]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1219,7 +1219,7 @@ func _Config_Set_WebHandler(handler func(context.Context, *SetReq) (*SetResp, er
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1231,13 +1231,13 @@ func _Config_Set_WebHandler(handler func(context.Context, *SetReq) (*SetResp, er
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1301,18 +1301,18 @@ func _Config_Set_WebHandler(handler func(context.Context, *SetReq) (*SetResp, er
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/set]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1341,7 +1341,7 @@ func _Config_Rollback_WebHandler(handler func(context.Context, *RollbackReq) (*R
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1353,13 +1353,13 @@ func _Config_Rollback_WebHandler(handler func(context.Context, *RollbackReq) (*R
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1408,18 +1408,18 @@ func _Config_Rollback_WebHandler(handler func(context.Context, *RollbackReq) (*R
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/rollback]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1448,7 +1448,7 @@ func _Config_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchRe
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1460,13 +1460,13 @@ func _Config_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchRe
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1504,18 +1504,18 @@ func _Config_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchRe
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/watch]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return

@@ -8,8 +8,8 @@ package api
 
 import (
 	context "context"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	crpc "github.com/chenjie199234/Corelib/crpc"
-	error1 "github.com/chenjie199234/Corelib/error"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 	proto "google.golang.org/protobuf/proto"
@@ -32,7 +32,7 @@ func NewStatusCrpcClient(c *crpc.CrpcClient) StatusCrpcClient {
 
 func (c *statusCrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathStatusPing, reqd, metadata.GetMetadata(ctx))
@@ -44,7 +44,7 @@ func (c *statusCrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, e
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -58,12 +58,12 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 	return func(ctx *crpc.Context) {
 		req := new(Pingreq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.status/ping]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)

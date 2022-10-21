@@ -12,14 +12,14 @@ import (
 	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/util"
 
-	cerror "github.com/chenjie199234/Corelib/error"
+	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/log"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
 	//"github.com/chenjie199234/Corelib/web"
 )
 
-//Service subservice for config business
+// Service subservice for config business
 type Service struct {
 	configDao  *configdao.Dao
 	noticepool *sync.Pool
@@ -32,7 +32,7 @@ type app struct {
 	notices    map[chan *struct{}]*struct{}
 }
 
-//Start -
+// Start -
 func Start() *Service {
 	s := &Service{
 		configDao:  configdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
@@ -114,85 +114,67 @@ func (s *Service) delconfig(groupname, appname, id string) {
 	}
 }
 
-//get all groups
+// get all groups
 func (s *Service) Groups(ctx context.Context, req *api.GroupsReq) (*api.GroupsResp, error) {
 	groups, e := s.configDao.MongoGetAllGroups(ctx, req.SearchFilter)
 	if e != nil {
 		log.Error(ctx, "[Groups]", e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.GroupsResp{Groups: groups}, nil
 }
 
-//del one specific group
+// del one specific group
 func (s *Service) DelGroup(ctx context.Context, req *api.DelGroupReq) (*api.DelGroupResp, error) {
 	e := s.configDao.MongoDelGroup(ctx, req.Groupname)
 	if e != nil {
 		log.Error(ctx, "[DelGroup] group:", req.Groupname, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.DelGroupResp{}, nil
 }
 
-//get all apps in one specific group
+// get all apps in one specific group
 func (s *Service) Apps(ctx context.Context, req *api.AppsReq) (*api.AppsResp, error) {
 	apps, e := s.configDao.MongoGetAllApps(ctx, req.Groupname, req.SearchFilter)
 	if e != nil {
 		log.Error(ctx, "[Apps] group:", req.Groupname, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.AppsResp{Apps: apps}, nil
 }
 
-//del one specific app in one specific group
+// del one specific app in one specific group
 func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppResp, error) {
 	e := s.configDao.MongoDelApp(ctx, req.Groupname, req.Appname)
 	if e != nil {
 		log.Error(ctx, "[DelApp] group:", req.Groupname, "app:", req.Appname, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.DelAppResp{}, nil
 }
 
-//get all config's keys in this app
+// get all config's keys in this app
 func (s *Service) Keys(ctx context.Context, req *api.KeysReq) (*api.KeysResp, error) {
 	keys, e := s.configDao.MongoGetAllKeys(ctx, req.Groupname, req.Appname)
 	if e != nil {
 		log.Error(ctx, "[Keys] group:", req.Groupname, "app:", req.Appname, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.KeysResp{Keys: keys}, nil
 }
 
-//del one specific key in one specific app
+// del one specific key in one specific app
 func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyResp, error) {
 	e := s.configDao.MongoDelKey(ctx, req.Groupname, req.Appname, req.Key)
 	if e != nil {
 		log.Error(ctx, "[DelKey] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.DelKeyResp{}, nil
 }
 
-//create one specific app
+// create one specific app
 func (s *Service) Create(ctx context.Context, req *api.CreateReq) (*api.CreateResp, error) {
 	if req.Cipher != "" && len(req.Cipher) != 32 {
 		log.Error(ctx, "[Create] group:", req.Groupname, "app:", req.Appname, ecode.ErrCipherLength)
@@ -200,16 +182,13 @@ func (s *Service) Create(ctx context.Context, req *api.CreateReq) (*api.CreateRe
 	}
 	if e := s.configDao.MongoCreate(ctx, req.Groupname, req.Appname, req.Cipher, util.Encrypt); e != nil {
 		log.Error(ctx, "[Create] group:", req.Groupname, "app:", req.Appname, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	log.Info(ctx, "[Create] group:", req.Groupname, "app:", req.Appname, "success")
 	return &api.CreateResp{}, nil
 }
 
-//update one specific app's cipher
+// update one specific app's cipher
 func (s *Service) Updatecipher(ctx context.Context, req *api.UpdatecipherReq) (*api.UpdatecipherResp, error) {
 	if req.New != "" && len(req.New) != 32 {
 		log.Error(ctx, "[Updatechiper] group:", req.Groupname, "app:", req.Appname, ecode.ErrCipherLength)
@@ -220,24 +199,18 @@ func (s *Service) Updatecipher(ctx context.Context, req *api.UpdatecipherReq) (*
 	}
 	if e := s.configDao.MongoUpdateCipher(ctx, req.Groupname, req.Appname, req.Old, req.New, util.Decrypt, util.Encrypt); e != nil {
 		log.Error(ctx, "[Updatechiper] group:", req.Groupname, "app:", req.Appname, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	log.Info(ctx, "[Updatecipher] group:", req.GetGroupname, "app:", req.Appname, "success")
 	return &api.UpdatecipherResp{}, nil
 }
 
-//get config
+// get config
 func (s *Service) Get(ctx context.Context, req *api.GetReq) (*api.GetResp, error) {
 	keysummary, configlog, e := s.configDao.MongoGetKeyConfig(ctx, req.Groupname, req.Appname, req.Key, req.Index, util.Decrypt)
 	if e != nil {
 		log.Error(ctx, "[Get] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, "index:", req.Index, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.GetResp{
 		CurIndex:   keysummary.CurIndex,
@@ -249,7 +222,7 @@ func (s *Service) Get(ctx context.Context, req *api.GetReq) (*api.GetResp, error
 	}, nil
 }
 
-//set config
+// set config
 func (s *Service) Set(ctx context.Context, req *api.SetReq) (*api.SetResp, error) {
 	req.Key = strings.TrimSpace(req.Key)
 	if req.Key == "" {
@@ -264,23 +237,17 @@ func (s *Service) Set(ctx context.Context, req *api.SetReq) (*api.SetResp, error
 	index, version, e := s.configDao.MongoSetConfig(ctx, req.Groupname, req.Appname, req.Key, req.Value, req.ValueType, util.Encrypt)
 	if e != nil {
 		log.Error(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	log.Info(ctx, "[Set] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, "index:", index, "version:", version, "success")
 	return &api.SetResp{}, nil
 }
 
-//rollback config
+// rollback config
 func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.RollbackResp, error) {
 	if e := s.configDao.MongoRollbackConfig(ctx, req.Groupname, req.Appname, req.Key, req.Index); e != nil {
 		log.Error(ctx, "[Rollback] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, e)
-		if e != ecode.ErrAppNotExist && e != ecode.ErrIndexNotExist {
-			e = ecode.ErrSystem
-		}
-		return nil, e
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	log.Info(ctx, "[Rollback] group:", req.Groupname, "app:", req.Appname, "key:", req.Key, "index:", req.Index, "success")
 	return &api.RollbackResp{}, nil
@@ -297,7 +264,7 @@ func (s *Service) putnotice(ch chan *struct{}) {
 	s.noticepool.Put(ch)
 }
 
-//watch config
+// watch config
 func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp, error) {
 	resp := &api.WatchResp{
 		Datas: make(map[string]*api.WatchData, len(req.Keys)+3),
@@ -323,10 +290,7 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 		if e != nil {
 			s.Unlock()
 			log.Error(ctx, "[Watch] group:", req.Groupname, "app:", req.Appname, e)
-			if _, ok := e.(*cerror.Error); ok {
-				return nil, e
-			}
-			return nil, ecode.ErrSystem
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if appsummary == nil {
 			appsummary = &model.AppSummary{}
@@ -417,7 +381,7 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 	}
 }
 
-//Stop -
+// Stop -
 func (s *Service) Stop() {
 	s.Lock()
 	defer s.Unlock()

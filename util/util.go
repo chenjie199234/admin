@@ -9,8 +9,8 @@ import (
 	"github.com/chenjie199234/Corelib/util/common"
 )
 
-//this is the server's secret
-//must be aes.BlockSize length
+// this is the server's secret
+// must be aes.BlockSize length
 const servercipher = "chenjie_1992_3_4"
 
 func pkcs7Padding(origin []byte, blockSize int) []byte {

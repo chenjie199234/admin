@@ -11,7 +11,7 @@ import (
 	"github.com/chenjie199234/admin/service"
 
 	"github.com/chenjie199234/Corelib/log"
-	ctime "github.com/chenjie199234/Corelib/util/time"
+	"github.com/chenjie199234/Corelib/util/ctime"
 	"github.com/chenjie199234/Corelib/web"
 	"github.com/chenjie199234/Corelib/web/mids"
 )

@@ -8,8 +8,8 @@ package api
 
 import (
 	context "context"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	cgrpc "github.com/chenjie199234/Corelib/cgrpc"
-	error1 "github.com/chenjie199234/Corelib/error"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 )
@@ -54,7 +54,7 @@ func NewUserCGrpcClient(c *cgrpc.CGrpcClient) UserCGrpcClient {
 
 func (c *userCGrpcClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLoginReq) (*SuperAdminLoginResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(SuperAdminLoginResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserSuperAdminLogin, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -64,7 +64,7 @@ func (c *userCGrpcClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLo
 }
 func (c *userCGrpcClient) Login(ctx context.Context, req *LoginReq) (*LoginResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(LoginResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserLogin, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -74,7 +74,7 @@ func (c *userCGrpcClient) Login(ctx context.Context, req *LoginReq) (*LoginResp,
 }
 func (c *userCGrpcClient) GetUsers(ctx context.Context, req *GetUsersReq) (*GetUsersResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(GetUsersResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserGetUsers, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -84,7 +84,7 @@ func (c *userCGrpcClient) GetUsers(ctx context.Context, req *GetUsersReq) (*GetU
 }
 func (c *userCGrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) (*SearchUsersResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(SearchUsersResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserSearchUsers, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -94,7 +94,7 @@ func (c *userCGrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) 
 }
 func (c *userCGrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*UpdateUserResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateUserResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateUser, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -104,7 +104,7 @@ func (c *userCGrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*
 }
 func (c *userCGrpcClient) DelUsers(ctx context.Context, req *DelUsersReq) (*DelUsersResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(DelUsersResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserDelUsers, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -114,7 +114,7 @@ func (c *userCGrpcClient) DelUsers(ctx context.Context, req *DelUsersReq) (*DelU
 }
 func (c *userCGrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq) (*CreateRoleResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(CreateRoleResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserCreateRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -124,7 +124,7 @@ func (c *userCGrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq) (*
 }
 func (c *userCGrpcClient) GetRoles(ctx context.Context, req *GetRolesReq) (*GetRolesResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(GetRolesResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserGetRoles, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -134,7 +134,7 @@ func (c *userCGrpcClient) GetRoles(ctx context.Context, req *GetRolesReq) (*GetR
 }
 func (c *userCGrpcClient) SearchRoles(ctx context.Context, req *SearchRolesReq) (*SearchRolesResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(SearchRolesResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserSearchRoles, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -144,7 +144,7 @@ func (c *userCGrpcClient) SearchRoles(ctx context.Context, req *SearchRolesReq) 
 }
 func (c *userCGrpcClient) UpdateRole(ctx context.Context, req *UpdateRoleReq) (*UpdateRoleResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateRoleResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -154,7 +154,7 @@ func (c *userCGrpcClient) UpdateRole(ctx context.Context, req *UpdateRoleReq) (*
 }
 func (c *userCGrpcClient) DelRoles(ctx context.Context, req *DelRolesReq) (*DelRolesResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(DelRolesResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserDelRoles, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -164,7 +164,7 @@ func (c *userCGrpcClient) DelRoles(ctx context.Context, req *DelRolesReq) (*DelR
 }
 func (c *userCGrpcClient) AddUserRole(ctx context.Context, req *AddUserRoleReq) (*AddUserRoleResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(AddUserRoleResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserAddUserRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -174,7 +174,7 @@ func (c *userCGrpcClient) AddUserRole(ctx context.Context, req *AddUserRoleReq) 
 }
 func (c *userCGrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) (*DelUserRoleResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(DelUserRoleResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserDelUserRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -203,12 +203,12 @@ func _User_SuperAdminLogin_CGrpcHandler(handler func(context.Context, *SuperAdmi
 	return func(ctx *cgrpc.Context) {
 		req := new(SuperAdminLoginReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/super_admin_login]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -226,7 +226,7 @@ func _User_Login_CGrpcHandler(handler func(context.Context, *LoginReq) (*LoginRe
 	return func(ctx *cgrpc.Context) {
 		req := new(LoginReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -244,12 +244,12 @@ func _User_GetUsers_CGrpcHandler(handler func(context.Context, *GetUsersReq) (*G
 	return func(ctx *cgrpc.Context) {
 		req := new(GetUsersReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/get_users]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -267,12 +267,12 @@ func _User_SearchUsers_CGrpcHandler(handler func(context.Context, *SearchUsersRe
 	return func(ctx *cgrpc.Context) {
 		req := new(SearchUsersReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/search_users]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -290,12 +290,12 @@ func _User_UpdateUser_CGrpcHandler(handler func(context.Context, *UpdateUserReq)
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateUserReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/update_user]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -313,12 +313,12 @@ func _User_DelUsers_CGrpcHandler(handler func(context.Context, *DelUsersReq) (*D
 	return func(ctx *cgrpc.Context) {
 		req := new(DelUsersReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/del_users]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -336,12 +336,12 @@ func _User_CreateRole_CGrpcHandler(handler func(context.Context, *CreateRoleReq)
 	return func(ctx *cgrpc.Context) {
 		req := new(CreateRoleReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/create_role]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -359,12 +359,12 @@ func _User_GetRoles_CGrpcHandler(handler func(context.Context, *GetRolesReq) (*G
 	return func(ctx *cgrpc.Context) {
 		req := new(GetRolesReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/get_roles]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -382,12 +382,12 @@ func _User_SearchRoles_CGrpcHandler(handler func(context.Context, *SearchRolesRe
 	return func(ctx *cgrpc.Context) {
 		req := new(SearchRolesReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/search_roles]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -405,12 +405,12 @@ func _User_UpdateRole_CGrpcHandler(handler func(context.Context, *UpdateRoleReq)
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateRoleReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/update_role]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -428,12 +428,12 @@ func _User_DelRoles_CGrpcHandler(handler func(context.Context, *DelRolesReq) (*D
 	return func(ctx *cgrpc.Context) {
 		req := new(DelRolesReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/del_roles]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -451,12 +451,12 @@ func _User_AddUserRole_CGrpcHandler(handler func(context.Context, *AddUserRoleRe
 	return func(ctx *cgrpc.Context) {
 		req := new(AddUserRoleReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/add_user_role]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -474,12 +474,12 @@ func _User_DelUserRole_CGrpcHandler(handler func(context.Context, *DelUserRoleRe
 	return func(ctx *cgrpc.Context) {
 		req := new(DelUserRoleReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/del_user_role]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)

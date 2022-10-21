@@ -8,19 +8,18 @@ import (
 	initializedao "github.com/chenjie199234/admin/dao/initialize"
 	"github.com/chenjie199234/admin/ecode"
 
-	cerror "github.com/chenjie199234/Corelib/error"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
 	"github.com/chenjie199234/Corelib/log"
 	//"github.com/chenjie199234/Corelib/web"
 )
 
-//Service subservice for init business
+// Service subservice for init business
 type Service struct {
 	initializeDao *initializedao.Dao
 }
 
-//Start -
+// Start -
 func Start() *Service {
 	return &Service{
 		initializeDao: initializedao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
@@ -30,15 +29,12 @@ func Start() *Service {
 func (s *Service) Initialize(ctx context.Context, req *api.InitializeReq) (*api.InitializeResp, error) {
 	if e := s.initializeDao.MongoInit(ctx, req.SuperAdminPassword); e != nil {
 		log.Error(ctx, "[Initialize]", e)
-		if _, ok := e.(*cerror.Error); ok {
-			return nil, e
-		}
-		return nil, ecode.ErrSystem
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.InitializeResp{}, nil
 }
 
-//Stop -
+// Stop -
 func (s *Service) Stop() {
 
 }

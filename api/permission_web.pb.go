@@ -8,7 +8,7 @@ package api
 
 import (
 	context "context"
-	error1 "github.com/chenjie199234/Corelib/error"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 	pool "github.com/chenjie199234/Corelib/pool"
@@ -53,7 +53,7 @@ func NewPermissionWebClient(c *web.WebClient) PermissionWebClient {
 
 func (c *permissionWebClient) GetUserPermission(ctx context.Context, req *GetUserPermissionReq, header http.Header) (*GetUserPermissionResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -70,13 +70,13 @@ func (c *permissionWebClient) GetUserPermission(ctx context.Context, req *GetUse
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionWebClient) UpdateUserPermission(ctx context.Context, req *UpdateUserPermissionReq, header http.Header) (*UpdateUserPermissionResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -93,13 +93,13 @@ func (c *permissionWebClient) UpdateUserPermission(ctx context.Context, req *Upd
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionWebClient) UpdateRolePermission(ctx context.Context, req *UpdateRolePermissionReq, header http.Header) (*UpdateRolePermissionResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -116,13 +116,13 @@ func (c *permissionWebClient) UpdateRolePermission(ctx context.Context, req *Upd
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionWebClient) AddNode(ctx context.Context, req *AddNodeReq, header http.Header) (*AddNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -139,13 +139,13 @@ func (c *permissionWebClient) AddNode(ctx context.Context, req *AddNodeReq, head
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionWebClient) UpdateNode(ctx context.Context, req *UpdateNodeReq, header http.Header) (*UpdateNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -162,13 +162,13 @@ func (c *permissionWebClient) UpdateNode(ctx context.Context, req *UpdateNodeReq
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionWebClient) MoveNode(ctx context.Context, req *MoveNodeReq, header http.Header) (*MoveNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -185,13 +185,13 @@ func (c *permissionWebClient) MoveNode(ctx context.Context, req *MoveNodeReq, he
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionWebClient) DelNode(ctx context.Context, req *DelNodeReq, header http.Header) (*DelNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -208,13 +208,13 @@ func (c *permissionWebClient) DelNode(ctx context.Context, req *DelNodeReq, head
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionWebClient) ListUserNode(ctx context.Context, req *ListUserNodeReq, header http.Header) (*ListUserNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -231,13 +231,13 @@ func (c *permissionWebClient) ListUserNode(ctx context.Context, req *ListUserNod
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionWebClient) ListRoleNode(ctx context.Context, req *ListRoleNodeReq, header http.Header) (*ListRoleNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -254,13 +254,13 @@ func (c *permissionWebClient) ListRoleNode(ctx context.Context, req *ListRoleNod
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionWebClient) ListAllNode(ctx context.Context, req *ListAllNodeReq, header http.Header) (*ListAllNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -277,7 +277,7 @@ func (c *permissionWebClient) ListAllNode(ctx context.Context, req *ListAllNodeR
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -307,7 +307,7 @@ func _Permission_GetUserPermission_WebHandler(handler func(context.Context, *Get
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -319,13 +319,13 @@ func _Permission_GetUserPermission_WebHandler(handler func(context.Context, *Get
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -361,18 +361,18 @@ func _Permission_GetUserPermission_WebHandler(handler func(context.Context, *Get
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/get_user_permission]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -401,7 +401,7 @@ func _Permission_UpdateUserPermission_WebHandler(handler func(context.Context, *
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -413,13 +413,13 @@ func _Permission_UpdateUserPermission_WebHandler(handler func(context.Context, *
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -476,18 +476,18 @@ func _Permission_UpdateUserPermission_WebHandler(handler func(context.Context, *
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/update_user_permission]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -516,7 +516,7 @@ func _Permission_UpdateRolePermission_WebHandler(handler func(context.Context, *
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -528,13 +528,13 @@ func _Permission_UpdateRolePermission_WebHandler(handler func(context.Context, *
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -591,18 +591,18 @@ func _Permission_UpdateRolePermission_WebHandler(handler func(context.Context, *
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/update_role_permission]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -631,7 +631,7 @@ func _Permission_AddNode_WebHandler(handler func(context.Context, *AddNodeReq) (
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -643,13 +643,13 @@ func _Permission_AddNode_WebHandler(handler func(context.Context, *AddNodeReq) (
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -696,18 +696,18 @@ func _Permission_AddNode_WebHandler(handler func(context.Context, *AddNodeReq) (
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/add_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -736,7 +736,7 @@ func _Permission_UpdateNode_WebHandler(handler func(context.Context, *UpdateNode
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -748,13 +748,13 @@ func _Permission_UpdateNode_WebHandler(handler func(context.Context, *UpdateNode
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -801,18 +801,18 @@ func _Permission_UpdateNode_WebHandler(handler func(context.Context, *UpdateNode
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/update_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -841,7 +841,7 @@ func _Permission_MoveNode_WebHandler(handler func(context.Context, *MoveNodeReq)
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -853,13 +853,13 @@ func _Permission_MoveNode_WebHandler(handler func(context.Context, *MoveNodeReq)
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -900,18 +900,18 @@ func _Permission_MoveNode_WebHandler(handler func(context.Context, *MoveNodeReq)
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/move_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -940,7 +940,7 @@ func _Permission_DelNode_WebHandler(handler func(context.Context, *DelNodeReq) (
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -952,13 +952,13 @@ func _Permission_DelNode_WebHandler(handler func(context.Context, *DelNodeReq) (
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -983,18 +983,18 @@ func _Permission_DelNode_WebHandler(handler func(context.Context, *DelNodeReq) (
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/del_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1023,7 +1023,7 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1035,13 +1035,13 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1068,13 +1068,13 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1103,7 +1103,7 @@ func _Permission_ListRoleNode_WebHandler(handler func(context.Context, *ListRole
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1115,13 +1115,13 @@ func _Permission_ListRoleNode_WebHandler(handler func(context.Context, *ListRole
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1141,18 +1141,18 @@ func _Permission_ListRoleNode_WebHandler(handler func(context.Context, *ListRole
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/list_role_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1181,7 +1181,7 @@ func _Permission_ListAllNode_WebHandler(handler func(context.Context, *ListAllNo
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1193,13 +1193,13 @@ func _Permission_ListAllNode_WebHandler(handler func(context.Context, *ListAllNo
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1209,13 +1209,13 @@ func _Permission_ListAllNode_WebHandler(handler func(context.Context, *ListAllNo
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return

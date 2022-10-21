@@ -8,7 +8,7 @@ package api
 
 import (
 	context "context"
-	error1 "github.com/chenjie199234/Corelib/error"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 	pool "github.com/chenjie199234/Corelib/pool"
@@ -36,7 +36,7 @@ func NewStatusWebClient(c *web.WebClient) StatusWebClient {
 
 func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.Header) (*Pingresp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -64,7 +64,7 @@ func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.He
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -86,7 +86,7 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -98,13 +98,13 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -120,18 +120,18 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.status/ping]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return

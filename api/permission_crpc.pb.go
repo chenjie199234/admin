@@ -8,8 +8,8 @@ package api
 
 import (
 	context "context"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	crpc "github.com/chenjie199234/Corelib/crpc"
-	error1 "github.com/chenjie199234/Corelib/error"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 	proto "google.golang.org/protobuf/proto"
@@ -49,7 +49,7 @@ func NewPermissionCrpcClient(c *crpc.CrpcClient) PermissionCrpcClient {
 
 func (c *permissionCrpcClient) GetUserPermission(ctx context.Context, req *GetUserPermissionReq) (*GetUserPermissionResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionGetUserPermission, reqd, metadata.GetMetadata(ctx))
@@ -61,13 +61,13 @@ func (c *permissionCrpcClient) GetUserPermission(ctx context.Context, req *GetUs
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionCrpcClient) UpdateUserPermission(ctx context.Context, req *UpdateUserPermissionReq) (*UpdateUserPermissionResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionUpdateUserPermission, reqd, metadata.GetMetadata(ctx))
@@ -79,13 +79,13 @@ func (c *permissionCrpcClient) UpdateUserPermission(ctx context.Context, req *Up
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionCrpcClient) UpdateRolePermission(ctx context.Context, req *UpdateRolePermissionReq) (*UpdateRolePermissionResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionUpdateRolePermission, reqd, metadata.GetMetadata(ctx))
@@ -97,13 +97,13 @@ func (c *permissionCrpcClient) UpdateRolePermission(ctx context.Context, req *Up
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionCrpcClient) AddNode(ctx context.Context, req *AddNodeReq) (*AddNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionAddNode, reqd, metadata.GetMetadata(ctx))
@@ -115,13 +115,13 @@ func (c *permissionCrpcClient) AddNode(ctx context.Context, req *AddNodeReq) (*A
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionCrpcClient) UpdateNode(ctx context.Context, req *UpdateNodeReq) (*UpdateNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionUpdateNode, reqd, metadata.GetMetadata(ctx))
@@ -133,13 +133,13 @@ func (c *permissionCrpcClient) UpdateNode(ctx context.Context, req *UpdateNodeRe
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionCrpcClient) MoveNode(ctx context.Context, req *MoveNodeReq) (*MoveNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionMoveNode, reqd, metadata.GetMetadata(ctx))
@@ -151,13 +151,13 @@ func (c *permissionCrpcClient) MoveNode(ctx context.Context, req *MoveNodeReq) (
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionCrpcClient) DelNode(ctx context.Context, req *DelNodeReq) (*DelNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionDelNode, reqd, metadata.GetMetadata(ctx))
@@ -169,13 +169,13 @@ func (c *permissionCrpcClient) DelNode(ctx context.Context, req *DelNodeReq) (*D
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionCrpcClient) ListUserNode(ctx context.Context, req *ListUserNodeReq) (*ListUserNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListUserNode, reqd, metadata.GetMetadata(ctx))
@@ -187,13 +187,13 @@ func (c *permissionCrpcClient) ListUserNode(ctx context.Context, req *ListUserNo
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionCrpcClient) ListRoleNode(ctx context.Context, req *ListRoleNodeReq) (*ListRoleNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListRoleNode, reqd, metadata.GetMetadata(ctx))
@@ -205,13 +205,13 @@ func (c *permissionCrpcClient) ListRoleNode(ctx context.Context, req *ListRoleNo
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *permissionCrpcClient) ListAllNode(ctx context.Context, req *ListAllNodeReq) (*ListAllNodeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListAllNode, reqd, metadata.GetMetadata(ctx))
@@ -223,7 +223,7 @@ func (c *permissionCrpcClient) ListAllNode(ctx context.Context, req *ListAllNode
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -245,12 +245,12 @@ func _Permission_GetUserPermission_CrpcHandler(handler func(context.Context, *Ge
 	return func(ctx *crpc.Context) {
 		req := new(GetUserPermissionReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/get_user_permission]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -269,12 +269,12 @@ func _Permission_UpdateUserPermission_CrpcHandler(handler func(context.Context, 
 	return func(ctx *crpc.Context) {
 		req := new(UpdateUserPermissionReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/update_user_permission]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -293,12 +293,12 @@ func _Permission_UpdateRolePermission_CrpcHandler(handler func(context.Context, 
 	return func(ctx *crpc.Context) {
 		req := new(UpdateRolePermissionReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/update_role_permission]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -317,12 +317,12 @@ func _Permission_AddNode_CrpcHandler(handler func(context.Context, *AddNodeReq) 
 	return func(ctx *crpc.Context) {
 		req := new(AddNodeReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/add_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -341,12 +341,12 @@ func _Permission_UpdateNode_CrpcHandler(handler func(context.Context, *UpdateNod
 	return func(ctx *crpc.Context) {
 		req := new(UpdateNodeReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/update_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -365,12 +365,12 @@ func _Permission_MoveNode_CrpcHandler(handler func(context.Context, *MoveNodeReq
 	return func(ctx *crpc.Context) {
 		req := new(MoveNodeReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/move_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -389,12 +389,12 @@ func _Permission_DelNode_CrpcHandler(handler func(context.Context, *DelNodeReq) 
 	return func(ctx *crpc.Context) {
 		req := new(DelNodeReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/del_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -413,7 +413,7 @@ func _Permission_ListUserNode_CrpcHandler(handler func(context.Context, *ListUse
 	return func(ctx *crpc.Context) {
 		req := new(ListUserNodeReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -432,12 +432,12 @@ func _Permission_ListRoleNode_CrpcHandler(handler func(context.Context, *ListRol
 	return func(ctx *crpc.Context) {
 		req := new(ListRoleNodeReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/list_role_node]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -456,7 +456,7 @@ func _Permission_ListAllNode_CrpcHandler(handler func(context.Context, *ListAllN
 	return func(ctx *crpc.Context) {
 		req := new(ListAllNodeReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)

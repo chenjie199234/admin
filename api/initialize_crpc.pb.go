@@ -8,8 +8,8 @@ package api
 
 import (
 	context "context"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	crpc "github.com/chenjie199234/Corelib/crpc"
-	error1 "github.com/chenjie199234/Corelib/error"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 	proto "google.golang.org/protobuf/proto"
@@ -32,7 +32,7 @@ func NewInitializeCrpcClient(c *crpc.CrpcClient) InitializeCrpcClient {
 
 func (c *initializeCrpcClient) Initialize(ctx context.Context, req *InitializeReq) (*InitializeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathInitializeInitialize, reqd, metadata.GetMetadata(ctx))
@@ -44,7 +44,7 @@ func (c *initializeCrpcClient) Initialize(ctx context.Context, req *InitializeRe
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -58,12 +58,12 @@ func _Initialize_Initialize_CrpcHandler(handler func(context.Context, *Initializ
 	return func(ctx *crpc.Context) {
 		req := new(InitializeReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.initialize/initialize]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)

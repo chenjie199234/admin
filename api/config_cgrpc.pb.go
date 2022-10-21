@@ -8,8 +8,8 @@ package api
 
 import (
 	context "context"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	cgrpc "github.com/chenjie199234/Corelib/cgrpc"
-	error1 "github.com/chenjie199234/Corelib/error"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 )
@@ -64,7 +64,7 @@ func NewConfigCGrpcClient(c *cgrpc.CGrpcClient) ConfigCGrpcClient {
 
 func (c *configCGrpcClient) Groups(ctx context.Context, req *GroupsReq) (*GroupsResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(GroupsResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigGroups, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -74,7 +74,7 @@ func (c *configCGrpcClient) Groups(ctx context.Context, req *GroupsReq) (*Groups
 }
 func (c *configCGrpcClient) DelGroup(ctx context.Context, req *DelGroupReq) (*DelGroupResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(DelGroupResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigDelGroup, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -84,7 +84,7 @@ func (c *configCGrpcClient) DelGroup(ctx context.Context, req *DelGroupReq) (*De
 }
 func (c *configCGrpcClient) Apps(ctx context.Context, req *AppsReq) (*AppsResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(AppsResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigApps, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -94,7 +94,7 @@ func (c *configCGrpcClient) Apps(ctx context.Context, req *AppsReq) (*AppsResp, 
 }
 func (c *configCGrpcClient) DelApp(ctx context.Context, req *DelAppReq) (*DelAppResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(DelAppResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigDelApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -104,7 +104,7 @@ func (c *configCGrpcClient) DelApp(ctx context.Context, req *DelAppReq) (*DelApp
 }
 func (c *configCGrpcClient) Keys(ctx context.Context, req *KeysReq) (*KeysResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(KeysResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigKeys, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -114,7 +114,7 @@ func (c *configCGrpcClient) Keys(ctx context.Context, req *KeysReq) (*KeysResp, 
 }
 func (c *configCGrpcClient) DelKey(ctx context.Context, req *DelKeyReq) (*DelKeyResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(DelKeyResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigDelKey, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -124,7 +124,7 @@ func (c *configCGrpcClient) DelKey(ctx context.Context, req *DelKeyReq) (*DelKey
 }
 func (c *configCGrpcClient) Create(ctx context.Context, req *CreateReq) (*CreateResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(CreateResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigCreate, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -134,7 +134,7 @@ func (c *configCGrpcClient) Create(ctx context.Context, req *CreateReq) (*Create
 }
 func (c *configCGrpcClient) Updatecipher(ctx context.Context, req *UpdatecipherReq) (*UpdatecipherResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(UpdatecipherResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigUpdatecipher, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -144,7 +144,7 @@ func (c *configCGrpcClient) Updatecipher(ctx context.Context, req *UpdatecipherR
 }
 func (c *configCGrpcClient) Get(ctx context.Context, req *GetReq) (*GetResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(GetResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigGet, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -154,7 +154,7 @@ func (c *configCGrpcClient) Get(ctx context.Context, req *GetReq) (*GetResp, err
 }
 func (c *configCGrpcClient) Set(ctx context.Context, req *SetReq) (*SetResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(SetResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigSet, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -164,7 +164,7 @@ func (c *configCGrpcClient) Set(ctx context.Context, req *SetReq) (*SetResp, err
 }
 func (c *configCGrpcClient) Rollback(ctx context.Context, req *RollbackReq) (*RollbackResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(RollbackResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigRollback, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -174,7 +174,7 @@ func (c *configCGrpcClient) Rollback(ctx context.Context, req *RollbackReq) (*Ro
 }
 func (c *configCGrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(WatchResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigWatch, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -214,7 +214,7 @@ func _Config_Groups_CGrpcHandler(handler func(context.Context, *GroupsReq) (*Gro
 	return func(ctx *cgrpc.Context) {
 		req := new(GroupsReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -232,12 +232,12 @@ func _Config_DelGroup_CGrpcHandler(handler func(context.Context, *DelGroupReq) (
 	return func(ctx *cgrpc.Context) {
 		req := new(DelGroupReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_group]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -255,12 +255,12 @@ func _Config_Apps_CGrpcHandler(handler func(context.Context, *AppsReq) (*AppsRes
 	return func(ctx *cgrpc.Context) {
 		req := new(AppsReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/apps]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -278,12 +278,12 @@ func _Config_DelApp_CGrpcHandler(handler func(context.Context, *DelAppReq) (*Del
 	return func(ctx *cgrpc.Context) {
 		req := new(DelAppReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_app]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -301,12 +301,12 @@ func _Config_Keys_CGrpcHandler(handler func(context.Context, *KeysReq) (*KeysRes
 	return func(ctx *cgrpc.Context) {
 		req := new(KeysReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/keys]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -324,12 +324,12 @@ func _Config_DelKey_CGrpcHandler(handler func(context.Context, *DelKeyReq) (*Del
 	return func(ctx *cgrpc.Context) {
 		req := new(DelKeyReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_key]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -347,12 +347,12 @@ func _Config_Create_CGrpcHandler(handler func(context.Context, *CreateReq) (*Cre
 	return func(ctx *cgrpc.Context) {
 		req := new(CreateReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/create]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -370,12 +370,12 @@ func _Config_Updatecipher_CGrpcHandler(handler func(context.Context, *Updateciph
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdatecipherReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/updatecipher]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -393,12 +393,12 @@ func _Config_Get_CGrpcHandler(handler func(context.Context, *GetReq) (*GetResp, 
 	return func(ctx *cgrpc.Context) {
 		req := new(GetReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/get]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -416,12 +416,12 @@ func _Config_Set_CGrpcHandler(handler func(context.Context, *SetReq) (*SetResp, 
 	return func(ctx *cgrpc.Context) {
 		req := new(SetReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/set]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -439,12 +439,12 @@ func _Config_Rollback_CGrpcHandler(handler func(context.Context, *RollbackReq) (
 	return func(ctx *cgrpc.Context) {
 		req := new(RollbackReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/rollback]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -462,12 +462,12 @@ func _Config_Watch_CGrpcHandler(handler func(context.Context, *WatchReq) (*Watch
 	return func(ctx *cgrpc.Context) {
 		req := new(WatchReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/watch]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)

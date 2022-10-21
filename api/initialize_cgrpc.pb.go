@@ -8,8 +8,8 @@ package api
 
 import (
 	context "context"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	cgrpc "github.com/chenjie199234/Corelib/cgrpc"
-	error1 "github.com/chenjie199234/Corelib/error"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 )
@@ -31,7 +31,7 @@ func NewInitializeCGrpcClient(c *cgrpc.CGrpcClient) InitializeCGrpcClient {
 
 func (c *initializeCGrpcClient) Initialize(ctx context.Context, req *InitializeReq) (*InitializeResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	resp := new(InitializeResp)
 	if e := c.cc.Call(ctx, _CGrpcPathInitializeInitialize, req, resp, metadata.GetMetadata(ctx)); e != nil {
@@ -49,12 +49,12 @@ func _Initialize_Initialize_CGrpcHandler(handler func(context.Context, *Initiali
 	return func(ctx *cgrpc.Context) {
 		req := new(InitializeReq)
 		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.initialize/initialize]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)

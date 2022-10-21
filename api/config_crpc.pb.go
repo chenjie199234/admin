@@ -8,8 +8,8 @@ package api
 
 import (
 	context "context"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	crpc "github.com/chenjie199234/Corelib/crpc"
-	error1 "github.com/chenjie199234/Corelib/error"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 	proto "google.golang.org/protobuf/proto"
@@ -65,7 +65,7 @@ func NewConfigCrpcClient(c *crpc.CrpcClient) ConfigCrpcClient {
 
 func (c *configCrpcClient) Groups(ctx context.Context, req *GroupsReq) (*GroupsResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigGroups, reqd, metadata.GetMetadata(ctx))
@@ -77,13 +77,13 @@ func (c *configCrpcClient) Groups(ctx context.Context, req *GroupsReq) (*GroupsR
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) DelGroup(ctx context.Context, req *DelGroupReq) (*DelGroupResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigDelGroup, reqd, metadata.GetMetadata(ctx))
@@ -95,13 +95,13 @@ func (c *configCrpcClient) DelGroup(ctx context.Context, req *DelGroupReq) (*Del
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) Apps(ctx context.Context, req *AppsReq) (*AppsResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigApps, reqd, metadata.GetMetadata(ctx))
@@ -113,13 +113,13 @@ func (c *configCrpcClient) Apps(ctx context.Context, req *AppsReq) (*AppsResp, e
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) DelApp(ctx context.Context, req *DelAppReq) (*DelAppResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigDelApp, reqd, metadata.GetMetadata(ctx))
@@ -131,13 +131,13 @@ func (c *configCrpcClient) DelApp(ctx context.Context, req *DelAppReq) (*DelAppR
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) Keys(ctx context.Context, req *KeysReq) (*KeysResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigKeys, reqd, metadata.GetMetadata(ctx))
@@ -149,13 +149,13 @@ func (c *configCrpcClient) Keys(ctx context.Context, req *KeysReq) (*KeysResp, e
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) DelKey(ctx context.Context, req *DelKeyReq) (*DelKeyResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigDelKey, reqd, metadata.GetMetadata(ctx))
@@ -167,13 +167,13 @@ func (c *configCrpcClient) DelKey(ctx context.Context, req *DelKeyReq) (*DelKeyR
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) Create(ctx context.Context, req *CreateReq) (*CreateResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigCreate, reqd, metadata.GetMetadata(ctx))
@@ -185,13 +185,13 @@ func (c *configCrpcClient) Create(ctx context.Context, req *CreateReq) (*CreateR
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) Updatecipher(ctx context.Context, req *UpdatecipherReq) (*UpdatecipherResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigUpdatecipher, reqd, metadata.GetMetadata(ctx))
@@ -203,13 +203,13 @@ func (c *configCrpcClient) Updatecipher(ctx context.Context, req *UpdatecipherRe
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) Get(ctx context.Context, req *GetReq) (*GetResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigGet, reqd, metadata.GetMetadata(ctx))
@@ -221,13 +221,13 @@ func (c *configCrpcClient) Get(ctx context.Context, req *GetReq) (*GetResp, erro
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) Set(ctx context.Context, req *SetReq) (*SetResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigSet, reqd, metadata.GetMetadata(ctx))
@@ -239,13 +239,13 @@ func (c *configCrpcClient) Set(ctx context.Context, req *SetReq) (*SetResp, erro
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) Rollback(ctx context.Context, req *RollbackReq) (*RollbackResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigRollback, reqd, metadata.GetMetadata(ctx))
@@ -257,13 +257,13 @@ func (c *configCrpcClient) Rollback(ctx context.Context, req *RollbackReq) (*Rol
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *configCrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
 	respd, e := c.cc.Call(ctx, _CrpcPathConfigWatch, reqd, metadata.GetMetadata(ctx))
@@ -275,7 +275,7 @@ func (c *configCrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp
 		return resp, nil
 	}
 	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -311,7 +311,7 @@ func _Config_Groups_CrpcHandler(handler func(context.Context, *GroupsReq) (*Grou
 	return func(ctx *crpc.Context) {
 		req := new(GroupsReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -330,12 +330,12 @@ func _Config_DelGroup_CrpcHandler(handler func(context.Context, *DelGroupReq) (*
 	return func(ctx *crpc.Context) {
 		req := new(DelGroupReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_group]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -354,12 +354,12 @@ func _Config_Apps_CrpcHandler(handler func(context.Context, *AppsReq) (*AppsResp
 	return func(ctx *crpc.Context) {
 		req := new(AppsReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/apps]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -378,12 +378,12 @@ func _Config_DelApp_CrpcHandler(handler func(context.Context, *DelAppReq) (*DelA
 	return func(ctx *crpc.Context) {
 		req := new(DelAppReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_app]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -402,12 +402,12 @@ func _Config_Keys_CrpcHandler(handler func(context.Context, *KeysReq) (*KeysResp
 	return func(ctx *crpc.Context) {
 		req := new(KeysReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/keys]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -426,12 +426,12 @@ func _Config_DelKey_CrpcHandler(handler func(context.Context, *DelKeyReq) (*DelK
 	return func(ctx *crpc.Context) {
 		req := new(DelKeyReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_key]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -450,12 +450,12 @@ func _Config_Create_CrpcHandler(handler func(context.Context, *CreateReq) (*Crea
 	return func(ctx *crpc.Context) {
 		req := new(CreateReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/create]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -474,12 +474,12 @@ func _Config_Updatecipher_CrpcHandler(handler func(context.Context, *Updateciphe
 	return func(ctx *crpc.Context) {
 		req := new(UpdatecipherReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/updatecipher]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -498,12 +498,12 @@ func _Config_Get_CrpcHandler(handler func(context.Context, *GetReq) (*GetResp, e
 	return func(ctx *crpc.Context) {
 		req := new(GetReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/get]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -522,12 +522,12 @@ func _Config_Set_CrpcHandler(handler func(context.Context, *SetReq) (*SetResp, e
 	return func(ctx *crpc.Context) {
 		req := new(SetReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/set]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -546,12 +546,12 @@ func _Config_Rollback_CrpcHandler(handler func(context.Context, *RollbackReq) (*
 	return func(ctx *crpc.Context) {
 		req := new(RollbackReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/rollback]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
@@ -570,12 +570,12 @@ func _Config_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchR
 	return func(ctx *crpc.Context) {
 		req := new(WatchReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/watch]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)

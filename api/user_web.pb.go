@@ -8,7 +8,7 @@ package api
 
 import (
 	context "context"
-	error1 "github.com/chenjie199234/Corelib/error"
+	cerror "github.com/chenjie199234/Corelib/cerror"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
 	pool "github.com/chenjie199234/Corelib/pool"
@@ -59,7 +59,7 @@ func NewUserWebClient(c *web.WebClient) UserWebClient {
 
 func (c *userWebClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLoginReq, header http.Header) (*SuperAdminLoginResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -76,13 +76,13 @@ func (c *userWebClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLogi
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) Login(ctx context.Context, req *LoginReq, header http.Header) (*LoginResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -99,13 +99,13 @@ func (c *userWebClient) Login(ctx context.Context, req *LoginReq, header http.He
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) GetUsers(ctx context.Context, req *GetUsersReq, header http.Header) (*GetUsersResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -122,13 +122,13 @@ func (c *userWebClient) GetUsers(ctx context.Context, req *GetUsersReq, header h
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) SearchUsers(ctx context.Context, req *SearchUsersReq, header http.Header) (*SearchUsersResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -145,13 +145,13 @@ func (c *userWebClient) SearchUsers(ctx context.Context, req *SearchUsersReq, he
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) UpdateUser(ctx context.Context, req *UpdateUserReq, header http.Header) (*UpdateUserResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -168,13 +168,13 @@ func (c *userWebClient) UpdateUser(ctx context.Context, req *UpdateUserReq, head
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) DelUsers(ctx context.Context, req *DelUsersReq, header http.Header) (*DelUsersResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -191,13 +191,13 @@ func (c *userWebClient) DelUsers(ctx context.Context, req *DelUsersReq, header h
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) CreateRole(ctx context.Context, req *CreateRoleReq, header http.Header) (*CreateRoleResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -214,13 +214,13 @@ func (c *userWebClient) CreateRole(ctx context.Context, req *CreateRoleReq, head
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) GetRoles(ctx context.Context, req *GetRolesReq, header http.Header) (*GetRolesResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -237,13 +237,13 @@ func (c *userWebClient) GetRoles(ctx context.Context, req *GetRolesReq, header h
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) SearchRoles(ctx context.Context, req *SearchRolesReq, header http.Header) (*SearchRolesResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -260,13 +260,13 @@ func (c *userWebClient) SearchRoles(ctx context.Context, req *SearchRolesReq, he
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) UpdateRole(ctx context.Context, req *UpdateRoleReq, header http.Header) (*UpdateRoleResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -283,13 +283,13 @@ func (c *userWebClient) UpdateRole(ctx context.Context, req *UpdateRoleReq, head
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) DelRoles(ctx context.Context, req *DelRolesReq, header http.Header) (*DelRolesResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -306,13 +306,13 @@ func (c *userWebClient) DelRoles(ctx context.Context, req *DelRolesReq, header h
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) AddUserRole(ctx context.Context, req *AddUserRoleReq, header http.Header) (*AddUserRoleResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -329,13 +329,13 @@ func (c *userWebClient) AddUserRole(ctx context.Context, req *AddUserRoleReq, he
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
 func (c *userWebClient) DelUserRole(ctx context.Context, req *DelUserRoleReq, header http.Header) (*DelUserRoleResp, error) {
 	if req == nil {
-		return nil, error1.ErrReq
+		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
@@ -352,7 +352,7 @@ func (c *userWebClient) DelUserRole(ctx context.Context, req *DelUserRoleReq, he
 		return resp, nil
 	}
 	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, error1.ErrResp
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -385,7 +385,7 @@ func _User_SuperAdminLogin_WebHandler(handler func(context.Context, *SuperAdminL
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -397,13 +397,13 @@ func _User_SuperAdminLogin_WebHandler(handler func(context.Context, *SuperAdminL
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -423,18 +423,18 @@ func _User_SuperAdminLogin_WebHandler(handler func(context.Context, *SuperAdminL
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/super_admin_login]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -463,7 +463,7 @@ func _User_Login_WebHandler(handler func(context.Context, *LoginReq) (*LoginResp
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -475,13 +475,13 @@ func _User_Login_WebHandler(handler func(context.Context, *LoginReq) (*LoginResp
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -491,13 +491,13 @@ func _User_Login_WebHandler(handler func(context.Context, *LoginReq) (*LoginResp
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -526,7 +526,7 @@ func _User_GetUsers_WebHandler(handler func(context.Context, *GetUsersReq) (*Get
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -538,13 +538,13 @@ func _User_GetUsers_WebHandler(handler func(context.Context, *GetUsersReq) (*Get
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -573,18 +573,18 @@ func _User_GetUsers_WebHandler(handler func(context.Context, *GetUsersReq) (*Get
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/get_users]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -613,7 +613,7 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -625,13 +625,13 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -658,18 +658,18 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/search_users]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -698,7 +698,7 @@ func _User_UpdateUser_WebHandler(handler func(context.Context, *UpdateUserReq) (
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -710,13 +710,13 @@ func _User_UpdateUser_WebHandler(handler func(context.Context, *UpdateUserReq) (
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -767,18 +767,18 @@ func _User_UpdateUser_WebHandler(handler func(context.Context, *UpdateUserReq) (
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/update_user]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -807,7 +807,7 @@ func _User_DelUsers_WebHandler(handler func(context.Context, *DelUsersReq) (*Del
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -819,13 +819,13 @@ func _User_DelUsers_WebHandler(handler func(context.Context, *DelUsersReq) (*Del
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -854,18 +854,18 @@ func _User_DelUsers_WebHandler(handler func(context.Context, *DelUsersReq) (*Del
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/del_users]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -894,7 +894,7 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -906,13 +906,13 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -943,18 +943,18 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/create_role]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -983,7 +983,7 @@ func _User_GetRoles_WebHandler(handler func(context.Context, *GetRolesReq) (*Get
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -995,13 +995,13 @@ func _User_GetRoles_WebHandler(handler func(context.Context, *GetRolesReq) (*Get
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1030,18 +1030,18 @@ func _User_GetRoles_WebHandler(handler func(context.Context, *GetRolesReq) (*Get
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/get_roles]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1070,7 +1070,7 @@ func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq)
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1082,13 +1082,13 @@ func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq)
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1115,18 +1115,18 @@ func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq)
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/search_roles]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1155,7 +1155,7 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1167,13 +1167,13 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1204,18 +1204,18 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/update_role]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1244,7 +1244,7 @@ func _User_DelRoles_WebHandler(handler func(context.Context, *DelRolesReq) (*Del
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1256,13 +1256,13 @@ func _User_DelRoles_WebHandler(handler func(context.Context, *DelRolesReq) (*Del
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1291,18 +1291,18 @@ func _User_DelRoles_WebHandler(handler func(context.Context, *DelRolesReq) (*Del
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/del_roles]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1331,7 +1331,7 @@ func _User_AddUserRole_WebHandler(handler func(context.Context, *AddUserRoleReq)
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1343,13 +1343,13 @@ func _User_AddUserRole_WebHandler(handler func(context.Context, *AddUserRoleReq)
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1380,18 +1380,18 @@ func _User_AddUserRole_WebHandler(handler func(context.Context, *AddUserRoleReq)
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/add_user_role]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return
@@ -1420,7 +1420,7 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 			if len(data) > 0 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
@@ -1432,13 +1432,13 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
 			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(error1.ErrReq)
+				ctx.Abort(cerror.ErrReq)
 				return
 			}
 			data := pool.GetBuffer()
@@ -1469,18 +1469,18 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
 				if e != nil {
-					ctx.Abort(error1.ErrReq)
+					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/del_user_role]", errstr)
-			ctx.Abort(error1.ErrReq)
+			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		resp, e := handler(ctx, req)
-		ee := error1.ConvertStdError(e)
+		ee := cerror.ConvertStdError(e)
 		if ee != nil {
 			ctx.Abort(ee)
 			return

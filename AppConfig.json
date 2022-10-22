@@ -15,11 +15,13 @@
 	"handler_rate":[{
 		"Path":"/admin.status/ping",
 		"Method":["GET","GRPC","CRPC"],
-		"MaxPerSec":10
+		"SingleMaxPerSec":10,
+		"GlobalMaxPerSec":0
 	},{
 		"Path":"/admin.initialize/initialize",
 		"Method":["POST","GRPC","CRPC"],
-		"MaxPerSec":1
+		"SingleMaxPerSec":1,
+		"GlobalMaxPerSec":0
 	}],
 	"web_path_rewrite":{
 		"GET":{

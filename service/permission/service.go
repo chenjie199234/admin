@@ -165,6 +165,13 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 	if req.PnodeId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
+	if req.PnodeId[1] == 1 || req.PnodeId[1] == 2 || req.PnodeId[1] == 3 {
+		//0,1 -> UserControl
+		//0,2 -> RoleControl
+		//0,3 -> ConfigControl
+		//these are default,can't modify
+		return nil, ecode.ErrReq
+	}
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
 	for i, v := range req.PnodeId {
@@ -190,6 +197,13 @@ func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.
 	if req.NodeId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
+	if req.NodeId[1] == 1 || req.NodeId[1] == 2 || req.NodeId[1] == 3 {
+		//0,1 -> UserControl
+		//0,2 -> RoleControl
+		//0,3 -> ConfigControl
+		//these are default,can't modify
+		return nil, ecode.ErrReq
+	}
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
 	for i, v := range req.NodeId {
@@ -213,6 +227,13 @@ func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.
 }
 func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.MoveNodeResp, error) {
 	if req.NodeId[0] != 0 || req.PnodeId[0] != 0 || (req.NodeId[1] != req.PnodeId[1]) {
+		return nil, ecode.ErrReq
+	}
+	if req.NodeId[1] == 1 || req.NodeId[1] == 2 || req.NodeId[1] == 3 {
+		//0,1 -> UserControl
+		//0,2 -> RoleControl
+		//0,3 -> ConfigControl
+		//these are default,can't modify
 		return nil, ecode.ErrReq
 	}
 	buf1 := pool.GetBuffer()
@@ -247,6 +268,13 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 }
 func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNodeResp, error) {
 	if req.NodeId[0] != 0 {
+		return nil, ecode.ErrReq
+	}
+	if req.NodeId[1] == 1 || req.NodeId[1] == 2 || req.NodeId[1] == 3 {
+		//0,1 -> UserControl
+		//0,2 -> RoleControl
+		//0,3 -> ConfigControl
+		//these are default,can't modify
 		return nil, ecode.ErrReq
 	}
 	buf1 := pool.GetBuffer()

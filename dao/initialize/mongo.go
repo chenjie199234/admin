@@ -120,7 +120,7 @@ func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata s
 		NodeId:       nodeid,
 		NodeName:     projectname,
 		NodeData:     projectdata,
-		CurNodeIndex: 2,
+		CurNodeIndex: 3,
 	})
 	docs = append(docs, &model.Node{
 		NodeId:       nodeid + model.UserControl,
@@ -131,6 +131,12 @@ func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata s
 	docs = append(docs, &model.Node{
 		NodeId:       nodeid + model.RoleControl,
 		NodeName:     "RoleControl",
+		NodeData:     "",
+		CurNodeIndex: 0,
+	})
+	docs = append(docs, &model.Node{
+		NodeId:       nodeid + model.ConfigControl,
+		NodeName:     "ConfigControl",
 		NodeData:     "",
 		CurNodeIndex: 0,
 	})

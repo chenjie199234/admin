@@ -15,14 +15,11 @@ import (
 	proto "google.golang.org/protobuf/proto"
 )
 
-var _CrpcPathUserSuperAdminLogin = "/admin.user/super_admin_login"
-var _CrpcPathUserLogin = "/admin.user/login"
-var _CrpcPathUserGetUsers = "/admin.user/get_users"
+var _CrpcPathUserUserLogin = "/admin.user/user_login"
+var _CrpcPathUserInviteProject = "/admin.user/invite_project"
+var _CrpcPathUserKickProject = "/admin.user/kick_project"
 var _CrpcPathUserSearchUsers = "/admin.user/search_users"
-var _CrpcPathUserUpdateUser = "/admin.user/update_user"
-var _CrpcPathUserDelUsers = "/admin.user/del_users"
 var _CrpcPathUserCreateRole = "/admin.user/create_role"
-var _CrpcPathUserGetRoles = "/admin.user/get_roles"
 var _CrpcPathUserSearchRoles = "/admin.user/search_roles"
 var _CrpcPathUserUpdateRole = "/admin.user/update_role"
 var _CrpcPathUserDelRoles = "/admin.user/del_roles"
@@ -30,14 +27,11 @@ var _CrpcPathUserAddUserRole = "/admin.user/add_user_role"
 var _CrpcPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserCrpcClient interface {
-	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
-	Login(context.Context, *LoginReq) (*LoginResp, error)
-	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
+	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
+	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
+	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
-	DelUsers(context.Context, *DelUsersReq) (*DelUsersResp, error)
 	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
-	GetRoles(context.Context, *GetRolesReq) (*GetRolesResp, error)
 	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
 	DelRoles(context.Context, *DelRolesReq) (*DelRolesResp, error)
@@ -53,16 +47,16 @@ func NewUserCrpcClient(c *crpc.CrpcClient) UserCrpcClient {
 	return &userCrpcClient{cc: c}
 }
 
-func (c *userCrpcClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLoginReq) (*SuperAdminLoginResp, error) {
+func (c *userCrpcClient) UserLogin(ctx context.Context, req *UserLoginReq) (*UserLoginResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserSuperAdminLogin, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathUserUserLogin, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(SuperAdminLoginResp)
+	resp := new(UserLoginResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -71,16 +65,16 @@ func (c *userCrpcClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLog
 	}
 	return resp, nil
 }
-func (c *userCrpcClient) Login(ctx context.Context, req *LoginReq) (*LoginResp, error) {
+func (c *userCrpcClient) InviteProject(ctx context.Context, req *InviteProjectReq) (*InviteProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserLogin, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathUserInviteProject, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(LoginResp)
+	resp := new(InviteProjectResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -89,16 +83,16 @@ func (c *userCrpcClient) Login(ctx context.Context, req *LoginReq) (*LoginResp, 
 	}
 	return resp, nil
 }
-func (c *userCrpcClient) GetUsers(ctx context.Context, req *GetUsersReq) (*GetUsersResp, error) {
+func (c *userCrpcClient) KickProject(ctx context.Context, req *KickProjectReq) (*KickProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserGetUsers, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathUserKickProject, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(GetUsersResp)
+	resp := new(KickProjectResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -125,42 +119,6 @@ func (c *userCrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) (
 	}
 	return resp, nil
 }
-func (c *userCrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*UpdateUserResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserUpdateUser, reqd, metadata.GetMetadata(ctx))
-	if e != nil {
-		return nil, e
-	}
-	resp := new(UpdateUserResp)
-	if len(respd) == 0 {
-		return resp, nil
-	}
-	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *userCrpcClient) DelUsers(ctx context.Context, req *DelUsersReq) (*DelUsersResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserDelUsers, reqd, metadata.GetMetadata(ctx))
-	if e != nil {
-		return nil, e
-	}
-	resp := new(DelUsersResp)
-	if len(respd) == 0 {
-		return resp, nil
-	}
-	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
 func (c *userCrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq) (*CreateRoleResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -171,24 +129,6 @@ func (c *userCrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq) (*C
 		return nil, e
 	}
 	resp := new(CreateRoleResp)
-	if len(respd) == 0 {
-		return resp, nil
-	}
-	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *userCrpcClient) GetRoles(ctx context.Context, req *GetRolesReq) (*GetRolesResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserGetRoles, reqd, metadata.GetMetadata(ctx))
-	if e != nil {
-		return nil, e
-	}
-	resp := new(GetRolesResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -289,14 +229,11 @@ func (c *userCrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) (
 }
 
 type UserCrpcServer interface {
-	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
-	Login(context.Context, *LoginReq) (*LoginResp, error)
-	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
+	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
+	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
+	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
-	DelUsers(context.Context, *DelUsersReq) (*DelUsersResp, error)
 	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
-	GetRoles(context.Context, *GetRolesReq) (*GetRolesResp, error)
 	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
 	DelRoles(context.Context, *DelRolesReq) (*DelRolesResp, error)
@@ -304,15 +241,10 @@ type UserCrpcServer interface {
 	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
 }
 
-func _User_SuperAdminLogin_CrpcHandler(handler func(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)) crpc.OutsideHandler {
+func _User_UserLogin_CrpcHandler(handler func(context.Context, *UserLoginReq) (*UserLoginResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
-		req := new(SuperAdminLoginReq)
+		req := new(UserLoginReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/super_admin_login]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -322,40 +254,21 @@ func _User_SuperAdminLogin_CrpcHandler(handler func(context.Context, *SuperAdmin
 			return
 		}
 		if resp == nil {
-			resp = new(SuperAdminLoginResp)
+			resp = new(UserLoginResp)
 		}
 		respd, _ := proto.Marshal(resp)
 		ctx.Write(respd)
 	}
 }
-func _User_Login_CrpcHandler(handler func(context.Context, *LoginReq) (*LoginResp, error)) crpc.OutsideHandler {
+func _User_InviteProject_CrpcHandler(handler func(context.Context, *InviteProjectReq) (*InviteProjectResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
-		req := new(LoginReq)
-		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(LoginResp)
-		}
-		respd, _ := proto.Marshal(resp)
-		ctx.Write(respd)
-	}
-}
-func _User_GetUsers_CrpcHandler(handler func(context.Context, *GetUsersReq) (*GetUsersResp, error)) crpc.OutsideHandler {
-	return func(ctx *crpc.Context) {
-		req := new(GetUsersReq)
+		req := new(InviteProjectReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/get_users]", errstr)
+			log.Error(ctx, "[/admin.user/invite_project]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -365,7 +278,31 @@ func _User_GetUsers_CrpcHandler(handler func(context.Context, *GetUsersReq) (*Ge
 			return
 		}
 		if resp == nil {
-			resp = new(GetUsersResp)
+			resp = new(InviteProjectResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_KickProject_CrpcHandler(handler func(context.Context, *KickProjectReq) (*KickProjectResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(KickProjectReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/kick_project]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(KickProjectResp)
 		}
 		respd, _ := proto.Marshal(resp)
 		ctx.Write(respd)
@@ -395,54 +332,6 @@ func _User_SearchUsers_CrpcHandler(handler func(context.Context, *SearchUsersReq
 		ctx.Write(respd)
 	}
 }
-func _User_UpdateUser_CrpcHandler(handler func(context.Context, *UpdateUserReq) (*UpdateUserResp, error)) crpc.OutsideHandler {
-	return func(ctx *crpc.Context) {
-		req := new(UpdateUserReq)
-		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_user]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(UpdateUserResp)
-		}
-		respd, _ := proto.Marshal(resp)
-		ctx.Write(respd)
-	}
-}
-func _User_DelUsers_CrpcHandler(handler func(context.Context, *DelUsersReq) (*DelUsersResp, error)) crpc.OutsideHandler {
-	return func(ctx *crpc.Context) {
-		req := new(DelUsersReq)
-		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_users]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(DelUsersResp)
-		}
-		respd, _ := proto.Marshal(resp)
-		ctx.Write(respd)
-	}
-}
 func _User_CreateRole_CrpcHandler(handler func(context.Context, *CreateRoleReq) (*CreateRoleResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		req := new(CreateRoleReq)
@@ -462,30 +351,6 @@ func _User_CreateRole_CrpcHandler(handler func(context.Context, *CreateRoleReq) 
 		}
 		if resp == nil {
 			resp = new(CreateRoleResp)
-		}
-		respd, _ := proto.Marshal(resp)
-		ctx.Write(respd)
-	}
-}
-func _User_GetRoles_CrpcHandler(handler func(context.Context, *GetRolesReq) (*GetRolesResp, error)) crpc.OutsideHandler {
-	return func(ctx *crpc.Context) {
-		req := new(GetRolesReq)
-		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/get_roles]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(GetRolesResp)
 		}
 		respd, _ := proto.Marshal(resp)
 		ctx.Write(respd)
@@ -614,14 +479,11 @@ func _User_DelUserRole_CrpcHandler(handler func(context.Context, *DelUserRoleReq
 func RegisterUserCrpcServer(engine *crpc.CrpcServer, svc UserCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	engine.RegisterHandler(_CrpcPathUserSuperAdminLogin, _User_SuperAdminLogin_CrpcHandler(svc.SuperAdminLogin))
-	engine.RegisterHandler(_CrpcPathUserLogin, _User_Login_CrpcHandler(svc.Login))
-	engine.RegisterHandler(_CrpcPathUserGetUsers, _User_GetUsers_CrpcHandler(svc.GetUsers))
+	engine.RegisterHandler(_CrpcPathUserUserLogin, _User_UserLogin_CrpcHandler(svc.UserLogin))
+	engine.RegisterHandler(_CrpcPathUserInviteProject, _User_InviteProject_CrpcHandler(svc.InviteProject))
+	engine.RegisterHandler(_CrpcPathUserKickProject, _User_KickProject_CrpcHandler(svc.KickProject))
 	engine.RegisterHandler(_CrpcPathUserSearchUsers, _User_SearchUsers_CrpcHandler(svc.SearchUsers))
-	engine.RegisterHandler(_CrpcPathUserUpdateUser, _User_UpdateUser_CrpcHandler(svc.UpdateUser))
-	engine.RegisterHandler(_CrpcPathUserDelUsers, _User_DelUsers_CrpcHandler(svc.DelUsers))
 	engine.RegisterHandler(_CrpcPathUserCreateRole, _User_CreateRole_CrpcHandler(svc.CreateRole))
-	engine.RegisterHandler(_CrpcPathUserGetRoles, _User_GetRoles_CrpcHandler(svc.GetRoles))
 	engine.RegisterHandler(_CrpcPathUserSearchRoles, _User_SearchRoles_CrpcHandler(svc.SearchRoles))
 	engine.RegisterHandler(_CrpcPathUserUpdateRole, _User_UpdateRole_CrpcHandler(svc.UpdateRole))
 	engine.RegisterHandler(_CrpcPathUserDelRoles, _User_DelRoles_CrpcHandler(svc.DelRoles))

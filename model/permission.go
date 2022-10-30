@@ -2,55 +2,50 @@ package model
 
 import (
 	"sort"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Node struct {
-	NodeId       []uint32 `bson:"node_id"` //self's id
-	NodeName     string   `bson:"node_name"`
-	NodeData     string   `bson:"node_data"`
-	CurNodeIndex uint32   `bson:"cur_node_index"` //auto increment,this is for child's node_id
+	NodeId       string `bson:"node_id"` //self's id
+	NodeName     string `bson:"node_name"`
+	NodeData     string `bson:"node_data"`
+	CurNodeIndex uint32 `bson:"cur_node_index"` //auto increment,this is for child's node_id
 }
 type UserNode struct {
 	UserId primitive.ObjectID `bson:"user_id"`
-	NodeId []uint32           `bson:"node_id"`
+	NodeId string             `bson:"node_id"`
 	R      bool               `bson:"r"`
 	W      bool               `bson:"w"`
 	X      bool               `bson:"x"`
 }
 type RoleNode struct {
-	RoleName string   `bson:"role_name"`
-	NodeId   []uint32 `bson:"node_id"`
-	R        bool     `bson:"r"`
-	W        bool     `bson:"w"`
-	X        bool     `bson:"x"`
+	Project  string `bson:"project"`
+	RoleName string `bson:"role_name"`
+	NodeId   string `bson:"node_id"`
+	R        bool   `bson:"r"`
+	W        bool   `bson:"w"`
+	X        bool   `bson:"x"`
 }
 type UserNodes []*UserNode
 
-func (u UserNodes) CheckNode(nodeid []uint32) (canread, canwrite, admin bool) {
+func (u UserNodes) CheckNode(nodeid string) (canread, canwrite, admin bool) {
 	sort.Slice(u, func(i, j int) bool {
-		return len(u[i].NodeId) < len(u[j].NodeId)
+		return strings.Count(u[i].NodeId, ",") < strings.Count(u[j].NodeId, ",")
 	})
 	for _, usernode := range u {
-		if len(usernode.NodeId) > len(nodeid) {
+		if strings.Count(usernode.NodeId, ",") > strings.Count(nodeid, ",") {
 			return false, false, false
 		}
-		isprefix := true
-		for i := range usernode.NodeId {
-			if usernode.NodeId[i] != nodeid[i] {
-				isprefix = false
-				break
-			}
-		}
-		if !isprefix {
+		if !strings.HasPrefix(nodeid, usernode.NodeId) {
 			continue
 		}
 		//check admin
 		if usernode.X {
 			return true, true, true
 		}
-		if len(usernode.NodeId) == len(nodeid) {
+		if usernode.NodeId == nodeid {
 			//this is the target node
 			if !usernode.R {
 				return false, false, false
@@ -63,29 +58,22 @@ func (u UserNodes) CheckNode(nodeid []uint32) (canread, canwrite, admin bool) {
 
 type RoleNodes []*RoleNode
 
-func (r RoleNodes) CheckNode(nodeid []uint32) (canread, canwrite, admin bool) {
+func (r RoleNodes) CheckNode(nodeid string) (canread, canwrite, admin bool) {
 	sort.Slice(r, func(i, j int) bool {
-		return len(r[i].NodeId) < len(r[j].NodeId)
+		return strings.Count(r[i].NodeId, ",") < strings.Count(r[j].NodeId, ",")
 	})
 	for _, rolenode := range r {
-		if len(rolenode.NodeId) > len(nodeid) {
+		if strings.Count(rolenode.NodeId, ",") > strings.Count(nodeid, ",") {
 			return false, false, false
 		}
-		isprefix := true
-		for i := range rolenode.NodeId {
-			if rolenode.NodeId[i] != nodeid[i] {
-				isprefix = false
-				break
-			}
-		}
-		if !isprefix {
+		if !strings.HasPrefix(nodeid, rolenode.NodeId) {
 			continue
 		}
 		//check admin
 		if rolenode.X {
 			return true, true, true
 		}
-		if len(rolenode.NodeId) == len(nodeid) {
+		if rolenode.NodeId == nodeid {
 			//this is the target node
 			if !rolenode.R {
 				return false, false, false

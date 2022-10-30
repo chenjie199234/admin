@@ -1,5 +1,4 @@
 package model
 
-var RootNodeId = []uint32{0}
-var UserControlNodeId = []uint32{0, 1}
-var RoleControlNodeId = []uint32{0, 2}
+const UserControl = ",1" //project+this=user control's nodeid
+const RoleControl = ",2" //project+this=role control's nodeid

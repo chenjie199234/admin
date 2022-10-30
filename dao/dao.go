@@ -117,6 +117,6 @@ func getWebClientConfig() *web.ClientConfig {
 		GlobalTimeout:  time.Duration(wc.GlobalTimeout),
 		IdleTimeout:    time.Duration(wc.IdleTimeout),
 		HeartProbe:     time.Duration(wc.HeartProbe),
-		MaxHeader:      1024,
+		MaxHeader:      2048,
 	}
 }

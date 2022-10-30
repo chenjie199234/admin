@@ -15,11 +15,23 @@ import (
 	proto "google.golang.org/protobuf/proto"
 )
 
-var _CrpcPathInitializeInitialize = "/admin.initialize/initialize"
+var _CrpcPathInitializeInit = "/admin.initialize/init"
+var _CrpcPathInitializeRootLogin = "/admin.initialize/root_login"
+var _CrpcPathInitializeRootPassword = "/admin.initialize/root_password"
+var _CrpcPathInitializeCreateProject = "/admin.initialize/create_project"
+var _CrpcPathInitializeListProject = "/admin.initialize/list_project"
 
 type InitializeCrpcClient interface {
 	// 初始化
-	Initialize(context.Context, *InitializeReq) (*InitializeResp, error)
+	Init(context.Context, *InitReq) (*InitResp, error)
+	// 登录
+	RootLogin(context.Context, *RootLoginReq) (*RootLoginResp, error)
+	// 更新密码
+	RootPassword(context.Context, *RootPasswordReq) (*RootPasswordResp, error)
+	// 创建项目
+	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
+	// 获取项目列表
+	ListProject(context.Context, *ListProjectReq) (*ListProjectResp, error)
 }
 
 type initializeCrpcClient struct {
@@ -30,16 +42,88 @@ func NewInitializeCrpcClient(c *crpc.CrpcClient) InitializeCrpcClient {
 	return &initializeCrpcClient{cc: c}
 }
 
-func (c *initializeCrpcClient) Initialize(ctx context.Context, req *InitializeReq) (*InitializeResp, error) {
+func (c *initializeCrpcClient) Init(ctx context.Context, req *InitReq) (*InitResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeInitialize, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeInit, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(InitializeResp)
+	resp := new(InitResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *initializeCrpcClient) RootLogin(ctx context.Context, req *RootLoginReq) (*RootLoginResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeRootLogin, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(RootLoginResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *initializeCrpcClient) RootPassword(ctx context.Context, req *RootPasswordReq) (*RootPasswordResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeRootPassword, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(RootPasswordResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *initializeCrpcClient) CreateProject(ctx context.Context, req *CreateProjectReq) (*CreateProjectResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeCreateProject, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(CreateProjectResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *initializeCrpcClient) ListProject(ctx context.Context, req *ListProjectReq) (*ListProjectResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeListProject, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(ListProjectResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -51,18 +135,26 @@ func (c *initializeCrpcClient) Initialize(ctx context.Context, req *InitializeRe
 
 type InitializeCrpcServer interface {
 	// 初始化
-	Initialize(context.Context, *InitializeReq) (*InitializeResp, error)
+	Init(context.Context, *InitReq) (*InitResp, error)
+	// 登录
+	RootLogin(context.Context, *RootLoginReq) (*RootLoginResp, error)
+	// 更新密码
+	RootPassword(context.Context, *RootPasswordReq) (*RootPasswordResp, error)
+	// 创建项目
+	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
+	// 获取项目列表
+	ListProject(context.Context, *ListProjectReq) (*ListProjectResp, error)
 }
 
-func _Initialize_Initialize_CrpcHandler(handler func(context.Context, *InitializeReq) (*InitializeResp, error)) crpc.OutsideHandler {
+func _Initialize_Init_CrpcHandler(handler func(context.Context, *InitReq) (*InitResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
-		req := new(InitializeReq)
+		req := new(InitReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/initialize]", errstr)
+			log.Error(ctx, "[/admin.initialize/init]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -72,7 +164,98 @@ func _Initialize_Initialize_CrpcHandler(handler func(context.Context, *Initializ
 			return
 		}
 		if resp == nil {
-			resp = new(InitializeResp)
+			resp = new(InitResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _Initialize_RootLogin_CrpcHandler(handler func(context.Context, *RootLoginReq) (*RootLoginResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(RootLoginReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.initialize/root_login]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(RootLoginResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _Initialize_RootPassword_CrpcHandler(handler func(context.Context, *RootPasswordReq) (*RootPasswordResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(RootPasswordReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.initialize/root_password]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(RootPasswordResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _Initialize_CreateProject_CrpcHandler(handler func(context.Context, *CreateProjectReq) (*CreateProjectResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(CreateProjectReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.initialize/create_project]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(CreateProjectResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _Initialize_ListProject_CrpcHandler(handler func(context.Context, *ListProjectReq) (*ListProjectResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(ListProjectReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(ListProjectResp)
 		}
 		respd, _ := proto.Marshal(resp)
 		ctx.Write(respd)
@@ -81,5 +264,9 @@ func _Initialize_Initialize_CrpcHandler(handler func(context.Context, *Initializ
 func RegisterInitializeCrpcServer(engine *crpc.CrpcServer, svc InitializeCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	engine.RegisterHandler(_CrpcPathInitializeInitialize, _Initialize_Initialize_CrpcHandler(svc.Initialize))
+	engine.RegisterHandler(_CrpcPathInitializeInit, _Initialize_Init_CrpcHandler(svc.Init))
+	engine.RegisterHandler(_CrpcPathInitializeRootLogin, _Initialize_RootLogin_CrpcHandler(svc.RootLogin))
+	engine.RegisterHandler(_CrpcPathInitializeRootPassword, _Initialize_RootPassword_CrpcHandler(svc.RootPassword))
+	engine.RegisterHandler(_CrpcPathInitializeCreateProject, _Initialize_CreateProject_CrpcHandler(svc.CreateProject))
+	engine.RegisterHandler(_CrpcPathInitializeListProject, _Initialize_ListProject_CrpcHandler(svc.ListProject))
 }

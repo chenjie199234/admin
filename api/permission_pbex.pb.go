@@ -30,6 +30,9 @@ func (m *UpdateUserPermissionReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *UpdateRolePermissionReq) Validate() (errstr string) {
+	if len(m.GetProject()) != 2 {
+		return "field: project in object: update_role_permission_req check len eq failed"
+	}
 	if len(m.GetRoleName()) == 0 {
 		return "field: role_name in object: update_role_permission_req check value str len not eq failed"
 	}
@@ -41,8 +44,8 @@ func (m *UpdateRolePermissionReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *AddNodeReq) Validate() (errstr string) {
-	if len(m.GetPnodeId()) == 0 {
-		return "field: pnode_id in object: add_node_req check len not eq failed"
+	if len(m.GetPnodeId()) < 2 {
+		return "field: pnode_id in object: add_node_req check len gte failed"
 	}
 	if len(m.GetNodeName()) == 0 {
 		return "field: node_name in object: add_node_req check value str len not eq failed"
@@ -52,8 +55,8 @@ func (m *AddNodeReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *UpdateNodeReq) Validate() (errstr string) {
-	if len(m.GetNodeId()) <= 1 {
-		return "field: node_id in object: update_node_req check len gt failed"
+	if len(m.GetNodeId()) < 2 {
+		return "field: node_id in object: update_node_req check len gte failed"
 	}
 	if len(m.GetNodeName()) == 0 {
 		return "field: node_name in object: update_node_req check value str len not eq failed"
@@ -63,27 +66,46 @@ func (m *UpdateNodeReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *MoveNodeReq) Validate() (errstr string) {
-	if len(m.GetNodeId()) <= 1 {
+	if len(m.GetNodeId()) <= 2 {
 		return "field: node_id in object: move_node_req check len gt failed"
 	}
-	if len(m.GetPnodeId()) == 0 {
-		return "field: pnode_id in object: move_node_req check len not eq failed"
+	if len(m.GetPnodeId()) < 2 {
+		return "field: pnode_id in object: move_node_req check len gte failed"
 	}
 	return ""
 }
 
 // return empty means pass
 func (m *DelNodeReq) Validate() (errstr string) {
-	if len(m.GetNodeId()) <= 1 {
+	if len(m.GetNodeId()) <= 2 {
 		return "field: node_id in object: del_node_req check len gt failed"
 	}
 	return ""
 }
 
 // return empty means pass
+func (m *ListUserNodeReq) Validate() (errstr string) {
+	if len(m.GetProject()) != 2 {
+		return "field: project in object: list_user_node_req check len eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
 func (m *ListRoleNodeReq) Validate() (errstr string) {
+	if len(m.GetProject()) != 2 {
+		return "field: project in object: list_role_node_req check len eq failed"
+	}
 	if len(m.GetRoleName()) == 0 {
 		return "field: role_name in object: list_role_node_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *ListProjectNodeReq) Validate() (errstr string) {
+	if len(m.GetProject()) != 2 {
+		return "field: project in object: list_project_node_req check len eq failed"
 	}
 	return ""
 }

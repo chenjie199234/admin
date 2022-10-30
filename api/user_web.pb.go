@@ -19,14 +19,11 @@ import (
 	strings "strings"
 )
 
-var _WebPathUserSuperAdminLogin = "/admin.user/super_admin_login"
-var _WebPathUserLogin = "/admin.user/login"
-var _WebPathUserGetUsers = "/admin.user/get_users"
+var _WebPathUserUserLogin = "/admin.user/user_login"
+var _WebPathUserInviteProject = "/admin.user/invite_project"
+var _WebPathUserKickProject = "/admin.user/kick_project"
 var _WebPathUserSearchUsers = "/admin.user/search_users"
-var _WebPathUserUpdateUser = "/admin.user/update_user"
-var _WebPathUserDelUsers = "/admin.user/del_users"
 var _WebPathUserCreateRole = "/admin.user/create_role"
-var _WebPathUserGetRoles = "/admin.user/get_roles"
 var _WebPathUserSearchRoles = "/admin.user/search_roles"
 var _WebPathUserUpdateRole = "/admin.user/update_role"
 var _WebPathUserDelRoles = "/admin.user/del_roles"
@@ -34,14 +31,11 @@ var _WebPathUserAddUserRole = "/admin.user/add_user_role"
 var _WebPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserWebClient interface {
-	SuperAdminLogin(context.Context, *SuperAdminLoginReq, http.Header) (*SuperAdminLoginResp, error)
-	Login(context.Context, *LoginReq, http.Header) (*LoginResp, error)
-	GetUsers(context.Context, *GetUsersReq, http.Header) (*GetUsersResp, error)
+	UserLogin(context.Context, *UserLoginReq, http.Header) (*UserLoginResp, error)
+	InviteProject(context.Context, *InviteProjectReq, http.Header) (*InviteProjectResp, error)
+	KickProject(context.Context, *KickProjectReq, http.Header) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq, http.Header) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq, http.Header) (*UpdateUserResp, error)
-	DelUsers(context.Context, *DelUsersReq, http.Header) (*DelUsersResp, error)
 	CreateRole(context.Context, *CreateRoleReq, http.Header) (*CreateRoleResp, error)
-	GetRoles(context.Context, *GetRolesReq, http.Header) (*GetRolesResp, error)
 	SearchRoles(context.Context, *SearchRolesReq, http.Header) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq, http.Header) (*UpdateRoleResp, error)
 	DelRoles(context.Context, *DelRolesReq, http.Header) (*DelRolesResp, error)
@@ -57,7 +51,7 @@ func NewUserWebClient(c *web.WebClient) UserWebClient {
 	return &userWebClient{cc: c}
 }
 
-func (c *userWebClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLoginReq, header http.Header) (*SuperAdminLoginResp, error) {
+func (c *userWebClient) UserLogin(ctx context.Context, req *UserLoginReq, header http.Header) (*UserLoginResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -67,11 +61,11 @@ func (c *userWebClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLogi
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserSuperAdminLogin, "", header, metadata.GetMetadata(ctx), reqd)
+	data, e := c.cc.Post(ctx, _WebPathUserUserLogin, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
-	resp := new(SuperAdminLoginResp)
+	resp := new(UserLoginResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -80,7 +74,7 @@ func (c *userWebClient) SuperAdminLogin(ctx context.Context, req *SuperAdminLogi
 	}
 	return resp, nil
 }
-func (c *userWebClient) Login(ctx context.Context, req *LoginReq, header http.Header) (*LoginResp, error) {
+func (c *userWebClient) InviteProject(ctx context.Context, req *InviteProjectReq, header http.Header) (*InviteProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -90,11 +84,11 @@ func (c *userWebClient) Login(ctx context.Context, req *LoginReq, header http.He
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserLogin, "", header, metadata.GetMetadata(ctx), reqd)
+	data, e := c.cc.Post(ctx, _WebPathUserInviteProject, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
-	resp := new(LoginResp)
+	resp := new(InviteProjectResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -103,7 +97,7 @@ func (c *userWebClient) Login(ctx context.Context, req *LoginReq, header http.He
 	}
 	return resp, nil
 }
-func (c *userWebClient) GetUsers(ctx context.Context, req *GetUsersReq, header http.Header) (*GetUsersResp, error) {
+func (c *userWebClient) KickProject(ctx context.Context, req *KickProjectReq, header http.Header) (*KickProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -113,11 +107,11 @@ func (c *userWebClient) GetUsers(ctx context.Context, req *GetUsersReq, header h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserGetUsers, "", header, metadata.GetMetadata(ctx), reqd)
+	data, e := c.cc.Post(ctx, _WebPathUserKickProject, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
-	resp := new(GetUsersResp)
+	resp := new(KickProjectResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -149,52 +143,6 @@ func (c *userWebClient) SearchUsers(ctx context.Context, req *SearchUsersReq, he
 	}
 	return resp, nil
 }
-func (c *userWebClient) UpdateUser(ctx context.Context, req *UpdateUserReq, header http.Header) (*UpdateUserResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserUpdateUser, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	resp := new(UpdateUserResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *userWebClient) DelUsers(ctx context.Context, req *DelUsersReq, header http.Header) (*DelUsersResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserDelUsers, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	resp := new(DelUsersResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
 func (c *userWebClient) CreateRole(ctx context.Context, req *CreateRoleReq, header http.Header) (*CreateRoleResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -210,29 +158,6 @@ func (c *userWebClient) CreateRole(ctx context.Context, req *CreateRoleReq, head
 		return nil, e
 	}
 	resp := new(CreateRoleResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *userWebClient) GetRoles(ctx context.Context, req *GetRolesReq, header http.Header) (*GetRolesResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserGetRoles, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	resp := new(GetRolesResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -358,14 +283,11 @@ func (c *userWebClient) DelUserRole(ctx context.Context, req *DelUserRoleReq, he
 }
 
 type UserWebServer interface {
-	SuperAdminLogin(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)
-	Login(context.Context, *LoginReq) (*LoginResp, error)
-	GetUsers(context.Context, *GetUsersReq) (*GetUsersResp, error)
+	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
+	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
+	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
-	DelUsers(context.Context, *DelUsersReq) (*DelUsersResp, error)
 	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
-	GetRoles(context.Context, *GetRolesReq) (*GetRolesResp, error)
 	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
 	DelRoles(context.Context, *DelRolesReq) (*DelRolesResp, error)
@@ -373,9 +295,9 @@ type UserWebServer interface {
 	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
 }
 
-func _User_SuperAdminLogin_WebHandler(handler func(context.Context, *SuperAdminLoginReq) (*SuperAdminLoginResp, error)) web.OutsideHandler {
+func _User_UserLogin_WebHandler(handler func(context.Context, *UserLoginReq) (*UserLoginResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(SuperAdminLoginReq)
+		req := new(UserLoginReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
@@ -409,8 +331,87 @@ func _User_SuperAdminLogin_WebHandler(handler func(context.Context, *SuperAdminL
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"password\":")
-			if form := ctx.GetForm("password"); len(form) == 0 {
+			data.AppendByte('}')
+			if data.Len() > 2 {
+				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
+				if e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(UserLoginResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
+func _User_InviteProject_WebHandler(handler func(context.Context, *InviteProjectReq) (*InviteProjectResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(InviteProjectReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
+				if e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			if e := ctx.ParseForm(); e != nil {
+				ctx.Abort(cerror.ErrReq)
+				return
+			}
+			data := pool.GetBuffer()
+			defer pool.PutBuffer(data)
+			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
+			data.AppendString("\"user_id\":")
+			if form := ctx.GetForm("user_id"); len(form) == 0 {
 				data.AppendString("\"\"")
 			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
 				data.AppendByte('"')
@@ -429,7 +430,7 @@ func _User_SuperAdminLogin_WebHandler(handler func(context.Context, *SuperAdminL
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/super_admin_login]", errstr)
+			log.Error(ctx, "[/admin.user/invite_project]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -440,7 +441,7 @@ func _User_SuperAdminLogin_WebHandler(handler func(context.Context, *SuperAdminL
 			return
 		}
 		if resp == nil {
-			resp = new(SuperAdminLoginResp)
+			resp = new(InviteProjectResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -451,9 +452,9 @@ func _User_SuperAdminLogin_WebHandler(handler func(context.Context, *SuperAdminL
 		}
 	}
 }
-func _User_Login_WebHandler(handler func(context.Context, *LoginReq) (*LoginResp, error)) web.OutsideHandler {
+func _User_KickProject_WebHandler(handler func(context.Context, *KickProjectReq) (*KickProjectResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(LoginReq)
+		req := new(KickProjectReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
@@ -487,87 +488,31 @@ func _User_Login_WebHandler(handler func(context.Context, *LoginReq) (*LoginResp
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendByte('}')
-			if data.Len() > 2 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(LoginResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
-func _User_GetUsers_WebHandler(handler func(context.Context, *GetUsersReq) (*GetUsersResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(GetUsersReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			data.AppendString("\"user_ids\":")
-			if forms := ctx.GetForms("user_ids"); len(forms) == 0 {
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
 				for _, form := range forms {
 					if len(form) == 0 {
-						data.AppendString("\"\"")
-					} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-						data.AppendByte('"')
-						data.AppendString(form)
-						data.AppendByte('"')
+						data.AppendString("0")
 					} else {
 						data.AppendString(form)
 					}
 					data.AppendByte(',')
 				}
 				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
+			data.AppendString("\"user_id\":")
+			if form := ctx.GetForm("user_id"); len(form) == 0 {
+				data.AppendString("\"\"")
+			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
+				data.AppendByte('"')
+				data.AppendString(form)
+				data.AppendByte('"')
+			} else {
+				data.AppendString(form)
 			}
 			data.AppendByte('}')
 			if data.Len() > 2 {
@@ -579,7 +524,7 @@ func _User_GetUsers_WebHandler(handler func(context.Context, *GetUsersReq) (*Get
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/get_users]", errstr)
+			log.Error(ctx, "[/admin.user/kick_project]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -590,7 +535,7 @@ func _User_GetUsers_WebHandler(handler func(context.Context, *GetUsersReq) (*Get
 			return
 		}
 		if resp == nil {
-			resp = new(GetUsersResp)
+			resp = new(KickProjectResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -637,6 +582,22 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"user_name\":")
 			if form := ctx.GetForm("user_name"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -644,6 +605,13 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 				data.AppendByte('"')
 				data.AppendString(form)
 				data.AppendByte('"')
+			} else {
+				data.AppendString(form)
+			}
+			data.AppendByte(',')
+			data.AppendString("\"only_project\":")
+			if form := ctx.GetForm("only_project"); len(form) == 0 {
+				data.AppendString("false")
 			} else {
 				data.AppendString(form)
 			}
@@ -676,202 +644,6 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 		}
 		if resp == nil {
 			resp = new(SearchUsersResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
-func _User_UpdateUser_WebHandler(handler func(context.Context, *UpdateUserReq) (*UpdateUserResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(UpdateUserReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			data.AppendString("\"user_id\":")
-			if form := ctx.GetForm("user_id"); len(form) == 0 {
-				data.AppendString("\"\"")
-			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-				data.AppendByte('"')
-				data.AppendString(form)
-				data.AppendByte('"')
-			} else {
-				data.AppendString(form)
-			}
-			data.AppendByte(',')
-			data.AppendString("\"user_name\":")
-			if form := ctx.GetForm("user_name"); len(form) == 0 {
-				data.AppendString("\"\"")
-			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-				data.AppendByte('"')
-				data.AppendString(form)
-				data.AppendByte('"')
-			} else {
-				data.AppendString(form)
-			}
-			data.AppendByte(',')
-			data.AppendString("\"department\":")
-			if forms := ctx.GetForms("department"); len(forms) == 0 {
-				data.AppendString("null")
-			} else {
-				data.AppendByte('[')
-				for _, form := range forms {
-					if len(form) == 0 {
-						data.AppendString("\"\"")
-					} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-						data.AppendByte('"')
-						data.AppendString(form)
-						data.AppendByte('"')
-					} else {
-						data.AppendString(form)
-					}
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-			}
-			data.AppendByte('}')
-			if data.Len() > 2 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_user]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(UpdateUserResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
-func _User_DelUsers_WebHandler(handler func(context.Context, *DelUsersReq) (*DelUsersResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(DelUsersReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			data.AppendString("\"user_ids\":")
-			if forms := ctx.GetForms("user_ids"); len(forms) == 0 {
-				data.AppendString("null")
-			} else {
-				data.AppendByte('[')
-				for _, form := range forms {
-					if len(form) == 0 {
-						data.AppendString("\"\"")
-					} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-						data.AppendByte('"')
-						data.AppendString(form)
-						data.AppendByte('"')
-					} else {
-						data.AppendString(form)
-					}
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-			}
-			data.AppendByte('}')
-			if data.Len() > 2 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_users]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(DelUsersResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -918,6 +690,22 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"role_name\":")
 			if form := ctx.GetForm("role_name"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -971,93 +759,6 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 		}
 	}
 }
-func _User_GetRoles_WebHandler(handler func(context.Context, *GetRolesReq) (*GetRolesResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(GetRolesReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			data.AppendString("\"role_names\":")
-			if forms := ctx.GetForms("role_names"); len(forms) == 0 {
-				data.AppendString("null")
-			} else {
-				data.AppendByte('[')
-				for _, form := range forms {
-					if len(form) == 0 {
-						data.AppendString("\"\"")
-					} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-						data.AppendByte('"')
-						data.AppendString(form)
-						data.AppendByte('"')
-					} else {
-						data.AppendString(form)
-					}
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-			}
-			data.AppendByte('}')
-			if data.Len() > 2 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/get_roles]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(GetRolesResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
 func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq) (*SearchRolesResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
 		req := new(SearchRolesReq)
@@ -1094,6 +795,22 @@ func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq)
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"role_name\":")
 			if form := ctx.GetForm("role_name"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -1179,6 +896,22 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"role_name\":")
 			if form := ctx.GetForm("role_name"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -1268,6 +1001,22 @@ func _User_DelRoles_WebHandler(handler func(context.Context, *DelRolesReq) (*Del
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"role_names\":")
 			if forms := ctx.GetForms("role_names"); len(forms) == 0 {
 				data.AppendString("null")
@@ -1355,6 +1104,22 @@ func _User_AddUserRole_WebHandler(handler func(context.Context, *AddUserRoleReq)
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"user_id\":")
 			if form := ctx.GetForm("user_id"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -1444,6 +1209,22 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"user_id\":")
 			if form := ctx.GetForm("user_id"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -1500,8 +1281,7 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 func RegisterUserWebServer(engine *web.WebServer, svc UserWebServer, allmids map[string]web.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	engine.Post(_WebPathUserSuperAdminLogin, _User_SuperAdminLogin_WebHandler(svc.SuperAdminLogin))
-	engine.Post(_WebPathUserLogin, _User_Login_WebHandler(svc.Login))
+	engine.Post(_WebPathUserUserLogin, _User_UserLogin_WebHandler(svc.UserLogin))
 	{
 		requiredMids := []string{"token"}
 		mids := make([]web.OutsideHandler, 0, 2)
@@ -1512,8 +1292,21 @@ func RegisterUserWebServer(engine *web.WebServer, svc UserWebServer, allmids map
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _User_GetUsers_WebHandler(svc.GetUsers))
-		engine.Post(_WebPathUserGetUsers, mids...)
+		mids = append(mids, _User_InviteProject_WebHandler(svc.InviteProject))
+		engine.Post(_WebPathUserInviteProject, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _User_KickProject_WebHandler(svc.KickProject))
+		engine.Post(_WebPathUserKickProject, mids...)
 	}
 	{
 		requiredMids := []string{"token"}
@@ -1538,47 +1331,8 @@ func RegisterUserWebServer(engine *web.WebServer, svc UserWebServer, allmids map
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _User_UpdateUser_WebHandler(svc.UpdateUser))
-		engine.Post(_WebPathUserUpdateUser, mids...)
-	}
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _User_DelUsers_WebHandler(svc.DelUsers))
-		engine.Post(_WebPathUserDelUsers, mids...)
-	}
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
 		mids = append(mids, _User_CreateRole_WebHandler(svc.CreateRole))
 		engine.Post(_WebPathUserCreateRole, mids...)
-	}
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _User_GetRoles_WebHandler(svc.GetRoles))
-		engine.Post(_WebPathUserGetRoles, mids...)
 	}
 	{
 		requiredMids := []string{"token"}

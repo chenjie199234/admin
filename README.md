@@ -84,16 +84,19 @@ collection: user
 	"password":"",
 	"department":["",""],
 	"ctime":123,//unixtimestamp,unit second
-	"roles":["role_name1","role_name2"]
+	"projects":["project1","project2"],
+	"roles":["project1:role_name1","project2:role_name2"]
 }
 //手动创建数据库
 use user;
 db.createCollection("user");
 db.user.createIndex({user_name:1});
+db.user.createIndex({projects:1});
 db.user.createIndex({roles:1});
 
 collection: role
 {
+	"project":"",
 	"role_name":"",
 	"comment":"",
 	"ctime":123,//unixtimestamp,unit second
@@ -101,7 +104,7 @@ collection: role
 //手动创建数据库
 use user;
 db.createCollection("role");
-db.role.createIndex({role_name:1},{unique:true});
+db.role.createIndex({project:1,role_name:1},{unique:true});
 ```
 #### permission
 ```
@@ -109,20 +112,20 @@ database: permission
 
 collection: node
 {
-	"node_id":[0,1],
+	"node_id":"",
 	"node_name":"",
 	"node_data":"",
-	"cur_node_index":0,//auto increment,this is for child's last node_id element
+	"cur_node_index":0,
 }
 //手动创建数据库
 use permission;
 db.createCollection("node");
-db.node.createIndex({node_id:1});
+db.node.createIndex({node_id:1},{unique:true});
 
 collection: usernode
 {
 	"user_id":ObjectId("xxx"),
-	"node_id":[0,1],
+	"node_id":"",
 	"r":true,//can read
 	"w":true,//can write
 	"x":true,//admin
@@ -130,13 +133,14 @@ collection: usernode
 //手动创建数据库
 use permission;
 db.createCollection("usernode");
-db.usernode.createIndex({user_id:1});
+db.usernode.createIndex({user_id:1,node_id:1},{unique:true});
 db.usernode.createIndex({node_id:1});
 
 collection: rolenode
 {
+	"project":"",
 	"role_name":"",
-	"node_id":[0,1],
+	"node_id":"",
 	"r":true,//can read
 	"w":true,//can write
 	"x":true,//admin
@@ -144,5 +148,6 @@ collection: rolenode
 //手动mongo创建数据库
 use permission;
 db.createCollection("rolenode");
-db.rolenode.createIndex({role_name:1});
+db.rolenode.createIndex({project:1,role_name:1,node_id:1},{unique:true});
+db.rolenode.createIndex({node_id:1});
 ```

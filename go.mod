@@ -3,12 +3,12 @@ module github.com/chenjie199234/admin
 go 1.18
 
 require (
-	github.com/chenjie199234/Corelib v0.0.74-0.20221022124843-597d1fa8f7bd
+	github.com/chenjie199234/Corelib v0.0.74-0.20221028125031-eb52b69111c5
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/segmentio/kafka-go v0.4.35
 	go.mongodb.org/mongo-driver v1.10.3
-	golang.org/x/net v0.0.0-20220812174116-3211cb980234
+	golang.org/x/net v0.1.0
 	google.golang.org/protobuf v1.28.1
 )
 
@@ -28,8 +28,8 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	google.golang.org/grpc v1.50.1 // indirect
 )

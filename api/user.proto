@@ -22,15 +22,16 @@ service user{
 	//	option (pbex.cgrpc_midwares)="a";//this function on grpc protocol has 3 midwares,it's order is b,c,a
 	//}
 
-	rpc super_admin_login(super_admin_login_req)returns(super_admin_login_resp){
+	rpc user_login(user_login_req)returns(user_login_resp){
 		option (pbex.method)="post";
 	}
 
-	rpc login(login_req)returns(login_resp){
+	rpc invite_project(invite_project_req)returns(invite_project_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 
-	rpc get_users(get_users_req)returns(get_users_resp){
+	rpc kick_project(kick_project_req)returns(kick_project_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -40,22 +41,7 @@ service user{
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc update_user(update_user_req)returns(update_user_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
-	rpc del_users(del_users_req)returns(del_users_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-	
 	rpc create_role(create_role_req)returns(create_role_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
-	rpc get_roles(get_roles_req)returns(get_roles_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -94,32 +80,47 @@ service user{
 	//int64 example_resp=1;
 //}
 
-message super_admin_login_req{
-	string password=1[(pbex.string_bytes_len_not_eq)=0];
-}
-message super_admin_login_resp{
-	string token=1;
-}
-message login_req {
-}
-message login_resp {
-	string token=1;
-}
 message user_info {
 	string user_id=1;
 	string user_name=2;
 	repeated string department=3;
 	uint32 ctime=4;
+	repeated user_role_info roles=5;
 }
-message get_users_req {
-	repeated string user_ids=1[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
+message user_role_info{
+	string project=1;
+	repeated string role_names=2;
 }
-message get_users_resp {
-	repeated user_info users=1;//key userid,value username
+message user_login_req {
+}
+message user_login_resp {
+	string token=1;
+	user_info user=2;
+}
+message invite_project_req{
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
+}
+message invite_project_resp{
+
+}
+message kick_project_req{
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
+}
+message kick_project_resp{
+
 }
 message search_users_req {
-	string user_name=1[(pbex.string_bytes_len_not_eq)=0];
-	uint32 page=2;//if page is 0,means return all result
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string user_name=2[(pbex.string_bytes_len_not_eq)=0];
+	//true - search users in the project,this require operator has read permission on this project's user control node
+	//false - search all users(include users not in this project),this require operator has admin permission on this project's user control node
+	bool only_project=3;
+	uint32 page=4;//if page is 0,means return all result
 }
 message search_users_resp {
 	repeated user_info users=1;//key userid,value username
@@ -127,41 +128,26 @@ message search_users_resp {
 	uint32 pagesize=3;
 	uint32 totalsize=4;
 }
-message update_user_req {
-	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
-	string user_name=2[(pbex.string_bytes_len_not_eq)=0];
-	repeated string department=3[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
-}
-message update_user_resp {
-
-}
-message del_users_req {
-	repeated string user_ids=1[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
-}
-message del_users_resp {
-
-}
 message create_role_req {
-	string role_name=1[(pbex.string_bytes_len_not_eq)=0];
-	string comment=2;
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string comment=3;
 }
 message create_role_resp {
 
 }
 message role_info {
-	string role_name=1;
-	string comment=2;
-	uint32 ctime=3;
-}
-message get_roles_req {
-	repeated string role_names=1[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
-}
-message get_roles_resp {
-	repeated role_info roles=1;
+	repeated uint32 project=1;
+	string role_name=2;
+	string comment=3;
+	uint32 ctime=4;
 }
 message search_roles_req {
-	string role_name=1[(pbex.string_bytes_len_not_eq)=0];
-	uint32 page=2;//if page is 0,means return all result
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string role_name=2[(pbex.string_bytes_len_not_eq)=0];//fuzzy search
+	uint32 page=3;//page starts from 1,if page is 0,means return all result
 }
 message search_roles_resp {
 	repeated role_info roles=1;
@@ -170,28 +156,36 @@ message search_roles_resp {
 	uint32 totalsize=4;
 }
 message update_role_req {
-	string role_name=1[(pbex.string_bytes_len_not_eq)=0];
-	string comment=2;
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string comment=3;
 }
 message update_role_resp {
 
 }
 message del_roles_req {
-	repeated string role_names=1[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated string role_names=2[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
 }
 message del_roles_resp {
 
 }
 message add_user_role_req {
-	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
-	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
+	string role_name=3[(pbex.string_bytes_len_not_eq)=0];
 }
 message add_user_role_resp {
 
 }
 message del_user_role_req {
-	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
-	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
+	string role_name=3[(pbex.string_bytes_len_not_eq)=0];
 }
 message del_user_role_resp {
 

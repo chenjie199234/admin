@@ -84,6 +84,10 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//first element must be 0
+	//uint32
+	//element num must == 2
+	"project":[1,2],
 	//value length must != 0
 	"role_name":"str",
 	//first element must be 0
@@ -123,7 +127,7 @@ Content-Type: application/json
 {
 	//first element must be 0
 	//uint32
-	//element num must != 0
+	//element num must >= 2
 	"pnode_id":[1,2],
 	//value length must != 0
 	"node_name":"str",
@@ -154,7 +158,7 @@ Content-Type: application/json
 {
 	//first element must be 0
 	//uint32
-	//element num must > 1
+	//element num must >= 2
 	"node_id":[1,2],
 	//value length must != 0
 	"node_name":"str",
@@ -185,11 +189,11 @@ Content-Type: application/json
 {
 	//first element must be 0
 	//uint32
-	//element num must > 1
+	//element num must > 2
 	"node_id":[1,2],
 	//first element must be 0
 	//uint32
-	//element num must != 0
+	//element num must >= 2
 	"pnode_id":[1,2]
 }
 ------------------------------------------------------------------------------------------------------------
@@ -217,7 +221,7 @@ Content-Type: application/json
 {
 	//first element must be 0
 	//uint32
-	//element num must > 1
+	//element num must > 2
 	"node_id":[1,2]
 }
 ------------------------------------------------------------------------------------------------------------
@@ -243,6 +247,10 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//first element must be 0
+	//uint32
+	//element num must == 2
+	"project":[1,2],
 	//if this is empty means return self's
 	"user_id":"str",
 	//false - only return user's base node,true - return user's base node and user's roles' node
@@ -285,6 +293,10 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//first element must be 0
+	//uint32
+	//element num must == 2
+	"project":[1,2],
 	//value length must != 0
 	"role_name":"str"
 }
@@ -316,15 +328,19 @@ node_info: {
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### list_all_node
+### list_project_node
 
 #### Req:
 ```
-Path:         /admin.permission/list_all_node
+Path:         /admin.permission/list_project_node
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//first element must be 0
+	//uint32
+	//element num must == 2
+	"project":[1,2]
 }
 ------------------------------------------------------------------------------------------------------------
 ```

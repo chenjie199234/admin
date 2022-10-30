@@ -66,7 +66,7 @@ service permission{
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc list_all_node(list_all_node_req)returns(list_all_node_resp){
+	rpc list_project_node(list_project_node_req)returns(list_project_node_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -107,23 +107,25 @@ message update_user_permission_resp {
 
 }
 message update_role_permission_req {
-	string role_name=1[(pbex.string_bytes_len_not_eq)=0];
 	//first element must be 0
-	repeated uint32 node_id=2[(pbex.map_repeated_len_gt)=1];
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
+	//first element must be 0
+	repeated uint32 node_id=3[(pbex.map_repeated_len_gt)=1];
 	//if admin is true,canread and canwrite will be ignore
-	bool admin=3;
+	bool admin=4;
 	//if admin is false,and canread is false too,means delete this user from this node
 	//if admin is false,and canread is false and node_id's length is 1,means delete this user completely
-	bool canread=4;
+	bool canread=5;
 	//if canwrite is true,canread must be true too
-	bool canwrite=5;
+	bool canwrite=6;
 }
 message update_role_permission_resp {
 
 }
 message add_node_req {
 	//first element must be 0
-	repeated uint32 pnode_id=1[(pbex.map_repeated_len_not_eq)=0];
+	repeated uint32 pnode_id=1[(pbex.map_repeated_len_gte)=2];
 	string node_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string node_data=3;
 }
@@ -131,7 +133,7 @@ message add_node_resp {
 }
 message update_node_req {
 	//first element must be 0
-	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=1];
+	repeated uint32 node_id=1[(pbex.map_repeated_len_gte)=2];
 	string node_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string node_data=3;
 }
@@ -140,16 +142,16 @@ message update_node_resp {
 }
 message move_node_req {
 	//first element must be 0
-	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=1];
+	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=2];
 	//first element must be 0
-	repeated uint32 pnode_id=2[(pbex.map_repeated_len_not_eq)=0];
+	repeated uint32 pnode_id=2[(pbex.map_repeated_len_gte)=2];
 }
 message move_node_resp {
 
 }
 message del_node_req {
 	//first element must be 0
-	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=1];
+	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=2];
 }
 message del_node_resp {
 }
@@ -163,21 +165,27 @@ message node_info {
 	repeated node_info children=7;
 }
 message list_user_node_req {
-	string user_id=1;//if this is empty means return self's
-	bool need_user_role_node=2;//false - only return user's base node,true - return user's base node and user's roles' node
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string user_id=2;//if this is empty means return self's
+	bool need_user_role_node=3;//false - only return user's base node,true - return user's base node and user's roles' node
 }
 message list_user_node_resp {
 	repeated node_info nodes=1;
 }
 message list_role_node_req {
-	string role_name=1[(pbex.string_bytes_len_not_eq)=0];
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message list_role_node_resp {
 	repeated node_info nodes=1;
 }
-message list_all_node_req{
+message list_project_node_req{
+	//first element must be 0
+	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
 }
-message list_all_node_resp{
+message list_project_node_resp{
 	//this will only return the node name and node data,other node's info will not return
 	repeated node_info nodes=1;
 }

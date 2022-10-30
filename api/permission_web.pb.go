@@ -28,7 +28,7 @@ var _WebPathPermissionMoveNode = "/admin.permission/move_node"
 var _WebPathPermissionDelNode = "/admin.permission/del_node"
 var _WebPathPermissionListUserNode = "/admin.permission/list_user_node"
 var _WebPathPermissionListRoleNode = "/admin.permission/list_role_node"
-var _WebPathPermissionListAllNode = "/admin.permission/list_all_node"
+var _WebPathPermissionListProjectNode = "/admin.permission/list_project_node"
 
 type PermissionWebClient interface {
 	GetUserPermission(context.Context, *GetUserPermissionReq, http.Header) (*GetUserPermissionResp, error)
@@ -40,7 +40,7 @@ type PermissionWebClient interface {
 	DelNode(context.Context, *DelNodeReq, http.Header) (*DelNodeResp, error)
 	ListUserNode(context.Context, *ListUserNodeReq, http.Header) (*ListUserNodeResp, error)
 	ListRoleNode(context.Context, *ListRoleNodeReq, http.Header) (*ListRoleNodeResp, error)
-	ListAllNode(context.Context, *ListAllNodeReq, http.Header) (*ListAllNodeResp, error)
+	ListProjectNode(context.Context, *ListProjectNodeReq, http.Header) (*ListProjectNodeResp, error)
 }
 
 type permissionWebClient struct {
@@ -258,7 +258,7 @@ func (c *permissionWebClient) ListRoleNode(ctx context.Context, req *ListRoleNod
 	}
 	return resp, nil
 }
-func (c *permissionWebClient) ListAllNode(ctx context.Context, req *ListAllNodeReq, header http.Header) (*ListAllNodeResp, error) {
+func (c *permissionWebClient) ListProjectNode(ctx context.Context, req *ListProjectNodeReq, header http.Header) (*ListProjectNodeResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -268,11 +268,11 @@ func (c *permissionWebClient) ListAllNode(ctx context.Context, req *ListAllNodeR
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathPermissionListAllNode, "", header, metadata.GetMetadata(ctx), reqd)
+	data, e := c.cc.Post(ctx, _WebPathPermissionListProjectNode, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
-	resp := new(ListAllNodeResp)
+	resp := new(ListProjectNodeResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -292,7 +292,7 @@ type PermissionWebServer interface {
 	DelNode(context.Context, *DelNodeReq) (*DelNodeResp, error)
 	ListUserNode(context.Context, *ListUserNodeReq) (*ListUserNodeResp, error)
 	ListRoleNode(context.Context, *ListRoleNodeReq) (*ListRoleNodeResp, error)
-	ListAllNode(context.Context, *ListAllNodeReq) (*ListAllNodeResp, error)
+	ListProjectNode(context.Context, *ListProjectNodeReq) (*ListProjectNodeResp, error)
 }
 
 func _Permission_GetUserPermission_WebHandler(handler func(context.Context, *GetUserPermissionReq) (*GetUserPermissionResp, error)) web.OutsideHandler {
@@ -540,6 +540,22 @@ func _Permission_UpdateRolePermission_WebHandler(handler func(context.Context, *
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"role_name\":")
 			if form := ctx.GetForm("role_name"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -1047,6 +1063,22 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"user_id\":")
 			if form := ctx.GetForm("user_id"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -1072,6 +1104,11 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 					return
 				}
 			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.permission/list_user_node]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		resp, e := handler(ctx, req)
 		ee := cerror.ConvertStdError(e)
@@ -1127,6 +1164,22 @@ func _Permission_ListRoleNode_WebHandler(handler func(context.Context, *ListRole
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"role_name\":")
 			if form := ctx.GetForm("role_name"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -1169,9 +1222,9 @@ func _Permission_ListRoleNode_WebHandler(handler func(context.Context, *ListRole
 		}
 	}
 }
-func _Permission_ListAllNode_WebHandler(handler func(context.Context, *ListAllNodeReq) (*ListAllNodeResp, error)) web.OutsideHandler {
+func _Permission_ListProjectNode_WebHandler(handler func(context.Context, *ListProjectNodeReq) (*ListProjectNodeResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(ListAllNodeReq)
+		req := new(ListProjectNodeReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
@@ -1205,6 +1258,21 @@ func _Permission_ListAllNode_WebHandler(handler func(context.Context, *ListAllNo
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project\":")
+			if forms := ctx.GetForms("project"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
 			data.AppendByte('}')
 			if data.Len() > 2 {
 				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
@@ -1214,6 +1282,11 @@ func _Permission_ListAllNode_WebHandler(handler func(context.Context, *ListAllNo
 				}
 			}
 		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.permission/list_project_node]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
 		resp, e := handler(ctx, req)
 		ee := cerror.ConvertStdError(e)
 		if ee != nil {
@@ -1221,7 +1294,7 @@ func _Permission_ListAllNode_WebHandler(handler func(context.Context, *ListAllNo
 			return
 		}
 		if resp == nil {
-			resp = new(ListAllNodeResp)
+			resp = new(ListProjectNodeResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1350,7 +1423,7 @@ func RegisterPermissionWebServer(engine *web.WebServer, svc PermissionWebServer,
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _Permission_ListAllNode_WebHandler(svc.ListAllNode))
-		engine.Post(_WebPathPermissionListAllNode, mids...)
+		mids = append(mids, _Permission_ListProjectNode_WebHandler(svc.ListProjectNode))
+		engine.Post(_WebPathPermissionListProjectNode, mids...)
 	}
 }

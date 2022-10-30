@@ -24,7 +24,7 @@ var _CrpcPathPermissionMoveNode = "/admin.permission/move_node"
 var _CrpcPathPermissionDelNode = "/admin.permission/del_node"
 var _CrpcPathPermissionListUserNode = "/admin.permission/list_user_node"
 var _CrpcPathPermissionListRoleNode = "/admin.permission/list_role_node"
-var _CrpcPathPermissionListAllNode = "/admin.permission/list_all_node"
+var _CrpcPathPermissionListProjectNode = "/admin.permission/list_project_node"
 
 type PermissionCrpcClient interface {
 	GetUserPermission(context.Context, *GetUserPermissionReq) (*GetUserPermissionResp, error)
@@ -36,7 +36,7 @@ type PermissionCrpcClient interface {
 	DelNode(context.Context, *DelNodeReq) (*DelNodeResp, error)
 	ListUserNode(context.Context, *ListUserNodeReq) (*ListUserNodeResp, error)
 	ListRoleNode(context.Context, *ListRoleNodeReq) (*ListRoleNodeResp, error)
-	ListAllNode(context.Context, *ListAllNodeReq) (*ListAllNodeResp, error)
+	ListProjectNode(context.Context, *ListProjectNodeReq) (*ListProjectNodeResp, error)
 }
 
 type permissionCrpcClient struct {
@@ -209,16 +209,16 @@ func (c *permissionCrpcClient) ListRoleNode(ctx context.Context, req *ListRoleNo
 	}
 	return resp, nil
 }
-func (c *permissionCrpcClient) ListAllNode(ctx context.Context, req *ListAllNodeReq) (*ListAllNodeResp, error) {
+func (c *permissionCrpcClient) ListProjectNode(ctx context.Context, req *ListProjectNodeReq) (*ListProjectNodeResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListAllNode, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListProjectNode, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(ListAllNodeResp)
+	resp := new(ListProjectNodeResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -238,7 +238,7 @@ type PermissionCrpcServer interface {
 	DelNode(context.Context, *DelNodeReq) (*DelNodeResp, error)
 	ListUserNode(context.Context, *ListUserNodeReq) (*ListUserNodeResp, error)
 	ListRoleNode(context.Context, *ListRoleNodeReq) (*ListRoleNodeResp, error)
-	ListAllNode(context.Context, *ListAllNodeReq) (*ListAllNodeResp, error)
+	ListProjectNode(context.Context, *ListProjectNodeReq) (*ListProjectNodeResp, error)
 }
 
 func _Permission_GetUserPermission_CrpcHandler(handler func(context.Context, *GetUserPermissionReq) (*GetUserPermissionResp, error)) crpc.OutsideHandler {
@@ -416,6 +416,11 @@ func _Permission_ListUserNode_CrpcHandler(handler func(context.Context, *ListUse
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.permission/list_user_node]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
 		resp, e := handler(ctx, req)
 		if e != nil {
 			ctx.Abort(e)
@@ -452,10 +457,15 @@ func _Permission_ListRoleNode_CrpcHandler(handler func(context.Context, *ListRol
 		ctx.Write(respd)
 	}
 }
-func _Permission_ListAllNode_CrpcHandler(handler func(context.Context, *ListAllNodeReq) (*ListAllNodeResp, error)) crpc.OutsideHandler {
+func _Permission_ListProjectNode_CrpcHandler(handler func(context.Context, *ListProjectNodeReq) (*ListProjectNodeResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
-		req := new(ListAllNodeReq)
+		req := new(ListProjectNodeReq)
 		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.permission/list_project_node]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -465,7 +475,7 @@ func _Permission_ListAllNode_CrpcHandler(handler func(context.Context, *ListAllN
 			return
 		}
 		if resp == nil {
-			resp = new(ListAllNodeResp)
+			resp = new(ListProjectNodeResp)
 		}
 		respd, _ := proto.Marshal(resp)
 		ctx.Write(respd)
@@ -483,5 +493,5 @@ func RegisterPermissionCrpcServer(engine *crpc.CrpcServer, svc PermissionCrpcSer
 	engine.RegisterHandler(_CrpcPathPermissionDelNode, _Permission_DelNode_CrpcHandler(svc.DelNode))
 	engine.RegisterHandler(_CrpcPathPermissionListUserNode, _Permission_ListUserNode_CrpcHandler(svc.ListUserNode))
 	engine.RegisterHandler(_CrpcPathPermissionListRoleNode, _Permission_ListRoleNode_CrpcHandler(svc.ListRoleNode))
-	engine.RegisterHandler(_CrpcPathPermissionListAllNode, _Permission_ListAllNode_CrpcHandler(svc.ListAllNode))
+	engine.RegisterHandler(_CrpcPathPermissionListProjectNode, _Permission_ListProjectNode_CrpcHandler(svc.ListProjectNode))
 }

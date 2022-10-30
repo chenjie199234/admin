@@ -16,7 +16,6 @@ import (
 )
 
 var _CrpcPathConfigGroups = "/admin.config/groups"
-var _CrpcPathConfigDelGroup = "/admin.config/del_group"
 var _CrpcPathConfigApps = "/admin.config/apps"
 var _CrpcPathConfigDelApp = "/admin.config/del_app"
 var _CrpcPathConfigKeys = "/admin.config/keys"
@@ -31,8 +30,6 @@ var _CrpcPathConfigWatch = "/admin.config/watch"
 type ConfigCrpcClient interface {
 	// get all groups
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
-	// del one specific group
-	DelGroup(context.Context, *DelGroupReq) (*DelGroupResp, error)
 	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
 	// del one specific app in one specific group
@@ -73,24 +70,6 @@ func (c *configCrpcClient) Groups(ctx context.Context, req *GroupsReq) (*GroupsR
 		return nil, e
 	}
 	resp := new(GroupsResp)
-	if len(respd) == 0 {
-		return resp, nil
-	}
-	if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *configCrpcClient) DelGroup(ctx context.Context, req *DelGroupReq) (*DelGroupResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathConfigDelGroup, reqd, metadata.GetMetadata(ctx))
-	if e != nil {
-		return nil, e
-	}
-	resp := new(DelGroupResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -283,8 +262,6 @@ func (c *configCrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp
 type ConfigCrpcServer interface {
 	// get all groups
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
-	// del one specific group
-	DelGroup(context.Context, *DelGroupReq) (*DelGroupResp, error)
 	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
 	// del one specific app in one specific group
@@ -321,30 +298,6 @@ func _Config_Groups_CrpcHandler(handler func(context.Context, *GroupsReq) (*Grou
 		}
 		if resp == nil {
 			resp = new(GroupsResp)
-		}
-		respd, _ := proto.Marshal(resp)
-		ctx.Write(respd)
-	}
-}
-func _Config_DelGroup_CrpcHandler(handler func(context.Context, *DelGroupReq) (*DelGroupResp, error)) crpc.OutsideHandler {
-	return func(ctx *crpc.Context) {
-		req := new(DelGroupReq)
-		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/del_group]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(DelGroupResp)
 		}
 		respd, _ := proto.Marshal(resp)
 		ctx.Write(respd)
@@ -594,7 +547,6 @@ func RegisterConfigCrpcServer(engine *crpc.CrpcServer, svc ConfigCrpcServer, all
 	// avoid lint
 	_ = allmids
 	engine.RegisterHandler(_CrpcPathConfigGroups, _Config_Groups_CrpcHandler(svc.Groups))
-	engine.RegisterHandler(_CrpcPathConfigDelGroup, _Config_DelGroup_CrpcHandler(svc.DelGroup))
 	engine.RegisterHandler(_CrpcPathConfigApps, _Config_Apps_CrpcHandler(svc.Apps))
 	engine.RegisterHandler(_CrpcPathConfigDelApp, _Config_DelApp_CrpcHandler(svc.DelApp))
 	engine.RegisterHandler(_CrpcPathConfigKeys, _Config_Keys_CrpcHandler(svc.Keys))

@@ -30,9 +30,6 @@ func (d *Dao) MongoGetAllGroups(ctx context.Context, searchfilter string) ([]str
 	}
 	return r, nil
 }
-func (d *Dao) MongoDelGroup(ctx context.Context, groupname string) error {
-	return d.mongo.Database("config_" + groupname).Drop(ctx)
-}
 func (d *Dao) MongoGetAllApps(ctx context.Context, groupname, searchfilter string) ([]string, error) {
 	return d.mongo.Database("config_"+groupname).ListCollectionNames(ctx, bson.M{"name": bson.M{"$regex": searchfilter}})
 }
@@ -170,8 +167,8 @@ func (d *Dao) MongoUpdateCipher(ctx context.Context, groupname, appname, oldciph
 	return
 }
 
-//index == 0 get the current index's config
-//index != 0 get the specific index's config
+// index == 0 get the current index's config
+// index != 0 get the specific index's config
 func (d *Dao) MongoGetKeyConfig(ctx context.Context, groupname, appname, key string, index uint32, decrypt datahandler) (*model.KeySummary, *model.Log, error) {
 	col := d.mongo.Database("config_"+groupname, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection(appname)
 	var appsummary *model.AppSummary
@@ -247,7 +244,7 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, groupname, appname, key str
 	return keysummary, log, nil
 }
 
-//get the app's all keys' current config
+// get the app's all keys' current config
 func (d *Dao) MongoGetAppConfig(ctx context.Context, groupname, appname string, decrypt datahandler) (*model.AppSummary, error) {
 	app := &model.AppSummary{}
 	if e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(app); e != nil {
@@ -362,7 +359,7 @@ func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname, key s
 	return
 }
 
-//first key groupname,second key appname,value curconfig
+// first key groupname,second key appname,value curconfig
 type WatchUpdateHandler func(string, string, *model.AppSummary)
 type WatchDeleteAppHandler func(groupname, appname string)
 type WatchDeleteConfigHandler func(groupname, appname string, id string)

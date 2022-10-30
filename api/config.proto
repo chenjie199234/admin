@@ -27,11 +27,6 @@ service config{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//del one specific group
-	rpc del_group(del_group_req)returns(del_group_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
 	//get all apps in one specific group
 	rpc apps(apps_req)returns(apps_resp){
 		option (pbex.method)="post";

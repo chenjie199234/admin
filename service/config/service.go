@@ -124,16 +124,6 @@ func (s *Service) Groups(ctx context.Context, req *api.GroupsReq) (*api.GroupsRe
 	return &api.GroupsResp{Groups: groups}, nil
 }
 
-// del one specific group
-func (s *Service) DelGroup(ctx context.Context, req *api.DelGroupReq) (*api.DelGroupResp, error) {
-	e := s.configDao.MongoDelGroup(ctx, req.Groupname)
-	if e != nil {
-		log.Error(ctx, "[DelGroup] group:", req.Groupname, e)
-		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-	}
-	return &api.DelGroupResp{}, nil
-}
-
 // get all apps in one specific group
 func (s *Service) Apps(ctx context.Context, req *api.AppsReq) (*api.AppsResp, error) {
 	apps, e := s.configDao.MongoGetAllApps(ctx, req.Groupname, req.SearchFilter)

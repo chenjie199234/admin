@@ -15,7 +15,6 @@ import (
 )
 
 var _CGrpcPathConfigGroups = "/admin.config/groups"
-var _CGrpcPathConfigDelGroup = "/admin.config/del_group"
 var _CGrpcPathConfigApps = "/admin.config/apps"
 var _CGrpcPathConfigDelApp = "/admin.config/del_app"
 var _CGrpcPathConfigKeys = "/admin.config/keys"
@@ -30,8 +29,6 @@ var _CGrpcPathConfigWatch = "/admin.config/watch"
 type ConfigCGrpcClient interface {
 	// get all groups
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
-	// del one specific group
-	DelGroup(context.Context, *DelGroupReq) (*DelGroupResp, error)
 	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
 	// del one specific app in one specific group
@@ -68,16 +65,6 @@ func (c *configCGrpcClient) Groups(ctx context.Context, req *GroupsReq) (*Groups
 	}
 	resp := new(GroupsResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigGroups, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
-func (c *configCGrpcClient) DelGroup(ctx context.Context, req *DelGroupReq) (*DelGroupResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	resp := new(DelGroupResp)
-	if e := c.cc.Call(ctx, _CGrpcPathConfigDelGroup, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -186,8 +173,6 @@ func (c *configCGrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchRes
 type ConfigCGrpcServer interface {
 	// get all groups
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
-	// del one specific group
-	DelGroup(context.Context, *DelGroupReq) (*DelGroupResp, error)
 	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
 	// del one specific app in one specific group
@@ -224,29 +209,6 @@ func _Config_Groups_CGrpcHandler(handler func(context.Context, *GroupsReq) (*Gro
 		}
 		if resp == nil {
 			resp = new(GroupsResp)
-		}
-		ctx.Write(resp)
-	}
-}
-func _Config_DelGroup_CGrpcHandler(handler func(context.Context, *DelGroupReq) (*DelGroupResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(DelGroupReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/del_group]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(DelGroupResp)
 		}
 		ctx.Write(resp)
 	}
@@ -485,7 +447,6 @@ func RegisterConfigCGrpcServer(engine *cgrpc.CGrpcServer, svc ConfigCGrpcServer,
 	// avoid lint
 	_ = allmids
 	engine.RegisterHandler("admin.config", "groups", _Config_Groups_CGrpcHandler(svc.Groups))
-	engine.RegisterHandler("admin.config", "del_group", _Config_DelGroup_CGrpcHandler(svc.DelGroup))
 	engine.RegisterHandler("admin.config", "apps", _Config_Apps_CGrpcHandler(svc.Apps))
 	engine.RegisterHandler("admin.config", "del_app", _Config_DelApp_CGrpcHandler(svc.DelApp))
 	engine.RegisterHandler("admin.config", "keys", _Config_Keys_CGrpcHandler(svc.Keys))

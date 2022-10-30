@@ -20,7 +20,6 @@ import (
 )
 
 var _WebPathConfigGroups = "/admin.config/groups"
-var _WebPathConfigDelGroup = "/admin.config/del_group"
 var _WebPathConfigApps = "/admin.config/apps"
 var _WebPathConfigDelApp = "/admin.config/del_app"
 var _WebPathConfigKeys = "/admin.config/keys"
@@ -35,8 +34,6 @@ var _WebPathConfigWatch = "/admin.config/watch"
 type ConfigWebClient interface {
 	// get all groups
 	Groups(context.Context, *GroupsReq, http.Header) (*GroupsResp, error)
-	// del one specific group
-	DelGroup(context.Context, *DelGroupReq, http.Header) (*DelGroupResp, error)
 	// get all apps in one specific group
 	Apps(context.Context, *AppsReq, http.Header) (*AppsResp, error)
 	// del one specific app in one specific group
@@ -82,29 +79,6 @@ func (c *configWebClient) Groups(ctx context.Context, req *GroupsReq, header htt
 		return nil, e
 	}
 	resp := new(GroupsResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *configWebClient) DelGroup(ctx context.Context, req *DelGroupReq, header http.Header) (*DelGroupResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigDelGroup, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	resp := new(DelGroupResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -347,8 +321,6 @@ func (c *configWebClient) Watch(ctx context.Context, req *WatchReq, header http.
 type ConfigWebServer interface {
 	// get all groups
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
-	// del one specific group
-	DelGroup(context.Context, *DelGroupReq) (*DelGroupResp, error)
 	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
 	// del one specific app in one specific group
@@ -434,84 +406,6 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 		}
 		if resp == nil {
 			resp = new(GroupsResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
-func _Config_DelGroup_WebHandler(handler func(context.Context, *DelGroupReq) (*DelGroupResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(DelGroupReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			data.AppendString("\"groupname\":")
-			if form := ctx.GetForm("groupname"); len(form) == 0 {
-				data.AppendString("\"\"")
-			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-				data.AppendByte('"')
-				data.AppendString(form)
-				data.AppendByte('"')
-			} else {
-				data.AppendString(form)
-			}
-			data.AppendByte('}')
-			if data.Len() > 2 {
-				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
-				if e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/del_group]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(DelGroupResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1547,19 +1441,6 @@ func RegisterConfigWebServer(engine *web.WebServer, svc ConfigWebServer, allmids
 		}
 		mids = append(mids, _Config_Groups_WebHandler(svc.Groups))
 		engine.Post(_WebPathConfigGroups, mids...)
-	}
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _Config_DelGroup_WebHandler(svc.DelGroup))
-		engine.Post(_WebPathConfigDelGroup, mids...)
 	}
 	{
 		requiredMids := []string{"token"}

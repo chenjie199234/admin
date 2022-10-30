@@ -93,12 +93,6 @@ message groups_req {
 message groups_resp {
 	repeated string groups=1;
 }
-message del_group_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-}
-message del_group_resp {
-
-}
 message apps_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string search_filter=2;

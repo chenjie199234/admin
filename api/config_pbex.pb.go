@@ -7,14 +7,6 @@
 package api
 
 // return empty means pass
-func (m *DelGroupReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: del_group_req check value str len gt failed"
-	}
-	return ""
-}
-
-// return empty means pass
 func (m *AppsReq) Validate() (errstr string) {
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: apps_req check value str len gt failed"

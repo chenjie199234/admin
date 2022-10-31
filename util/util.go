@@ -13,17 +13,14 @@ import (
 // must be aes.BlockSize length
 const servercipher = "chenjie_1992_3_4"
 
-func pkcs7Padding(origin []byte, blockSize int) []byte {
-	padding := blockSize - len(origin)%blockSize
-	if padding == 0 {
-		return origin
-	}
+func pkcs7Padding(origin []byte) []byte {
+	padding := aes.BlockSize - len(origin)%aes.BlockSize
 	return append(origin, bytes.Repeat([]byte{byte(padding)}, padding)...)
 }
 func pkcs7UnPadding(origin []byte) []byte {
 	length := len(origin)
 	unpadding := int(origin[length-1])
-	if unpadding >= aes.BlockSize {
+	if unpadding > aes.BlockSize || unpadding <= 0 {
 		return nil
 	}
 	return origin[:(length - unpadding)]
@@ -42,7 +39,7 @@ func Decrypt(cipherkey, origin string) string {
 	return common.Byte2str(data)
 }
 func Encrypt(cipherkey, origin string) string {
-	data := pkcs7Padding([]byte(origin), aes.BlockSize)
+	data := pkcs7Padding([]byte(origin))
 	block, _ := aes.NewCipher(common.Str2byte(cipherkey))
 	cipher.NewCBCEncrypter(block, common.Str2byte(servercipher)).CryptBlocks(data, data)
 	return hex.EncodeToString(data)

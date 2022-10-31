@@ -55,7 +55,7 @@ func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.He
 		// drop last &
 		querystr = querystr[:len(querystr)-1]
 	}
-	data, e := c.cc.Get(ctx, _WebPathStatusPing, querystr, header, metadata.GetMetadata(ctx))
+	ct, data, e := c.cc.Get(ctx, _WebPathStatusPing, querystr, header, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
@@ -63,8 +63,14 @@ func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.He
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }

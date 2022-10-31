@@ -56,7 +56,7 @@ func (c *initializeWebClient) Init(ctx context.Context, req *InitReq, header htt
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathInitializeInit, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathInitializeInit, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -64,8 +64,14 @@ func (c *initializeWebClient) Init(ctx context.Context, req *InitReq, header htt
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -79,7 +85,7 @@ func (c *initializeWebClient) RootLogin(ctx context.Context, req *RootLoginReq, 
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathInitializeRootLogin, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathInitializeRootLogin, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -87,8 +93,14 @@ func (c *initializeWebClient) RootLogin(ctx context.Context, req *RootLoginReq, 
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -102,7 +114,7 @@ func (c *initializeWebClient) RootPassword(ctx context.Context, req *RootPasswor
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathInitializeRootPassword, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathInitializeRootPassword, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -110,8 +122,14 @@ func (c *initializeWebClient) RootPassword(ctx context.Context, req *RootPasswor
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -125,7 +143,7 @@ func (c *initializeWebClient) CreateProject(ctx context.Context, req *CreateProj
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathInitializeCreateProject, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathInitializeCreateProject, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -133,8 +151,14 @@ func (c *initializeWebClient) CreateProject(ctx context.Context, req *CreateProj
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -148,7 +172,7 @@ func (c *initializeWebClient) ListProject(ctx context.Context, req *ListProjectR
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathInitializeListProject, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathInitializeListProject, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -156,8 +180,14 @@ func (c *initializeWebClient) ListProject(ctx context.Context, req *ListProjectR
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }

@@ -74,7 +74,7 @@ func (c *configWebClient) Groups(ctx context.Context, req *GroupsReq, header htt
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigGroups, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigGroups, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -82,8 +82,14 @@ func (c *configWebClient) Groups(ctx context.Context, req *GroupsReq, header htt
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -97,7 +103,7 @@ func (c *configWebClient) Apps(ctx context.Context, req *AppsReq, header http.He
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigApps, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigApps, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -105,8 +111,14 @@ func (c *configWebClient) Apps(ctx context.Context, req *AppsReq, header http.He
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -120,7 +132,7 @@ func (c *configWebClient) DelApp(ctx context.Context, req *DelAppReq, header htt
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigDelApp, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigDelApp, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -128,8 +140,14 @@ func (c *configWebClient) DelApp(ctx context.Context, req *DelAppReq, header htt
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -143,7 +161,7 @@ func (c *configWebClient) Keys(ctx context.Context, req *KeysReq, header http.He
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigKeys, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigKeys, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -151,8 +169,14 @@ func (c *configWebClient) Keys(ctx context.Context, req *KeysReq, header http.He
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -166,7 +190,7 @@ func (c *configWebClient) DelKey(ctx context.Context, req *DelKeyReq, header htt
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigDelKey, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigDelKey, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -174,8 +198,14 @@ func (c *configWebClient) DelKey(ctx context.Context, req *DelKeyReq, header htt
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -189,7 +219,7 @@ func (c *configWebClient) Create(ctx context.Context, req *CreateReq, header htt
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigCreate, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigCreate, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -197,8 +227,14 @@ func (c *configWebClient) Create(ctx context.Context, req *CreateReq, header htt
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -212,7 +248,7 @@ func (c *configWebClient) Updatecipher(ctx context.Context, req *UpdatecipherReq
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigUpdatecipher, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigUpdatecipher, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -220,8 +256,14 @@ func (c *configWebClient) Updatecipher(ctx context.Context, req *UpdatecipherReq
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -235,7 +277,7 @@ func (c *configWebClient) Get(ctx context.Context, req *GetReq, header http.Head
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigGet, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigGet, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -243,8 +285,14 @@ func (c *configWebClient) Get(ctx context.Context, req *GetReq, header http.Head
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -258,7 +306,7 @@ func (c *configWebClient) Set(ctx context.Context, req *SetReq, header http.Head
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigSet, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigSet, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -266,8 +314,14 @@ func (c *configWebClient) Set(ctx context.Context, req *SetReq, header http.Head
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -281,7 +335,7 @@ func (c *configWebClient) Rollback(ctx context.Context, req *RollbackReq, header
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigRollback, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigRollback, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -289,8 +343,14 @@ func (c *configWebClient) Rollback(ctx context.Context, req *RollbackReq, header
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -304,7 +364,7 @@ func (c *configWebClient) Watch(ctx context.Context, req *WatchReq, header http.
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathConfigWatch, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathConfigWatch, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -312,8 +372,14 @@ func (c *configWebClient) Watch(ctx context.Context, req *WatchReq, header http.
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }

@@ -61,7 +61,7 @@ func (c *userWebClient) UserLogin(ctx context.Context, req *UserLoginReq, header
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserUserLogin, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserUserLogin, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -69,8 +69,14 @@ func (c *userWebClient) UserLogin(ctx context.Context, req *UserLoginReq, header
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -84,7 +90,7 @@ func (c *userWebClient) InviteProject(ctx context.Context, req *InviteProjectReq
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserInviteProject, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserInviteProject, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -92,8 +98,14 @@ func (c *userWebClient) InviteProject(ctx context.Context, req *InviteProjectReq
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -107,7 +119,7 @@ func (c *userWebClient) KickProject(ctx context.Context, req *KickProjectReq, he
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserKickProject, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserKickProject, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -115,8 +127,14 @@ func (c *userWebClient) KickProject(ctx context.Context, req *KickProjectReq, he
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -130,7 +148,7 @@ func (c *userWebClient) SearchUsers(ctx context.Context, req *SearchUsersReq, he
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserSearchUsers, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserSearchUsers, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -138,8 +156,14 @@ func (c *userWebClient) SearchUsers(ctx context.Context, req *SearchUsersReq, he
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -153,7 +177,7 @@ func (c *userWebClient) CreateRole(ctx context.Context, req *CreateRoleReq, head
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserCreateRole, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserCreateRole, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -161,8 +185,14 @@ func (c *userWebClient) CreateRole(ctx context.Context, req *CreateRoleReq, head
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -176,7 +206,7 @@ func (c *userWebClient) SearchRoles(ctx context.Context, req *SearchRolesReq, he
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserSearchRoles, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserSearchRoles, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -184,8 +214,14 @@ func (c *userWebClient) SearchRoles(ctx context.Context, req *SearchRolesReq, he
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -199,7 +235,7 @@ func (c *userWebClient) UpdateRole(ctx context.Context, req *UpdateRoleReq, head
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserUpdateRole, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserUpdateRole, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -207,8 +243,14 @@ func (c *userWebClient) UpdateRole(ctx context.Context, req *UpdateRoleReq, head
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -222,7 +264,7 @@ func (c *userWebClient) DelRoles(ctx context.Context, req *DelRolesReq, header h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserDelRoles, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserDelRoles, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -230,8 +272,14 @@ func (c *userWebClient) DelRoles(ctx context.Context, req *DelRolesReq, header h
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -245,7 +293,7 @@ func (c *userWebClient) AddUserRole(ctx context.Context, req *AddUserRoleReq, he
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserAddUserRole, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserAddUserRole, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -253,8 +301,14 @@ func (c *userWebClient) AddUserRole(ctx context.Context, req *AddUserRoleReq, he
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }
@@ -268,7 +322,7 @@ func (c *userWebClient) DelUserRole(ctx context.Context, req *DelUserRoleReq, he
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	data, e := c.cc.Post(ctx, _WebPathUserDelUserRole, "", header, metadata.GetMetadata(ctx), reqd)
+	ct, data, e := c.cc.Post(ctx, _WebPathUserDelUserRole, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -276,8 +330,14 @@ func (c *userWebClient) DelUserRole(ctx context.Context, req *DelUserRoleReq, he
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if e := proto.Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
+	if ct == "application/x-protobuf" {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else {
+		if e := protojson.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
 	}
 	return resp, nil
 }

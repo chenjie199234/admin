@@ -1,7 +1,7 @@
 {
 	"cgrpc_server":{
 		"connect_timeout":"200ms",
-		"global_timeout":"200ms",
+		"global_timeout":"500ms",
 		"heart_probe":"1.5s",
 		"certs":{
 		}
@@ -13,7 +13,7 @@
 	},
 	"crpc_server":{
 		"connect_timeout":"200ms",
-		"global_timeout":"200ms",
+		"global_timeout":"500ms",
 		"heart_probe":"1.5s",
 		"certs":{
 		}
@@ -24,12 +24,12 @@
 		"heart_probe":"1.5s"
 	},
 	"web_server":{
-		"close_mode":0,
+		"close_mode":1,
 		"connect_timeout":"200ms",
-		"global_timeout":"200ms",
+		"global_timeout":"500ms",
 		"idle_timeout":"5s",
 		"heart_probe":"1.5s",
-		"src_root":"./src",
+		"src_root":"",
 		"certs":{
 		},
 		"web_cors":{
@@ -50,7 +50,7 @@
 			"max_open":256,
 			"max_idletime":"10m",
 			"io_timeout":"500ms",
-			"conn_timeout":"500ms"
+			"conn_timeout":"200ms"
 		}
 	},
 	"sql":{
@@ -59,7 +59,7 @@
 			"max_open":256,
 			"max_idle":100,
 			"max_idletime":"10m",
-			"io_timeout":"200ms",
+			"io_timeout":"500ms",
 			"conn_timeout":"200ms"
 		}
 	},
@@ -69,7 +69,7 @@
 			"max_open":256,
 			"max_idle":100,
 			"max_idletime":"10m",
-			"io_timeout":"200ms",
+			"io_timeout":"500ms",
 			"conn_timeout":"200ms"
 		}
 	},

@@ -19,6 +19,7 @@ var _CGrpcPathInitializeRootLogin = "/admin.initialize/root_login"
 var _CGrpcPathInitializeRootPassword = "/admin.initialize/root_password"
 var _CGrpcPathInitializeCreateProject = "/admin.initialize/create_project"
 var _CGrpcPathInitializeListProject = "/admin.initialize/list_project"
+var _CGrpcPathInitializeDeleteProject = "/admin.initialize/delete_project"
 
 type InitializeCGrpcClient interface {
 	// 初始化
@@ -31,6 +32,8 @@ type InitializeCGrpcClient interface {
 	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
 	// 获取项目列表
 	ListProject(context.Context, *ListProjectReq) (*ListProjectResp, error)
+	// 删除项目
+	DeleteProject(context.Context, *DeleteProjectReq) (*DeleteProjectResp, error)
 }
 
 type initializeCGrpcClient struct {
@@ -91,6 +94,16 @@ func (c *initializeCGrpcClient) ListProject(ctx context.Context, req *ListProjec
 	}
 	return resp, nil
 }
+func (c *initializeCGrpcClient) DeleteProject(ctx context.Context, req *DeleteProjectReq) (*DeleteProjectResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(DeleteProjectResp)
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeDeleteProject, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
 
 type InitializeCGrpcServer interface {
 	// 初始化
@@ -103,6 +116,8 @@ type InitializeCGrpcServer interface {
 	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
 	// 获取项目列表
 	ListProject(context.Context, *ListProjectReq) (*ListProjectResp, error)
+	// 删除项目
+	DeleteProject(context.Context, *DeleteProjectReq) (*DeleteProjectResp, error)
 }
 
 func _Initialize_Init_CGrpcHandler(handler func(context.Context, *InitReq) (*InitResp, error)) cgrpc.OutsideHandler {
@@ -215,6 +230,29 @@ func _Initialize_ListProject_CGrpcHandler(handler func(context.Context, *ListPro
 		ctx.Write(resp)
 	}
 }
+func _Initialize_DeleteProject_CGrpcHandler(handler func(context.Context, *DeleteProjectReq) (*DeleteProjectResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(DeleteProjectReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.initialize/delete_project]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(DeleteProjectResp)
+		}
+		ctx.Write(resp)
+	}
+}
 func RegisterInitializeCGrpcServer(engine *cgrpc.CGrpcServer, svc InitializeCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
@@ -223,4 +261,5 @@ func RegisterInitializeCGrpcServer(engine *cgrpc.CGrpcServer, svc InitializeCGrp
 	engine.RegisterHandler("admin.initialize", "root_password", _Initialize_RootPassword_CGrpcHandler(svc.RootPassword))
 	engine.RegisterHandler("admin.initialize", "create_project", _Initialize_CreateProject_CGrpcHandler(svc.CreateProject))
 	engine.RegisterHandler("admin.initialize", "list_project", _Initialize_ListProject_CGrpcHandler(svc.ListProject))
+	engine.RegisterHandler("admin.initialize", "delete_project", _Initialize_DeleteProject_CGrpcHandler(svc.DeleteProject))
 }

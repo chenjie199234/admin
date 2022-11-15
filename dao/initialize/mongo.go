@@ -47,15 +47,55 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		e = ecode.ErrAlreadyInited
 		return
 	}
-	if _, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
+	docs := bson.A{}
+	//root node
+	docs = append(docs, &model.Node{
 		NodeId:       "0",
 		NodeName:     "root",
 		NodeData:     "",
+		CurNodeIndex: 1,
+	})
+	//project admin's node
+	docs = append(docs, &model.Node{
+		NodeId:       "0,1",
+		NodeName:     "admin",
+		NodeData:     "",
+		CurNodeIndex: 3,
+	})
+	//project admin's user control node
+	docs = append(docs, &model.Node{
+		NodeId:       "0,1" + model.UserControl,
+		NodeName:     "UserControl",
+		NodeData:     "",
 		CurNodeIndex: 0,
-	}); e != nil && !mongo.IsDuplicateKeyError(e) {
+	})
+	//project admin's role control node
+	docs = append(docs, &model.Node{
+		NodeId:       "0,1" + model.RoleControl,
+		NodeName:     "RoleControl",
+		NodeData:     "",
+		CurNodeIndex: 0,
+	})
+	//project admin's config control node
+	docs = append(docs, &model.Node{
+		NodeId:       "0,1" + model.ConfigControl,
+		NodeName:     "ConfigControl",
+		NodeData:     "",
+		CurNodeIndex: 1,
+	})
+	docs = append(docs, &model.Node{
+		NodeId:       "0,1" + model.ConfigControl + ",1",
+		NodeName:     model.Group + "." + model.Name,
+		NodeData:     "",
+		CurNodeIndex: 0,
+	})
+	if _, e = d.mongo.Database("permission").Collection("node").InsertMany(sctx, docs); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	} else if e != nil {
 		e = ecode.ErrAlreadyInited
+		return
+	}
+	if _, e = d.mongo.Database("config_"+model.Group).Collection(model.Name).UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$set": bson.M{"permission_node_id": "0,1" + model.ConfigControl + ",1"}}); e != nil {
 		return
 	}
 	if _, e = d.mongo.Database("permission").Collection("usernode").InsertOne(sctx, &model.UserNode{
@@ -89,7 +129,7 @@ func (d *Dao) MongoRootPassword(ctx context.Context, oldpassword, newpassword st
 	}
 	return e
 }
-func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata string) (e error) {
+func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata string) (nodeid string, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -114,7 +154,7 @@ func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata s
 		}
 		return
 	}
-	nodeid := "0," + strconv.FormatUint(uint64(root.CurNodeIndex+1), 10)
+	nodeid = "0," + strconv.FormatUint(uint64(root.CurNodeIndex+1), 10)
 	docs := bson.A{}
 	docs = append(docs, &model.Node{
 		NodeId:       nodeid,
@@ -152,4 +192,37 @@ func (d *Dao) MongoListProject(ctx context.Context) ([]*model.Node, error) {
 	result := make([]*model.Node, 0, cur.RemainingBatchLength())
 	e = cur.All(ctx, &result)
 	return result, e
+}
+func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (e error) {
+	var s mongo.Session
+	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
+	if e != nil {
+		return
+	}
+	defer s.EndSession(ctx)
+	sctx := mongo.NewSessionContext(ctx, s)
+	if e = s.StartTransaction(); e != nil {
+		return
+	}
+	defer func() {
+		if e != nil {
+			s.AbortTransaction(sctx)
+		} else if e = s.CommitTransaction(sctx); e != nil {
+			s.AbortTransaction(sctx)
+		}
+	}()
+	if _, e = d.mongo.Database("user").Collection("user").UpdateMany(sctx, bson.M{}, bson.M{"$pull": bson.M{"projects": projectid, "roles": bson.M{"$regex": "^" + projectid}}}); e != nil {
+		return
+	}
+	if _, e = d.mongo.Database("user").Collection("role").DeleteMany(sctx, bson.M{"project": projectid}); e != nil {
+		return
+	}
+	if _, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, bson.M{"node_id": bson.M{"$regex": "^" + projectid}}); e != nil {
+		return
+	}
+	if _, e = d.mongo.Database("permission").Collection("usernode").DeleteMany(sctx, bson.M{"node_id": bson.M{"$regex": "^" + projectid}}); e != nil {
+		return
+	}
+	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, bson.M{"project": projectid})
+	return
 }

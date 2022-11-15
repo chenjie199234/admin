@@ -73,6 +73,6 @@ func UpdateHandlerTimeout(hts map[string]map[string]ctime.Duration) {
 // StopCrpcServer -
 func StopCrpcServer() {
 	if s != nil {
-		s.StopCrpcServer()
+		s.StopCrpcServer(false)
 	}
 }

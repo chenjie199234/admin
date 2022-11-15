@@ -425,7 +425,7 @@ func initmongo() {
 		op = op.SetConnectTimeout(mongoc.ConnTimeout.StdDuration())
 		op = op.SetMaxConnIdleTime(mongoc.MaxIdletime.StdDuration())
 		op = op.SetMaxPoolSize(mongoc.MaxOpen)
-		op = op.SetSocketTimeout(mongoc.IOTimeout.StdDuration())
+		op = op.SetTimeout(mongoc.IOTimeout.StdDuration())
 		tempdb, e := mongo.Connect(nil, op)
 		if e != nil {
 			log.Error(nil, "[config.initsource] open mongodb:", k, "error:", e)

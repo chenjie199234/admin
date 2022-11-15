@@ -6,14 +6,17 @@ import (
 	"time"
 
 	"github.com/chenjie199234/admin/api"
+	"github.com/chenjie199234/admin/util"
 
 	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/log"
+	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/web"
 )
 
 type Sdk struct {
 	client     api.ConfigWebClient
+	secret     string
 	wait       chan *struct{}
 	lker       sync.Mutex
 	keys       map[string]*api.WatchData
@@ -26,13 +29,14 @@ type Sdk struct {
 // keytype: map's key is the key name,map's value is the type of the key's data
 type NoticeHandler func(key, keyvalue, keytype string)
 
-func NewConfigSdk(selfgroup, selfname, servergroup, serverhost string) (*Sdk, error) {
+func NewConfigSdk(selfgroup, selfname, servergroup, serverhost, secret string) (*Sdk, error) {
 	tmpclient, e := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost)
 	if e != nil {
 		return nil, e
 	}
 	instance := &Sdk{
 		client:     api.NewConfigWebClient(tmpclient),
+		secret:     secret,
 		wait:       make(chan *struct{}, 1),
 		keys:       make(map[string]*api.WatchData),
 		keysnotice: make(map[string]NoticeHandler),
@@ -55,10 +59,11 @@ func (instance *Sdk) watch(selfgroup, selfname string) {
 		instance.ctx, instance.cancel = context.WithCancel(context.Background())
 		instance.lker.Unlock()
 		resp, e := instance.client.Watch(instance.ctx, &api.WatchReq{Groupname: selfgroup, Appname: selfname, Keys: keys}, nil)
-		if e != nil && !cerror.Equal(e, cerror.ErrCanceled) && e != context.Canceled {
-			log.Error(nil, "[config.sdk.watch] keys:", keys, "error:", e)
+		if e != nil && !cerror.Equal(e, cerror.ErrCanceled) {
+			log.Error(nil, "[config.sdk.watch] keys:", keys, e)
 			time.Sleep(time.Millisecond * 100)
 		} else if e == nil {
+			broken := false
 			instance.lker.Lock()
 			for key, data := range resp.Datas {
 				if keys[key] == data.Version {
@@ -70,6 +75,15 @@ func (instance *Sdk) watch(selfgroup, selfname string) {
 					//already deleted
 					continue
 				}
+				if data.Version != 0 && instance.secret != "" {
+					plaintext, e := util.Decrypt(instance.secret, data.Value)
+					if e != nil {
+						broken = true
+						log.Error(nil, "[config.sdk.watch] key:", data.Key, e)
+						continue
+					}
+					data.Value = common.Byte2str(plaintext)
+				}
 				instance.keys[key] = data
 				notice, ok := instance.keysnotice[key]
 				if !ok || notice == nil {
@@ -78,6 +92,9 @@ func (instance *Sdk) watch(selfgroup, selfname string) {
 				notice(key, data.Value, data.ValueType)
 			}
 			instance.lker.Unlock()
+			if broken {
+				time.Sleep(time.Millisecond * 100)
+			}
 		}
 		instance.cancel()
 	}

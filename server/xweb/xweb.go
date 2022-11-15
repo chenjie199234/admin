@@ -100,6 +100,6 @@ func UpdateWebPathRewrite(rewrite map[string]map[string]string) {
 // StopWebServer -
 func StopWebServer() {
 	if s != nil {
-		s.StopWebServer()
+		s.StopWebServer(false)
 	}
 }

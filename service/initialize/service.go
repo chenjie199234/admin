@@ -15,6 +15,7 @@ import (
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	publicmids "github.com/chenjie199234/Corelib/mids"
+	"github.com/chenjie199234/Corelib/pool"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -30,6 +31,7 @@ func Start() *Service {
 	}
 }
 
+// Init 初始化项目
 func (s *Service) Init(ctx context.Context, req *api.InitReq) (*api.InitResp, error) {
 	if e := s.initializeDao.MongoInit(ctx, req.Password); e != nil {
 		log.Error(ctx, "[Init]", e)
@@ -37,6 +39,8 @@ func (s *Service) Init(ctx context.Context, req *api.InitReq) (*api.InitResp, er
 	}
 	return &api.InitResp{}, nil
 }
+
+// RootLogin 登录
 func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.RootLoginResp, error) {
 	user, e := s.initializeDao.MongoRootLogin(ctx)
 	if e != nil {
@@ -49,6 +53,8 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, user.ID.Hex())
 	return &api.RootLoginResp{Token: tokenstr}, nil
 }
+
+// RootPassword 更新密码
 func (s *Service) RootPassword(ctx context.Context, req *api.RootPasswordReq) (*api.RootPasswordResp, error) {
 	if e := s.initializeDao.MongoRootPassword(ctx, req.OldPassword, req.NewPassword); e != nil {
 		log.Error(ctx, "[RootPassword]", e)
@@ -57,21 +63,23 @@ func (s *Service) RootPassword(ctx context.Context, req *api.RootPasswordReq) (*
 	return &api.RootPasswordResp{}, nil
 }
 
-// 创建项目
+// CreateProject 创建项目
 func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) (*api.CreateProjectResp, error) {
 	md := metadata.GetMetadata(ctx)
 	//only super admin can create project
 	if md["Token-Data"] != primitive.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
-	if e := s.initializeDao.MongoCreateProject(ctx, req.ProjectName, req.ProjectData); e != nil {
+	str, e := s.initializeDao.MongoCreateProject(ctx, req.ProjectName, req.ProjectData)
+	if e != nil {
 		log.Error(ctx, "[CreateProject] operator:", md["Token-Data"], "Name:", req.ProjectName, "Data:", req.ProjectData, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	return &api.CreateProjectResp{}, nil
+	projectid, _ := util.ParseNodeIDstr(str)
+	return &api.CreateProjectResp{ProjectId: projectid}, nil
 }
 
-// 获取项目列表
+// ListProject 获取项目列表
 func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*api.ListProjectResp, error) {
 	md := metadata.GetMetadata(ctx)
 	nodes, e := s.initializeDao.MongoListProject(ctx)
@@ -89,12 +97,35 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 			return nil, ecode.ErrSystem
 		}
 		resp.Projects = append(resp.Projects, &api.ProjectInfo{
-			NodeId:      nodeid,
+			ProjectId:   nodeid,
 			ProjectName: node.NodeName,
 			ProjectData: node.NodeData,
 		})
 	}
 	return resp, nil
+}
+
+// DeleteProject 删除项目
+func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) (*api.DeleteProjectResp, error) {
+	md := metadata.GetMetadata(ctx)
+	//only super admin can create project
+	if md["Token-Data"] != primitive.NilObjectID.Hex() {
+		return nil, ecode.ErrPermission
+	}
+	buf := pool.GetBuffer()
+	defer pool.PutBuffer(buf)
+	for i, v := range req.ProjectId {
+		buf.AppendUint32(v)
+		if i != len(req.ProjectId)-1 {
+			buf.AppendByte(',')
+		}
+	}
+	projectid := buf.String()
+	if e := s.initializeDao.MongoDelProject(ctx, projectid); e != nil {
+		log.Error(ctx, "[DeleteProject] operator:", md["Token-Data"], "Name:", projectid, e)
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	return &api.DeleteProjectResp{}, nil
 }
 
 // Stop -

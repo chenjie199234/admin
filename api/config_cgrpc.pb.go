@@ -16,13 +16,13 @@ import (
 
 var _CGrpcPathConfigGroups = "/admin.config/groups"
 var _CGrpcPathConfigApps = "/admin.config/apps"
+var _CGrpcPathConfigCreateApp = "/admin.config/create_app"
 var _CGrpcPathConfigDelApp = "/admin.config/del_app"
+var _CGrpcPathConfigUpdateAppSecret = "/admin.config/update_app_secret"
 var _CGrpcPathConfigKeys = "/admin.config/keys"
 var _CGrpcPathConfigDelKey = "/admin.config/del_key"
-var _CGrpcPathConfigCreate = "/admin.config/create"
-var _CGrpcPathConfigUpdatecipher = "/admin.config/updatecipher"
-var _CGrpcPathConfigGet = "/admin.config/get"
-var _CGrpcPathConfigSet = "/admin.config/set"
+var _CGrpcPathConfigGetKeyConfig = "/admin.config/get_key_config"
+var _CGrpcPathConfigSetKeyConfig = "/admin.config/set_key_config"
 var _CGrpcPathConfigRollback = "/admin.config/rollback"
 var _CGrpcPathConfigWatch = "/admin.config/watch"
 
@@ -31,20 +31,20 @@ type ConfigCGrpcClient interface {
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
 	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
+	// create one specific app
+	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
+	// update one specific app's secret
+	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
 	// get all config's keys in one specific app
 	Keys(context.Context, *KeysReq) (*KeysResp, error)
 	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	// create one specific app
-	Create(context.Context, *CreateReq) (*CreateResp, error)
-	// update one specific app's cipher
-	Updatecipher(context.Context, *UpdatecipherReq) (*UpdatecipherResp, error)
 	// get config
-	Get(context.Context, *GetReq) (*GetResp, error)
+	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
 	// set config
-	Set(context.Context, *SetReq) (*SetResp, error)
+	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
@@ -79,12 +79,32 @@ func (c *configCGrpcClient) Apps(ctx context.Context, req *AppsReq) (*AppsResp, 
 	}
 	return resp, nil
 }
+func (c *configCGrpcClient) CreateApp(ctx context.Context, req *CreateAppReq) (*CreateAppResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(CreateAppResp)
+	if e := c.cc.Call(ctx, _CGrpcPathConfigCreateApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
 func (c *configCGrpcClient) DelApp(ctx context.Context, req *DelAppReq) (*DelAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelAppResp)
 	if e := c.cc.Call(ctx, _CGrpcPathConfigDelApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *configCGrpcClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecretReq) (*UpdateAppSecretResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(UpdateAppSecretResp)
+	if e := c.cc.Call(ctx, _CGrpcPathConfigUpdateAppSecret, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -109,42 +129,22 @@ func (c *configCGrpcClient) DelKey(ctx context.Context, req *DelKeyReq) (*DelKey
 	}
 	return resp, nil
 }
-func (c *configCGrpcClient) Create(ctx context.Context, req *CreateReq) (*CreateResp, error) {
+func (c *configCGrpcClient) GetKeyConfig(ctx context.Context, req *GetKeyConfigReq) (*GetKeyConfigResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
-	resp := new(CreateResp)
-	if e := c.cc.Call(ctx, _CGrpcPathConfigCreate, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	resp := new(GetKeyConfigResp)
+	if e := c.cc.Call(ctx, _CGrpcPathConfigGetKeyConfig, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *configCGrpcClient) Updatecipher(ctx context.Context, req *UpdatecipherReq) (*UpdatecipherResp, error) {
+func (c *configCGrpcClient) SetKeyConfig(ctx context.Context, req *SetKeyConfigReq) (*SetKeyConfigResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
-	resp := new(UpdatecipherResp)
-	if e := c.cc.Call(ctx, _CGrpcPathConfigUpdatecipher, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
-func (c *configCGrpcClient) Get(ctx context.Context, req *GetReq) (*GetResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	resp := new(GetResp)
-	if e := c.cc.Call(ctx, _CGrpcPathConfigGet, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
-func (c *configCGrpcClient) Set(ctx context.Context, req *SetReq) (*SetResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	resp := new(SetResp)
-	if e := c.cc.Call(ctx, _CGrpcPathConfigSet, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	resp := new(SetKeyConfigResp)
+	if e := c.cc.Call(ctx, _CGrpcPathConfigSetKeyConfig, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -175,20 +175,20 @@ type ConfigCGrpcServer interface {
 	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
 	// get all apps in one specific group
 	Apps(context.Context, *AppsReq) (*AppsResp, error)
+	// create one specific app
+	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
+	// update one specific app's secret
+	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
 	// get all config's keys in one specific app
 	Keys(context.Context, *KeysReq) (*KeysResp, error)
 	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	// create one specific app
-	Create(context.Context, *CreateReq) (*CreateResp, error)
-	// update one specific app's cipher
-	Updatecipher(context.Context, *UpdatecipherReq) (*UpdatecipherResp, error)
 	// get config
-	Get(context.Context, *GetReq) (*GetResp, error)
+	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
 	// set config
-	Set(context.Context, *SetReq) (*SetResp, error)
+	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
@@ -236,6 +236,29 @@ func _Config_Apps_CGrpcHandler(handler func(context.Context, *AppsReq) (*AppsRes
 		ctx.Write(resp)
 	}
 }
+func _Config_CreateApp_CGrpcHandler(handler func(context.Context, *CreateAppReq) (*CreateAppResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(CreateAppReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/create_app]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(CreateAppResp)
+		}
+		ctx.Write(resp)
+	}
+}
 func _Config_DelApp_CGrpcHandler(handler func(context.Context, *DelAppReq) (*DelAppResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(DelAppReq)
@@ -255,6 +278,29 @@ func _Config_DelApp_CGrpcHandler(handler func(context.Context, *DelAppReq) (*Del
 		}
 		if resp == nil {
 			resp = new(DelAppResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _Config_UpdateAppSecret_CGrpcHandler(handler func(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(UpdateAppSecretReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/update_app_secret]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(UpdateAppSecretResp)
 		}
 		ctx.Write(resp)
 	}
@@ -305,15 +351,15 @@ func _Config_DelKey_CGrpcHandler(handler func(context.Context, *DelKeyReq) (*Del
 		ctx.Write(resp)
 	}
 }
-func _Config_Create_CGrpcHandler(handler func(context.Context, *CreateReq) (*CreateResp, error)) cgrpc.OutsideHandler {
+func _Config_GetKeyConfig_CGrpcHandler(handler func(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
-		req := new(CreateReq)
+		req := new(GetKeyConfigReq)
 		if ctx.DecodeReq(req) != nil {
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/create]", errstr)
+			log.Error(ctx, "[/admin.config/get_key_config]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -323,20 +369,20 @@ func _Config_Create_CGrpcHandler(handler func(context.Context, *CreateReq) (*Cre
 			return
 		}
 		if resp == nil {
-			resp = new(CreateResp)
+			resp = new(GetKeyConfigResp)
 		}
 		ctx.Write(resp)
 	}
 }
-func _Config_Updatecipher_CGrpcHandler(handler func(context.Context, *UpdatecipherReq) (*UpdatecipherResp, error)) cgrpc.OutsideHandler {
+func _Config_SetKeyConfig_CGrpcHandler(handler func(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
-		req := new(UpdatecipherReq)
+		req := new(SetKeyConfigReq)
 		if ctx.DecodeReq(req) != nil {
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/updatecipher]", errstr)
+			log.Error(ctx, "[/admin.config/set_key_config]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -346,53 +392,7 @@ func _Config_Updatecipher_CGrpcHandler(handler func(context.Context, *Updateciph
 			return
 		}
 		if resp == nil {
-			resp = new(UpdatecipherResp)
-		}
-		ctx.Write(resp)
-	}
-}
-func _Config_Get_CGrpcHandler(handler func(context.Context, *GetReq) (*GetResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(GetReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/get]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(GetResp)
-		}
-		ctx.Write(resp)
-	}
-}
-func _Config_Set_CGrpcHandler(handler func(context.Context, *SetReq) (*SetResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(SetReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/set]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(SetResp)
+			resp = new(SetKeyConfigResp)
 		}
 		ctx.Write(resp)
 	}
@@ -448,13 +448,13 @@ func RegisterConfigCGrpcServer(engine *cgrpc.CGrpcServer, svc ConfigCGrpcServer,
 	_ = allmids
 	engine.RegisterHandler("admin.config", "groups", _Config_Groups_CGrpcHandler(svc.Groups))
 	engine.RegisterHandler("admin.config", "apps", _Config_Apps_CGrpcHandler(svc.Apps))
+	engine.RegisterHandler("admin.config", "create_app", _Config_CreateApp_CGrpcHandler(svc.CreateApp))
 	engine.RegisterHandler("admin.config", "del_app", _Config_DelApp_CGrpcHandler(svc.DelApp))
+	engine.RegisterHandler("admin.config", "update_app_secret", _Config_UpdateAppSecret_CGrpcHandler(svc.UpdateAppSecret))
 	engine.RegisterHandler("admin.config", "keys", _Config_Keys_CGrpcHandler(svc.Keys))
 	engine.RegisterHandler("admin.config", "del_key", _Config_DelKey_CGrpcHandler(svc.DelKey))
-	engine.RegisterHandler("admin.config", "create", _Config_Create_CGrpcHandler(svc.Create))
-	engine.RegisterHandler("admin.config", "updatecipher", _Config_Updatecipher_CGrpcHandler(svc.Updatecipher))
-	engine.RegisterHandler("admin.config", "get", _Config_Get_CGrpcHandler(svc.Get))
-	engine.RegisterHandler("admin.config", "set", _Config_Set_CGrpcHandler(svc.Set))
+	engine.RegisterHandler("admin.config", "get_key_config", _Config_GetKeyConfig_CGrpcHandler(svc.GetKeyConfig))
+	engine.RegisterHandler("admin.config", "set_key_config", _Config_SetKeyConfig_CGrpcHandler(svc.SetKeyConfig))
 	engine.RegisterHandler("admin.config", "rollback", _Config_Rollback_CGrpcHandler(svc.Rollback))
 	engine.RegisterHandler("admin.config", "watch", _Config_Watch_CGrpcHandler(svc.Watch))
 }

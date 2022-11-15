@@ -45,6 +45,11 @@ service initialize{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
+	//删除项目
+	rpc delete_project(delete_project_req)returns(delete_project_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
 }
 //req can be set with pbex extentions
 //message examplereq{
@@ -78,9 +83,10 @@ message create_project_req{
 	string project_data=2;
 }
 message create_project_resp{
+	repeated uint32 project_id=1;
 }
 message project_info{
-	repeated uint32 node_id=1;
+	repeated uint32 project_id=1;
 	string project_name=2;
 	string project_data=3;
 }
@@ -88,4 +94,9 @@ message list_project_req{
 }
 message list_project_resp{
 	repeated project_info projects=1;
+}
+message delete_project_req{
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+}
+message delete_project_resp{
 }

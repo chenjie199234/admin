@@ -13,8 +13,8 @@ var (
 	ErrSystem     = cerror.ErrSystem     //10003 // http code 500
 	ErrToken      = cerror.ErrToken      //10004 // http code 401
 	ErrSession    = cerror.ErrSession    //10005 // http code 401
-	ErrAccessKey  = cerror.ErrAccessKey  //10006 // http code 401
-	ErrAccessSign = cerror.ErrAccessSign //10007 // http code 401
+	ErrKey        = cerror.ErrKey        //10006 // http code 401
+	ErrSign       = cerror.ErrSign       //10007 // http code 401
 	ErrPermission = cerror.ErrPermission //10008 // http code 403
 	ErrTooFast    = cerror.ErrTooFast    //10009 // http code 403
 	ErrBan        = cerror.ErrBan        //10010 // http code 403
@@ -26,13 +26,14 @@ var (
 	ErrPasswordWrong    = cerror.MakeError(20003, http.StatusBadRequest, "password wrong")
 	ErrOldPasswordWrong = cerror.MakeError(20004, http.StatusBadRequest, "old password wrong")
 
-	ErrAppNotExist     = cerror.MakeError(20010, http.StatusBadRequest, "app doesn't exist")
-	ErrKeyNotExist     = cerror.MakeError(20011, http.StatusBadRequest, "key doesn't exist")
-	ErrAppAlreadyExist = cerror.MakeError(20012, http.StatusBadRequest, "app already exist")
-	ErrKeyAlreadyExist = cerror.MakeError(20013, http.StatusBadRequest, "key already exist")
-	ErrIndexNotExist   = cerror.MakeError(20014, http.StatusBadRequest, "config index doesn't exist")
-	ErrWrongCipher     = cerror.MakeError(20015, http.StatusBadRequest, "wrong cipher")
-	ErrCipherLength    = cerror.MakeError(20016, http.StatusBadRequest, "cipher must be empty or 32 byte length")
+	ErrAppNotExist      = cerror.MakeError(20010, http.StatusBadRequest, "app doesn't exist")
+	ErrKeyNotExist      = cerror.MakeError(20011, http.StatusBadRequest, "key doesn't exist")
+	ErrAppAlreadyExist  = cerror.MakeError(20012, http.StatusBadRequest, "app already exist")
+	ErrKeyAlreadyExist  = cerror.MakeError(20013, http.StatusBadRequest, "key already exist")
+	ErrIndexNotExist    = cerror.MakeError(20014, http.StatusBadRequest, "config index doesn't exist")
+	ErrWrongSecret      = cerror.MakeError(20015, http.StatusBadRequest, "wrong secret")
+	ErrSecretLength     = cerror.MakeError(20016, http.StatusBadRequest, "secret length must less then 32")
+	ErrConfigDataBroken = cerror.MakeError(20017, http.StatusBadRequest, "config data broken")
 
 	ErrNodeNotExist       = cerror.MakeError(20100, http.StatusBadRequest, "node not exist")
 	ErrPNodeNotExist      = cerror.MakeError(20101, http.StatusBadRequest, "parent node not exist")

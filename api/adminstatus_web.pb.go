@@ -15,6 +15,7 @@ import (
 	web "github.com/chenjie199234/Corelib/web"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
+	io "io"
 	http "net/http"
 	strings "strings"
 )
@@ -55,22 +56,25 @@ func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.He
 		// drop last &
 		querystr = querystr[:len(querystr)-1]
 	}
-	ct, data, e := c.cc.Get(ctx, _WebPathStatusPing, querystr, header, metadata.GetMetadata(ctx))
+	r, e := c.cc.Get(ctx, _WebPathStatusPing, querystr, header, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(Pingresp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }

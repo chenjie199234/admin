@@ -29,6 +29,7 @@ CONFIG_TYPE                             配置类型
                                         0-使用本地配置
                                         1-使用远程配置中心config服务
 REMOTE_CONFIG_MONGO_URL                 当CONFIG_TYPE为1时,配置中心mongodb的url,[mongodb/mongodb+srv]://[username:password@]host1,...,hostN[/dbname][?param1=value1&...&paramN=valueN]
+REMOTE_CONFIG_SECRET                    当CONFIG_TYPE为1时,配置中心配置的密钥
 ```
 
 ## 配置文件
@@ -38,7 +39,7 @@ SourceConfig.json该文件配置了该服务需要使用的资源配置,不热�
 ```
 
 ## DB
-### Mongo
+### Mongo(ReplicaSet mode)(Version >= 4.4)
 #### config
 ```
 database: config_{groupname}
@@ -48,7 +49,6 @@ collection: {appname}
 	"_id":ObjectId("xxxx"),
 	"key":"",//always empty
 	"index":0,//always be 0
-	"cipher":"",
 	"keys":{
 		"config_key1":{
 			"cur_index":0,
@@ -62,7 +62,9 @@ collection: {appname}
 			"cur_version":0,//auto increment(every time insert or rollback)
 			"cur_value":"xxx"
 		}
-	}
+	},
+	"value":"",//this is a random str + it's sha512 sign,this is used to check the secret
+	"permission_node_id":"",
 }//summary
 {
 	"_id":ObjectId("xxx"),

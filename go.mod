@@ -3,11 +3,11 @@ module github.com/chenjie199234/admin
 go 1.18
 
 require (
-	github.com/chenjie199234/Corelib v0.0.74-0.20221031111207-3a252c773551
+	github.com/chenjie199234/Corelib v0.0.74-0.20221115153958-2e4367ce7daf
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/segmentio/kafka-go v0.4.35
-	go.mongodb.org/mongo-driver v1.10.3
+	github.com/segmentio/kafka-go v0.4.38
+	go.mongodb.org/mongo-driver v1.11.0
 	golang.org/x/net v0.1.0
 	google.golang.org/protobuf v1.28.1
 )
@@ -16,7 +16,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
-	github.com/klauspost/compress v1.15.7 // indirect
+	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

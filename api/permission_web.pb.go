@@ -15,6 +15,7 @@ import (
 	web "github.com/chenjie199234/Corelib/web"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
+	io "io"
 	http "net/http"
 	strings "strings"
 )
@@ -61,22 +62,25 @@ func (c *permissionWebClient) GetUserPermission(ctx context.Context, req *GetUse
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionGetUserPermission, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionGetUserPermission, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(GetUserPermissionResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -90,22 +94,25 @@ func (c *permissionWebClient) UpdateUserPermission(ctx context.Context, req *Upd
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionUpdateUserPermission, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionUpdateUserPermission, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(UpdateUserPermissionResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -119,22 +126,25 @@ func (c *permissionWebClient) UpdateRolePermission(ctx context.Context, req *Upd
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionUpdateRolePermission, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionUpdateRolePermission, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(UpdateRolePermissionResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -148,22 +158,25 @@ func (c *permissionWebClient) AddNode(ctx context.Context, req *AddNodeReq, head
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionAddNode, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionAddNode, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(AddNodeResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -177,22 +190,25 @@ func (c *permissionWebClient) UpdateNode(ctx context.Context, req *UpdateNodeReq
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionUpdateNode, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionUpdateNode, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(UpdateNodeResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -206,22 +222,25 @@ func (c *permissionWebClient) MoveNode(ctx context.Context, req *MoveNodeReq, he
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionMoveNode, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionMoveNode, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(MoveNodeResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -235,22 +254,25 @@ func (c *permissionWebClient) DelNode(ctx context.Context, req *DelNodeReq, head
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionDelNode, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionDelNode, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(DelNodeResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -264,22 +286,25 @@ func (c *permissionWebClient) ListUserNode(ctx context.Context, req *ListUserNod
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionListUserNode, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionListUserNode, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(ListUserNodeResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -293,22 +318,25 @@ func (c *permissionWebClient) ListRoleNode(ctx context.Context, req *ListRoleNod
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionListRoleNode, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionListRoleNode, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(ListRoleNodeResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }
@@ -322,22 +350,25 @@ func (c *permissionWebClient) ListProjectNode(ctx context.Context, req *ListProj
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	ct, data, e := c.cc.Post(ctx, _WebPathPermissionListProjectNode, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathPermissionListProjectNode, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(ListProjectNodeResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
-	if ct == "application/x-protobuf" {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
 		if e := proto.Unmarshal(data, resp); e != nil {
 			return nil, cerror.ErrResp
 		}
-	} else {
-		if e := protojson.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
 	}
 	return resp, nil
 }

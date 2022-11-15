@@ -40,3 +40,11 @@ func (m *CreateProjectReq) Validate() (errstr string) {
 	}
 	return ""
 }
+
+// return empty means pass
+func (m *DeleteProjectReq) Validate() (errstr string) {
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: delete_project_req check len eq failed"
+	}
+	return ""
+}

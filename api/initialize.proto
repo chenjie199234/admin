@@ -61,20 +61,20 @@ service initialize{
 //}
 
 message init_req{
-	string password=1[(pbex.string_bytes_len_not_eq)=0];
+	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
 }
 message init_resp{
 
 }
 message root_login_req{
-	string password=1[(pbex.string_bytes_len_not_eq)=0];
+	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
 }
 message root_login_resp{
 	string token=1;
 }
 message root_password_req{
-	string old_password=1[(pbex.string_bytes_len_not_eq)=0];
-	string new_password=2[(pbex.string_bytes_len_not_eq)=0];
+	string old_password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
+	string new_password=2[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
 }
 message root_password_resp{
 }

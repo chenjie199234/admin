@@ -23,8 +23,9 @@ var (
 
 	ErrNotInited        = cerror.MakeError(20001, http.StatusBadRequest, "not inited")
 	ErrAlreadyInited    = cerror.MakeError(20002, http.StatusBadRequest, "already inited")
-	ErrPasswordWrong    = cerror.MakeError(20003, http.StatusBadRequest, "password wrong")
-	ErrOldPasswordWrong = cerror.MakeError(20004, http.StatusBadRequest, "old password wrong")
+	ErrPasswordLength   = cerror.MakeError(20003, http.StatusBadRequest, "password length must less then 32")
+	ErrPasswordWrong    = cerror.MakeError(20004, http.StatusBadRequest, "password wrong")
+	ErrOldPasswordWrong = cerror.MakeError(20005, http.StatusBadRequest, "old password wrong")
 
 	ErrAppNotExist      = cerror.MakeError(20010, http.StatusBadRequest, "app doesn't exist")
 	ErrKeyNotExist      = cerror.MakeError(20011, http.StatusBadRequest, "key doesn't exist")

@@ -2,11 +2,13 @@ package initialize
 
 import (
 	"context"
+	"crypto/rand"
 	"strconv"
 	"time"
 
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
+	"github.com/chenjie199234/admin/util"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,6 +19,9 @@ import (
 )
 
 func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
+	if len(password) >= 32 {
+		return ecode.ErrPasswordLength
+	}
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -34,10 +39,12 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 			s.AbortTransaction(sctx)
 		}
 	}()
+	nonce := make([]byte, 16)
+	rand.Read(nonce)
 	if _, e = d.mongo.Database("user").Collection("user").InsertOne(sctx, &model.User{
 		ID:         primitive.NilObjectID,
 		UserName:   "superadmin",
-		Password:   password,
+		Password:   util.SignMake(password, nonce),
 		Department: []string{},
 		Ctime:      uint32(time.Now().Unix()),
 		Roles:      []string{},
@@ -122,12 +129,42 @@ func (d *Dao) MongoRootLogin(ctx context.Context) (*model.User, error) {
 	}
 	return user, nil
 }
-func (d *Dao) MongoRootPassword(ctx context.Context, oldpassword, newpassword string) error {
-	r, e := d.mongo.Database("user").Collection("user").UpdateOne(ctx, bson.M{"_id": primitive.NilObjectID, "password": oldpassword}, bson.M{"$set": bson.M{"password": newpassword}})
-	if e == nil && r.MatchedCount == 0 {
+func (d *Dao) MongoRootPassword(ctx context.Context, oldpassword, newpassword string) (e error) {
+	if len(oldpassword) >= 32 || len(newpassword) >= 32 {
+		return ecode.ErrPasswordLength
+	}
+	var s mongo.Session
+	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
+	if e != nil {
+		return
+	}
+	defer s.EndSession(ctx)
+	sctx := mongo.NewSessionContext(ctx, s)
+	if e = s.StartTransaction(); e != nil {
+		return
+	}
+	defer func() {
+		if e != nil {
+			s.AbortTransaction(sctx)
+		} else if e = s.CommitTransaction(sctx); e != nil {
+			s.AbortTransaction(sctx)
+		}
+	}()
+	nonce := make([]byte, 16)
+	rand.Read(nonce)
+	user := &model.User{}
+	filter := bson.M{"_id": primitive.NilObjectID}
+	updater := bson.M{"password": util.SignMake(newpassword, nonce)}
+	if e = d.mongo.Database("user").Collection("user").FindOneAndUpdate(ctx, filter, bson.M{"$set": updater}).Decode(user); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrNotInited
+		}
+		return
+	}
+	if e = util.SignCheck(oldpassword, user.Password); e != nil {
 		e = ecode.ErrOldPasswordWrong
 	}
-	return e
+	return
 }
 func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata string) (nodeid string, e error) {
 	var s mongo.Session

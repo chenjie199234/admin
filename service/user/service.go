@@ -167,10 +167,8 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 			if !canread && !admin {
 				return nil, ecode.ErrPermission
 			}
-		} else {
-			if !admin {
-				return nil, ecode.ErrPermission
-			}
+		} else if !admin {
+			return nil, ecode.ErrPermission
 		}
 	}
 
@@ -196,6 +194,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	if resp.Page == 0 {
 		resp.Pagesize = resp.Totalsize
 	}
+	//if search user only in the required project,the role should be only in the project too
 	for _, user := range users {
 		undup := make(map[string]*api.UserRoleInfo, len(user.Roles))
 		for _, role := range user.Roles {
@@ -437,12 +436,12 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 		if !admin {
 			return nil, ecode.ErrPermission
 		}
-		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.RoleControl, true)
+		_, _, admin, e = s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.RoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[AddUserRole] operator:", md["Token-Data"], "project:", project, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
-		if !canread && !admin {
+		if !admin {
 			return nil, ecode.ErrPermission
 		}
 	}

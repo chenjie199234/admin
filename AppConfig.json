@@ -8,7 +8,10 @@
 		"/admin.config/watch":{
 			"POST":"0s"
 		},
-		"/admin.config/updatechiper":{
+		"/admin.config/update_app_secret":{
+			"POST":"0s"
+		},
+		"/admin.initialize/delete_project":{
 			"POST":"0s"
 		}
 	},

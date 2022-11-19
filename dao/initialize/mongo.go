@@ -48,6 +48,7 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		Department: []string{},
 		Ctime:      uint32(time.Now().Unix()),
 		Roles:      []string{},
+		Projects:   []string{},
 	}); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	} else if e != nil {
@@ -162,7 +163,7 @@ func (d *Dao) MongoRootPassword(ctx context.Context, oldpassword, newpassword st
 		return
 	}
 	if e = util.SignCheck(oldpassword, user.Password); e != nil {
-		e = ecode.ErrOldPasswordWrong
+		e = ecode.ErrPasswordWrong
 	}
 	return
 }

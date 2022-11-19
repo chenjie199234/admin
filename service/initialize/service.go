@@ -107,6 +107,10 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 
 // DeleteProject 删除项目
 func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) (*api.DeleteProjectResp, error) {
+	//0,1 -> project:admin can't be deleted
+	if req.ProjectId[0] != 0 || req.ProjectId[1] == 1 {
+		return nil, ecode.ErrReq
+	}
 	md := metadata.GetMetadata(ctx)
 	//only super admin can create project
 	if md["Token-Data"] != primitive.NilObjectID.Hex() {

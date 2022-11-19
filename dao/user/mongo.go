@@ -28,25 +28,8 @@ func (d *Dao) MongoInvite(ctx context.Context, operator primitive.ObjectID, proj
 	if !strings.HasPrefix(project, "0,") || strings.Count(project, ",") != 1 {
 		return ecode.ErrReq
 	}
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
-		return
-	}
-	defer s.EndSession(ctx)
-	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
-		return
-	}
-	defer func() {
-		if e != nil {
-			s.AbortTransaction(sctx)
-		} else if e = s.CommitTransaction(sctx); e != nil {
-			s.AbortTransaction(sctx)
-		}
-	}()
 	var r *mongo.UpdateResult
-	r, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, bson.M{"_id": target}, bson.M{"$addToSet": bson.M{"projects": project}})
+	r, e = d.mongo.Database("user").Collection("user").UpdateOne(ctx, bson.M{"_id": target}, bson.M{"$addToSet": bson.M{"projects": project}})
 	if e != nil {
 		return
 	}
@@ -57,13 +40,6 @@ func (d *Dao) MongoInvite(ctx context.Context, operator primitive.ObjectID, proj
 		e = ecode.ErrUserAlreadyInvited
 		return
 	}
-	_, e = d.mongo.Database("permission").Collection("usernode").InsertOne(sctx, &model.UserNode{
-		UserId: target,
-		NodeId: project,
-		R:      true,
-		W:      false,
-		X:      false,
-	})
 	return
 }
 func (d *Dao) MongoKick(ctx context.Context, operator primitive.ObjectID, project string, target primitive.ObjectID) (e error) {
@@ -178,24 +154,7 @@ func (d *Dao) MongoDelUsers(ctx context.Context, userids []primitive.ObjectID) (
 }
 
 func (d *Dao) MongoCreateRole(ctx context.Context, project, name, comment string) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
-		return
-	}
-	defer s.EndSession(ctx)
-	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
-		return
-	}
-	defer func() {
-		if e != nil {
-			s.AbortTransaction(sctx)
-		} else if e = s.CommitTransaction(sctx); e != nil {
-			s.AbortTransaction(sctx)
-		}
-	}()
-	if _, e = d.mongo.Database("user").Collection("role").InsertOne(sctx, &model.Role{
+	if _, e = d.mongo.Database("user").Collection("role").InsertOne(ctx, &model.Role{
 		Project:  project,
 		RoleName: name,
 		Comment:  comment,
@@ -206,15 +165,6 @@ func (d *Dao) MongoCreateRole(ctx context.Context, project, name, comment string
 		}
 		return e
 	}
-	//default has read project's root read permission
-	_, e = d.mongo.Database("permission").Collection("rolenode").InsertOne(sctx, &model.RoleNode{
-		Project:  project,
-		RoleName: name,
-		NodeId:   project,
-		R:        true,
-		W:        false,
-		X:        false,
-	})
 	return
 }
 

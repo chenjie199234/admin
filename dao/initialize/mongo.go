@@ -65,34 +65,35 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 	})
 	//project admin's node
 	docs = append(docs, &model.Node{
-		NodeId:       "0,1",
+		NodeId:       model.AdminProjectID,
 		NodeName:     "admin",
 		NodeData:     "",
 		CurNodeIndex: 3,
 	})
 	//project admin's user control node
 	docs = append(docs, &model.Node{
-		NodeId:       "0,1" + model.UserControl,
+		NodeId:       model.AdminProjectID + model.UserControl,
 		NodeName:     "UserControl",
 		NodeData:     "",
 		CurNodeIndex: 0,
 	})
 	//project admin's role control node
 	docs = append(docs, &model.Node{
-		NodeId:       "0,1" + model.RoleControl,
+		NodeId:       model.AdminProjectID + model.RoleControl,
 		NodeName:     "RoleControl",
 		NodeData:     "",
 		CurNodeIndex: 0,
 	})
 	//project admin's config control node
 	docs = append(docs, &model.Node{
-		NodeId:       "0,1" + model.ConfigControl,
+		NodeId:       model.AdminProjectID + model.ConfigControl,
 		NodeName:     "ConfigControl",
 		NodeData:     "",
 		CurNodeIndex: 1,
 	})
+	selfConfigNodeID := model.AdminProjectID + model.ConfigControl + ",1"
 	docs = append(docs, &model.Node{
-		NodeId:       "0,1" + model.ConfigControl + ",1",
+		NodeId:       selfConfigNodeID,
 		NodeName:     model.Group + "." + model.Name,
 		NodeData:     "",
 		CurNodeIndex: 0,
@@ -103,7 +104,7 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		e = ecode.ErrAlreadyInited
 		return
 	}
-	if _, e = d.mongo.Database("config_"+model.Group).Collection(model.Name).UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$set": bson.M{"permission_node_id": "0,1" + model.ConfigControl + ",1"}}); e != nil {
+	if _, e = d.mongo.Database("config_"+model.Group).Collection(model.Name).UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$set": bson.M{"permission_node_id": selfConfigNodeID}}); e != nil {
 		return
 	}
 	if _, e = d.mongo.Database("permission").Collection("usernode").InsertOne(sctx, &model.UserNode{

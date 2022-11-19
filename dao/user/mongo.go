@@ -123,8 +123,8 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, project, name string, limit,
 	return result, totalsize, cursor.Err()
 }
 
-func (d *Dao) MongoUpdateUser(ctx context.Context, userid primitive.ObjectID, name string, department []string) error {
-	_, e := d.mongo.Database("user").Collection("user").UpdateOne(ctx, bson.M{"_id": userid}, bson.M{"$set": bson.M{"user_name": name, "department": department}})
+func (d *Dao) MongoUpdateUser(ctx context.Context, userid primitive.ObjectID, newname string, newdepartment []string) error {
+	_, e := d.mongo.Database("user").Collection("user").UpdateOne(ctx, bson.M{"_id": userid}, bson.M{"$set": bson.M{"user_name": newname, "department": newdepartment}})
 	return e
 }
 

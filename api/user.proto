@@ -41,6 +41,11 @@ service user{
 		option (pbex.web_midwares)="token";
 	}
 
+	rpc update_user(update_user_req)returns(update_user_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
 	rpc create_role(create_role_req)returns(create_role_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
@@ -127,6 +132,13 @@ message search_users_resp {
 	uint32 page=2;
 	uint32 pagesize=3;
 	uint32 totalsize=4;
+}
+message update_user_req{
+	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
+	string new_user_name=2[(pbex.string_bytes_len_not_eq)=0];
+	repeated string new_department=3[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
+}
+message update_user_resp{
 }
 message create_role_req {
 	//first element must be 0

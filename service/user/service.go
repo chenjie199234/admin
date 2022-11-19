@@ -225,6 +225,37 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	}
 	return resp, nil
 }
+func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.UpdateUserResp, error) {
+	md := metadata.GetMetadata(ctx)
+	operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
+	if e != nil {
+		log.Error(ctx, "[UpdateUser] operator:", md["Token-Data"], "format wrong:", e)
+		return nil, ecode.ErrToken
+	}
+	target, e := primitive.ObjectIDFromHex(req.UserId)
+	if e != nil {
+		log.Error(ctx, "[UpdateUser] target:", req.UserId, "format wrong:", e)
+		return nil, ecode.ErrReq
+	}
+	if !operator.IsZero() {
+		//permission check
+		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.AdminProjectID+model.UserControl, true)
+		if e != nil {
+			log.Error(ctx, "[UpdateUser] operator:", md["Token-Data"], "project:", model.AdminProjectID, "get permission failed:", e)
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		if !canwrite && !admin {
+			return nil, ecode.ErrPermission
+		}
+	}
+
+	//logic
+	if e := s.userDao.MongoUpdateUser(ctx, target, req.NewUserName, req.NewDepartment); e != nil {
+		log.Error(ctx, "[UpdateUser] operator:", md["Token-Data"], "target:", req.UserId, "new user name:", req.NewUserName, "new department:", req.NewDepartment, e)
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	return &api.UpdateUserResp{}, nil
+}
 func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.CreateRoleResp, error) {
 	if req.Project[0] != 0 {
 		return nil, ecode.ErrReq

@@ -19,6 +19,7 @@ var _CrpcPathUserUserLogin = "/admin.user/user_login"
 var _CrpcPathUserInviteProject = "/admin.user/invite_project"
 var _CrpcPathUserKickProject = "/admin.user/kick_project"
 var _CrpcPathUserSearchUsers = "/admin.user/search_users"
+var _CrpcPathUserUpdateUser = "/admin.user/update_user"
 var _CrpcPathUserCreateRole = "/admin.user/create_role"
 var _CrpcPathUserSearchRoles = "/admin.user/search_roles"
 var _CrpcPathUserUpdateRole = "/admin.user/update_role"
@@ -31,6 +32,7 @@ type UserCrpcClient interface {
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
+	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
 	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
 	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
@@ -111,6 +113,24 @@ func (c *userCrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) (
 		return nil, e
 	}
 	resp := new(SearchUsersResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*UpdateUserResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserUpdateUser, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(UpdateUserResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -233,6 +253,7 @@ type UserCrpcServer interface {
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
+	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
 	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
 	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
@@ -327,6 +348,30 @@ func _User_SearchUsers_CrpcHandler(handler func(context.Context, *SearchUsersReq
 		}
 		if resp == nil {
 			resp = new(SearchUsersResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
+func _User_UpdateUser_CrpcHandler(handler func(context.Context, *UpdateUserReq) (*UpdateUserResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(UpdateUserReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/update_user]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(UpdateUserResp)
 		}
 		respd, _ := proto.Marshal(resp)
 		ctx.Write(respd)
@@ -483,6 +528,7 @@ func RegisterUserCrpcServer(engine *crpc.CrpcServer, svc UserCrpcServer, allmids
 	engine.RegisterHandler(_CrpcPathUserInviteProject, _User_InviteProject_CrpcHandler(svc.InviteProject))
 	engine.RegisterHandler(_CrpcPathUserKickProject, _User_KickProject_CrpcHandler(svc.KickProject))
 	engine.RegisterHandler(_CrpcPathUserSearchUsers, _User_SearchUsers_CrpcHandler(svc.SearchUsers))
+	engine.RegisterHandler(_CrpcPathUserUpdateUser, _User_UpdateUser_CrpcHandler(svc.UpdateUser))
 	engine.RegisterHandler(_CrpcPathUserCreateRole, _User_CreateRole_CrpcHandler(svc.CreateRole))
 	engine.RegisterHandler(_CrpcPathUserSearchRoles, _User_SearchRoles_CrpcHandler(svc.SearchRoles))
 	engine.RegisterHandler(_CrpcPathUserUpdateRole, _User_UpdateRole_CrpcHandler(svc.UpdateRole))

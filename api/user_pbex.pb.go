@@ -40,6 +40,25 @@ func (m *SearchUsersReq) Validate() (errstr string) {
 }
 
 // return empty means pass
+func (m *UpdateUserReq) Validate() (errstr string) {
+	if len(m.GetUserId()) == 0 {
+		return "field: user_id in object: update_user_req check value str len not eq failed"
+	}
+	if len(m.GetNewUserName()) == 0 {
+		return "field: new_user_name in object: update_user_req check value str len not eq failed"
+	}
+	if len(m.GetNewDepartment()) == 0 {
+		return "field: new_department in object: update_user_req check len not eq failed"
+	}
+	for _, v := range m.GetNewDepartment() {
+		if len(v) == 0 {
+			return "field: new_department in object: update_user_req check value str len not eq failed"
+		}
+	}
+	return ""
+}
+
+// return empty means pass
 func (m *CreateRoleReq) Validate() (errstr string) {
 	if len(m.GetProject()) != 2 {
 		return "field: project in object: create_role_req check len eq failed"

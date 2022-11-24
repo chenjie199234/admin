@@ -40,6 +40,11 @@ service initialize{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
+	//更新项目
+	rpc update_project(update_project_req)returns(update_project_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
 	//获取项目列表
 	rpc list_project(list_project_req)returns(list_project_resp){
 		option (pbex.method)="post";
@@ -84,6 +89,13 @@ message create_project_req{
 }
 message create_project_resp{
 	repeated uint32 project_id=1;
+}
+message update_project_req{
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string new_project_name=2[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
+	string new_project_data=3[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
+}
+message update_project_resp{
 }
 message project_info{
 	repeated uint32 project_id=1;

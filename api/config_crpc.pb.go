@@ -291,6 +291,11 @@ func _Config_Groups_CrpcHandler(handler func(context.Context, *GroupsReq) (*Grou
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/groups]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
 		resp, e := handler(ctx, req)
 		if e != nil {
 			ctx.Abort(e)

@@ -14,6 +14,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	"search_filter":"str"
 }
 ------------------------------------------------------------------------------------------------------------
@@ -40,6 +43,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must > 0
 	"groupname":"str",
 	"search_filter":"str"
@@ -68,6 +74,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must > 0
 	"groupname":"str",
 	//value length must > 0

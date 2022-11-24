@@ -79,6 +79,28 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 	return &api.CreateProjectResp{ProjectId: projectid}, nil
 }
 
+// UpdateProject 更新项目
+func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) (*api.UpdateProjectResp, error) {
+	md := metadata.GetMetadata(ctx)
+	//only super admin can update project
+	if md["Token-Data"] != primitive.NilObjectID.Hex() {
+		return nil, ecode.ErrPermission
+	}
+	buf := pool.GetBuffer()
+	defer pool.PutBuffer(buf)
+	for i, v := range req.ProjectId {
+		buf.AppendUint32(v)
+		if i != len(req.ProjectId)-1 {
+			buf.AppendByte(',')
+		}
+	}
+	projectid := buf.String()
+	if e := s.initializeDao.MongoUpdateProject(ctx, projectid, req.NewProjectName, req.NewProjectData); e != nil {
+		return nil, e
+	}
+	return &api.UpdateProjectResp{}, nil
+}
+
 // ListProject 获取项目列表
 func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*api.ListProjectResp, error) {
 	md := metadata.GetMetadata(ctx)

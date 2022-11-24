@@ -82,7 +82,7 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	buf2.AppendUint32(req.NodeId[0])
 	buf2.AppendByte(',')
 	buf2.AppendUint32(req.NodeId[1])
-	project := buf2.String()
+	projectid := buf2.String()
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
 	if e != nil {
@@ -96,9 +96,9 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	}
 	if !operator.IsZero() {
 		//user control permission check
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.UserControl, true)
+		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserControl, true)
 		if e != nil {
-			log.Error(ctx, "[UpdateUserPermission] operator:", md["Token-Data"], "project:", project, "get permission failed:", e)
+			log.Error(ctx, "[UpdateUserPermission] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -113,7 +113,7 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	return &api.UpdateUserPermissionResp{}, nil
 }
 func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRolePermissionReq) (*api.UpdateRolePermissionResp, error) {
-	if req.NodeId[0] != 0 || req.Project[0] != 0 || (req.Project[1] != req.NodeId[1]) {
+	if req.NodeId[0] != 0 || req.ProjectId[0] != 0 || (req.ProjectId[1] != req.NodeId[1]) {
 		return nil, ecode.ErrReq
 	}
 	if !req.Admin && req.Canwrite && !req.Canread {
@@ -130,13 +130,13 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	nodeid := buf1.String()
 	buf2 := pool.GetBuffer()
 	defer pool.PutBuffer(buf2)
-	for i, v := range req.Project {
+	for i, v := range req.ProjectId {
 		buf2.AppendUint32(v)
-		if i != len(req.Project)-1 {
+		if i != len(req.ProjectId)-1 {
 			buf2.AppendByte(',')
 		}
 	}
-	project := buf2.String()
+	projectid := buf2.String()
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
 	if e != nil {
@@ -145,9 +145,9 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	}
 	if !operator.IsZero() {
 		//role control permission check
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.RoleControl, true)
+		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.RoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[UpdateRolePermission] operator:", md["Token-Data"], "project:", project, "get permission failed:", e)
+			log.Error(ctx, "[UpdateRolePermission] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -155,8 +155,8 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 		}
 	}
 	//logic
-	if e = s.permissionDao.MongoUpdateRolePermission(ctx, operator, project, req.RoleName, nodeid, req.Admin, req.Canread, req.Canwrite); e != nil {
-		log.Error(ctx, "[UpdateRolePermission] operator:", md["Token-Data"], "project:", project, "rolename:", req.RoleName, "nodeid:", nodeid, e)
+	if e = s.permissionDao.MongoUpdateRolePermission(ctx, operator, projectid, req.RoleName, nodeid, req.Admin, req.Canread, req.Canwrite); e != nil {
+		log.Error(ctx, "[UpdateRolePermission] operator:", md["Token-Data"], "project:", projectid, "rolename:", req.RoleName, "nodeid:", nodeid, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.UpdateRolePermissionResp{}, nil
@@ -165,11 +165,11 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 	if req.PnodeId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	if req.PnodeId[1] == 1 || req.PnodeId[1] == 2 || req.PnodeId[1] == 3 {
-		//0,1 -> UserControl
-		//0,2 -> RoleControl
-		//0,3 -> ConfigControl
-		//these are default,can't modify
+	if len(req.PnodeId) >= 3 && (req.PnodeId[2] == 1 || req.PnodeId[2] == 2 || req.PnodeId[2] == 3) {
+		//0,x,1 -> UserControl
+		//0,x,2 -> RoleControl
+		//0,x,3 -> ConfigControl
+		//these are default,already exist
 		return nil, ecode.ErrReq
 	}
 	buf := pool.GetBuffer()
@@ -197,13 +197,6 @@ func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.
 	if req.NodeId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	if req.NodeId[1] == 1 || req.NodeId[1] == 2 || req.NodeId[1] == 3 {
-		//0,1 -> UserControl
-		//0,2 -> RoleControl
-		//0,3 -> ConfigControl
-		//these are default,can't modify
-		return nil, ecode.ErrReq
-	}
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
 	for i, v := range req.NodeId {
@@ -219,22 +212,48 @@ func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.
 		log.Error(ctx, "[UpdateNode] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrToken
 	}
-	if e = s.permissionDao.MongoUpdateNode(ctx, operator, nodeid, req.NodeName, req.NodeData); e != nil {
-		log.Error(ctx, "[UpdateNode] operator:", md["Token-Data"], "nodeid:", nodeid, "nodename:", req.NodeName, "nodedata:", req.NodeData, e)
+	if e = s.permissionDao.MongoUpdateNode(ctx, operator, nodeid, req.NewNodeName, req.NewNodeData); e != nil {
+		log.Error(ctx, "[UpdateNode] operator:", md["Token-Data"], "nodeid:", nodeid, "nodename:", req.NewNodeName, "nodedata:", req.NewNodeData, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.UpdateNodeResp{}, nil
 }
 func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.MoveNodeResp, error) {
 	if req.NodeId[0] != 0 || req.PnodeId[0] != 0 || (req.NodeId[1] != req.PnodeId[1]) {
+		//can't cross project
 		return nil, ecode.ErrReq
 	}
-	if req.NodeId[1] == 1 || req.NodeId[1] == 2 || req.NodeId[1] == 3 {
-		//0,1 -> UserControl
-		//0,2 -> RoleControl
-		//0,3 -> ConfigControl
+	if req.NodeId[1] == 1 || req.PnodeId[1] == 1 {
+		//0,1 -> admin project
+		//can't modify
+		return nil, ecode.ErrReq
+	}
+	if req.NodeId[2] == 1 || req.NodeId[2] == 2 || req.NodeId[2] == 3 {
+		//0,x,1 -> UserControl
+		//0,x,2 -> RoleControl
+		//0,x,3 -> ConfigControl
 		//these are default,can't modify
 		return nil, ecode.ErrReq
+	}
+	if len(req.PnodeId) >= 3 && (req.PnodeId[2] == 1 || req.PnodeId[2] == 2 || req.PnodeId[2] == 3) {
+		//0,x,1 -> UserControl
+		//0,x,2 -> RoleControl
+		//0,x,3 -> ConfigControl
+		//these are default,can't modify
+		return nil, ecode.ErrReq
+	}
+	if len(req.PnodeId)+1 == len(req.NodeId) {
+		//0,x,y,z move to 0,x,y is equal to not move
+		child := true
+		for i := range req.PnodeId {
+			if req.PnodeId[i] != req.NodeId[i] {
+				child = false
+				break
+			}
+		}
+		if child {
+			return &api.MoveNodeResp{}, nil
+		}
 	}
 	buf1 := pool.GetBuffer()
 	defer pool.PutBuffer(buf1)
@@ -248,7 +267,7 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 	buf2 := pool.GetBuffer()
 	defer pool.PutBuffer(buf2)
 	for i, v := range req.PnodeId {
-		buf1.AppendUint32(v)
+		buf2.AppendUint32(v)
 		if i != len(req.PnodeId)-1 {
 			buf2.AppendByte(',')
 		}
@@ -270,10 +289,15 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 	if req.NodeId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	if req.NodeId[1] == 1 || req.NodeId[1] == 2 || req.NodeId[1] == 3 {
-		//0,1 -> UserControl
-		//0,2 -> RoleControl
-		//0,3 -> ConfigControl
+	if req.NodeId[1] == 1 {
+		//0,1 -> admin project
+		//can't delete
+		return nil, ecode.ErrReq
+	}
+	if req.NodeId[2] == 1 || req.NodeId[2] == 2 || req.NodeId[2] == 3 {
+		//0,x,1 -> project's UserControl node
+		//0,x,2 -> project's RoleControl node
+		//0,x,3 -> project's ConfigControl node
 		//these are default,can't modify
 		return nil, ecode.ErrReq
 	}
@@ -299,14 +323,14 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 	return &api.DelNodeResp{}, nil
 }
 func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*api.ListUserNodeResp, error) {
-	if req.Project[0] != 0 {
+	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
-	for i, v := range req.Project {
+	for i, v := range req.ProjectId {
 		buf.AppendUint32(v)
-		if i != len(req.Project)-1 {
+		if i != len(req.ProjectId)-1 {
 			buf.AppendByte(',')
 		}
 	}
@@ -502,14 +526,14 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	return &api.ListUserNodeResp{Nodes: root.Children}, nil
 }
 func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*api.ListRoleNodeResp, error) {
-	if req.Project[0] != 0 {
+	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
-	for i, v := range req.Project {
+	for i, v := range req.ProjectId {
 		buf.AppendUint32(v)
-		if i != len(req.Project)-1 {
+		if i != len(req.ProjectId)-1 {
 			buf.AppendByte(',')
 		}
 	}
@@ -651,14 +675,14 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	return &api.ListRoleNodeResp{Nodes: root.Children}, nil
 }
 func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeReq) (*api.ListProjectNodeResp, error) {
-	if req.Project[0] != 0 {
+	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
-	for i, v := range req.Project {
+	for i, v := range req.ProjectId {
 		buf.AppendUint32(v)
-		if i != len(req.Project)-1 {
+		if i != len(req.ProjectId)-1 {
 			buf.AppendByte(',')
 		}
 	}
@@ -666,11 +690,11 @@ func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeR
 	md := metadata.GetMetadata(ctx)
 	nodes, e := s.permissionDao.MongoListNodes(ctx, project, true)
 	if e != nil {
-		log.Error(ctx, "[ListAllNode] operator:", md["Token-Data"], "project:", req.Project, e)
+		log.Error(ctx, "[ListAllNode] operator:", md["Token-Data"], "project:", req.ProjectId, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectnode := &api.NodeInfo{
-		NodeId:   req.Project,
+		NodeId:   req.ProjectId,
 		Children: make([]*api.NodeInfo, 0, 10),
 	}
 	sort.Slice(nodes, func(i, j int) bool {

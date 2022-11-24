@@ -100,7 +100,11 @@ func initlocalapp(notice func(*AppConfig)) {
 }
 func initremoteapp(notice func(*AppConfig), wait chan *struct{}) (stopwatch func()) {
 	return RemoteConfigSdk.Watch("AppConfig", func(key, keyvalue, keytype string) {
-		//only support json now,so keytype will be ignore
+		//only support json
+		if keytype != "json" {
+			log.Error(nil, "[config.initremoteapp] config data can only support json format")
+			return
+		}
 		c := &AppConfig{}
 		if e := json.Unmarshal(common.Str2byte(keyvalue), c); e != nil {
 			log.Error(nil, "[config.initremoteapp] config data format error:", e)

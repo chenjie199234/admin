@@ -24,6 +24,7 @@ var _WebPathInitializeInit = "/admin.initialize/init"
 var _WebPathInitializeRootLogin = "/admin.initialize/root_login"
 var _WebPathInitializeRootPassword = "/admin.initialize/root_password"
 var _WebPathInitializeCreateProject = "/admin.initialize/create_project"
+var _WebPathInitializeUpdateProject = "/admin.initialize/update_project"
 var _WebPathInitializeListProject = "/admin.initialize/list_project"
 var _WebPathInitializeDeleteProject = "/admin.initialize/delete_project"
 
@@ -36,6 +37,8 @@ type InitializeWebClient interface {
 	RootPassword(context.Context, *RootPasswordReq, http.Header) (*RootPasswordResp, error)
 	// 创建项目
 	CreateProject(context.Context, *CreateProjectReq, http.Header) (*CreateProjectResp, error)
+	// 更新项目
+	UpdateProject(context.Context, *UpdateProjectReq, http.Header) (*UpdateProjectResp, error)
 	// 获取项目列表
 	ListProject(context.Context, *ListProjectReq, http.Header) (*ListProjectResp, error)
 	// 删除项目
@@ -178,6 +181,38 @@ func (c *initializeWebClient) CreateProject(ctx context.Context, req *CreateProj
 	}
 	return resp, nil
 }
+func (c *initializeWebClient) UpdateProject(ctx context.Context, req *UpdateProjectReq, header http.Header) (*UpdateProjectResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathInitializeUpdateProject, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(UpdateProjectResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 func (c *initializeWebClient) ListProject(ctx context.Context, req *ListProjectReq, header http.Header) (*ListProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -252,6 +287,8 @@ type InitializeWebServer interface {
 	RootPassword(context.Context, *RootPasswordReq) (*RootPasswordResp, error)
 	// 创建项目
 	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
+	// 更新项目
+	UpdateProject(context.Context, *UpdateProjectReq) (*UpdateProjectResp, error)
 	// 获取项目列表
 	ListProject(context.Context, *ListProjectReq) (*ListProjectResp, error)
 	// 删除项目
@@ -592,9 +629,9 @@ func _Initialize_CreateProject_WebHandler(handler func(context.Context, *CreateP
 		}
 	}
 }
-func _Initialize_ListProject_WebHandler(handler func(context.Context, *ListProjectReq) (*ListProjectResp, error)) web.OutsideHandler {
+func _Initialize_UpdateProject_WebHandler(handler func(context.Context, *UpdateProjectReq) (*UpdateProjectResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(ListProjectReq)
+		req := new(UpdateProjectReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
@@ -625,6 +662,107 @@ func _Initialize_ListProject_WebHandler(handler func(context.Context, *ListProje
 				ctx.Abort(cerror.ErrReq)
 				return
 			}
+			data := pool.GetBuffer()
+			defer pool.PutBuffer(data)
+			data.AppendByte('{')
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
+			data.AppendString("\"new_project_name\":")
+			if form := ctx.GetForm("new_project_name"); len(form) == 0 {
+				data.AppendString("\"\"")
+			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
+				data.AppendByte('"')
+				data.AppendString(form)
+				data.AppendByte('"')
+			} else {
+				data.AppendString(form)
+			}
+			data.AppendByte(',')
+			data.AppendString("\"new_project_data\":")
+			if form := ctx.GetForm("new_project_data"); len(form) == 0 {
+				data.AppendString("\"\"")
+			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
+				data.AppendByte('"')
+				data.AppendString(form)
+				data.AppendByte('"')
+			} else {
+				data.AppendString(form)
+			}
+			data.AppendByte('}')
+			if data.Len() > 2 {
+				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data.Bytes(), req)
+				if e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.initialize/update_project]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(UpdateProjectResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
+func _Initialize_ListProject_WebHandler(handler func(context.Context, *ListProjectReq) (*ListProjectResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(ListProjectReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				e := protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(data, req)
+				if e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
@@ -768,6 +906,19 @@ func RegisterInitializeWebServer(engine *web.WebServer, svc InitializeWebServer,
 		}
 		mids = append(mids, _Initialize_CreateProject_WebHandler(svc.CreateProject))
 		engine.Post(_WebPathInitializeCreateProject, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Initialize_UpdateProject_WebHandler(svc.UpdateProject))
+		engine.Post(_WebPathInitializeUpdateProject, mids...)
 	}
 	{
 		requiredMids := []string{"token"}

@@ -42,7 +42,7 @@ user_info: {
 }
 ------------------------------------------------------------------------------------------------------------
 user_role_info: {
-	"project":"str",
+	"project_id":"str",
 	"role_names":["str","str"]
 }
 ------------------------------------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ Content-Type: application/json
 	//first element must be 0
 	//uint32
 	//element num must == 2
-	"project":[1,2],
+	"project_id":[1,2],
 	//value length must != 0
 	"user_id":"str"
 }
@@ -89,7 +89,7 @@ Content-Type: application/json
 	//first element must be 0
 	//uint32
 	//element num must == 2
-	"project":[1,2],
+	"project_id":[1,2],
 	//value length must != 0
 	"user_id":"str"
 }
@@ -119,7 +119,7 @@ Content-Type: application/json
 	//first element must be 0
 	//uint32
 	//element num must == 2
-	"project":[1,2],
+	"project_id":[1,2],
 	//value length must != 0
 	"user_name":"str",
 	//true - search users in the project,this require operator has read permission on this project's user control node
@@ -162,7 +162,7 @@ user_info: {
 }
 ------------------------------------------------------------------------------------------------------------
 user_role_info: {
-	"project":"str",
+	"project_id":"str",
 	"role_names":["str","str"]
 }
 ------------------------------------------------------------------------------------------------------------
@@ -178,8 +178,10 @@ Content-Type: application/json
 {
 	//value length must != 0
 	"user_id":"str",
+	//if didn't change,set this with the old value
 	//value length must != 0
 	"new_user_name":"str",
+	//if didn't change,set this with the old value
 	//element value length must != 0
 	//element num must != 0
 	"new_department":["str","str"]
@@ -210,7 +212,7 @@ Content-Type: application/json
 	//first element must be 0
 	//uint32
 	//element num must == 2
-	"project":[1,2],
+	"project_id":[1,2],
 	//value length must != 0
 	"role_name":"str",
 	"comment":"str"
@@ -241,7 +243,7 @@ Content-Type: application/json
 	//first element must be 0
 	//uint32
 	//element num must == 2
-	"project":[1,2],
+	"project_id":[1,2],
 	//fuzzy search
 	//value length must != 0
 	"role_name":"str",
@@ -272,7 +274,7 @@ Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 role_info: {
 	//uint32
-	"project":[1,2],
+	"project_id":[1,2],
 	"role_name":"str",
 	"comment":"str",
 	//uint32
@@ -292,10 +294,11 @@ Content-Type: application/json
 	//first element must be 0
 	//uint32
 	//element num must == 2
-	"project":[1,2],
+	"project_id":[1,2],
 	//value length must != 0
 	"role_name":"str",
-	"comment":"str"
+	//if didn't change,set this with the old value
+	"new_comment":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -323,7 +326,7 @@ Content-Type: application/json
 	//first element must be 0
 	//uint32
 	//element num must == 2
-	"project":[1,2],
+	"project_id":[1,2],
 	//element value length must != 0
 	//element num must != 0
 	"role_names":["str","str"]
@@ -354,7 +357,7 @@ Content-Type: application/json
 	//first element must be 0
 	//uint32
 	//element num must == 2
-	"project":[1,2],
+	"project_id":[1,2],
 	//value length must != 0
 	"user_id":"str",
 	//value length must != 0
@@ -386,7 +389,7 @@ Content-Type: application/json
 	//first element must be 0
 	//uint32
 	//element num must == 2
-	"project":[1,2],
+	"project_id":[1,2],
 	//value length must != 0
 	"user_id":"str",
 	//value length must != 0

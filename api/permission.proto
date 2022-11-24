@@ -108,7 +108,7 @@ message update_user_permission_resp {
 }
 message update_role_permission_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
 	//first element must be 0
 	repeated uint32 node_id=3[(pbex.map_repeated_len_gt)=1];
@@ -133,9 +133,9 @@ message add_node_resp {
 }
 message update_node_req {
 	//first element must be 0
-	repeated uint32 node_id=1[(pbex.map_repeated_len_gte)=2];
-	string node_name=2[(pbex.string_bytes_len_not_eq)=0];
-	string node_data=3;
+	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=2];
+	string new_node_name=2[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
+	string new_node_data=3;//if didn't change,set this with the old value
 }
 message update_node_resp {
 
@@ -166,7 +166,7 @@ message node_info {
 }
 message list_user_node_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_id=2;//if this is empty means return self's
 	bool need_user_role_node=3;//false - only return user's base node,true - return user's base node and user's roles' node
 }
@@ -175,7 +175,7 @@ message list_user_node_resp {
 }
 message list_role_node_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message list_role_node_resp {
@@ -183,7 +183,7 @@ message list_role_node_resp {
 }
 message list_project_node_req{
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 }
 message list_project_node_resp{
 	//this will only return the node name and node data,other node's info will not return

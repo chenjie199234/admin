@@ -450,10 +450,6 @@ func _User_UserLogin_WebHandler(handler func(context.Context, *UserLoginReq) (*U
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
@@ -520,8 +516,8 @@ func _User_InviteProject_WebHandler(handler func(context.Context, *InviteProject
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -614,8 +610,8 @@ func _User_KickProject_WebHandler(handler func(context.Context, *KickProjectReq)
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -708,8 +704,8 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -925,8 +921,8 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -1030,8 +1026,8 @@ func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq)
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -1131,8 +1127,8 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -1158,8 +1154,8 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 				data.AppendString(form)
 			}
 			data.AppendByte(',')
-			data.AppendString("\"comment\":")
-			if form := ctx.GetForm("comment"); len(form) == 0 {
+			data.AppendString("\"new_comment\":")
+			if form := ctx.GetForm("new_comment"); len(form) == 0 {
 				data.AppendString("\"\"")
 			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
 				data.AppendByte('"')
@@ -1236,8 +1232,8 @@ func _User_DelRoles_WebHandler(handler func(context.Context, *DelRolesReq) (*Del
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -1339,8 +1335,8 @@ func _User_AddUserRole_WebHandler(handler func(context.Context, *AddUserRoleReq)
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -1444,8 +1440,8 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')

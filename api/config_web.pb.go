@@ -479,6 +479,22 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"search_filter\":")
 			if form := ctx.GetForm("search_filter"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -497,6 +513,11 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 					return
 				}
 			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/groups]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		resp, e := handler(ctx, req)
 		ee := cerror.ConvertStdError(e)
@@ -552,6 +573,22 @@ func _Config_Apps_WebHandler(handler func(context.Context, *AppsReq) (*AppsResp,
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"groupname\":")
 			if form := ctx.GetForm("groupname"); len(form) == 0 {
 				data.AppendString("\"\"")
@@ -641,6 +678,22 @@ func _Config_CreateApp_WebHandler(handler func(context.Context, *CreateAppReq) (
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
+				data.AppendString("null")
+			} else {
+				data.AppendByte('[')
+				for _, form := range forms {
+					if len(form) == 0 {
+						data.AppendString("0")
+					} else {
+						data.AppendString(form)
+					}
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+			}
+			data.AppendByte(',')
 			data.AppendString("\"groupname\":")
 			if form := ctx.GetForm("groupname"); len(form) == 0 {
 				data.AppendString("\"\"")

@@ -93,7 +93,7 @@ message user_info {
 	repeated user_role_info roles=5;
 }
 message user_role_info{
-	string project=1;
+	string project_id=1;
 	repeated string role_names=2;
 }
 message user_login_req {
@@ -104,7 +104,7 @@ message user_login_resp {
 }
 message invite_project_req{
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message invite_project_resp{
@@ -112,7 +112,7 @@ message invite_project_resp{
 }
 message kick_project_req{
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message kick_project_resp{
@@ -120,7 +120,7 @@ message kick_project_resp{
 }
 message search_users_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_name=2[(pbex.string_bytes_len_not_eq)=0];
 	//true - search users in the project,this require operator has read permission on this project's user control node
 	//false - search all users(include users not in this project),this require operator has admin permission on this project's user control node
@@ -135,14 +135,14 @@ message search_users_resp {
 }
 message update_user_req{
 	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
-	string new_user_name=2[(pbex.string_bytes_len_not_eq)=0];
-	repeated string new_department=3[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
+	string new_user_name=2[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
+	repeated string new_department=3[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
 }
 message update_user_resp{
 }
 message create_role_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string comment=3;
 }
@@ -150,14 +150,14 @@ message create_role_resp {
 
 }
 message role_info {
-	repeated uint32 project=1;
+	repeated uint32 project_id=1;
 	string role_name=2;
 	string comment=3;
 	uint32 ctime=4;
 }
 message search_roles_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string role_name=2[(pbex.string_bytes_len_not_eq)=0];//fuzzy search
 	uint32 page=3;//page starts from 1,if page is 0,means return all result
 }
@@ -169,16 +169,16 @@ message search_roles_resp {
 }
 message update_role_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
-	string comment=3;
+	string new_comment=3;//if didn't change,set this with the old value
 }
 message update_role_resp {
 
 }
 message del_roles_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	repeated string role_names=2[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
 }
 message del_roles_resp {
@@ -186,7 +186,7 @@ message del_roles_resp {
 }
 message add_user_role_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
 	string role_name=3[(pbex.string_bytes_len_not_eq)=0];
 }
@@ -195,7 +195,7 @@ message add_user_role_resp {
 }
 message del_user_role_req {
 	//first element must be 0
-	repeated uint32 project=1[(pbex.map_repeated_len_eq)=2];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
 	string role_name=3[(pbex.string_bytes_len_not_eq)=0];
 }

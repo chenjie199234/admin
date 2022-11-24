@@ -7,7 +7,18 @@
 package api
 
 // return empty means pass
+func (m *GroupsReq) Validate() (errstr string) {
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: groups_req check len eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
 func (m *AppsReq) Validate() (errstr string) {
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: apps_req check len eq failed"
+	}
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: apps_req check value str len gt failed"
 	}
@@ -16,6 +27,9 @@ func (m *AppsReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *CreateAppReq) Validate() (errstr string) {
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: create_app_req check len eq failed"
+	}
 	if len(m.GetGroupname()) <= 0 {
 		return "field: groupname in object: create_app_req check value str len gt failed"
 	}

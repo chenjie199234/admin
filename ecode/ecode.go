@@ -21,10 +21,12 @@ var (
 	ErrBusy       = cerror.ErrBusy       //10011 // http code 503
 	ErrNotExist   = cerror.ErrNotExist   //10012 // http code 404
 
-	ErrNotInited      = cerror.MakeError(20001, http.StatusBadRequest, "not inited")
-	ErrAlreadyInited  = cerror.MakeError(20002, http.StatusBadRequest, "already inited")
-	ErrPasswordLength = cerror.MakeError(20003, http.StatusBadRequest, "password length must less then 32")
-	ErrPasswordWrong  = cerror.MakeError(20004, http.StatusBadRequest, "password wrong")
+	ErrNotInited           = cerror.MakeError(20001, http.StatusBadRequest, "not inited")
+	ErrAlreadyInited       = cerror.MakeError(20002, http.StatusBadRequest, "already inited")
+	ErrPasswordLength      = cerror.MakeError(20003, http.StatusBadRequest, "password length must less then 32")
+	ErrPasswordWrong       = cerror.MakeError(20004, http.StatusBadRequest, "password wrong")
+	ErrProjectNotExist     = cerror.MakeError(20005, http.StatusBadRequest, "project doesn't exist")
+	ErrProjectAlreadyExist = cerror.MakeError(20006, http.StatusBadRequest, "project already exist")
 
 	ErrAppNotExist      = cerror.MakeError(20010, http.StatusBadRequest, "app doesn't exist")
 	ErrKeyNotExist      = cerror.MakeError(20011, http.StatusBadRequest, "key doesn't exist")

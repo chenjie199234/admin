@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"crypto/rand"
+	"strconv"
 	"time"
 
 	"github.com/chenjie199234/admin/ecode"
@@ -36,35 +37,113 @@ func (d *Dao) MongoGetAllGroups(ctx context.Context, searchfilter string) ([]str
 func (d *Dao) MongoGetAllApps(ctx context.Context, groupname, searchfilter string) ([]string, error) {
 	return d.mongo.Database("config_"+groupname).ListCollectionNames(ctx, bson.M{"name": bson.M{"$regex": searchfilter}})
 }
-
-func (d *Dao) MongoCreateApp(ctx context.Context, groupname, appname, secret string) (e error) {
+func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, groupname, appname string) (string, error) {
+	appsummary := &model.AppSummary{}
+	if e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}, options.FindOne().SetProjection(bson.M{"permission_node_id": 1})).Decode(appsummary); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrAppNotExist
+		}
+		return "", e
+	}
+	if appsummary.PermissionNodeID == "" {
+		return "", ecode.ErrNotInited
+	}
+	return appsummary.PermissionNodeID, nil
+}
+func (d *Dao) MongoCreateApp(ctx context.Context, projectid, groupname, appname, secret string) (e error) {
 	if len(secret) >= 32 {
 		return ecode.ErrSecretLength
+	}
+	var s mongo.Session
+	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
+	if e != nil {
+		return
+	}
+	defer s.EndSession(ctx)
+	sctx := mongo.NewSessionContext(ctx, s)
+	if e = s.StartTransaction(); e != nil {
+		return
+	}
+	defer func() {
+		if e != nil {
+			s.AbortTransaction(sctx)
+		} else if e = s.CommitTransaction(sctx); e != nil {
+			s.AbortTransaction(sctx)
+		}
+	}()
+	parent := &model.Node{}
+	if e = d.mongo.Database("permission").Collection("node").FindOneAndUpdate(sctx, bson.M{"node_id": projectid + model.ConfigControl}, bson.M{"$inc": bson.M{"cur_node_index": 1}}).Decode(parent); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrProjectNotExist
+		}
+		return
+	}
+	if _, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
+		NodeId:       parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10),
+		NodeName:     groupname + "." + appname,
+		NodeData:     "",
+		CurNodeIndex: 0,
+	}); e != nil {
+		return
 	}
 	col := d.mongo.Database("config_" + groupname).Collection(appname)
 	index := mongo.IndexModel{
 		Keys:    bson.D{primitive.E{Key: "key", Value: 1}, primitive.E{Key: "index", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
-	if _, e = col.Indexes().CreateOne(ctx, index); e != nil && !mongo.IsDuplicateKeyError(e) {
+	if _, e = col.Indexes().CreateOne(sctx, index); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	}
 	nonce := make([]byte, 32)
 	rand.Read(nonce)
-	if _, e = col.InsertOne(ctx, bson.M{"key": "", "index": 0, "keys": bson.M{}, "value": util.SignMake(secret, nonce)}); e != nil && mongo.IsDuplicateKeyError(e) {
+	if _, e = col.InsertOne(sctx, bson.M{
+		"key":                "",
+		"index":              0,
+		"keys":               bson.M{},
+		"value":              util.SignMake(secret, nonce),
+		"permission_node_id": parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10),
+	}); e != nil && mongo.IsDuplicateKeyError(e) {
 		e = ecode.ErrAppAlreadyExist
 	}
 	return
 }
-func (d *Dao) MongoDelApp(ctx context.Context, groupname, appname, secret string) error {
+func (d *Dao) MongoDelApp(ctx context.Context, groupname, appname, secret string) (e error) {
+	var s mongo.Session
+	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
+	if e != nil {
+		return
+	}
+	defer s.EndSession(ctx)
+	sctx := mongo.NewSessionContext(ctx, s)
+	if e = s.StartTransaction(); e != nil {
+		return
+	}
+	defer func() {
+		if e != nil {
+			s.AbortTransaction(sctx)
+		} else if e = s.CommitTransaction(sctx); e != nil {
+			s.AbortTransaction(sctx)
+		} else {
+			//drop can't be in the multi collection transaction
+			e = d.mongo.Database("config_" + groupname).Collection(appname).Drop(ctx)
+		}
+	}()
 	appsummary := &model.AppSummary{}
-	if e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}, options.FindOne().SetProjection(bson.M{"value": 1})).Decode(appsummary); e != nil {
-		return e
+	if e = d.mongo.Database("config_"+groupname).Collection(appname).FindOne(sctx, bson.M{"key": "", "index": 0}, options.FindOne().SetProjection(bson.M{"value": 1, "permission_node_id": 1})).Decode(appsummary); e != nil {
+		return
 	}
-	if e := util.SignCheck(secret, appsummary.Value); e != nil {
-		return e
+	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		return
 	}
-	return d.mongo.Database("config_" + groupname).Collection(appname).Drop(ctx)
+	delfilter := bson.M{"node_id": bson.M{"$regex": "^" + appsummary.PermissionNodeID}}
+	if _, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, delfilter); e != nil {
+		return
+	}
+	if _, e = d.mongo.Database("permission").Collection("usernode").DeleteMany(sctx, delfilter); e != nil {
+		return
+	}
+	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, delfilter)
+	return
 }
 func (d *Dao) MongoUpdateAppSecret(ctx context.Context, groupname, appname, oldsecret, newsecret string) (e error) {
 	if len(oldsecret) >= 32 || len(newsecret) >= 32 {

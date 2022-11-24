@@ -88,22 +88,25 @@ service config{
 //}
 
 message groups_req {
-	string search_filter=1;
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string search_filter=2;
 }
 message groups_resp {
 	repeated string groups=1;
 }
 message apps_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string search_filter=2;
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string groupname=2[(pbex.string_bytes_len_gt)=0];
+	string search_filter=3;
 }
 message apps_resp {
 	repeated string apps=1;
 }
 message create_app_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
-	string secret=3[(pbex.string_bytes_len_lt)=32];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string groupname=2[(pbex.string_bytes_len_gt)=0];
+	string appname=3[(pbex.string_bytes_len_gt)=0];
+	string secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message create_app_resp {
 }

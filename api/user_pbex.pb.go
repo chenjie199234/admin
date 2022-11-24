@@ -8,8 +8,8 @@ package api
 
 // return empty means pass
 func (m *InviteProjectReq) Validate() (errstr string) {
-	if len(m.GetProject()) != 2 {
-		return "field: project in object: invite_project_req check len eq failed"
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: invite_project_req check len eq failed"
 	}
 	if len(m.GetUserId()) == 0 {
 		return "field: user_id in object: invite_project_req check value str len not eq failed"
@@ -19,8 +19,8 @@ func (m *InviteProjectReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *KickProjectReq) Validate() (errstr string) {
-	if len(m.GetProject()) != 2 {
-		return "field: project in object: kick_project_req check len eq failed"
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: kick_project_req check len eq failed"
 	}
 	if len(m.GetUserId()) == 0 {
 		return "field: user_id in object: kick_project_req check value str len not eq failed"
@@ -30,8 +30,8 @@ func (m *KickProjectReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *SearchUsersReq) Validate() (errstr string) {
-	if len(m.GetProject()) != 2 {
-		return "field: project in object: search_users_req check len eq failed"
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: search_users_req check len eq failed"
 	}
 	if len(m.GetUserName()) == 0 {
 		return "field: user_name in object: search_users_req check value str len not eq failed"
@@ -60,8 +60,8 @@ func (m *UpdateUserReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *CreateRoleReq) Validate() (errstr string) {
-	if len(m.GetProject()) != 2 {
-		return "field: project in object: create_role_req check len eq failed"
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: create_role_req check len eq failed"
 	}
 	if len(m.GetRoleName()) == 0 {
 		return "field: role_name in object: create_role_req check value str len not eq failed"
@@ -71,8 +71,8 @@ func (m *CreateRoleReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *SearchRolesReq) Validate() (errstr string) {
-	if len(m.GetProject()) != 2 {
-		return "field: project in object: search_roles_req check len eq failed"
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: search_roles_req check len eq failed"
 	}
 	if len(m.GetRoleName()) == 0 {
 		return "field: role_name in object: search_roles_req check value str len not eq failed"
@@ -82,8 +82,8 @@ func (m *SearchRolesReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *UpdateRoleReq) Validate() (errstr string) {
-	if len(m.GetProject()) != 2 {
-		return "field: project in object: update_role_req check len eq failed"
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: update_role_req check len eq failed"
 	}
 	if len(m.GetRoleName()) == 0 {
 		return "field: role_name in object: update_role_req check value str len not eq failed"
@@ -93,8 +93,8 @@ func (m *UpdateRoleReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *DelRolesReq) Validate() (errstr string) {
-	if len(m.GetProject()) != 2 {
-		return "field: project in object: del_roles_req check len eq failed"
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: del_roles_req check len eq failed"
 	}
 	if len(m.GetRoleNames()) == 0 {
 		return "field: role_names in object: del_roles_req check len not eq failed"
@@ -109,8 +109,8 @@ func (m *DelRolesReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *AddUserRoleReq) Validate() (errstr string) {
-	if len(m.GetProject()) != 2 {
-		return "field: project in object: add_user_role_req check len eq failed"
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: add_user_role_req check len eq failed"
 	}
 	if len(m.GetUserId()) == 0 {
 		return "field: user_id in object: add_user_role_req check value str len not eq failed"
@@ -123,8 +123,8 @@ func (m *AddUserRoleReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *DelUserRoleReq) Validate() (errstr string) {
-	if len(m.GetProject()) != 2 {
-		return "field: project in object: del_user_role_req check len eq failed"
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: del_user_role_req check len eq failed"
 	}
 	if len(m.GetUserId()) == 0 {
 		return "field: user_id in object: del_user_role_req check value str len not eq failed"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/chenjie199234/admin/ecode"
@@ -186,6 +187,12 @@ func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata s
 			s.AbortTransaction(sctx)
 		}
 	}()
+	var exist int64
+	exist, e = d.mongo.Database("permission").Collection("node").CountDocuments(sctx, bson.M{"node_id": bson.M{"$regex": "^0,[1-9][0-9]*$"}, "node_name": projectname})
+	if exist != 0 {
+		e = ecode.ErrProjectAlreadyExist
+		return
+	}
 	root := &model.Node{}
 	if e = d.mongo.Database("permission").Collection("node").FindOneAndUpdate(sctx, bson.M{"node_id": "0"}, bson.M{"$inc": bson.M{"cur_node_index": 1}}).Decode(root); e != nil {
 		if e == mongo.ErrNoDocuments {
@@ -222,6 +229,16 @@ func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata s
 	_, e = d.mongo.Database("permission").Collection("node").InsertMany(sctx, docs)
 	return
 }
+func (d *Dao) MongoUpdateProject(ctx context.Context, projectid, newname, newdata string) error {
+	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 {
+		return ecode.ErrReq
+	}
+	_, e := d.mongo.Database("permission").Collection("node").UpdateOne(ctx, bson.M{"node_id": projectid}, bson.M{"$set": bson.M{"node_name": newname, "node_data": newdata}})
+	if e == mongo.ErrNoDocuments {
+		e = ecode.ErrProjectNotExist
+	}
+	return e
+}
 func (d *Dao) MongoListProject(ctx context.Context) ([]*model.Node, error) {
 	cur, e := d.mongo.Database("permission").Collection("node").Find(ctx, bson.M{"node_id": bson.M{"$regex": "^0,[1-9][0-9]*$"}})
 	if e != nil {
@@ -250,18 +267,23 @@ func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (e error) {
 			s.AbortTransaction(sctx)
 		}
 	}()
-	if _, e = d.mongo.Database("user").Collection("user").UpdateMany(sctx, bson.M{}, bson.M{"$pull": bson.M{"projects": projectid, "roles": bson.M{"$regex": "^" + projectid}}}); e != nil {
+	var r *mongo.DeleteResult
+	if r, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, bson.M{"node_id": bson.M{"$regex": "^" + projectid}}); e != nil {
 		return
 	}
-	if _, e = d.mongo.Database("user").Collection("role").DeleteMany(sctx, bson.M{"project": projectid}); e != nil {
-		return
-	}
-	if _, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, bson.M{"node_id": bson.M{"$regex": "^" + projectid}}); e != nil {
+	if r.DeletedCount == 0 {
+		e = ecode.ErrProjectNotExist
 		return
 	}
 	if _, e = d.mongo.Database("permission").Collection("usernode").DeleteMany(sctx, bson.M{"node_id": bson.M{"$regex": "^" + projectid}}); e != nil {
 		return
 	}
-	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, bson.M{"project": projectid})
+	if _, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, bson.M{"project": projectid}); e != nil {
+		return
+	}
+	if _, e = d.mongo.Database("user").Collection("user").UpdateMany(sctx, bson.M{}, bson.M{"$pull": bson.M{"projects": projectid, "roles": bson.M{"$regex": "^" + projectid}}}); e != nil {
+		return
+	}
+	_, e = d.mongo.Database("user").Collection("role").DeleteMany(sctx, bson.M{"project": projectid})
 	return
 }

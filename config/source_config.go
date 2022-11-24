@@ -194,11 +194,15 @@ func initlocalsource() {
 }
 func initremotesource(wait chan *struct{}) (stopwatch func()) {
 	return RemoteConfigSdk.Watch("SourceConfig", func(key, keyvalue, keytype string) {
+		//only support json
+		if keytype != "json" {
+			log.Error(nil, "[config.initremotesource] config data can only support json format")
+			return
+		}
 		//source config only init once
 		if sc != nil {
 			return
 		}
-		//only support json now,so keytype will be ignore
 		c := &sourceConfig{}
 		if e := json.Unmarshal(common.Str2byte(keyvalue), c); e != nil {
 			log.Error(nil, "[config.initremotesource] config data format error:", e)

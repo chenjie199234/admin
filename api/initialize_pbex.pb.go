@@ -54,6 +54,20 @@ func (m *CreateProjectReq) Validate() (errstr string) {
 }
 
 // return empty means pass
+func (m *UpdateProjectReq) Validate() (errstr string) {
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: update_project_req check len eq failed"
+	}
+	if len(m.GetNewProjectName()) == 0 {
+		return "field: new_project_name in object: update_project_req check value str len not eq failed"
+	}
+	if len(m.GetNewProjectData()) == 0 {
+		return "field: new_project_data in object: update_project_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
 func (m *DeleteProjectReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
 		return "field: project_id in object: delete_project_req check len eq failed"

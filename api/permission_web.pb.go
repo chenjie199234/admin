@@ -631,8 +631,8 @@ func _Permission_UpdateRolePermission_WebHandler(handler func(context.Context, *
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -883,8 +883,8 @@ func _Permission_UpdateNode_WebHandler(handler func(context.Context, *UpdateNode
 				data.Bytes()[data.Len()-1] = ']'
 			}
 			data.AppendByte(',')
-			data.AppendString("\"node_name\":")
-			if form := ctx.GetForm("node_name"); len(form) == 0 {
+			data.AppendString("\"new_node_name\":")
+			if form := ctx.GetForm("new_node_name"); len(form) == 0 {
 				data.AppendString("\"\"")
 			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
 				data.AppendByte('"')
@@ -894,8 +894,8 @@ func _Permission_UpdateNode_WebHandler(handler func(context.Context, *UpdateNode
 				data.AppendString(form)
 			}
 			data.AppendByte(',')
-			data.AppendString("\"node_data\":")
-			if form := ctx.GetForm("node_data"); len(form) == 0 {
+			data.AppendString("\"new_node_data\":")
+			if form := ctx.GetForm("new_node_data"); len(form) == 0 {
 				data.AppendString("\"\"")
 			} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
 				data.AppendByte('"')
@@ -1154,8 +1154,8 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -1255,8 +1255,8 @@ func _Permission_ListRoleNode_WebHandler(handler func(context.Context, *ListRole
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')
@@ -1349,8 +1349,8 @@ func _Permission_ListProjectNode_WebHandler(handler func(context.Context, *ListP
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			data.AppendString("\"project\":")
-			if forms := ctx.GetForms("project"); len(forms) == 0 {
+			data.AppendString("\"project_id\":")
+			if forms := ctx.GetForms("project_id"); len(forms) == 0 {
 				data.AppendString("null")
 			} else {
 				data.AppendByte('[')

@@ -19,6 +19,7 @@ var _CrpcPathInitializeInit = "/admin.initialize/init"
 var _CrpcPathInitializeRootLogin = "/admin.initialize/root_login"
 var _CrpcPathInitializeRootPassword = "/admin.initialize/root_password"
 var _CrpcPathInitializeCreateProject = "/admin.initialize/create_project"
+var _CrpcPathInitializeUpdateProject = "/admin.initialize/update_project"
 var _CrpcPathInitializeListProject = "/admin.initialize/list_project"
 var _CrpcPathInitializeDeleteProject = "/admin.initialize/delete_project"
 
@@ -31,6 +32,8 @@ type InitializeCrpcClient interface {
 	RootPassword(context.Context, *RootPasswordReq) (*RootPasswordResp, error)
 	// 创建项目
 	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
+	// 更新项目
+	UpdateProject(context.Context, *UpdateProjectReq) (*UpdateProjectResp, error)
 	// 获取项目列表
 	ListProject(context.Context, *ListProjectReq) (*ListProjectResp, error)
 	// 删除项目
@@ -117,6 +120,24 @@ func (c *initializeCrpcClient) CreateProject(ctx context.Context, req *CreatePro
 	}
 	return resp, nil
 }
+func (c *initializeCrpcClient) UpdateProject(ctx context.Context, req *UpdateProjectReq) (*UpdateProjectResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeUpdateProject, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(UpdateProjectResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 func (c *initializeCrpcClient) ListProject(ctx context.Context, req *ListProjectReq) (*ListProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -163,6 +184,8 @@ type InitializeCrpcServer interface {
 	RootPassword(context.Context, *RootPasswordReq) (*RootPasswordResp, error)
 	// 创建项目
 	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
+	// 更新项目
+	UpdateProject(context.Context, *UpdateProjectReq) (*UpdateProjectResp, error)
 	// 获取项目列表
 	ListProject(context.Context, *ListProjectReq) (*ListProjectResp, error)
 	// 删除项目
@@ -265,6 +288,30 @@ func _Initialize_CreateProject_CrpcHandler(handler func(context.Context, *Create
 		ctx.Write(respd)
 	}
 }
+func _Initialize_UpdateProject_CrpcHandler(handler func(context.Context, *UpdateProjectReq) (*UpdateProjectResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		req := new(UpdateProjectReq)
+		if e := proto.Unmarshal(ctx.GetBody(), req); e != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.initialize/update_project]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(UpdateProjectResp)
+		}
+		respd, _ := proto.Marshal(resp)
+		ctx.Write(respd)
+	}
+}
 func _Initialize_ListProject_CrpcHandler(handler func(context.Context, *ListProjectReq) (*ListProjectResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		req := new(ListProjectReq)
@@ -315,6 +362,7 @@ func RegisterInitializeCrpcServer(engine *crpc.CrpcServer, svc InitializeCrpcSer
 	engine.RegisterHandler(_CrpcPathInitializeRootLogin, _Initialize_RootLogin_CrpcHandler(svc.RootLogin))
 	engine.RegisterHandler(_CrpcPathInitializeRootPassword, _Initialize_RootPassword_CrpcHandler(svc.RootPassword))
 	engine.RegisterHandler(_CrpcPathInitializeCreateProject, _Initialize_CreateProject_CrpcHandler(svc.CreateProject))
+	engine.RegisterHandler(_CrpcPathInitializeUpdateProject, _Initialize_UpdateProject_CrpcHandler(svc.UpdateProject))
 	engine.RegisterHandler(_CrpcPathInitializeListProject, _Initialize_ListProject_CrpcHandler(svc.ListProject))
 	engine.RegisterHandler(_CrpcPathInitializeDeleteProject, _Initialize_DeleteProject_CrpcHandler(svc.DeleteProject))
 }

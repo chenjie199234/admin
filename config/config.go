@@ -5,36 +5,36 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/chenjie199234/admin/api"
-	"github.com/chenjie199234/admin/config/internal/selfsdk"
+	"github.com/chenjie199234/admin/config/internal"
+	"github.com/chenjie199234/admin/model"
 
 	"github.com/chenjie199234/Corelib/log"
 )
 
-//EnvConfig can't hot update,all these data is from system env setting
-//nil field means that system env not exist
+// EnvConfig can't hot update,all these data is from system env setting
+// nil field means that system env not exist
 type EnvConfig struct {
 	ConfigType *int
 	RunEnv     *string
 	DeployEnv  *string
 }
 
-//EC -
+// EC -
 var EC *EnvConfig
 
-//RemoteConfigSdk -
-var RemoteConfigSdk *selfsdk.Sdk
+// RemoteConfigSdk -
+var RemoteConfigSdk *internal.Sdk
 
-//notice is a sync function
-//don't write block logic inside it
-func Init(notice func(c *AppConfig)) {
-	initenv()
+// notice is a sync function
+// don't write block logic inside it
+func Init(notice func(c *AppConfig), AppConfigTemplate, SourceConfigTemplate []byte) {
+	initenv(AppConfigTemplate, SourceConfigTemplate)
 	if EC.ConfigType != nil && *EC.ConfigType == 1 {
 		tmer := time.NewTimer(time.Second * 2)
 		waitapp := make(chan *struct{})
 		waitsource := make(chan *struct{})
 		initremoteapp(notice, waitapp)
-		stopwatchsource := initremotesource(waitsource)
+		initremotesource(waitsource)
 		appinit := false
 		sourceinit := false
 		for {
@@ -43,7 +43,6 @@ func Init(notice func(c *AppConfig)) {
 				appinit = true
 			case <-waitsource:
 				sourceinit = true
-				stopwatchsource()
 			case <-tmer.C:
 				log.Error(nil, "[config.Init] timeout")
 				Close()
@@ -59,12 +58,12 @@ func Init(notice func(c *AppConfig)) {
 	}
 }
 
-//Close -
+// Close -
 func Close() {
 	log.Close()
 }
 
-func initenv() {
+func initenv(AppConfigTemplate, SourceConfigTemplate []byte) {
 	EC = &EnvConfig{}
 	if str, ok := os.LookupEnv("CONFIG_TYPE"); ok && str != "<CONFIG_TYPE>" && str != "" {
 		configtype, e := strconv.Atoi(str)
@@ -86,9 +85,18 @@ func initenv() {
 			Close()
 			os.Exit(1)
 		}
+		var secret string
+		if str, ok := os.LookupEnv("REMOTE_CONFIG_SECRET"); ok && str != "<REMOTE_CONFIG_SECRET>" && str != "" {
+			secret = str
+		}
+		if len(secret) >= 32 {
+			log.Error(nil, "[config.initenv] REMOTE_CONFIG_SECRET length too long")
+			Close()
+			os.Exit(1)
+		}
 		var e error
-		if RemoteConfigSdk, e = selfsdk.NewDirectSdk(api.Group, api.Name, mongourl); e != nil {
-			log.Error(nil, "[config.initenv] new remote config sdk error:", e)
+		if RemoteConfigSdk, e = internal.NewDirectSdk(model.Group, model.Name, mongourl, secret, AppConfigTemplate, SourceConfigTemplate); e != nil {
+			log.Error(nil, "[config.initenv] new remote config sdk:", e)
 			Close()
 			os.Exit(1)
 		}

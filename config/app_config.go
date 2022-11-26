@@ -8,33 +8,30 @@ import (
 	"github.com/chenjie199234/Corelib/log"
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	"github.com/chenjie199234/Corelib/util/common"
-	ctime "github.com/chenjie199234/Corelib/util/time"
+	"github.com/chenjie199234/Corelib/util/ctime"
 	"github.com/fsnotify/fsnotify"
 )
 
-//AppConfig can hot update
-//this is the config used for this app
+// AppConfig can hot update
+// this is the config used for this app
 type AppConfig struct {
-	HandlerTimeout map[string]map[string]ctime.Duration `json:"handler_timeout"` //first key handler path,second key method(GET,POST,PUT,PATCH,DELETE,CRPC,GRPC),value timeout
-	HandlerRate    []*publicmids.RateConfig             `json:"handler_rate"`
-	WhiteIP        []string                             `json:"white_ip"`
-	BlackIP        []string                             `json:"black_ip"`
-	WebPathRewrite map[string]map[string]string         `json:"web_path_rewrite"` //first key method(GET,POST,PUT,PATCH,DELETE),second key origin url,value new url
-	AccessKeys     map[string][]string                  `json:"access_keys"`      //key-specific path,value specific seckey,key-"default",value default seckey
-	TokenSecret    string                               `json:"token_secret"`
-	TokenExpire    ctime.Duration                       `json:"token_expire"`
-	Service        *ServiceConfig                       `json:"service"`
+	HandlerTimeout     map[string]map[string]ctime.Duration      `json:"handler_timeout"`      //first key handler path,second key method(GET,POST,PUT,PATCH,DELETE,CRPC,GRPC),value timeout
+	WebPathRewrite     map[string]map[string]string              `json:"web_path_rewrite"`     //first key method(GET,POST,PUT,PATCH,DELETE),second key origin url,value new url
+	HandlerRate        map[string][]*publicmids.PathRateConfig   `json:"handler_rate"`         //key path
+	Accesses           map[string][]*publicmids.PathAccessConfig `json:"accesses"`             //key path
+	TokenSecret        string                                    `json:"token_secret"`         //if don't need token check,this can be ingored
+	SessionTokenExpire ctime.Duration                            `json:"session_token_expire"` //if don't need session and token check,this can be ignored
+	Service            *ServiceConfig                            `json:"service"`
 }
 type ServiceConfig struct {
 	//add your config here
 }
 
-//every time update AppConfig will call this function
+// every time update AppConfig will call this function
 func validateAppConfig(ac *AppConfig) {
-	os.Setenv("TOKEN_SECRET", ac.TokenSecret)
 }
 
-//AC -
+// AC -
 var AC *AppConfig
 
 var watcher *fsnotify.Watcher
@@ -74,7 +71,7 @@ func initlocalapp(notice func(*AppConfig)) {
 				if !ok {
 					return
 				}
-				if filepath.Base(event.Name) != "AppConfig.json" || (event.Op&fsnotify.Create == 0 && event.Op&fsnotify.Write == 0) {
+				if filepath.Base(event.Name) != "AppConfig.json" || (!event.Has(fsnotify.Create) && !event.Has(fsnotify.Write)) {
 					continue
 				}
 				data, e := os.ReadFile("./AppConfig.json")
@@ -103,7 +100,11 @@ func initlocalapp(notice func(*AppConfig)) {
 }
 func initremoteapp(notice func(*AppConfig), wait chan *struct{}) (stopwatch func()) {
 	return RemoteConfigSdk.Watch("AppConfig", func(key, keyvalue, keytype string) {
-		//only support json now,so keytype will be ignore
+		//only support json
+		if keytype != "json" {
+			log.Error(nil, "[config.initremoteapp] config data can only support json format")
+			return
+		}
 		c := &AppConfig{}
 		if e := json.Unmarshal(common.Str2byte(keyvalue), c); e != nil {
 			log.Error(nil, "[config.initremoteapp] config data format error:", e)

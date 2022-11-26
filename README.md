@@ -29,6 +29,7 @@ CONFIG_TYPE                             配置类型
                                         0-使用本地配置
                                         1-使用远程配置中心config服务
 REMOTE_CONFIG_MONGO_URL                 当CONFIG_TYPE为1时,配置中心mongodb的url,[mongodb/mongodb+srv]://[username:password@]host1,...,hostN[/dbname][?param1=value1&...&paramN=valueN]
+REMOTE_CONFIG_SECRET                    当CONFIG_TYPE为1时,配置中心配置的密钥
 ```
 
 ## 配置文件
@@ -38,7 +39,7 @@ SourceConfig.json该文件配置了该服务需要使用的资源配置,不热�
 ```
 
 ## DB
-### Mongo
+### Mongo(ReplicaSet mode)(Version >= 4.4)
 #### config
 ```
 database: config_{groupname}
@@ -48,7 +49,6 @@ collection: {appname}
 	"_id":ObjectId("xxxx"),
 	"key":"",//always empty
 	"index":0,//always be 0
-	"cipher":"",
 	"keys":{
 		"config_key1":{
 			"cur_index":0,
@@ -62,7 +62,9 @@ collection: {appname}
 			"cur_version":0,//auto increment(every time insert or rollback)
 			"cur_value":"xxx"
 		}
-	}
+	},
+	"value":"",//this is a random str + it's sha512 sign,this is used to check the secret
+	"permission_node_id":"",
 }//summary
 {
 	"_id":ObjectId("xxx"),
@@ -70,7 +72,7 @@ collection: {appname}
 	"index":1,//always > 0
 	"value":""
 }//log
-//key+index field add unique index
+//key+index增加唯一索引
 //由代码自动创建,无需手动创建
 ```
 #### user
@@ -80,15 +82,31 @@ database: user
 collection: user
 {
 	"_id":ObjectId("xxx"),//userid,if this is empty,means this is the super admin user
-	"name":"",
+	"user_name":"",
 	"password":"",
 	"department":["",""],
 	"ctime":123,//unixtimestamp,unit second
+	"projects":["project1","project2"],
+	"roles":["project1:role_name1","project2:role_name2"]
 }
-//手动mongo创建数据库
+//手动创建数据库
 use user;
 db.createCollection("user");
-db.user.createIndex({name:1});
+db.user.createIndex({user_name:1});
+db.user.createIndex({projects:1});
+db.user.createIndex({roles:1});
+
+collection: role
+{
+	"project":"",
+	"role_name":"",
+	"comment":"",
+	"ctime":123,//unixtimestamp,unit second
+}
+//手动创建数据库
+use user;
+db.createCollection("role");
+db.role.createIndex({project:1,role_name:1},{unique:true});
 ```
 #### permission
 ```
@@ -96,29 +114,42 @@ database: permission
 
 collection: node
 {
-	"_id":ObjectId("xxx"),//meaningless
-	"node_id":[0,1],
+	"node_id":"",
 	"node_name":"",
 	"node_data":"",
-	"cur_node_index":0,//auto increment,this is for child's last node_id element
+	"cur_node_index":0,
 }
-//手动mongo创建数据库
+//手动创建数据库
 use permission;
 db.createCollection("node");
-db.node.createIndex({node_id:1});
+db.node.createIndex({node_id:1},{unique:true});
 
 collection: usernode
 {
-	"_id":ObjectId("xxx"),//meaningless
 	"user_id":ObjectId("xxx"),
-	"node_id":[0,1],
+	"node_id":"",
+	"r":true,//can read
+	"w":true,//can write
+	"x":true,//admin
+}
+//手动创建数据库
+use permission;
+db.createCollection("usernode");
+db.usernode.createIndex({user_id:1,node_id:1},{unique:true});
+db.usernode.createIndex({node_id:1});
+
+collection: rolenode
+{
+	"project":"",
+	"role_name":"",
+	"node_id":"",
 	"r":true,//can read
 	"w":true,//can write
 	"x":true,//admin
 }
 //手动mongo创建数据库
 use permission;
-db.createCollection("usernode");
-db.usernode.createIndex({user_id:1});
-db.usernode.createIndex({node_id:1})
+db.createCollection("rolenode");
+db.rolenode.createIndex({project:1,role_name:1,node_id:1},{unique:true});
+db.rolenode.createIndex({node_id:1});
 ```

@@ -2,12 +2,16 @@ package config
 
 import (
 	"context"
+	"crypto/rand"
+	"strconv"
 	"time"
 
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
+	"github.com/chenjie199234/admin/util"
 
 	"github.com/chenjie199234/Corelib/log"
+	"github.com/chenjie199234/Corelib/util/common"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -30,31 +34,26 @@ func (d *Dao) MongoGetAllGroups(ctx context.Context, searchfilter string) ([]str
 	}
 	return r, nil
 }
-func (d *Dao) MongoDelGroup(ctx context.Context, groupname string) error {
-	return d.mongo.Database("config_" + groupname).Drop(ctx)
-}
 func (d *Dao) MongoGetAllApps(ctx context.Context, groupname, searchfilter string) ([]string, error) {
 	return d.mongo.Database("config_"+groupname).ListCollectionNames(ctx, bson.M{"name": bson.M{"$regex": searchfilter}})
 }
-func (d *Dao) MongoDelApp(ctx context.Context, groupname, appname string) error {
-	return d.mongo.Database("config_" + groupname).Collection(appname).Drop(ctx)
-}
-func (d *Dao) MongoGetAllKeys(ctx context.Context, groupname, appname string) ([]string, error) {
+func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, groupname, appname string) (string, error) {
 	appsummary := &model.AppSummary{}
-	e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(appsummary)
-	if e != nil {
+	if e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}, options.FindOne().SetProjection(bson.M{"permission_node_id": 1})).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
 		}
-		return nil, e
+		return "", e
 	}
-	result := make([]string, 0, len(appsummary.Keys))
-	for k := range appsummary.Keys {
-		result = append(result, k)
+	if appsummary.PermissionNodeID == "" {
+		return "", ecode.ErrNotInited
 	}
-	return result, nil
+	return appsummary.PermissionNodeID, nil
 }
-func (d *Dao) MongoDelKey(ctx context.Context, groupname, appname, key string) (e error) {
+func (d *Dao) MongoCreateApp(ctx context.Context, projectid, groupname, appname, secret string) (e error) {
+	if len(secret) >= 32 {
+		return ecode.ErrSecretLength
+	}
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -72,37 +71,87 @@ func (d *Dao) MongoDelKey(ctx context.Context, groupname, appname, key string) (
 			s.AbortTransaction(sctx)
 		}
 	}()
-	_, e = d.mongo.Database("config_"+groupname).Collection(appname).UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$unset": bson.M{"keys." + key: 1}})
-	if e != nil {
+	parent := &model.Node{}
+	if e = d.mongo.Database("permission").Collection("node").FindOneAndUpdate(sctx, bson.M{"node_id": projectid + model.ConfigControl}, bson.M{"$inc": bson.M{"cur_node_index": 1}}).Decode(parent); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrProjectNotExist
+		}
 		return
 	}
-	_, e = d.mongo.Database("config_"+groupname).Collection(appname).DeleteMany(sctx, bson.M{"key": key})
-	return
-}
-
-func (d *Dao) MongoCreate(ctx context.Context, groupname, appname, cipher string, encrypt datahandler) (e error) {
+	if _, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
+		NodeId:       parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10),
+		NodeName:     groupname + "." + appname,
+		NodeData:     "",
+		CurNodeIndex: 0,
+	}); e != nil {
+		return
+	}
 	col := d.mongo.Database("config_" + groupname).Collection(appname)
 	index := mongo.IndexModel{
 		Keys:    bson.D{primitive.E{Key: "key", Value: 1}, primitive.E{Key: "index", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
-	if _, e = col.Indexes().CreateOne(ctx, index); e != nil && !mongo.IsDuplicateKeyError(e) {
+	if _, e = col.Indexes().CreateOne(sctx, index); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	}
-	if _, e = col.InsertOne(ctx, bson.M{
-		"key":    "",
-		"index":  0,
-		"cipher": cipher,
-		"keys":   bson.M{},
+	nonce := make([]byte, 32)
+	rand.Read(nonce)
+	if _, e = col.InsertOne(sctx, bson.M{
+		"key":                "",
+		"index":              0,
+		"keys":               bson.M{},
+		"value":              util.SignMake(secret, nonce),
+		"permission_node_id": parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10),
 	}); e != nil && mongo.IsDuplicateKeyError(e) {
 		e = ecode.ErrAppAlreadyExist
 	}
 	return
 }
-
-type datahandler func(cipher string, origindata string) (newdata string)
-
-func (d *Dao) MongoUpdateCipher(ctx context.Context, groupname, appname, oldcipher, newcipher string, decrypt, encrypt datahandler) (e error) {
+func (d *Dao) MongoDelApp(ctx context.Context, groupname, appname, secret string) (e error) {
+	var s mongo.Session
+	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
+	if e != nil {
+		return
+	}
+	defer s.EndSession(ctx)
+	sctx := mongo.NewSessionContext(ctx, s)
+	if e = s.StartTransaction(); e != nil {
+		return
+	}
+	defer func() {
+		if e != nil {
+			s.AbortTransaction(sctx)
+		} else if e = s.CommitTransaction(sctx); e != nil {
+			s.AbortTransaction(sctx)
+		} else {
+			//drop can't be in the multi collection transaction
+			e = d.mongo.Database("config_" + groupname).Collection(appname).Drop(ctx)
+		}
+	}()
+	appsummary := &model.AppSummary{}
+	if e = d.mongo.Database("config_"+groupname).Collection(appname).FindOne(sctx, bson.M{"key": "", "index": 0}, options.FindOne().SetProjection(bson.M{"value": 1, "permission_node_id": 1})).Decode(appsummary); e != nil {
+		return
+	}
+	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		return
+	}
+	delfilter := bson.M{"node_id": bson.M{"$regex": "^" + appsummary.PermissionNodeID}}
+	if _, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, delfilter); e != nil {
+		return
+	}
+	if _, e = d.mongo.Database("permission").Collection("usernode").DeleteMany(sctx, delfilter); e != nil {
+		return
+	}
+	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, delfilter)
+	return
+}
+func (d *Dao) MongoUpdateAppSecret(ctx context.Context, groupname, appname, oldsecret, newsecret string) (e error) {
+	if len(oldsecret) >= 32 || len(newsecret) >= 32 {
+		return ecode.ErrSecretLength
+	}
+	if oldsecret == newsecret {
+		return
+	}
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -128,39 +177,53 @@ func (d *Dao) MongoUpdateCipher(ctx context.Context, groupname, appname, oldciph
 		}
 		return
 	}
-	if appsummary.Cipher != oldcipher {
-		e = ecode.ErrWrongCipher
+	//check oldsecret
+	if e = util.SignCheck(oldsecret, appsummary.Value); e != nil {
 		return
 	}
+	nonce := make([]byte, 32)
+	rand.Read(nonce)
 	updater := bson.M{
-		"cipher": newcipher,
+		"value": util.SignMake(newsecret, nonce),
 	}
 	for key, keysummary := range appsummary.Keys {
-		if oldcipher != "" {
-			keysummary.CurValue = decrypt(oldcipher, keysummary.CurValue)
+		if oldsecret != "" {
+			var plaintext []byte
+			plaintext, e = util.Decrypt(oldsecret, keysummary.CurValue)
+			if e != nil {
+				return
+			}
+			keysummary.CurValue = common.Byte2str(plaintext)
 		}
-		if newcipher != "" {
-			keysummary.CurValue = encrypt(newcipher, keysummary.CurValue)
+		if newsecret != "" {
+			updater["keys."+key+".cur_value"], _ = util.Encrypt(newsecret, common.Str2byte(keysummary.CurValue))
+		} else {
+			updater["keys."+key+".cur_value"] = keysummary.CurValue
 		}
-		updater["keys."+key+".cur_value"] = keysummary.CurValue
 	}
 	if _, e = col.UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$set": updater}); e != nil {
 		return
 	}
 	var cursor *mongo.Cursor
-	if cursor, e = col.Find(sctx, bson.M{"key": bson.M{"$ne": ""}, "index": bson.M{"$gt": 0}}, options.Find().SetSort(bson.M{"key": -1})); e != nil {
+	if cursor, e = col.Find(sctx, bson.M{"key": bson.M{"$exists": true, "$nin": bson.A{nil, ""}}, "index": bson.M{"$gt": 0}}); e != nil {
 		return
 	}
+	defer cursor.Close(sctx)
 	for cursor.Next(sctx) {
 		log := &model.Log{}
 		if e = cursor.Decode(log); e != nil {
 			return
 		}
-		if oldcipher != "" {
-			log.Value = decrypt(oldcipher, log.Value)
+		if oldsecret != "" {
+			var plaintext []byte
+			plaintext, e = util.Decrypt(oldsecret, log.Value)
+			if e != nil {
+				return
+			}
+			log.Value = common.Byte2str(plaintext)
 		}
-		if newcipher != "" {
-			log.Value = encrypt(newcipher, log.Value)
+		if newsecret != "" {
+			log.Value, _ = util.Encrypt(newsecret, common.Str2byte(log.Value))
 		}
 		if _, e = col.UpdateOne(sctx, bson.M{"key": log.Key, "index": log.Index}, bson.M{"$set": bson.M{"value": log.Value}}); e != nil {
 			return
@@ -170,39 +233,40 @@ func (d *Dao) MongoUpdateCipher(ctx context.Context, groupname, appname, oldciph
 	return
 }
 
-//index == 0 get the current index's config
-//index != 0 get the specific index's config
-func (d *Dao) MongoGetKeyConfig(ctx context.Context, groupname, appname, key string, index uint32, decrypt datahandler) (*model.KeySummary, *model.Log, error) {
+func (d *Dao) MongoGetAllKeys(ctx context.Context, groupname, appname, secret string) ([]string, error) {
+	appsummary := &model.AppSummary{}
+
+	if e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(appsummary); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrAppNotExist
+		}
+		return nil, e
+	}
+	// check sign
+	if e := util.SignCheck(secret, appsummary.Value); e != nil {
+		return nil, e
+	}
+	keys := make([]string, 0, len(appsummary.Keys))
+	for k := range appsummary.Keys {
+		keys = append(keys, k)
+	}
+	return keys, nil
+}
+
+// index == 0 get the current index's config
+// index != 0 get the specific index's config
+func (d *Dao) MongoGetKeyConfig(ctx context.Context, groupname, appname, key string, index uint32, secret string) (*model.KeySummary, *model.Log, error) {
 	col := d.mongo.Database("config_"+groupname, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection(appname)
 	var appsummary *model.AppSummary
 	var log *model.Log
-	if index != 0 {
-		//get the specific index's config and the current status
-		filter := bson.M{"$or": bson.A{bson.M{"key": "", "index": 0}, bson.M{"key": key, "index": index}}}
-		cursor, e := col.Find(ctx, filter, options.Find().SetSort(bson.M{"index": 1}))
-		if e != nil {
-			return nil, nil, e
-		}
-		for cursor.Next(ctx) {
-			if appsummary == nil {
-				tmps := &model.AppSummary{}
-				if e = cursor.Decode(tmps); e != nil {
-					return nil, nil, e
-				}
-				appsummary = tmps
-			} else {
-				tmpc := &model.Log{}
-				if e = cursor.Decode(tmpc); e != nil {
-					return nil, nil, e
-				}
-				log = tmpc
+	if index == 0 {
+		//get tge current index's config
+		appsummary = &model.AppSummary{}
+		if e := col.FindOne(ctx, bson.M{"key": "", "index": 0}, options.FindOne().SetProjection(bson.M{"value": 1, "keys." + key: 1})).Decode(appsummary); e != nil {
+			if e == mongo.ErrNoDocuments {
+				e = ecode.ErrAppNotExist
 			}
-		}
-		if e := cursor.Err(); e != nil {
 			return nil, nil, e
-		}
-		if appsummary == nil {
-			return nil, nil, ecode.ErrAppNotExist
 		}
 		if appsummary.Keys == nil {
 			return nil, nil, ecode.ErrKeyNotExist
@@ -211,22 +275,52 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, groupname, appname, key str
 		if !ok {
 			return nil, nil, ecode.ErrKeyNotExist
 		}
-		if log == nil {
-			return nil, nil, ecode.ErrIndexNotExist
+		//check secret
+		if e := util.SignCheck(secret, appsummary.Value); e != nil {
+			return nil, nil, e
 		}
-		if appsummary.Cipher != "" {
-			keysummary.CurValue = decrypt(appsummary.Cipher, keysummary.CurValue)
-			log.Value = decrypt(appsummary.Cipher, log.Value)
+		if secret != "" {
+			plaintext, e := util.Decrypt(secret, keysummary.CurValue)
+			if e != nil {
+				return nil, nil, e
+			}
+			keysummary.CurValue = common.Byte2str(plaintext)
+		}
+		log = &model.Log{
+			Key:       key,
+			Index:     keysummary.CurIndex,
+			Value:     keysummary.CurValue,
+			ValueType: keysummary.CurValueType,
 		}
 		return keysummary, log, nil
 	}
-	//get tge current index's config
-	appsummary = &model.AppSummary{}
-	if e := col.FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(appsummary); e != nil {
-		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrAppNotExist
-		}
+	//get the specific index's config and the current status
+	filter := bson.M{"$or": bson.A{bson.M{"key": "", "index": 0}, bson.M{"key": key, "index": index}}}
+	cursor, e := col.Find(ctx, filter, options.Find().SetProjection(bson.M{"key": 1, "index": 1, "value": 1, "value_type": 1, "keys." + key: 1}).SetSort(bson.M{"index": 1}))
+	if e != nil {
 		return nil, nil, e
+	}
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		if appsummary == nil {
+			tmp := &model.AppSummary{}
+			if e = cursor.Decode(tmp); e != nil {
+				return nil, nil, e
+			}
+			appsummary = tmp
+		} else {
+			tmp := &model.Log{}
+			if e = cursor.Decode(tmp); e != nil {
+				return nil, nil, e
+			}
+			log = tmp
+		}
+	}
+	if e := cursor.Err(); e != nil {
+		return nil, nil, e
+	}
+	if appsummary == nil {
+		return nil, nil, ecode.ErrAppNotExist
 	}
 	if appsummary.Keys == nil {
 		return nil, nil, ecode.ErrKeyNotExist
@@ -235,35 +329,28 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, groupname, appname, key str
 	if !ok {
 		return nil, nil, ecode.ErrKeyNotExist
 	}
-	if appsummary.Cipher != "" {
-		keysummary.CurValue = decrypt(appsummary.Cipher, keysummary.CurValue)
+	if log == nil {
+		return nil, nil, ecode.ErrIndexNotExist
 	}
-	log = &model.Log{
-		Key:       key,
-		Index:     keysummary.CurIndex,
-		Value:     keysummary.CurValue,
-		ValueType: keysummary.CurValueType,
+	//check secret
+	if e := util.SignCheck(secret, appsummary.Value); e != nil {
+		return nil, nil, e
+	}
+	if secret != "" {
+		plaintext, e := util.Decrypt(secret, keysummary.CurValue)
+		if e != nil {
+			return nil, nil, e
+		}
+		keysummary.CurValue = common.Byte2str(plaintext)
+		plaintext, e = util.Decrypt(secret, log.Value)
+		if e != nil {
+			return nil, nil, e
+		}
+		log.Value = common.Byte2str(plaintext)
 	}
 	return keysummary, log, nil
 }
-
-//get the app's all keys' current config
-func (d *Dao) MongoGetAppConfig(ctx context.Context, groupname, appname string, decrypt datahandler) (*model.AppSummary, error) {
-	app := &model.AppSummary{}
-	if e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(app); e != nil {
-		if e == mongo.ErrNoDocuments {
-			return nil, nil
-		}
-		return nil, e
-	}
-	if app.Cipher != "" {
-		for _, keysummary := range app.Keys {
-			keysummary.CurValue = decrypt(app.Cipher, keysummary.CurValue)
-		}
-	}
-	return app, nil
-}
-func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value, valuetype string, encrypt datahandler) (newindex, newversion uint32, e error) {
+func (d *Dao) MongoSetKeyConfig(ctx context.Context, groupname, appname, key, secret, value, valuetype string) (newindex, newversion uint32, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -289,8 +376,14 @@ func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value
 		}
 		return
 	}
-	if appsummary.Cipher != "" {
-		value = encrypt(appsummary.Cipher, value)
+	//check secret
+	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		return
+	}
+	if secret != "" {
+		if value, e = util.Encrypt(secret, common.Str2byte(value)); e != nil {
+			return
+		}
 	}
 	keysummary, ok := appsummary.Keys[key]
 	if !ok {
@@ -316,7 +409,39 @@ func (d *Dao) MongoSetConfig(ctx context.Context, groupname, appname, key, value
 	newversion = keysummary.CurVersion
 	return
 }
-func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname, key string, index uint32) (e error) {
+func (d *Dao) MongoDelKey(ctx context.Context, groupname, appname, key, secret string) (e error) {
+	var s mongo.Session
+	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
+	if e != nil {
+		return
+	}
+	defer s.EndSession(ctx)
+	sctx := mongo.NewSessionContext(ctx, s)
+	if e = s.StartTransaction(); e != nil {
+		return
+	}
+	defer func() {
+		if e != nil {
+			s.AbortTransaction(sctx)
+		} else if e = s.CommitTransaction(sctx); e != nil {
+			s.AbortTransaction(sctx)
+		}
+	}()
+	col := d.mongo.Database("config_" + groupname).Collection(appname)
+	appsummary := &model.AppSummary{}
+	if e = col.FindOneAndUpdate(sctx, bson.M{"key": "", "index": 0}, bson.M{"$unset": bson.M{"keys." + key: 1}}, options.FindOneAndUpdate().SetProjection(bson.M{"value": 1})).Decode(appsummary); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrAppNotExist
+		}
+		return
+	}
+	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		return
+	}
+	_, e = col.DeleteMany(sctx, bson.M{"key": key})
+	return
+}
+func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, groupname, appname, key, secret string, index uint32) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -352,22 +477,23 @@ func (d *Dao) MongoRollbackConfig(ctx context.Context, groupname, appname, key s
 			"keys." + key + ".cur_version": 1,
 		},
 	}
-	if r := col.FindOneAndUpdate(sctx, bson.M{"key": "", "index": 0}, updateSummary); r.Err() != nil {
-		if r.Err() == mongo.ErrNoDocuments {
+	appsummary := &model.AppSummary{}
+	if e = col.FindOneAndUpdate(sctx, bson.M{"key": "", "index": 0}, updateSummary, options.FindOneAndUpdate().SetProjection(bson.M{"value": 1})).Decode(appsummary); e != nil {
+		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
-		} else {
-			e = r.Err()
 		}
+		return
 	}
+	e = util.SignCheck(secret, appsummary.Value)
 	return
 }
 
-//first key groupname,second key appname,value curconfig
+// first key groupname,second key appname,value curconfig
 type WatchUpdateHandler func(string, string, *model.AppSummary)
 type WatchDeleteAppHandler func(groupname, appname string)
 type WatchDeleteConfigHandler func(groupname, appname string, id string)
 
-func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHandler, delC WatchDeleteConfigHandler, decrypt datahandler) error {
+func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHandler, delC WatchDeleteConfigHandler) error {
 	starttime := &primitive.Timestamp{T: uint32(time.Now().Unix()), I: uint32(0)}
 	watchfilter := mongo.Pipeline{bson.D{primitive.E{Key: "$match", Value: bson.M{"ns.db": bson.M{"$regex": "^config_"}}}}}
 	stream, e := d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime))
@@ -417,11 +543,6 @@ func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHan
 						log.Error(nil, "[dao.MongoWatchConfig] group:", groupname, "app:", appname, "summary data broken:", e)
 						continue
 					}
-					if s.Cipher != "" {
-						for _, keysummary := range s.Keys {
-							keysummary.CurValue = decrypt(s.Cipher, keysummary.CurValue)
-						}
-					}
 					update(groupname, appname, s)
 				case "delete":
 					//delete document
@@ -439,4 +560,16 @@ func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHan
 		}
 	}()
 	return nil
+}
+
+// this function will not decrypt
+func (d *Dao) MongoGetAppConfig(ctx context.Context, groupname, appname string) (*model.AppSummary, error) {
+	app := &model.AppSummary{}
+	if e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(app); e != nil {
+		if e == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, e
+	}
+	return app, nil
 }

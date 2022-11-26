@@ -6,7 +6,7 @@
 
 package api
 
-//return empty means pass
+// return empty means pass
 func (m *Pingreq) Validate() (errstr string) {
 	if m.GetTimestamp() <= 0 {
 		return "field: timestamp in object: pingreq check value int gt failed"

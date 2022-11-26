@@ -6,26 +6,28 @@ import (
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"
+	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/service"
 
 	"github.com/chenjie199234/Corelib/cgrpc"
 	"github.com/chenjie199234/Corelib/cgrpc/mids"
 	"github.com/chenjie199234/Corelib/log"
-	ctime "github.com/chenjie199234/Corelib/util/time"
+	"github.com/chenjie199234/Corelib/util/ctime"
 )
 
 var s *cgrpc.CGrpcServer
 
-//StartCGrpcServer -
+// StartCGrpcServer -
 func StartCGrpcServer() {
 	c := config.GetCGrpcServerConfig()
 	cgrpcc := &cgrpc.ServerConfig{
 		ConnectTimeout: time.Duration(c.ConnectTimeout),
 		GlobalTimeout:  time.Duration(c.GlobalTimeout),
 		HeartPorbe:     time.Duration(c.HeartProbe),
+		Certs:          c.Certs,
 	}
 	var e error
-	if s, e = cgrpc.NewCGrpcServer(cgrpcc, api.Group, api.Name); e != nil {
+	if s, e = cgrpc.NewCGrpcServer(cgrpcc, model.Group, model.Name); e != nil {
 		log.Error(nil, "[xgrpc] new error:", e)
 		return
 	}
@@ -50,8 +52,8 @@ func StartCGrpcServer() {
 	log.Info(nil, "[xgrpc] server closed")
 }
 
-//UpdateHandlerTimeout -
-//first key path,second key method,value timeout duration
+// UpdateHandlerTimeout -
+// first key path,second key method,value timeout duration
 func UpdateHandlerTimeout(hts map[string]map[string]ctime.Duration) {
 	if s == nil {
 		return
@@ -68,9 +70,9 @@ func UpdateHandlerTimeout(hts map[string]map[string]ctime.Duration) {
 	s.UpdateHandlerTimeout(cc)
 }
 
-//StopCGrpcServer -
+// StopCGrpcServer -
 func StopCGrpcServer() {
 	if s != nil {
-		s.StopCGrpcServer()
+		s.StopCGrpcServer(false)
 	}
 }

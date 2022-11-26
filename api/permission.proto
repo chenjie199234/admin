@@ -6,7 +6,6 @@ package admin;
 option go_package="github.com/chenjie199234/admin/api;api";
 //https://github.com/chenjie199234/Corelib/blob/main/pbex/pbex.proto
 import "pbex/pbex.proto";
-import "api/user.proto";
 
 //this is the proto file for permission service
 service permission{
@@ -28,6 +27,11 @@ service permission{
 	}
 
 	rpc update_user_permission(update_user_permission_req)returns(update_user_permission_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc update_role_permission(update_role_permission_req)returns(update_role_permission_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -57,17 +61,12 @@ service permission{
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc list_all_node(list_all_node_req)returns(list_all_node_resp){
+	rpc list_role_node(list_role_node_req)returns(list_role_node_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc list_node_user(list_node_user_req)returns(list_node_user_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
-	rpc list_admin(list_admin_req)returns(list_admin_resp){
+	rpc list_project_node(list_project_node_req)returns(list_project_node_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -95,7 +94,7 @@ message get_user_permission_resp {
 message update_user_permission_req {
 	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
 	//first element must be 0
-	repeated uint32 node_id=2[(pbex.map_repeated_len_not_eq)=0];
+	repeated uint32 node_id=2[(pbex.map_repeated_len_gt)=1];
 	//if admin is true,canread and canwrite will be ignore
 	bool admin=3;
 	//if admin is false,and canread is false too,means delete this user from this node
@@ -107,9 +106,26 @@ message update_user_permission_req {
 message update_user_permission_resp {
 
 }
+message update_role_permission_req {
+	//first element must be 0
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
+	//first element must be 0
+	repeated uint32 node_id=3[(pbex.map_repeated_len_gt)=1];
+	//if admin is true,canread and canwrite will be ignore
+	bool admin=4;
+	//if admin is false,and canread is false too,means delete this user from this node
+	//if admin is false,and canread is false and node_id's length is 1,means delete this user completely
+	bool canread=5;
+	//if canwrite is true,canread must be true too
+	bool canwrite=6;
+}
+message update_role_permission_resp {
+
+}
 message add_node_req {
 	//first element must be 0
-	repeated uint32 pnode_id=1[(pbex.map_repeated_len_not_eq)=0];
+	repeated uint32 pnode_id=1[(pbex.map_repeated_len_gte)=2];
 	string node_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string node_data=3;
 }
@@ -117,25 +133,25 @@ message add_node_resp {
 }
 message update_node_req {
 	//first element must be 0
-	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=1];
-	string node_name=2[(pbex.string_bytes_len_not_eq)=0];
-	string node_data=3;
+	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=2];
+	string new_node_name=2[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
+	string new_node_data=3;//if didn't change,set this with the old value
 }
 message update_node_resp {
 
 }
 message move_node_req {
 	//first element must be 0
-	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=1];
+	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=2];
 	//first element must be 0
-	repeated uint32 pnode_id=2[(pbex.map_repeated_len_not_eq)=0];
+	repeated uint32 pnode_id=2[(pbex.map_repeated_len_gte)=2];
 }
 message move_node_resp {
 
 }
 message del_node_req {
 	//first element must be 0
-	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=1];
+	repeated uint32 node_id=1[(pbex.map_repeated_len_gt)=2];
 }
 message del_node_resp {
 }
@@ -143,33 +159,33 @@ message node_info {
 	repeated uint32 node_id=1;
 	string node_name=2;
 	string node_data=3;
-	uint32 canread=4;
-	uint32 canwrite=5;
-	uint32 admin=6;
+	bool canread=4;
+	bool canwrite=5;
+	bool admin=6;
 	repeated node_info children=7;
 }
 message list_user_node_req {
+	//first element must be 0
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string user_id=2;//if this is empty means return self's
+	bool need_user_role_node=3;//false - only return user's base node,true - return user's base node and user's roles' node
 }
 message list_user_node_resp {
 	repeated node_info nodes=1;
 }
-message list_all_node_req{
+message list_role_node_req {
+	//first element must be 0
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
 }
-message list_all_node_resp{
-	//this will only return the node name,other node's info will not return
-	node_info nodes=1;
+message list_role_node_resp {
+	repeated node_info nodes=1;
 }
-message list_node_user_req {
-	repeated uint32 node_id=1[(pbex.map_repeated_len_not_eq)=0];
+message list_project_node_req{
+	//first element must be 0
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 }
-message list_node_user_resp {
-	map<string,user_info> canread=1;//key userid,value username
-	map<string,user_info> canwrite=2;//key userid,value username
-	map<string,user_info> admin=3;//key userid,value username
-}
-message list_admin_req{
-	repeated uint32 node_id=1[(pbex.map_repeated_len_not_eq)=0];
-}
-message list_admin_resp{
-	repeated user_info users=1;
+message list_project_node_resp{
+	//this will only return the node name and node data,other node's info will not return
+	repeated node_info nodes=1;
 }

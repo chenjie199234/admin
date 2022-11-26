@@ -1,10 +1,10 @@
-package selfsdk
+package internal
 
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
@@ -23,18 +23,19 @@ import (
 
 type Sdk struct {
 	client     *mongo.Client
+	secret     string
 	lker       sync.Mutex
 	appsummary *model.AppSummary
 	notices    map[string]NoticeHandler
 }
 
-//keyvalue: map's key is the key name,map's value is the key's data
-//keytype: map's key is the key name,map's value is the type of the key's data
+// keyvalue: map's key is the key name,map's value is the key's data
+// keytype: map's key is the key name,map's value is the type of the key's data
 type NoticeHandler func(key, keyvalue, keytype string)
 
-//url format [mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
-func NewDirectSdk(selfgroup, selfname string, mongodburl string) (*Sdk, error) {
-	client, e := newMongo(mongodburl, selfgroup, selfname)
+// url format [mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
+func NewDirectSdk(selfgroup, selfname, mongourl, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (*Sdk, error) {
+	client, e := newMongo(mongourl, selfgroup, selfname, secret, AppConfigTemplate, SourceConfigTemplate)
 	if e != nil {
 		return nil, e
 	}
@@ -47,16 +48,24 @@ func NewDirectSdk(selfgroup, selfname string, mongodburl string) (*Sdk, error) {
 	col := client.Database("config_"+selfgroup, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection(selfname)
 	//get first,then watch change stream
 	appsummary := &model.AppSummary{}
-	if e = col.FindOne(context.Background(), bson.M{"index": 0}).Decode(appsummary); e != nil && e != mongo.ErrNoDocuments {
+	if e = col.FindOne(context.Background(), bson.M{"key": "", "index": 0}).Decode(appsummary); e != nil && e != mongo.ErrNoDocuments {
 		return nil, e
-	}
-	if appsummary.Cipher != "" {
-		for _, keysummary := range appsummary.Keys {
-			keysummary.CurValue = util.Decrypt(appsummary.Cipher, keysummary.CurValue)
+	} else if e == nil {
+		//sign check
+		if e := util.SignCheck(secret, appsummary.Value); e != nil {
+			return nil, e
+		}
+		if secret != "" {
+			for _, keysummary := range appsummary.Keys {
+				plaintext, e := util.Decrypt(secret, keysummary.CurValue)
+				if e != nil {
+					return nil, e
+				}
+				keysummary.CurValue = common.Byte2str(plaintext)
+			}
 		}
 	}
 	instance := &Sdk{
-		client:     client,
 		appsummary: appsummary,
 		notices:    make(map[string]NoticeHandler),
 	}
@@ -66,7 +75,7 @@ func NewDirectSdk(selfgroup, selfname string, mongodburl string) (*Sdk, error) {
 				//reconnect
 				time.Sleep(time.Millisecond * 100)
 				if stream, e = client.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime)); e != nil {
-					log.Error(nil, "[config.selfsdk.watch] reconnect error:", e)
+					log.Error(nil, "[config.directsdk.watch] reconnect:", e)
 					stream = nil
 					continue
 				}
@@ -79,10 +88,7 @@ func NewDirectSdk(selfgroup, selfname string, mongodburl string) (*Sdk, error) {
 					//drop collection
 					instance.lker.Lock()
 					for key, notice := range instance.notices {
-						old, ok := instance.appsummary.Keys[key]
-						if ok && old.CurVersion != 0 {
-							notice(key, "", "raw")
-						}
+						notice(key, "", "raw")
 					}
 					instance.appsummary = &model.AppSummary{}
 					instance.lker.Unlock()
@@ -103,12 +109,22 @@ func NewDirectSdk(selfgroup, selfname string, mongodburl string) (*Sdk, error) {
 					}
 					tmp := &model.AppSummary{}
 					if e := stream.Current.Lookup("fullDocument").Unmarshal(tmp); e != nil {
-						log.Error(nil, "[config.selfsdk.watch] group:", selfgroup, "app:", selfname, "appsummary data broken,error:", e)
+						log.Error(nil, "[config.directsdk.watch] group:", selfgroup, "app:", selfname, e)
 						continue
 					}
-					if tmp.Cipher != "" {
+					//check sign
+					if e := util.SignCheck(secret, tmp.Value); e != nil {
+						log.Error(nil, "[config.directsdk.watch] group:", selfgroup, "app:", selfname, e)
+						continue
+					}
+					if secret != "" {
 						for _, keysummary := range tmp.Keys {
-							keysummary.CurValue = util.Decrypt(tmp.Cipher, keysummary.CurValue)
+							plaintext, e := util.Decrypt(secret, keysummary.CurValue)
+							if e != nil {
+								log.Error(nil, "[config.directsdk.watch] group:", selfgroup, "app:", selfname, e)
+								break
+							}
+							keysummary.CurValue = common.Byte2str(plaintext)
 						}
 					}
 					instance.lker.Lock()
@@ -123,27 +139,22 @@ func NewDirectSdk(selfgroup, selfname string, mongodburl string) (*Sdk, error) {
 							} else {
 								notice(key, new.CurValue, new.CurValueType)
 							}
+						} else if !newok {
+							continue
 						} else {
-							if !newok {
-								continue
-							} else {
-								notice(key, new.CurValue, new.CurValueType)
-							}
+							notice(key, new.CurValue, new.CurValueType)
 						}
 					}
 					instance.appsummary = tmp
 					instance.lker.Unlock()
 				case "delete":
-					if stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex() != appsummary.ID.Hex() {
+					if appsummary.ID.IsZero() || stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex() != appsummary.ID.Hex() {
 						//this is not the appsummary
 						continue
 					}
 					instance.lker.Lock()
 					for key, notice := range instance.notices {
-						old, ok := instance.appsummary.Keys[key]
-						if ok && old.CurVersion != 0 {
-							notice(key, "", "raw")
-						}
+						notice(key, "", "raw")
 					}
 					appsummary = &model.AppSummary{}
 					instance.lker.Unlock()
@@ -159,8 +170,8 @@ func NewDirectSdk(selfgroup, selfname string, mongodburl string) (*Sdk, error) {
 	return instance, nil
 }
 
-//watch the same key will overwrite the old one's notice function
-//but the old's cancel function can still work
+// watch the same key will overwrite the old one's notice function
+// but the old's cancel function can still work
 func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {
 	instance.lker.Lock()
 	defer instance.lker.Unlock()
@@ -175,6 +186,8 @@ func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {
 	instance.notices[key] = notice
 	if keysummary, ok := instance.appsummary.Keys[key]; ok {
 		go notice(key, keysummary.CurValue, keysummary.CurValueType)
+	} else {
+		go notice(key, "", "raw")
 	}
 	return func() {
 		instance.lker.Lock()
@@ -183,144 +196,12 @@ func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {
 	}
 }
 
-var defaultAppConfig = `{
-	"handler_timeout":{
-		"/admin.status/ping":{
-			"GET":"200ms",
-			"CRPC":"200ms",
-			"GRPC":"200ms"
-		},
-		"/admin.config/watch":{
-			"POST":"0s"
-		},
-		"/admin.config/updatechiper":{
-			"POST":"0s"
-		}
-	},
-	"handler_rate":[{
-		"Path":"/admin.status/ping",
-		"Method":["GET","GRPC","CRPC"],
-		"MaxPerSec":10
-	},{
-		"Path":"/admin.initialize/initialize",
-		"Method":["POST","GRPC","CRPC"],
-		"MaxPerSec":1
-	}],
-	"white_ip":[],
-	"black_ip":[],
-	"web_path_rewrite":{
-		"GET":{
-			"/example/origin/url":"/example/new/url"
-		}
-	},
-	"access_keys":{
-		"default":["default_sec_key"],
-		"/admin.status/ping":["specific_sec_key"]
-	},
-	"token_secret":"test",
-	"token_expire":"24h",
-	"service":{
-
-	}
-}`
-var defaultSourceConfig = `{
-	"cgrpc_server":{
-		"connect_timeout":"200ms",
-		"global_timeout":"200ms",
-		"heart_probe":"1.5s"
-	},
-	"cgrpc_client":{
-		"connect_timeout":"200ms",
-		"global_timeout":"0",
-		"heart_probe":"1.5s"
-	},
-	"crpc_server":{
-		"connect_timeout":"200ms",
-		"global_timeout":"200ms",
-		"heart_probe":"1.5s"
-	},
-	"crpc_client":{
-		"connect_timeout":"200ms",
-		"global_timeout":"0",
-		"heart_probe":"1.5s"
-	},
-	"web_server":{
-		"close_mode":1,
-		"connect_timeout":"200ms",
-		"global_timeout":"200ms",
-		"idle_timeout":"5s",
-		"heart_probe":"1.5s",
-		"static_file":"./src",
-		"web_cors":{
-			"cors_origin":["*"],
-			"cors_header":["*"],
-			"cors_expose":[]
-		}
-	},
-	"web_client":{
-		"connect_timeout":"200ms",
-		"global_timeout":"0",
-		"idle_timeout":"5s",
-		"heart_probe":"1.5s"
-	},
-	"mongo":{
-		"admin_mongo":{
-			"url":"%s",
-			"max_open":100,
-			"max_idletime":"10m",
-			"io_timeout":"500ms",
-			"conn_timeout":"500ms"
-		}
-	},
-	"sql":{
-		"example_sql":{
-			"url":"[username:password@][protocol(address)][/dbname][?param1=value1&...&paramN=valueN]",
-			"max_open":100,
-			"max_idletime":"10m",
-			"io_timeout":"200ms",
-			"conn_timeout":"200ms"
-		}
-	},
-	"redis":{
-		"example_redis":{
-			"url":"[redis/rediss]://[[username:]password@]host[/dbindex]",
-			"max_open":100,
-			"max_idletime":"10m",
-			"io_timeout":"200ms",
-			"conn_timeout":"200ms"
-		}
-	},
-	"kafka_pub":[
-		{
-			"addrs":["127.0.0.1:12345"],
-			"username":"example",
-			"password":"example",
-			"auth_method":3,
-			"compress_method":2,
-			"topic_name":"example_topic",
-			"io_timeout":"500ms",
-			"conn_timeout":"200ms"
-		}
-	],
-	"kafka_sub":[
-		{
-			"addrs":["127.0.0.1:12345"],
-			"username":"example",
-			"password":"example",
-			"auth_method":3,
-			"topic_name":"example_topic",
-			"group_name":"example_group",
-			"conn_timeout":"200ms",
-			"start_offset":-2,
-			"commit_interval":"0s"
-		}
-	]
-}`
-
-func newMongo(url string, groupname, appname string) (db *mongo.Client, e error) {
+func newMongo(url, groupname, appname, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (db *mongo.Client, e error) {
 	op := options.Client().ApplyURI(url)
 	op = op.SetMaxPoolSize(2)
+	op = op.SetConnectTimeout(time.Second)
 	op = op.SetHeartbeatInterval(time.Second * 5)
+	op = op.SetMaxConnIdleTime(time.Minute)
 	op = op.SetReadPreference(readpref.SecondaryPreferred())
 	op = op.SetReadConcern(readconcern.Majority())
 	if db, e = mongo.Connect(context.Background(), op); e != nil {
@@ -331,23 +212,31 @@ func newMongo(url string, groupname, appname string) (db *mongo.Client, e error)
 	}
 	//init self mongo
 	col := db.Database("config_" + groupname).Collection(appname)
-	index := mongo.IndexModel{
-		Keys:    bson.D{primitive.E{Key: "key", Value: 1}, primitive.E{Key: "index", Value: 1}},
-		Options: options.Index().SetUnique(true),
-	}
-	if _, e = col.Indexes().CreateOne(context.Background(), index); e != nil && !mongo.IsDuplicateKeyError(e) {
+	if _, e = col.Indexes().CreateOne(context.Background(), mongo.IndexModel{Keys: bson.D{{Key: "key", Value: 1}, {Key: "index", Value: 1}}, Options: options.Index().SetUnique(true)}); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	}
-	buf := bytes.NewBuffer(nil)
-	if e = json.Compact(buf, common.Str2byte(defaultAppConfig)); e != nil {
+	bufapp := bytes.NewBuffer(nil)
+	if e = json.Compact(bufapp, AppConfigTemplate); e != nil {
 		return
 	}
-	appconfig := buf.String()
-	buf.Reset()
-	if e = json.Compact(buf, common.Str2byte(fmt.Sprintf(defaultSourceConfig, url))); e != nil {
+	bufsource := bytes.NewBuffer(nil)
+	SourceConfigTemplate = bytes.ReplaceAll(SourceConfigTemplate, []byte("example_mongo"), []byte("admin_mongo"))
+	SourceConfigTemplate = bytes.ReplaceAll(SourceConfigTemplate, []byte("[mongodb/mongodb+srv]://[username:password@]host1,...,hostN[/dbname][?param1=value1&...&paramN=valueN]"), []byte(url))
+	if e = json.Compact(bufsource, SourceConfigTemplate); e != nil {
 		return
 	}
-	sourceconfig := buf.String()
+	appconfig := ""
+	sourceconfig := ""
+	if secret != "" {
+		appconfig, _ = util.Encrypt(secret, bufapp.Bytes())
+		sourceconfig, _ = util.Encrypt(secret, bufsource.Bytes())
+	} else {
+		appconfig = common.Byte2str(bufapp.Bytes())
+		sourceconfig = common.Byte2str(bufsource.Bytes())
+	}
+	nonce := make([]byte, 32)
+	rand.Read(nonce)
+
 	var s mongo.Session
 	if s, e = db.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local())); e != nil {
 		return
@@ -368,9 +257,8 @@ func newMongo(url string, groupname, appname string) (db *mongo.Client, e error)
 		}
 	}()
 	if _, e = col.InsertOne(context.Background(), bson.M{
-		"key":    "",
-		"index":  0,
-		"cipher": "",
+		"key":   "",
+		"index": 0,
 		"keys": map[string]*model.KeySummary{
 			"AppConfig": {
 				CurIndex:     1,
@@ -387,6 +275,7 @@ func newMongo(url string, groupname, appname string) (db *mongo.Client, e error)
 				CurValueType: "json",
 			},
 		},
+		"value": util.SignMake(secret, nonce),
 	}); e != nil {
 		return
 	}

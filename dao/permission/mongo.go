@@ -3,6 +3,7 @@ package permission
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
@@ -15,71 +16,82 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func (d *Dao) MongoGetUserPermission(ctx context.Context, userid primitive.ObjectID, nodeid []uint32) (canread, canwrite, admin bool, e error) {
-	noderoute := make([][]uint32, 0, len(nodeid))
-	for i := range nodeid {
-		noderoute = append(noderoute, nodeid[:i+1])
+func (d *Dao) MongoGetUserPermission(ctx context.Context, userid primitive.ObjectID, nodeid string, withrole bool) (canread, canwrite, admin bool, e error) {
+	if userid == primitive.NilObjectID {
+		return true, true, true, nil
 	}
-	usernodes, e := d.MongoGetUserNodes(ctx, userid, noderoute)
+	if !strings.HasPrefix(nodeid, "0,") {
+		return false, false, false, nil
+	}
+	copynodeid := nodeid
+	noderoute := make([]string, 0, strings.Count(nodeid, ","))
+	for copynodeid != "" {
+		index := strings.LastIndex(copynodeid, ",")
+		if index == -1 {
+			break
+		}
+		noderoute = append(noderoute, copynodeid)
+		copynodeid = copynodeid[:index]
+	}
+	usernodes, e := d.MongoGetUserNodes(ctx, userid, noderoute[len(noderoute)-1], noderoute)
 	if e != nil {
 		return
 	}
 	canread, canwrite, admin = usernodes.CheckNode(nodeid)
+	if admin {
+		return
+	}
+	if !withrole {
+		return
+	}
+	userrolenodes, e := d.MongoGetUserRoleNodes(ctx, userid, noderoute[len(noderoute)-1], noderoute)
+	if e != nil {
+		return
+	}
+	for _, userrolenode := range userrolenodes {
+		tmpread, tmpwrite, tmpadmin := userrolenode.CheckNode(nodeid)
+		if tmpread {
+			canread = tmpread
+		}
+		if tmpwrite {
+			canwrite = tmpwrite
+		}
+		if tmpadmin {
+			admin = tmpadmin
+		}
+		if admin {
+			return
+		}
+	}
 	return
 }
 
-func (d *Dao) MongoListAdmin(ctx context.Context, nodeid []uint32) ([]*model.User, error) {
-	noderoute := make([][]uint32, 0, len(nodeid))
-	for i := range nodeid {
-		noderoute = append(noderoute, nodeid[:i+1])
+func (d *Dao) MongoGetRolePermission(ctx context.Context, projectid, rolename, nodeid string) (canread, canwrite, admin bool, e error) {
+	if strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 || strings.HasPrefix(nodeid, "0,") {
+		return false, false, false, nil
 	}
-	cur, e := d.mongo.Database("permission").Collection("usernode").Find(ctx, bson.M{"node_id": bson.M{"$in": noderoute}, "x": true})
-	if e != nil {
-		return nil, e
-	}
-	tmp := make([]*model.UserNode, 0, cur.RemainingBatchLength())
-	for cur.Next(ctx) {
-		usernode := &model.UserNode{}
-		if e := cur.Decode(usernode); e != nil {
-			cur.Close(context.Background())
-			return nil, e
+	noderoute := make([]string, 0, strings.Count(nodeid, ","))
+	for nodeid != "" {
+		index := strings.LastIndex(nodeid, ",")
+		if index == -1 {
+			break
 		}
-		tmp = append(tmp, usernode)
+		noderoute = append(noderoute, nodeid)
+		nodeid = nodeid[:index]
 	}
-	if e := cur.Err(); e != nil {
-		cur.Close(context.Background())
-		return nil, e
-	}
-	cur.Close(context.Background())
-	undup := make(map[primitive.ObjectID]*struct{})
-	for _, v := range tmp {
-		undup[v.UserId] = nil
-	}
-	userids := make([]primitive.ObjectID, 0, len(undup))
-	for k := range undup {
-		userids = append(userids, k)
-	}
-	cur, e = d.mongo.Database("user").Collection("user").Find(ctx, bson.M{"_id": bson.M{"$in": userids}})
+	rolenodes, e := d.MongoGetRoleNodes(ctx, projectid, rolename, noderoute)
 	if e != nil {
-		return nil, e
+		return
 	}
-	defer cur.Close(context.Background())
-	result := make([]*model.User, 0, cur.RemainingBatchLength())
-	for cur.Next(ctx) {
-		user := &model.User{}
-		if e := cur.Decode(user); e != nil {
-			return nil, e
-		}
-		result = append(result, user)
-	}
-	return result, nil
+	canread, canwrite, admin = rolenodes.CheckNode(nodeid)
+	return
 }
 
-//if admin is true,canread and canwrite will be ignore
-//if admin is false and canread is false too,means delete this user from this node
-//if admin is false and canwrite is true,then canread must be tree too
-func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operateUserid, targetUserid primitive.ObjectID, nodeid []uint32, admin, canread, canwrite bool) (e error) {
-	if len(nodeid) == 0 {
+// if admin is true,canread and canwrite will be ignore
+// if admin is false and canread is false too,means delete this user from this node
+// if admin is false and canwrite is true,then canread must be tree too
+func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operator, target primitive.ObjectID, nodeid string, admin, canread, canwrite bool) (e error) {
+	if !strings.HasPrefix(nodeid, "0,") {
 		return ecode.ErrReq
 	}
 	if admin {
@@ -107,67 +119,77 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operateUserid, targ
 			s.AbortTransaction(sctx)
 		}
 	}()
+	//first get target user permission on this node
+	targetnode := &model.UserNode{}
+	if e = d.mongo.Database("permission").Collection("usernode").FindOne(sctx, bson.M{"user_id": target, "node_id": nodeid}).Decode(targetnode); e != nil && e != mongo.ErrNoDocuments {
+		return
+	}
+	if targetnode.X == admin && targetnode.R == canread && targetnode.W == canwrite {
+		//nothing need to do
+		return
+	}
 	if !admin && !canread {
 		//delete
-		//first get target user permission on this node
-		target := &model.UserNode{}
-		if e = d.mongo.Database("permission").Collection("usernode").FindOne(sctx, bson.M{"user_id": targetUserid, "node_id": nodeid}).Decode(target); e != nil {
-			if e == mongo.ErrNoDocuments {
-				e = nil
+		var x bool
+		if targetnode.X {
+			//target is admin on this node
+			//operator must be admin on this node's parent node
+			lastindex := strings.LastIndex(nodeid, ",")
+			_, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid[:lastindex], true)
+		} else {
+			//target is not admin on this node
+			//operator must be admin on this node
+			_, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid, true)
+		}
+		if e != nil || !x {
+			if e == nil {
+				e = ecode.ErrPermission
 			}
 			return
-		} else if e == nil {
-			var x bool
-			if target.X {
-				//check operate user parent path admin
-				_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1])
-			} else {
-				//check operate user current path admin
-				_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid)
-			}
-			if e != nil || !x {
-				if e == nil {
-					e = ecode.ErrPermission
-				}
-				return
-			}
 		}
 		//all check success,delete database
-		filter := bson.M{
-			"user_id": targetUserid,
+		_, e = d.mongo.Database("permission").Collection("usernode").DeleteOne(sctx, bson.M{
+			"user_id": target,
 			"node_id": nodeid,
-		}
-		if _, e = d.mongo.Database("permission").Collection("usernode").DeleteOne(sctx, filter); e != nil {
-			return
-		}
+		})
 		return
 	}
 	//update
+
 	//check target user exist
-	var num int64
-	num, e = d.mongo.Database("user").Collection("user").CountDocuments(sctx, bson.M{"_id": targetUserid})
-	if e != nil {
+	targetuser := &model.User{}
+	if e = d.mongo.Database("user").Collection("user").FindOne(sctx, bson.M{"_id": target}).Decode(targetuser); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrUserNotExist
+		}
 		return
 	}
-	if num == 0 {
-		e = ecode.ErrReq
+	inproject := false
+	for _, project := range targetuser.Projects {
+		if strings.HasPrefix(nodeid, project) {
+			inproject = true
+			break
+		}
+	}
+	if !inproject {
+		e = ecode.ErrUserNotInProject
 		return
 	}
 	//get target user permission on parent path
+	//if target is admin on parent path,nothing need to do
+	lastindex := strings.LastIndex(nodeid, ",")
 	var x bool
-	_, _, x, e = d.MongoGetUserPermission(sctx, targetUserid, nodeid[:len(nodeid)-1])
-	if e != nil {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, target, nodeid[:lastindex], false); e != nil || x {
 		return
 	}
-	if x {
-		return
-	}
-	if admin {
-		//check operate user parent path admin
-		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid[:len(nodeid)-1])
+	if admin || targetnode.X {
+		//want to give target admin or remove target's admin permission
+		//operator must be admin to this node's parent node
+		_, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid[:lastindex], true)
 	} else {
-		//check operate user current path admin
-		_, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid)
+		//want to change target's R or W
+		//operator must be admin on this node
+		_, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid, true)
 	}
 	if e != nil || !x {
 		if e == nil {
@@ -176,80 +198,228 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operateUserid, targ
 		return
 	}
 	//all check success
-	filter := bson.M{"user_id": targetUserid, "node_id": nodeid}
+	filter := bson.M{"user_id": target, "node_id": nodeid}
 	updater := bson.M{"$set": bson.M{"r": canread, "w": canwrite, "x": admin}}
 	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateOne(sctx, filter, updater, options.Update().SetUpsert(true)); e != nil {
 		return
 	}
 	if admin {
-		filter = bson.M{"user_id": targetUserid}
-		for i, v := range nodeid {
-			filter["node_id."+strconv.Itoa(i)] = v
-		}
-		filter["node_id."+strconv.Itoa(len(nodeid))] = bson.M{"$exists": true}
+		//if target is admin on this node
+		//clean all children permission
+		filter = bson.M{"user_id": target, "node_id": bson.M{"$regex": "^" + nodeid + ","}}
 		_, e = d.mongo.Database("permission").Collection("usernode").DeleteMany(sctx, filter)
 	}
 	return
 }
 
-//if nodeids are not empty or nil,only the node in the required nodeids will return
-func (d *Dao) MongoGetUserNodes(ctx context.Context, userid primitive.ObjectID, nodeids [][]uint32) (model.UserNodes, error) {
+// if nodeids are not empty or nil,only the node in the required nodeids will return
+func (d *Dao) MongoGetUserNodes(ctx context.Context, userid primitive.ObjectID, projectid string, nodeids []string) (model.UserNodes, error) {
 	filter := bson.M{"user_id": userid}
+	nodeidfilter := bson.M{"$regex": "^" + projectid}
+	if len(nodeids) > 0 {
+		nodeidfilter["$in"] = nodeids
+	}
+	filter["node_id"] = nodeidfilter
+	cursor, e := d.mongo.Database("permission").Collection("usernode").Find(ctx, filter)
+	if e != nil {
+		return nil, e
+	}
+	defer cursor.Close(ctx)
+	result := make(model.UserNodes, 0, cursor.RemainingBatchLength())
+	e = cursor.All(ctx, &result)
+	return result, e
+}
+
+// if admin is true,canread and canwrite will be ignore
+// if admin is false and canread is false too,means delete this user from this node
+// if admin is false and canwrite is true,then canread must be tree too
+func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.ObjectID, projectid, rolename string, nodeid string, admin, canread, canwrite bool) (e error) {
+	//role belong's to project,so the nodeid must belong to this project
+	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 || strings.HasPrefix(projectid, nodeid) {
+		return ecode.ErrReq
+	}
+	if admin {
+		//ignore
+		canread = true
+		canwrite = true
+	} else if !canread && canwrite {
+		e = ecode.ErrReq
+		return
+	}
+	var s mongo.Session
+	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
+	if e != nil {
+		return
+	}
+	defer s.EndSession(ctx)
+	sctx := mongo.NewSessionContext(ctx, s)
+	if e = s.StartTransaction(); e != nil {
+		return
+	}
+	defer func() {
+		if e != nil {
+			s.AbortTransaction(sctx)
+		} else if e = s.CommitTransaction(sctx); e != nil {
+			s.AbortTransaction(sctx)
+		}
+	}()
+	//first get target role permission on this node
+	targetnode := &model.UserNode{}
+	if e = d.mongo.Database("permission").Collection("rolenode").FindOne(sctx, bson.M{"project": projectid, "role_name": rolename, "node_id": nodeid}).Decode(targetnode); e != nil && e != mongo.ErrNoDocuments {
+		return
+	}
+	if targetnode.R == canread && targetnode.W == canwrite && targetnode.X == admin {
+		//nothing need todo
+		return
+	}
+	if !admin && !canread {
+		//delete
+		var x bool
+		if targetnode.X {
+			//target is admin on this node
+			//operator must be admin on this node's parent node
+			lastindex := strings.LastIndex(nodeid, ",")
+			_, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid[:lastindex], true)
+		} else {
+			//target is not admin on this node
+			//operator must be admin on this node
+			_, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid, true)
+		}
+		if e != nil || !x {
+			if e == nil {
+				e = ecode.ErrPermission
+			}
+			return
+		}
+		_, e = d.mongo.Database("permission").Collection("rolenode").DeleteOne(sctx, bson.M{
+			"project":   projectid,
+			"role_name": rolename,
+			"node_id":   nodeid,
+		})
+		return
+	}
+	//update
+
+	//check target role exist
+	var num int64
+	if num, e = d.mongo.Database("user").Collection("role").CountDocuments(sctx, bson.M{"project": projectid, "role_name": rolename}); e != nil || num == 0 {
+		if num == 0 {
+			e = ecode.ErrRoleNotExist
+		}
+		return
+	}
+	//get target role permission on parent path
+	//if target is admin on parent path,nothing need to do
+	lastindex := strings.LastIndex(nodeid, ",")
+	var x bool
+	if _, _, x, e = d.MongoGetRolePermission(sctx, projectid, rolename, nodeid[:lastindex]); e != nil || x {
+		return
+	}
+	if admin || targetnode.X {
+		//want to give target admin or remove target's admin permission
+		//operator must be admin to this node's parent node
+		_, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid[:lastindex], true)
+	} else {
+		//want to change target's R or W
+		//operator must be admin on this node
+		_, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid, true)
+	}
+	if e != nil || !x {
+		if e == nil {
+			e = ecode.ErrPermission
+		}
+		return
+	}
+	//all check success
+	filter := bson.M{"project": projectid, "role_name": rolename, "node_id": nodeid}
+	updater := bson.M{"$set": bson.M{"r": canread, "w": canwrite, "x": admin}}
+	if _, e = d.mongo.Database("permission").Collection("rolenode").UpdateOne(sctx, filter, updater, options.Update().SetUpsert(true)); e != nil {
+		return
+	}
+	if admin {
+		//if target is admin on this node
+		//clean all children permission
+		filter = bson.M{"project": projectid, "role_name": rolename, "node_id": bson.M{"$regex": "^" + nodeid + ","}}
+		_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, filter)
+	}
+	return
+}
+
+// if nodeids are not empty or nil,only the node in the required nodeids will return
+func (d *Dao) MongoGetRoleNodes(ctx context.Context, projectid, rolename string, nodeids []string) (model.RoleNodes, error) {
+	filter := bson.M{
+		"project":   projectid,
+		"role_name": rolename,
+	}
 	if len(nodeids) > 0 {
 		filter["node_id"] = bson.M{"$in": nodeids}
 	}
-	cursor, e := d.mongo.Database("permission").Collection("usernode").Find(ctx, filter)
+	cursor, e := d.mongo.Database("permission").Collection("rolenode").Find(ctx, filter)
 	if e != nil {
 		return nil, e
 	}
 	defer cursor.Close(ctx)
-	result := make([]*model.UserNode, 0, cursor.RemainingBatchLength())
-	for cursor.Next(ctx) {
-		tmp := &model.UserNode{}
-		if e := cursor.Decode(tmp); e != nil {
-			return nil, e
-		}
-		result = append(result, tmp)
-	}
-	return result, cursor.Err()
+	result := make(model.RoleNodes, 0, cursor.RemainingBatchLength())
+	e = cursor.All(ctx, &result)
+	return result, e
 }
 
-//if userids are not empty or nil,only the user in the required userids will return
-func (d *Dao) MongoGetNodeUsers(ctx context.Context, nodeid []uint32, userids []primitive.ObjectID) (*model.NodeUsers, error) {
-	filter := bson.M{"node_id": nodeid}
-	if len(userids) > 0 {
-		filter["user_id"] = bson.M{"$in": userids}
+// if nodeids are not empty or nil,only the node in the required nodeids will return
+func (d *Dao) MongoGetUserRoleNodes(ctx context.Context, userid primitive.ObjectID, projectid string, nodeids []string) (map[string]model.RoleNodes, error) {
+	r := d.mongo.Database("user").Collection("user").FindOne(ctx, bson.M{"_id": userid})
+	if e := r.Err(); e != nil {
+		if r.Err() == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, e
 	}
-	cursor, e := d.mongo.Database("permission").Collection("usernode").Find(ctx, filter)
+	userinfo := &model.User{}
+	if e := r.Decode(userinfo); e != nil {
+		return nil, e
+	}
+	if len(userinfo.Roles) == 0 {
+		return nil, nil
+	}
+	or := bson.A{}
+	for _, role := range userinfo.Roles {
+		index := strings.Index(role, ":")
+		roleproject := role[:index]
+		rolename := role[index+1:]
+		if roleproject == projectid {
+			or = append(or, bson.M{
+				"project":   projectid,
+				"role_name": rolename,
+			})
+		}
+	}
+	if len(or) == 0 {
+		return nil, nil
+	}
+	filter := bson.M{"$or": or}
+	if len(nodeids) > 0 {
+		filter["node_id"] = bson.M{"$in": nodeids}
+	}
+	cursor, e := d.mongo.Database("permission").Collection("rolenode").Find(ctx, filter)
 	if e != nil {
 		return nil, e
 	}
 	defer cursor.Close(ctx)
-	result := &model.NodeUsers{
-		R: make([]primitive.ObjectID, 0),
-		W: make([]primitive.ObjectID, 0),
-		X: make([]primitive.ObjectID, 0),
+	tmp := make([]*model.RoleNode, 0, cursor.RemainingBatchLength())
+	if e = cursor.All(ctx, &tmp); e != nil {
+		return nil, e
 	}
-	for cursor.Next(ctx) {
-		tmp := &model.UserNode{}
-		if e := cursor.Decode(tmp); e != nil {
-			return nil, e
+	result := make(map[string]model.RoleNodes)
+	for _, v := range tmp {
+		if _, ok := result[v.RoleName]; !ok {
+			result[v.RoleName] = make(model.RoleNodes, 0, 10)
 		}
-		if tmp.R {
-			result.R = append(result.R, tmp.UserId)
-		}
-		if tmp.W {
-			result.W = append(result.W, tmp.UserId)
-		}
-		if tmp.X {
-			result.X = append(result.X, tmp.UserId)
-		}
+		result[v.RoleName] = append(result[v.RoleName], v)
 	}
-	return result, cursor.Err()
+	return result, nil
 }
 
-//get one specific node's info
-func (d *Dao) MongoGetNode(ctx context.Context, nodeid []uint32) (*model.Node, error) {
+// get one specific node's info
+func (d *Dao) MongoGetNode(ctx context.Context, nodeid string) (*model.Node, error) {
 	if len(nodeid) == 0 {
 		return nil, nil
 	}
@@ -263,52 +433,48 @@ func (d *Dao) MongoGetNode(ctx context.Context, nodeid []uint32) (*model.Node, e
 	return node, nil
 }
 
-//get all specific nodes' info in the nodeids
-func (d *Dao) MongoGetNodes(ctx context.Context, nodeids [][]uint32) ([]*model.Node, error) {
+// get all specific nodes' info in the nodeids
+func (d *Dao) MongoGetNodes(ctx context.Context, nodeids []string) ([]*model.Node, error) {
 	if len(nodeids) == 0 {
 		return nil, nil
 	}
-	cur, e := d.mongo.Database("permission").Collection("node").Find(ctx, bson.M{"node_id": bson.M{"$in": nodeids}})
+	cursor, e := d.mongo.Database("permission").Collection("node").Find(ctx, bson.M{"node_id": bson.M{"$in": nodeids}})
 	if e != nil {
 		return nil, e
 	}
-	defer cur.Close(context.Background())
-	result := make([]*model.Node, 0, cur.RemainingBatchLength())
-	for cur.Next(ctx) {
-		tmp := &model.Node{}
-		if e := cur.Decode(tmp); e != nil {
-			return nil, e
-		}
-		result = append(result, tmp)
-	}
-	return result, nil
+	defer cursor.Close(ctx)
+	nodes := make([]*model.Node, 0, cursor.RemainingBatchLength())
+	e = cursor.All(ctx, &nodes)
+	return nodes, e
 }
 
-//get one specific node's children
-func (d *Dao) MongoListNode(ctx context.Context, pnodeid []uint32) (nodes []*model.Node, e error) {
+// get children of pnodeid,pnodeid will not return
+// if pnodeid is empty,pnodeid is the root's nodeid
+// all
+//   - true,get all children(include children's children)
+//   - false,get the direct children
+func (d *Dao) MongoListNodes(ctx context.Context, pnodeid string, all bool) ([]*model.Node, error) {
 	filter := bson.M{}
-	for i, v := range pnodeid {
-		filter["node_id."+strconv.Itoa(i)] = v
+	regex := ""
+	if pnodeid != "" {
+		regex = "^" + pnodeid + ","
+	} else {
+		regex = "^0,"
 	}
-	filter["node_id."+strconv.Itoa(len(pnodeid))] = bson.M{"$exists": true}
-	var cursor *mongo.Cursor
-	cursor, e = d.mongo.Database("permission").Collection("node").Find(ctx, filter)
+	if !all {
+		regex += "[1-9][0-9]*$"
+	}
+	filter["node_id"] = bson.M{"$regex": regex}
+	cursor, e := d.mongo.Database("permission").Collection("node").Find(ctx, filter)
 	if e != nil {
-		return
+		return nil, e
 	}
 	defer cursor.Close(ctx)
-	nodes = make([]*model.Node, 0, cursor.RemainingBatchLength())
-	for cursor.Next(ctx) {
-		tmp := &model.Node{}
-		if e = cursor.Decode(tmp); e != nil {
-			return
-		}
-		nodes = append(nodes, tmp)
-	}
-	e = cursor.Err()
-	return
+	nodes := make([]*model.Node, 0, cursor.RemainingBatchLength())
+	e = cursor.All(ctx, &nodes)
+	return nodes, e
 }
-func (d *Dao) MongoAddNode(ctx context.Context, operateUserid primitive.ObjectID, pnodeid []uint32, name, data string) (e error) {
+func (d *Dao) MongoAddNode(ctx context.Context, operator primitive.ObjectID, pnodeid string, name, data string) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -326,38 +492,32 @@ func (d *Dao) MongoAddNode(ctx context.Context, operateUserid primitive.ObjectID
 			s.AbortTransaction(sctx)
 		}
 	}()
-	//check parent exist
-	parent := &model.Node{}
-	e = d.mongo.Database("permission").Collection("node").FindOne(sctx, bson.M{"node_id": pnodeid}).Decode(parent)
-	if e != nil {
-		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrReq
-		}
-		return
-	}
 	//check admin
 	var x bool
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, pnodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operator, pnodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}
 		return
 	}
+	//check parent exist
+	parent := &model.Node{}
+	if e = d.mongo.Database("permission").Collection("node").FindOneAndUpdate(sctx, bson.M{"node_id": pnodeid}, bson.M{"$inc": bson.M{"cur_node_index": 1}}).Decode(parent); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrPNodeNotExist
+		}
+		return
+	}
 	//all check success,modify database
-	if _, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
-		NodeId:       append(pnodeid, parent.CurNodeIndex+1),
+	_, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
+		NodeId:       pnodeid + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10),
 		NodeName:     name,
 		NodeData:     data,
 		CurNodeIndex: 0,
-	}); e != nil {
-		return
-	}
-	if _, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": pnodeid}, bson.M{"$inc": bson.M{"cur_node_index": 1}}); e != nil {
-		return
-	}
+	})
 	return
 }
-func (d *Dao) MongoUpdateNode(ctx context.Context, operateUserid primitive.ObjectID, nodeid []uint32, name, data string) (e error) {
+func (d *Dao) MongoUpdateNode(ctx context.Context, operator primitive.ObjectID, nodeid string, newname, newdata string) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -377,17 +537,33 @@ func (d *Dao) MongoUpdateNode(ctx context.Context, operateUserid primitive.Objec
 	}()
 	//check admin
 	var x bool
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}
 		return
 	}
 	//all check success,update database
-	_, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": nodeid}, bson.M{"$set": bson.M{"node_name": name, "node_data": data}})
+	r, e := d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": nodeid}, bson.M{"$set": bson.M{"node_name": newname, "node_data": newdata}})
+	if e == nil && r.MatchedCount == 0 {
+		e = ecode.ErrNodeNotExist
+	}
 	return
 }
-func (d *Dao) MongoMoveNode(ctx context.Context, operateUserid primitive.ObjectID, nodeid, pnodeid []uint32) (e error) {
+func (d *Dao) MongoMoveNode(ctx context.Context, operator primitive.ObjectID, nodeid, pnodeid string) (e error) {
+	//nodeid and pnodeid must in same project
+	if !strings.HasPrefix(nodeid, "0,") || strings.Count(nodeid, ",") == 1 || !strings.HasPrefix(pnodeid, "0,") {
+		return ecode.ErrReq
+	}
+	if index := strings.Index(pnodeid[2:], ","); index == -1 {
+		if pnodeid[2:] != nodeid[2:][:strings.Index(nodeid[2:], ",")] {
+			return ecode.ErrReq
+		}
+	} else {
+		if pnodeid[2:][:strings.Index(pnodeid[2:], ",")] != nodeid[2:][:strings.Index(nodeid[2:], ",")] {
+			return ecode.ErrReq
+		}
+	}
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -412,27 +588,27 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operateUserid primitive.ObjectI
 		return
 	}
 	if self == 0 {
-		e = ecode.ErrReq
+		e = ecode.ErrNodeNotExist
 		return
 	}
 	//check parent exist
 	parent := &model.Node{}
 	if e = d.mongo.Database("permission").Collection("node").FindOne(sctx, bson.M{"node_id": pnodeid}).Decode(parent); e != nil {
 		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrReq
+			e = ecode.ErrPNodeNotExist
 		}
 		return
 	}
 	//check admin in current path
 	var x bool
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}
 		return
 	}
 	//check admin in new path
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, pnodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operator, pnodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}
@@ -442,56 +618,39 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operateUserid primitive.ObjectI
 	if _, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": pnodeid}, bson.M{"$inc": bson.M{"cur_node_index": 1}}); e != nil {
 		return
 	}
-	filter1 := bson.M{}
-	unset := bson.M{}
-	for i, v := range nodeid {
-		filter1["node_id."+strconv.Itoa(i)] = v
-		unset["node_id."+strconv.Itoa(i)] = 1
-	}
-	updater1 := bson.M{"$unset": unset}
-	//update the node
-	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter1, updater1); e != nil {
-		return
-	}
-	//update the usernode
-	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter1, updater1); e != nil {
-		return
-	}
-	filter2 := bson.M{}
-	for i := range nodeid {
-		filter2["node_id."+strconv.Itoa(i)] = nil
-	}
-	newnodeid := append(parent.NodeId, parent.CurNodeIndex+1)
-	updater2 := bson.M{"$push": bson.M{
-		"node_id": bson.M{
-			"$each":     newnodeid,
-			"$position": 0,
+	newnodeid := parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10)
+	filter := bson.M{"node_id": bson.M{"$regex": "^" + nodeid}}
+	updater := bson.A{bson.M{
+		"$set": bson.M{
+			"node_id": bson.M{
+				"$concat": bson.A{
+					newnodeid,
+					bson.M{
+						"$substrBytes": bson.A{
+							"$node_id",
+							len(nodeid),
+							bson.M{"$strLenBytes": "$node_id"},
+						},
+					},
+				},
+			},
 		},
 	}}
 	//update the node
-	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter2, updater2); e != nil {
+	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter, updater); e != nil {
 		return
 	}
 	//update the usernode
-	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter2, updater2); e != nil {
+	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter, updater); e != nil {
 		return
 	}
-	filter3 := bson.M{}
-	for i, v := range newnodeid {
-		filter3["node_id."+strconv.Itoa(i)] = v
-	}
-	updater3 := bson.M{"$pull": bson.M{"node_id": nil}}
-	//update the node
-	if _, e = d.mongo.Database("permission").Collection("node").UpdateMany(sctx, filter3, updater3); e != nil {
-		return
-	}
-	//update the usernode
-	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateMany(sctx, filter3, updater3); e != nil {
+	//update the rolenode
+	if _, e = d.mongo.Database("permission").Collection("rolenode").UpdateMany(sctx, filter, updater); e != nil {
 		return
 	}
 	return
 }
-func (d *Dao) MongoDeleteNode(ctx context.Context, operateUserid primitive.ObjectID, nodeid []uint32) (e error) {
+func (d *Dao) MongoDeleteNode(ctx context.Context, operator primitive.ObjectID, nodeid string) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -511,22 +670,20 @@ func (d *Dao) MongoDeleteNode(ctx context.Context, operateUserid primitive.Objec
 	}()
 	//check admin
 	var x bool
-	if _, _, x, e = d.MongoGetUserPermission(sctx, operateUserid, nodeid); e != nil || !x {
+	if _, _, x, e = d.MongoGetUserPermission(sctx, operator, nodeid, true); e != nil || !x {
 		if e == nil {
 			e = ecode.ErrPermission
 		}
 		return
 	}
 	//all check success,delete database
-	delfilter := bson.M{}
-	for i, v := range nodeid {
-		delfilter["node_id."+strconv.Itoa(i)] = v
-	}
+	delfilter := bson.M{"node_id": bson.M{"$regex": "^" + nodeid}}
 	if _, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, delfilter); e != nil {
 		return
 	}
 	if _, e = d.mongo.Database("permission").Collection("usernode").DeleteMany(sctx, delfilter); e != nil {
 		return
 	}
+	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, delfilter)
 	return
 }

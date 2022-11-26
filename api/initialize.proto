@@ -23,8 +23,37 @@ service initialize{
 	//}
 
 	//初始化
-	rpc initialize(initialize_req)returns(initialize_resp){
+	rpc init(init_req)returns(init_resp){
 		option (pbex.method)="post";
+	}
+	//登录
+	rpc root_login(root_login_req)returns(root_login_resp){
+		option (pbex.method)="post";
+	}
+	//更新密码
+	rpc root_password(root_password_req)returns(root_password_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	//创建项目
+	rpc create_project(create_project_req)returns(create_project_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	//更新项目
+	rpc update_project(update_project_req)returns(update_project_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	//获取项目列表
+	rpc list_project(list_project_req)returns(list_project_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	//删除项目
+	rpc delete_project(delete_project_req)returns(delete_project_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
 	}
 }
 //req can be set with pbex extentions
@@ -36,9 +65,50 @@ service initialize{
 	//int64 example_resp=1;
 //}
 
-message initialize_req{
-	string super_admin_password=1[(pbex.string_bytes_len_not_eq)=0];
+message init_req{
+	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
 }
-message initialize_resp{
+message init_resp{
 
+}
+message root_login_req{
+	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
+}
+message root_login_resp{
+	string token=1;
+}
+message root_password_req{
+	string old_password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
+	string new_password=2[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
+}
+message root_password_resp{
+}
+message create_project_req{
+	string project_name=1[(pbex.string_bytes_len_not_eq)=0];
+	string project_data=2;
+}
+message create_project_resp{
+	repeated uint32 project_id=1;
+}
+message update_project_req{
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string new_project_name=2[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
+	string new_project_data=3[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
+}
+message update_project_resp{
+}
+message project_info{
+	repeated uint32 project_id=1;
+	string project_name=2;
+	string project_data=3;
+}
+message list_project_req{
+}
+message list_project_resp{
+	repeated project_info projects=1;
+}
+message delete_project_req{
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+}
+message delete_project_resp{
 }

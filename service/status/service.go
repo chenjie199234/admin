@@ -8,19 +8,18 @@ import (
 	"github.com/chenjie199234/admin/api"
 	statusdao "github.com/chenjie199234/admin/dao/status"
 	//"github.com/chenjie199234/admin/ecode"
-
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
 	//"github.com/chenjie199234/Corelib/log"
 	//"github.com/chenjie199234/Corelib/web"
 )
 
-//Service subservice for status business
+// Service subservice for status business
 type Service struct {
 	statusDao *statusdao.Dao
 }
 
-//Start -
+// Start -
 func Start() *Service {
 	return &Service{
 		//statusDao: statusdao.NewDao(config.GetSql("status_sql"), config.GetRedis("status_redis"), config.GetMongo("status_mongo")),
@@ -28,7 +27,8 @@ func Start() *Service {
 	}
 }
 
-func (s *Service) Ping(ctx context.Context,in *api.Pingreq) (*api.Pingresp, error) {
+// Ping -
+func (s *Service) Ping(ctx context.Context, in *api.Pingreq) (*api.Pingresp, error) {
 	//if _, ok := ctx.(*crpc.Context); ok {
 	//        log.Info("this is a crpc call")
 	//}
@@ -41,7 +41,7 @@ func (s *Service) Ping(ctx context.Context,in *api.Pingreq) (*api.Pingresp, erro
 	return &api.Pingresp{ClientTimestamp: in.Timestamp, ServerTimestamp: time.Now().UnixNano()}, nil
 }
 
-//Stop -
+// Stop -
 func (s *Service) Stop() {
 
 }

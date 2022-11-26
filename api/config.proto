@@ -27,18 +27,23 @@ service config{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//del one specific group
-	rpc del_group(del_group_req)returns(del_group_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
 	//get all apps in one specific group
 	rpc apps(apps_req)returns(apps_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
+	//create one specific app
+	rpc create_app(create_app_req)returns(create_app_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
 	//del one specific app in one specific group
 	rpc del_app(del_app_req)returns(del_app_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	//update one specific app's secret
+	rpc update_app_secret(update_app_secret_req)returns(update_app_secret_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -52,23 +57,13 @@ service config{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//create one specific app
-	rpc create(create_req)returns(create_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-	//update one specific app's cipher
-	rpc updatecipher(updatecipher_req)returns(updatecipher_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
 	//get config
-	rpc get(get_req)returns(get_resp){
+	rpc get_key_config(get_key_config_req)returns(get_key_config_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 	//set config
-	rpc set(set_req)returns(set_resp){
+	rpc set_key_config(set_key_config_req)returns(set_key_config_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -93,34 +88,47 @@ service config{
 //}
 
 message groups_req {
-	string search_filter=1;
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string search_filter=2;
 }
 message groups_resp {
 	repeated string groups=1;
 }
-message del_group_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-}
-message del_group_resp {
-
-}
 message apps_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string search_filter=2;
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string groupname=2[(pbex.string_bytes_len_gt)=0];
+	string search_filter=3;
 }
 message apps_resp {
 	repeated string apps=1;
 }
+message create_app_req {
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string groupname=2[(pbex.string_bytes_len_gt)=0];
+	string appname=3[(pbex.string_bytes_len_gt)=0];
+	string secret=4[(pbex.string_bytes_len_lt)=32];
+}
+message create_app_resp {
+}
 message del_app_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
+	string secret=3[(pbex.string_bytes_len_lt)=32];
 }
 message del_app_resp {
-
+}
+message update_app_secret_req {
+	string groupname=1[(pbex.string_bytes_len_gt)=0];
+	string appname=2[(pbex.string_bytes_len_gt)=0];
+	string old_secret=3[(pbex.string_bytes_len_lt)=32];
+	string new_secret=4[(pbex.string_bytes_len_lt)=32];
+}
+message update_app_secret_resp{
 }
 message keys_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
+	string secret=3[(pbex.string_bytes_len_lt)=32];
 }
 message keys_resp {
 	repeated string keys=1;
@@ -129,33 +137,18 @@ message del_key_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
 	string key=3[(pbex.string_bytes_len_gt)=0];
+	string secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message del_key_resp {
-
 }
-message create_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
-	string cipher=3;
-}
-message create_resp {
-}
-message updatecipher_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
-	string old=3;
-	string new=4;//empty means stop cipher
-}
-message updatecipher_resp{
-
-}
-message get_req {
+message get_key_config_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
 	string key=3[(pbex.string_bytes_len_gt)=0];
 	uint32 index=4;//0 means return current active config,config's index start from 1
+	string secret=5[(pbex.string_bytes_len_lt)=32];
 }
-message get_resp {
+message get_key_config_resp {
 	uint32 cur_index=1;//current active config index,0 means not exist
 	uint32 max_index=2;//current max config index,0 means not exist
 	uint32 cur_version=3;//current active config version,config's version start from 1
@@ -163,7 +156,7 @@ message get_resp {
 	string value=5;
 	string value_type=6;
 }
-message set_req {
+message set_key_config_req {
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
 	string key=3[(pbex.string_bytes_len_gt)=0];
@@ -172,14 +165,16 @@ message set_req {
 		(pbex.string_bytes_in)="json",
 		(pbex.string_bytes_in)="yaml",
 		(pbex.string_bytes_in)="toml"];
+	string secret=6[(pbex.string_bytes_len_lt)=32];
 }
-message set_resp {
+message set_key_config_resp {
 }
 message rollback_req{
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
 	string key=3[(pbex.string_bytes_len_gt)=0];
-	uint32 index=4[(pbex.uint_gt)=0];
+	string secret=4[(pbex.string_bytes_len_lt)=32];
+	uint32 index=5[(pbex.uint_gt)=0];
 }
 message rollback_resp{
 }

@@ -7,17 +7,18 @@ import (
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"
+	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/service"
 
 	"github.com/chenjie199234/Corelib/log"
-	ctime "github.com/chenjie199234/Corelib/util/time"
+	"github.com/chenjie199234/Corelib/util/ctime"
 	"github.com/chenjie199234/Corelib/web"
 	"github.com/chenjie199234/Corelib/web/mids"
 )
 
 var s *web.WebServer
 
-//StartWebServer -
+// StartWebServer -
 func StartWebServer() {
 	c := config.GetWebServerConfig()
 	webc := &web.ServerConfig{
@@ -27,7 +28,8 @@ func StartWebServer() {
 		IdleTimeout:    time.Duration(c.IdleTimeout),
 		HeartProbe:     time.Duration(c.HeartProbe),
 		SrcRoot:        c.SrcRoot,
-		MaxHeader:      1024,
+		MaxHeader:      2048,
+		Certs:          c.Certs,
 	}
 	if c.Cors != nil {
 		webc.Cors = &web.CorsConfig{
@@ -39,7 +41,7 @@ func StartWebServer() {
 		}
 	}
 	var e error
-	if s, e = web.NewWebServer(webc, api.Group, api.Name); e != nil {
+	if s, e = web.NewWebServer(webc, model.Group, model.Name); e != nil {
 		log.Error(nil, "[xweb] new error:", e)
 		return
 	}
@@ -65,8 +67,8 @@ func StartWebServer() {
 	log.Info(nil, "[xweb] server closed")
 }
 
-//UpdateHandlerTimeout -
-//first key path,second key method,value timeout duration
+// UpdateHandlerTimeout -
+// first key path,second key method,value timeout duration
 func UpdateHandlerTimeout(hts map[string]map[string]ctime.Duration) {
 	if s == nil {
 		return
@@ -87,17 +89,17 @@ func UpdateHandlerTimeout(hts map[string]map[string]ctime.Duration) {
 	s.UpdateHandlerTimeout(cc)
 }
 
-//UpdateWebPathRewrite -
-//key origin url,value rewrite url
+// UpdateWebPathRewrite -
+// key origin url,value rewrite url
 func UpdateWebPathRewrite(rewrite map[string]map[string]string) {
 	if s != nil {
 		s.UpdateHandlerRewrite(rewrite)
 	}
 }
 
-//StopWebServer -
+// StopWebServer -
 func StopWebServer() {
 	if s != nil {
-		s.StopWebServer()
+		s.StopWebServer(false)
 	}
 }

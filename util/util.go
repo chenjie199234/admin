@@ -2,48 +2,55 @@ package util
 
 import (
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
+	"crypto/sha512"
+	"encoding/binary"
 	"encoding/hex"
 
-	"github.com/chenjie199234/Corelib/util/common"
+	"github.com/chenjie199234/admin/ecode"
+
+	"github.com/chenjie199234/Corelib/secure"
 )
 
-//this is the server's secret
-//must be aes.BlockSize length
-const servercipher = "chenjie_1992_3_4"
-
-func pkcs7Padding(origin []byte, blockSize int) []byte {
-	padding := blockSize - len(origin)%blockSize
-	if padding == 0 {
-		return origin
-	}
-	return append(origin, bytes.Repeat([]byte{byte(padding)}, padding)...)
-}
-func pkcs7UnPadding(origin []byte) []byte {
-	length := len(origin)
-	unpadding := int(origin[length-1])
-	if unpadding >= aes.BlockSize {
-		return nil
-	}
-	return origin[:(length - unpadding)]
-}
-func Decrypt(cipherkey, origin string) string {
-	data, e := hex.DecodeString(origin)
+func SignCheck(secret, HEXnoncesign string) (e error) {
+	noncesign, e := hex.DecodeString(HEXnoncesign)
 	if e != nil {
-		return ""
+		return ecode.ErrConfigDataBroken
 	}
-	if len(data)%aes.BlockSize != 0 {
-		return ""
+	if len(noncesign) < 8+64 {
+		return ecode.ErrConfigDataBroken
 	}
-	block, _ := aes.NewCipher(common.Str2byte(cipherkey))
-	cipher.NewCBCDecrypter(block, common.Str2byte(servercipher)).CryptBlocks(data, data)
-	data = pkcs7UnPadding(data)
-	return common.Byte2str(data)
+	oldsign := make([]byte, 64)
+	copy(oldsign, noncesign[len(noncesign)-64:])
+	newsign := sha512.Sum512(append(noncesign[:len(noncesign)-64], secret...))
+	if !bytes.Equal(oldsign, newsign[:]) {
+		return ecode.ErrWrongSecret
+	}
+	return nil
 }
-func Encrypt(cipherkey, origin string) string {
-	data := pkcs7Padding([]byte(origin), aes.BlockSize)
-	block, _ := aes.NewCipher(common.Str2byte(cipherkey))
-	cipher.NewCBCEncrypter(block, common.Str2byte(servercipher)).CryptBlocks(data, data)
-	return hex.EncodeToString(data)
+func SignMake(secret string, nonce []byte) (HEXnoncesign string) {
+	tmp := make([]byte, 8+len(nonce))
+	binary.BigEndian.PutUint64(tmp, uint64(len(nonce)))
+	copy(tmp[8:], nonce)
+	newsign := sha512.Sum512(append(tmp, secret...))
+	return hex.EncodeToString(append(tmp, newsign[:]...))
+}
+func Encrypt(secret string, plaintext []byte) (HEXciphertext string, e error) {
+	ciphertext, e := secure.AesEncrypt(secret, plaintext)
+	if e != nil {
+		return "", ecode.ErrWrongSecret
+	}
+	return hex.EncodeToString(ciphertext), nil
+}
+func Decrypt(secret, HEXciphertext string) (plaintext []byte, e error) {
+	ciphertext, e := hex.DecodeString(HEXciphertext)
+	if e != nil {
+		return nil, ecode.ErrConfigDataBroken
+	}
+	plaintext, e = secure.AesDecrypt(secret, ciphertext)
+	if e == secure.ErrAesSecretLength || e == secure.ErrAesSecretWrong {
+		e = ecode.ErrWrongSecret
+	} else if e == secure.ErrAesCipherTextBroken {
+		e = ecode.ErrConfigDataBroken
+	}
+	return
 }

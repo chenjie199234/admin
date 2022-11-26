@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"os"
 	"os/signal"
 	"sync"
@@ -17,6 +18,16 @@ import (
 	_ "github.com/chenjie199234/Corelib/monitor"
 )
 
+// this is used for DirectSDK
+//
+//go:embed AppConfig.json
+var AppConfigTemplate []byte
+
+// this is used for DirectSDK
+//
+//go:embed SourceConfig.json
+var SourceConfigTemplate []byte
+
 func main() {
 	config.Init(func(ac *config.AppConfig) {
 		//this is a notice callback every time appconfig changes
@@ -28,10 +39,14 @@ func main() {
 		xweb.UpdateHandlerTimeout(ac.HandlerTimeout)
 		xweb.UpdateWebPathRewrite(ac.WebPathRewrite)
 		publicmids.UpdateRateConfig(ac.HandlerRate)
-		publicmids.UpdateAccessKeyConfig(ac.AccessKeys)
-		publicmids.UpdateIpConfig(ac.WhiteIP, ac.BlackIP)
-	})
+		publicmids.UpdateTokenConfig(ac.TokenSecret, ac.SessionTokenExpire.StdDuration())
+		publicmids.UpdateSessionConfig(ac.SessionTokenExpire.StdDuration())
+		publicmids.UpdateAccessConfig(ac.Accesses)
+	}, AppConfigTemplate, SourceConfigTemplate)
 	defer config.Close()
+	publicmids.UpdateReplayDefendRedisInstance(config.GetRedis("sign_replay_defend_redis"))
+	publicmids.UpdateRateRedisInstance(config.GetRedis("rate_redis"))
+	publicmids.UpdateSessionRedisInstance(config.GetRedis("session_redis"))
 	//start the whole business service
 	if e := service.StartService(); e != nil {
 		log.Error(nil, e)

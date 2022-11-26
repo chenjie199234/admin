@@ -12,17 +12,18 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 */
 //every collection has two kinds of data
 type AppSummary struct {
-	ID     primitive.ObjectID     `bson:"_id"`
-	Key    string                 `bson:"key"`   //this is always empty
-	Index  uint32                 `bson:"index"` //this is always 0
-	Cipher string                 `bson:"cipher"`
-	Keys   map[string]*KeySummary `bson:"keys"` //map's key is config's key name
+	ID               primitive.ObjectID     `bson:"_id"`
+	Key              string                 `bson:"key"`   //this is always empty
+	Index            uint32                 `bson:"index"` //this is always 0
+	Keys             map[string]*KeySummary `bson:"keys"`  //map's key is config's key name
+	Value            string                 `bson:"value"`
+	PermissionNodeID string                 `bson:"permission_node_id"`
 }
 type KeySummary struct {
 	CurIndex     uint32 `bson:"cur_index"`
 	MaxIndex     uint32 `bson:"max_index"`
 	CurVersion   uint32 `bson:"cur_version"`
-	CurValue     string `bson:"cur_value"` //if Cipher is not empty,this field is encrypt
+	CurValue     string `bson:"cur_value"`
 	CurValueType string `bson:"cur_value_type"`
 }
 type Log struct {

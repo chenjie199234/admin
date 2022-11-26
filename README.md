@@ -29,7 +29,7 @@ CONFIG_TYPE                             配置类型
                                         0-使用本地配置
                                         1-使用远程配置中心config服务
 REMOTE_CONFIG_MONGO_URL                 当CONFIG_TYPE为1时,配置中心mongodb的url,[mongodb/mongodb+srv]://[username:password@]host1,...,hostN[/dbname][?param1=value1&...&paramN=valueN]
-REMOTE_CONFIG_SECRET                    当CONFIG_TYPE为1时,配置中心配置的密钥
+REMOTE_CONFIG_SECRET                    当CONFIG_TYPE为1时,配置中心配置的密钥,首次初始化该服务时,该密钥为自身配置的密钥
 ```
 
 ## 配置文件

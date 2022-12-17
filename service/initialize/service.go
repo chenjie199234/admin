@@ -6,7 +6,9 @@ import (
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"
 	initializedao "github.com/chenjie199234/admin/dao/initialize"
+	userdao "github.com/chenjie199234/admin/dao/user"
 	"github.com/chenjie199234/admin/ecode"
+	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/util"
 
 	//"github.com/chenjie199234/Corelib/cgrpc"
@@ -22,12 +24,14 @@ import (
 // Service subservice for init business
 type Service struct {
 	initializeDao *initializedao.Dao
+	userDao       *userdao.Dao
 }
 
 // Start -
 func Start() *Service {
 	return &Service{
 		initializeDao: initializedao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
+		userDao:       userdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 	}
 }
 
@@ -109,10 +113,41 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 		log.Error(ctx, "[ListProject] operator:", md["Token-Data"], e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	var user *model.User
+	if md["Token-Data"] != primitive.NilObjectID.Hex() {
+		operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
+		if e != nil {
+			log.Error(ctx, "[ListProject] operator:", md["Token-Data"], "format wrong:", e)
+			return nil, ecode.ErrToken
+		}
+		users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
+		if e != nil {
+			log.Error(ctx, "[ListProject] operator:", md["Token-Data"], "get user info:", e)
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		var ok bool
+		user, ok = users[operator]
+		if !ok {
+			log.Error(ctx, "[ListProject] operator:", md["Token-Data"], "doesn't exist")
+			return nil, ecode.ErrSystem
+		}
+	}
 	resp := &api.ListProjectResp{
 		Projects: make([]*api.ProjectInfo, 0, len(nodes)),
 	}
 	for _, node := range nodes {
+		if user != nil {
+			find := false
+			for _, projectid := range user.Projects {
+				if projectid == node.NodeId {
+					find = true
+					break
+				}
+			}
+			if !find {
+				continue
+			}
+		}
 		nodeid, e := util.ParseNodeIDstr(node.NodeId)
 		if e != nil {
 			log.Error(ctx, "[ListProject] project:", node.NodeId, "format wrong:", e)

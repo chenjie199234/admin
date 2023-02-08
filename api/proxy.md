@@ -2,21 +2,30 @@
 // version:<br />
 // 	protoc-gen-markdown v0.0.77<br />
 // 	protoc              v3.21.11<br />
-// source: api/adminstatus.proto<br />
+// source: api/proxy.proto<br />
 
-## status
-### ping
-//ping check server's health
+## proxy
+### tob
+
 #### Req:
 ```
-Path:         /admin.status/ping
-Method:       GET
-Content-Type: application/x-www-form-urlencoded
-//don't forget the url encode
+Path:         /admin.proxy/tob
+Method:       POST
+Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
-//int64
-//value must > 0
-timestamp=1
+{
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
+	//value length must != 0
+	"path":"str",
+	//value length must != 0
+	"appname":"str",
+	//value length must != 0
+	"groupname":"str",
+	//value length must >= 2
+	"data":"str"
+}
 ------------------------------------------------------------------------------------------------------------
 ```
 #### Resp:
@@ -28,10 +37,7 @@ Fail:    httpcode:4xx/5xx
 Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 {
-	//int64 use string to avoid overflow
-	"client_timestamp":"0",
-	//int64 use string to avoid overflow
-	"server_timestamp":"0"
+	"data":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```

@@ -97,6 +97,7 @@ if "%1" == "new" (
 :pb
 	del >nul 2>nul .\api\*.pb.go
 	del >nul 2>nul .\api\*.md
+	del >nul 2>nul .\api\*.ts
 	go mod tidy
 	for /F %%i in ('go list -m -f "{{.Dir}}" github.com/chenjie199234/Corelib') do ( set corelib=%%i )
 	set workdir=%cd%
@@ -109,6 +110,7 @@ if "%1" == "new" (
 	protoc -I ./ -I %corelib% --go-crpc_out=paths=source_relative:. ./api/*.proto
 	protoc -I ./ -I %corelib% --go-web_out=paths=source_relative:. ./api/*.proto
 	protoc -I ./ -I %corelib% --markdown_out=paths=source_relative:. ./api/*.proto
+	protoc -I ./ -I %corelib% --browser_out=paths=source_relative:. ./api/*.proto
 	go mod tidy
 goto :end
 

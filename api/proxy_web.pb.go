@@ -2,7 +2,7 @@
 // version:
 // 	protoc-gen-go-web v0.0.77<br />
 // 	protoc            v3.21.11<br />
-// source: api/adminstatus.proto<br />
+// source: api/proxy.proto<br />
 
 package api
 
@@ -20,41 +20,31 @@ import (
 	strings "strings"
 )
 
-var _WebPathStatusPing = "/admin.status/ping"
+var _WebPathProxyTob = "/admin.proxy/tob"
 
-type StatusWebClient interface {
-	// ping check server's health
-	Ping(context.Context, *Pingreq, http.Header) (*Pingresp, error)
+type ProxyWebClient interface {
+	Tob(context.Context, *TobReq, http.Header) (*TobResp, error)
 }
 
-type statusWebClient struct {
+type proxyWebClient struct {
 	cc *web.WebClient
 }
 
-func NewStatusWebClient(c *web.WebClient) StatusWebClient {
-	return &statusWebClient{cc: c}
+func NewProxyWebClient(c *web.WebClient) ProxyWebClient {
+	return &proxyWebClient{cc: c}
 }
 
-func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.Header) (*Pingresp, error) {
+func (c *proxyWebClient) Tob(ctx context.Context, req *TobReq, header http.Header) (*TobResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	if header == nil {
 		header = make(http.Header)
 	}
-	header.Set("Content-Type", "application/x-www-form-urlencoded")
+	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
-	query := pool.GetBuffer()
-	defer pool.PutBuffer(query)
-	query.AppendString("timestamp=")
-	query.AppendInt64(req.GetTimestamp())
-	query.AppendByte('&')
-	querystr := query.String()
-	if len(querystr) > 0 {
-		// drop last &
-		querystr = querystr[:len(querystr)-1]
-	}
-	r, e := c.cc.Get(ctx, _WebPathStatusPing, querystr, header, metadata.GetMetadata(ctx))
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathProxyTob, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -63,7 +53,7 @@ func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.He
 	if e != nil {
 		return nil, cerror.ConvertStdError(e)
 	}
-	resp := new(Pingresp)
+	resp := new(TobResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -77,14 +67,13 @@ func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.He
 	return resp, nil
 }
 
-type StatusWebServer interface {
-	// ping check server's health
-	Ping(context.Context, *Pingreq) (*Pingresp, error)
+type ProxyWebServer interface {
+	Tob(context.Context, *TobReq) (*TobResp, error)
 }
 
-func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp, error)) web.OutsideHandler {
+func _Proxy_Tob_WebHandler(handler func(context.Context, *TobReq) (*TobResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(Pingreq)
+		req := new(TobReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
@@ -117,9 +106,58 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 			data := pool.GetBuffer()
 			defer pool.PutBuffer(data)
 			data.AppendByte('{')
-			if form := ctx.GetForm("timestamp"); len(form) != 0 {
-				data.AppendString("\"timestamp\":")
-				data.AppendString(form)
+			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
+				data.AppendString("\"project_id\":")
+				data.AppendByte('[')
+				for _, form := range forms {
+					data.AppendString(form)
+					data.AppendByte(',')
+				}
+				data.Bytes()[data.Len()-1] = ']'
+				data.AppendByte(',')
+			}
+			if form := ctx.GetForm("path"); len(form) != 0 {
+				data.AppendString("\"path\":")
+				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
+					data.AppendByte('"')
+					data.AppendString(form)
+					data.AppendByte('"')
+				} else {
+					data.AppendString(form)
+				}
+				data.AppendByte(',')
+			}
+			if form := ctx.GetForm("appname"); len(form) != 0 {
+				data.AppendString("\"appname\":")
+				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
+					data.AppendByte('"')
+					data.AppendString(form)
+					data.AppendByte('"')
+				} else {
+					data.AppendString(form)
+				}
+				data.AppendByte(',')
+			}
+			if form := ctx.GetForm("groupname"); len(form) != 0 {
+				data.AppendString("\"groupname\":")
+				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
+					data.AppendByte('"')
+					data.AppendString(form)
+					data.AppendByte('"')
+				} else {
+					data.AppendString(form)
+				}
+				data.AppendByte(',')
+			}
+			if form := ctx.GetForm("data"); len(form) != 0 {
+				data.AppendString("\"data\":")
+				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
+					data.AppendByte('"')
+					data.AppendString(form)
+					data.AppendByte('"')
+				} else {
+					data.AppendString(form)
+				}
 				data.AppendByte(',')
 			}
 			if data.Len() == 1 {
@@ -135,7 +173,7 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.status/ping]", errstr)
+			log.Error(ctx, "[/admin.proxy/tob]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -146,7 +184,7 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 			return
 		}
 		if resp == nil {
-			resp = new(Pingresp)
+			resp = new(TobResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -157,12 +195,12 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 		}
 	}
 }
-func RegisterStatusWebServer(engine *web.WebServer, svc StatusWebServer, allmids map[string]web.OutsideHandler) {
+func RegisterProxyWebServer(engine *web.WebServer, svc ProxyWebServer, allmids map[string]web.OutsideHandler) {
 	// avoid lint
 	_ = allmids
 	{
-		requiredMids := []string{"accesskey", "rate"}
-		mids := make([]web.OutsideHandler, 0, 3)
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
 		for _, v := range requiredMids {
 			if mid, ok := allmids[v]; ok {
 				mids = append(mids, mid)
@@ -170,7 +208,7 @@ func RegisterStatusWebServer(engine *web.WebServer, svc StatusWebServer, allmids
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _Status_Ping_WebHandler(svc.Ping))
-		engine.Get(_WebPathStatusPing, mids...)
+		mids = append(mids, _Proxy_Tob_WebHandler(svc.Tob))
+		engine.Post(_WebPathProxyTob, mids...)
 	}
 }

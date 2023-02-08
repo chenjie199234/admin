@@ -16,6 +16,7 @@ import (
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	"github.com/chenjie199234/Corelib/pool"
+	"github.com/chenjie199234/Corelib/util/graceful"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
@@ -24,30 +25,31 @@ import (
 
 // Service subservice for config business
 type Service struct {
+	stop *graceful.Graceful
+
 	configDao     *configdao.Dao
 	permissionDao *permissiondao.Dao
-	noticepool    *sync.Pool
+
 	sync.Mutex
-	apps   map[string]map[string]*app //first key groupname,second key appname,value appinfo
-	status bool
-}
-type app struct {
-	appsummary *model.AppSummary
-	notices    map[chan *struct{}]*struct{}
+	apps    map[string]*model.AppSummary            //key:appgroup.appname,value:appinfo
+	notices map[string]map[chan *struct{}]*struct{} //key:appgroup.appname,value:waiting chans
 }
 
 // Start -
 func Start() *Service {
 	s := &Service{
+		stop: graceful.New(),
+
 		configDao:     configdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		permissionDao: permissiondao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
-		noticepool:    &sync.Pool{},
-		apps:          make(map[string]map[string]*app),
-		status:        true,
+
+		apps:    make(map[string]*model.AppSummary),
+		notices: make(map[string]map[chan *struct{}]*struct{}),
 	}
-	if e := s.configDao.MongoWatchConfig(s.update, s.delapp, s.delconfig); e != nil {
+	if e := s.configDao.MongoWatchConfig(s.update, s.delapp, s.delconfig, s.apps); e != nil {
 		panic("[Config.Start] watch error: " + e.Error())
 	}
+
 	return s
 }
 
@@ -55,70 +57,48 @@ func (s *Service) update(gname, aname string, cur *model.AppSummary) {
 	log.Debug(nil, "[update] group:", gname, "app:", aname, "keys:", cur.Keys)
 	s.Lock()
 	defer s.Unlock()
-	if !s.status {
+	if s.stop.Closed() {
 		return
 	}
-	g, gok := s.apps[gname]
-	if !gok {
-		return
-	}
-	a, ok := g[aname]
-	if !ok {
-		return
-	}
-	a.appsummary = cur
-	for notice := range a.notices {
+	s.apps[gname+"."+aname] = cur
+	for notice := range s.notices[gname+"."+aname] {
 		select {
 		case notice <- nil:
 		default:
 		}
 	}
 }
-func (s *Service) delapp(groupname, appname string) {
-	log.Debug(nil, "[delapp] group:", groupname, "app:", appname)
+func (s *Service) delapp(gname, aname string) {
+	log.Debug(nil, "[delapp] group:", gname, "app:", aname)
 	s.Lock()
 	defer s.Unlock()
-	if !s.status {
+	if s.stop.Closed() {
 		return
 	}
-	g, ok := s.apps[groupname]
-	if !ok {
-		return
-	}
-	a, ok := g[appname]
-	if !ok {
-		return
-	}
-	a.appsummary = nil
-	for notice := range a.notices {
+	delete(s.apps, gname+"."+aname)
+	for notice := range s.notices[gname+"."+aname] {
 		select {
 		case notice <- nil:
 		default:
 		}
 	}
 }
-func (s *Service) delconfig(groupname, appname, id string) {
+func (s *Service) delconfig(gname, aname, id string) {
 	s.Lock()
 	defer s.Unlock()
-	if !s.status {
+	if s.stop.Closed() {
 		return
 	}
-	g, ok := s.apps[groupname]
-	if !ok {
+	if a, ok := s.apps[gname+"."+aname]; !ok {
 		return
-	}
-	a, ok := g[appname]
-	if !ok {
-		return
-	}
-	if a.appsummary.ID.Hex() != id {
-		log.Debug(nil, "[delconfig] group:", groupname, "app:", appname, "config log")
+	} else if a.ID.Hex() != id {
+		log.Debug(nil, "[delconfig] group:", gname, "app:", aname, "config log")
 		return
 	}
 	//delete the summary,this is same as delete the app
-	log.Debug(nil, "[delconfig] group:", groupname, "app:", appname, "summary")
-	a.appsummary = nil
-	for notice := range a.notices {
+	log.Debug(nil, "[delconfig] group:", gname, "app:", aname, "summary")
+	delete(s.apps, gname+"."+aname)
+	for notice := range s.notices[gname+"."+aname] {
 		select {
 		case notice <- nil:
 		default:
@@ -535,83 +515,44 @@ func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.Roll
 	return &api.RollbackResp{}, nil
 }
 
-func (s *Service) getnotice() chan *struct{} {
-	ch, ok := s.noticepool.Get().(chan *struct{})
-	if !ok {
-		return make(chan *struct{}, 1)
-	}
-	return ch
-}
-func (s *Service) putnotice(ch chan *struct{}) {
-	s.noticepool.Put(ch)
-}
-
 // watch config
 func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp, error) {
+	if !s.stop.AddOne() {
+		return nil, cerror.ErrClosing
+	}
+	defer s.stop.DoneOne()
+
 	resp := &api.WatchResp{
 		Datas: make(map[string]*api.WatchData, len(req.Keys)+3),
 	}
+
 	s.Lock()
-	if !s.status {
+	a, ok := s.apps[req.Groupname+"."+req.Appname]
+	if !ok {
 		s.Unlock()
-		return nil, cerror.ErrClosing
-	}
-	g, gok := s.apps[req.Groupname]
-	if !gok {
-		g = make(map[string]*app)
-		s.apps[req.Groupname] = g
-	}
-	a, aok := g[req.Appname]
-	if !aok {
-		a = &app{notices: make(map[chan *struct{}]*struct{})}
-		g[req.Appname] = a
-	}
-	if !gok || !aok {
-		//lazy init
-		appsummary, e := s.configDao.MongoGetAppConfig(ctx, req.Groupname, req.Appname)
-		if e != nil {
-			s.Unlock()
-			log.Error(ctx, "[Watch] group:", req.Groupname, "app:", req.Appname, e)
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-		}
-		a.appsummary = appsummary
+		return nil, ecode.ErrAppNotExist
 	}
 	needreturn := false
 	for key, clientversion := range req.Keys {
-		if a.appsummary == nil {
-			if clientversion != 0 {
-				needreturn = true
-			}
-			resp.Datas[key] = &api.WatchData{
-				Key:       key,
-				Value:     "",
-				ValueType: "raw",
-				Version:   0,
-			}
-		} else if keysummary, ok := a.appsummary.Keys[key]; !ok {
-			if clientversion != 0 {
-				needreturn = true
-			}
-			resp.Datas[key] = &api.WatchData{
-				Key:       key,
-				Value:     "",
-				ValueType: "raw",
-				Version:   0,
-			}
-		} else if clientversion != int32(keysummary.CurVersion) {
+		k, ok := a.Keys[key]
+		if !ok || k == nil || k.CurVersion == 0 {
+			s.Unlock()
+			return nil, ecode.ErrKeyNotExist
+		}
+		if clientversion == 0 || clientversion != k.CurVersion {
 			needreturn = true
 			resp.Datas[key] = &api.WatchData{
 				Key:       key,
-				Value:     keysummary.CurValue,
-				ValueType: keysummary.CurValueType,
-				Version:   int32(keysummary.CurVersion),
+				Value:     k.CurValue,
+				ValueType: k.CurValueType,
+				Version:   k.CurVersion,
 			}
 		} else {
 			resp.Datas[key] = &api.WatchData{
 				Key:       key,
 				Value:     "",
 				ValueType: "",
-				Version:   clientversion,
+				Version:   k.CurVersion,
 			}
 		}
 	}
@@ -620,14 +561,17 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 		return resp, nil
 	}
 	for {
-		ch := s.getnotice()
-		a.notices[ch] = nil
+		ch := make(chan *struct{})
+		if _, ok := s.notices[req.Groupname+"."+req.Appname]; !ok {
+			s.notices[req.Groupname+"."+req.Appname] = map[chan *struct{}]*struct{}{ch: nil}
+		} else {
+			s.notices[req.Groupname+"."+req.Appname][ch] = nil
+		}
 		s.Unlock()
 		select {
 		case <-ctx.Done():
 			s.Lock()
-			delete(a.notices, ch)
-			s.putnotice(ch)
+			delete(s.notices[req.Groupname+"."+req.Appname], ch)
 			s.Unlock()
 			return nil, ctx.Err()
 		case _, ok := <-ch:
@@ -636,32 +580,33 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 			}
 		}
 		s.Lock()
-		delete(a.notices, ch)
-		s.putnotice(ch)
-		for key, respdata := range resp.Datas {
-			if a.appsummary == nil {
-				if respdata.Version != 0 {
-					needreturn = true
-				}
-				respdata.Value = ""
-				respdata.ValueType = "raw"
-				respdata.Version = 0
-			} else if keysummary, ok := a.appsummary.Keys[key]; !ok {
-				if respdata.Version != 0 {
-					needreturn = true
-				}
-				respdata.Value = ""
-				respdata.ValueType = "raw"
-				respdata.Version = 0
-				continue
-			} else if int32(keysummary.CurVersion) != respdata.Version {
+		delete(s.notices[req.Groupname+"."+req.Appname], ch)
+		a, ok = s.apps[req.Groupname+"."+req.Appname]
+		if !ok {
+			s.Unlock()
+			return nil, ecode.ErrAppNotExist
+		}
+		for key, clientversion := range req.Keys {
+			k, ok := a.Keys[key]
+			if !ok || k == nil || k.CurVersion == 0 {
+				s.Unlock()
+				return nil, ecode.ErrKeyNotExist
+			}
+			if clientversion == 0 || clientversion != k.CurVersion {
 				needreturn = true
-				respdata.Value = keysummary.CurValue
-				respdata.ValueType = keysummary.CurValueType
-				respdata.Version = int32(keysummary.CurVersion)
+				resp.Datas[key] = &api.WatchData{
+					Key:       key,
+					Value:     k.CurValue,
+					ValueType: k.CurValueType,
+					Version:   k.CurVersion,
+				}
 			} else {
-				respdata.Value = ""
-				respdata.ValueType = ""
+				resp.Datas[key] = &api.WatchData{
+					Key:       key,
+					Value:     "",
+					ValueType: "",
+					Version:   k.CurVersion,
+				}
 			}
 		}
 		if needreturn {
@@ -673,14 +618,13 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 
 // Stop -
 func (s *Service) Stop() {
-	s.Lock()
-	defer s.Unlock()
-	s.status = false
-	for _, g := range s.apps {
-		for _, a := range g {
-			for n := range a.notices {
+	s.stop.Close(func() {
+		s.Lock()
+		for _, notices := range s.notices {
+			for n := range notices {
 				close(n)
 			}
 		}
-	}
+		s.Unlock()
+	}, nil)
 }

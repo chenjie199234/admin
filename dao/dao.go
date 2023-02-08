@@ -21,7 +21,7 @@ func NewApi() error {
 	var e error
 	_ = e //avoid unuse
 
-	cgrpcc := getCGrpcClientConfig()
+	cgrpcc := GetCGrpcClientConfig()
 	_ = cgrpcc //avoid unuse
 
 	//init cgrpc client below
@@ -31,7 +31,7 @@ func NewApi() error {
 	//}
 	//ExampleCGrpcApi = example.NewExampleCGrpcClient(examplecgrpc)
 
-	crpcc := getCrpcClientConfig()
+	crpcc := GetCrpcClientConfig()
 	_ = crpcc //avoid unuse
 
 	//init crpc client below
@@ -41,7 +41,7 @@ func NewApi() error {
 	//}
 	//ExampleCrpcApi = example.NewExampleCrpcClient(examplecrpc)
 
-	webc := getWebClientConfig()
+	webc := GetWebClientConfig()
 	_ = webc //avoid unuse
 
 	//init web client below
@@ -54,7 +54,7 @@ func NewApi() error {
 	return nil
 }
 
-func getCGrpcClientConfig() *cgrpc.ClientConfig {
+func GetCGrpcClientConfig() *cgrpc.ClientConfig {
 	gc := config.GetCGrpcClientConfig()
 	return &cgrpc.ClientConfig{
 		ConnectTimeout:   time.Duration(gc.ConnectTimeout),
@@ -82,7 +82,7 @@ func cgrpcDNS(group, name string) (map[string]*cgrpc.RegisterData, error) {
 	return result, nil
 }
 
-func getCrpcClientConfig() *crpc.ClientConfig {
+func GetCrpcClientConfig() *crpc.ClientConfig {
 	rc := config.GetCrpcClientConfig()
 	return &crpc.ClientConfig{
 		ConnectTimeout:   time.Duration(rc.ConnectTimeout),
@@ -110,7 +110,7 @@ func crpcDNS(group, name string) (map[string]*crpc.RegisterData, error) {
 	return result, nil
 }
 
-func getWebClientConfig() *web.ClientConfig {
+func GetWebClientConfig() *web.ClientConfig {
 	wc := config.GetWebClientConfig()
 	return &web.ClientConfig{
 		ConnectTimeout: time.Duration(wc.ConnectTimeout),

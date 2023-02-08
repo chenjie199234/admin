@@ -2,7 +2,7 @@
 // version:
 // 	protoc-gen-go-crpc v0.0.77<br />
 // 	protoc             v3.21.11<br />
-// source: api/adminstatus.proto<br />
+// source: api/proxy.proto<br />
 
 package api
 
@@ -16,31 +16,30 @@ import (
 	proto "google.golang.org/protobuf/proto"
 )
 
-var _CrpcPathStatusPing = "/admin.status/ping"
+var _CrpcPathProxyTob = "/admin.proxy/tob"
 
-type StatusCrpcClient interface {
-	// ping check server's health
-	Ping(context.Context, *Pingreq) (*Pingresp, error)
+type ProxyCrpcClient interface {
+	Tob(context.Context, *TobReq) (*TobResp, error)
 }
 
-type statusCrpcClient struct {
+type proxyCrpcClient struct {
 	cc *crpc.CrpcClient
 }
 
-func NewStatusCrpcClient(c *crpc.CrpcClient) StatusCrpcClient {
-	return &statusCrpcClient{cc: c}
+func NewProxyCrpcClient(c *crpc.CrpcClient) ProxyCrpcClient {
+	return &proxyCrpcClient{cc: c}
 }
 
-func (c *statusCrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, error) {
+func (c *proxyCrpcClient) Tob(ctx context.Context, req *TobReq) (*TobResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathStatusPing, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathProxyTob, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(Pingresp)
+	resp := new(TobResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -54,21 +53,20 @@ func (c *statusCrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, e
 	return resp, nil
 }
 
-type StatusCrpcServer interface {
-	// ping check server's health
-	Ping(context.Context, *Pingreq) (*Pingresp, error)
+type ProxyCrpcServer interface {
+	Tob(context.Context, *TobReq) (*TobResp, error)
 }
 
-func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp, error)) crpc.OutsideHandler {
+func _Proxy_Tob_CrpcHandler(handler func(context.Context, *TobReq) (*TobResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
-		req := new(Pingreq)
+		req := new(TobReq)
 		reqbody := ctx.GetBody()
 		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.status/ping] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.proxy/tob] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -78,7 +76,7 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.status/ping] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.proxy/tob] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -86,7 +84,7 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.status/ping]", errstr)
+			log.Error(ctx, "[/admin.proxy/tob]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -96,7 +94,7 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 			return
 		}
 		if resp == nil {
-			resp = new(Pingresp)
+			resp = new(TobResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -107,20 +105,8 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 		}
 	}
 }
-func RegisterStatusCrpcServer(engine *crpc.CrpcServer, svc StatusCrpcServer, allmids map[string]crpc.OutsideHandler) {
+func RegisterProxyCrpcServer(engine *crpc.CrpcServer, svc ProxyCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	{
-		requiredMids := []string{"accesskey", "rate"}
-		mids := make([]crpc.OutsideHandler, 0, 3)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _Status_Ping_CrpcHandler(svc.Ping))
-		engine.RegisterHandler(_CrpcPathStatusPing, mids...)
-	}
+	engine.RegisterHandler(_CrpcPathProxyTob, _Proxy_Tob_CrpcHandler(svc.Tob))
 }

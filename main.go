@@ -44,7 +44,6 @@ func main() {
 		publicmids.UpdateAccessConfig(ac.Accesses)
 	}, AppConfigTemplate, SourceConfigTemplate)
 	defer config.Close()
-	publicmids.UpdateReplayDefendRedisInstance(config.GetRedis("sign_replay_defend_redis"))
 	publicmids.UpdateRateRedisInstance(config.GetRedis("rate_redis"))
 	publicmids.UpdateSessionRedisInstance(config.GetRedis("session_redis"))
 	//start the whole business service

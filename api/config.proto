@@ -182,10 +182,10 @@ message watch_req{
 	string groupname=1[(pbex.string_bytes_len_gt)=0];
 	string appname=2[(pbex.string_bytes_len_gt)=0];
 	//map's key is config's keyname,map's value is config's cur version
-	//if cur version < 0 means return current active config
+	//if cur version == 0 means return current active config
 	//if all cur version is the newest,the request will block until a new version come
 	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
-	map<string,int32> keys=3[(pbex.map_repeated_len_gt)=0];
+	map<string,uint32> keys=3[(pbex.map_repeated_len_gt)=0];
 }
 message watch_resp{
 	map<string,watch_data> datas=1;
@@ -194,5 +194,5 @@ message watch_data{
 	string key=1;
 	string value=2;
 	string value_type=3;
-	int32 version=4;
+	uint32 version=4;
 }

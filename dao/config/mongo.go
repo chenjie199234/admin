@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/chenjie199234/admin/ecode"
@@ -235,7 +236,6 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, groupname, appname, olds
 
 func (d *Dao) MongoGetAllKeys(ctx context.Context, groupname, appname, secret string) ([]string, error) {
 	appsummary := &model.AppSummary{}
-
 	if e := d.mongo.Database("config_"+groupname).Collection(appname).FindOne(ctx, bson.M{"key": "", "index": 0}).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
@@ -493,21 +493,23 @@ type WatchUpdateHandler func(string, string, *model.AppSummary)
 type WatchDeleteAppHandler func(groupname, appname string)
 type WatchDeleteConfigHandler func(groupname, appname string, id string)
 
-func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHandler, delC WatchDeleteConfigHandler) error {
-	starttime := &primitive.Timestamp{T: uint32(time.Now().Unix()), I: uint32(0)}
+func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHandler, delC WatchDeleteConfigHandler, initall map[string]*model.AppSummary) error {
+	starttime := &primitive.Timestamp{T: uint32(time.Now().Unix()) - 1, I: uint32(0)}
 	watchfilter := mongo.Pipeline{bson.D{primitive.E{Key: "$match", Value: bson.M{"ns.db": bson.M{"$regex": "^config_"}}}}}
-	stream, e := d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime))
-	if e != nil {
+
+	if e := d.mongoGetAll(initall); e != nil {
 		return e
 	}
 	go func() {
+		var stream *mongo.ChangeStream
 		for {
 			for stream == nil {
-				//reconnect
-				time.Sleep(time.Millisecond * 5)
+				//connect
+				var e error
 				if stream, e = d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime)); e != nil {
-					log.Error(nil, "[dao.MongoWatchConfig] reconnect stream error:", e)
+					log.Error(nil, "[dao.MongoWatchConfig] connect stream error:", e)
 					stream = nil
+					time.Sleep(time.Millisecond * 5)
 					continue
 				}
 			}
@@ -560,6 +562,57 @@ func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHan
 		}
 	}()
 	return nil
+}
+
+// this function can't guarantee atomic
+// this function can only be used in MongoWatchConfig function
+func (d *Dao) mongoGetAll(initall map[string]*model.AppSummary) error {
+	if initall == nil {
+		return nil
+	}
+	var e error
+	lker := sync.Mutex{}
+	taskch := make(chan [2]string, 100)
+
+	wg := sync.WaitGroup{}
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
+		go func(index int) {
+			defer wg.Done()
+			for {
+				task, ok := <-taskch
+				if !ok {
+					return
+				}
+				if app, err := d.MongoGetAppConfig(context.Background(), task[0], task[1]); err != nil {
+					e = err
+					return
+				} else if app != nil {
+					lker.Lock()
+					initall[task[0]+"."+task[1]] = app
+					lker.Unlock()
+				}
+			}
+		}(i)
+	}
+	groups, e := d.mongo.ListDatabaseNames(context.Background(), bson.M{"name": bson.M{"$regex": "^config_"}})
+	if e != nil {
+		close(taskch)
+		return e
+	}
+	for _, group := range groups {
+		names, e := d.mongo.Database(group).ListCollectionNames(context.Background(), bson.M{})
+		if e != nil {
+			close(taskch)
+			return e
+		}
+		for _, name := range names {
+			taskch <- [2]string{group[7:], name}
+		}
+	}
+	close(taskch)
+	wg.Wait()
+	return e
 }
 
 // this function will not decrypt

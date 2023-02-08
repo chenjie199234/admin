@@ -47,7 +47,7 @@ func NewConfigSdk(selfgroup, selfname, servergroup, serverhost, secret string) (
 func (instance *Sdk) watch(selfgroup, selfname string) {
 	for {
 		instance.lker.Lock()
-		keys := make(map[string]int32)
+		keys := make(map[string]uint32)
 		for k, v := range instance.keys {
 			keys[k] = v.Version
 		}
@@ -123,7 +123,7 @@ func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {
 		Key:       key,
 		Value:     "",
 		ValueType: "raw",
-		Version:   -1,
+		Version:   0,
 	}
 	instance.keysnotice[key] = notice
 	if instance.cancel != nil {

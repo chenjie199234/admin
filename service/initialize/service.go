@@ -35,6 +35,18 @@ func Start() *Service {
 	}
 }
 
+// 初始化状态
+func (s *Service) InitStatus(ctx context.Context, req *api.InitStatusReq) (*api.InitStatusResp, error) {
+	_, e := s.initializeDao.MongoRootLogin(ctx)
+	if e == nil {
+		return &api.InitStatusResp{Status: true}, nil
+	}
+	if e == ecode.ErrNotInited {
+		return &api.InitStatusResp{Status: false}, nil
+	}
+	return nil, e
+}
+
 // Init 初始化项目
 func (s *Service) Init(ctx context.Context, req *api.InitReq) (*api.InitResp, error) {
 	if e := s.initializeDao.MongoInit(ctx, req.Password); e != nil {

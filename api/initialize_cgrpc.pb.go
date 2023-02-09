@@ -14,6 +14,7 @@ import (
 	metadata "github.com/chenjie199234/Corelib/metadata"
 )
 
+var _CGrpcPathInitializeInitStatus = "/admin.initialize/init_status"
 var _CGrpcPathInitializeInit = "/admin.initialize/init"
 var _CGrpcPathInitializeRootLogin = "/admin.initialize/root_login"
 var _CGrpcPathInitializeRootPassword = "/admin.initialize/root_password"
@@ -23,6 +24,8 @@ var _CGrpcPathInitializeListProject = "/admin.initialize/list_project"
 var _CGrpcPathInitializeDeleteProject = "/admin.initialize/delete_project"
 
 type InitializeCGrpcClient interface {
+	// 初始化状态
+	InitStatus(context.Context, *InitStatusReq) (*InitStatusResp, error)
 	// 初始化
 	Init(context.Context, *InitReq) (*InitResp, error)
 	// 登录
@@ -47,6 +50,16 @@ func NewInitializeCGrpcClient(c *cgrpc.CGrpcClient) InitializeCGrpcClient {
 	return &initializeCGrpcClient{cc: c}
 }
 
+func (c *initializeCGrpcClient) InitStatus(ctx context.Context, req *InitStatusReq) (*InitStatusResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(InitStatusResp)
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeInitStatus, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
 func (c *initializeCGrpcClient) Init(ctx context.Context, req *InitReq) (*InitResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -119,6 +132,8 @@ func (c *initializeCGrpcClient) DeleteProject(ctx context.Context, req *DeletePr
 }
 
 type InitializeCGrpcServer interface {
+	// 初始化状态
+	InitStatus(context.Context, *InitStatusReq) (*InitStatusResp, error)
 	// 初始化
 	Init(context.Context, *InitReq) (*InitResp, error)
 	// 登录
@@ -135,6 +150,24 @@ type InitializeCGrpcServer interface {
 	DeleteProject(context.Context, *DeleteProjectReq) (*DeleteProjectResp, error)
 }
 
+func _Initialize_InitStatus_CGrpcHandler(handler func(context.Context, *InitStatusReq) (*InitStatusResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(InitStatusReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(InitStatusResp)
+		}
+		ctx.Write(resp)
+	}
+}
 func _Initialize_Init_CGrpcHandler(handler func(context.Context, *InitReq) (*InitResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(InitReq)
@@ -294,6 +327,7 @@ func _Initialize_DeleteProject_CGrpcHandler(handler func(context.Context, *Delet
 func RegisterInitializeCGrpcServer(engine *cgrpc.CGrpcServer, svc InitializeCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
+	engine.RegisterHandler("admin.initialize", "init_status", _Initialize_InitStatus_CGrpcHandler(svc.InitStatus))
 	engine.RegisterHandler("admin.initialize", "init", _Initialize_Init_CGrpcHandler(svc.Init))
 	engine.RegisterHandler("admin.initialize", "root_login", _Initialize_RootLogin_CGrpcHandler(svc.RootLogin))
 	engine.RegisterHandler("admin.initialize", "root_password", _Initialize_RootPassword_CGrpcHandler(svc.RootPassword))

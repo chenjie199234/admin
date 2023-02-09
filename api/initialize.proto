@@ -22,6 +22,10 @@ service initialize{
 	//	option (pbex.cgrpc_midwares)="a";//this function on grpc protocol has 3 midwares,it's order is b,c,a
 	//}
 
+	//初始化状态
+	rpc init_status(init_status_req)returns(init_status_resp){
+		option (pbex.method)="post";
+	}
 	//初始化
 	rpc init(init_req)returns(init_resp){
 		option (pbex.method)="post";
@@ -65,6 +69,12 @@ service initialize{
 	//int64 example_resp=1;
 //}
 
+message init_status_req{
+
+}
+message init_status_resp{
+	bool status=1;//true-already inited,false-not inited
+}
 message init_req{
 	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
 }

@@ -20,6 +20,7 @@ import (
 	strings "strings"
 )
 
+var _WebPathInitializeInitStatus = "/admin.initialize/init_status"
 var _WebPathInitializeInit = "/admin.initialize/init"
 var _WebPathInitializeRootLogin = "/admin.initialize/root_login"
 var _WebPathInitializeRootPassword = "/admin.initialize/root_password"
@@ -29,6 +30,8 @@ var _WebPathInitializeListProject = "/admin.initialize/list_project"
 var _WebPathInitializeDeleteProject = "/admin.initialize/delete_project"
 
 type InitializeWebClient interface {
+	// 初始化状态
+	InitStatus(context.Context, *InitStatusReq, http.Header) (*InitStatusResp, error)
 	// 初始化
 	Init(context.Context, *InitReq, http.Header) (*InitResp, error)
 	// 登录
@@ -53,6 +56,38 @@ func NewInitializeWebClient(c *web.WebClient) InitializeWebClient {
 	return &initializeWebClient{cc: c}
 }
 
+func (c *initializeWebClient) InitStatus(ctx context.Context, req *InitStatusReq, header http.Header) (*InitStatusResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathInitializeInitStatus, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(InitStatusResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 func (c *initializeWebClient) Init(ctx context.Context, req *InitReq, header http.Header) (*InitResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -279,6 +314,8 @@ func (c *initializeWebClient) DeleteProject(ctx context.Context, req *DeleteProj
 }
 
 type InitializeWebServer interface {
+	// 初始化状态
+	InitStatus(context.Context, *InitStatusReq) (*InitStatusResp, error)
 	// 初始化
 	Init(context.Context, *InitReq) (*InitResp, error)
 	// 登录
@@ -295,6 +332,67 @@ type InitializeWebServer interface {
 	DeleteProject(context.Context, *DeleteProjectReq) (*DeleteProjectResp, error)
 }
 
+func _Initialize_InitStatus_WebHandler(handler func(context.Context, *InitStatusReq) (*InitStatusResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(InitStatusReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			data := pool.GetBuffer()
+			defer pool.PutBuffer(data)
+			data.AppendByte('{')
+			if data.Len() == 1 {
+				data.AppendByte('}')
+			} else {
+				data.Bytes()[data.Len()-1] = '}'
+			}
+			if data.Len() > 2 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(InitStatusResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
 func _Initialize_Init_WebHandler(handler func(context.Context, *InitReq) (*InitResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
 		req := new(InitReq)
@@ -887,6 +985,7 @@ func _Initialize_DeleteProject_WebHandler(handler func(context.Context, *DeleteP
 func RegisterInitializeWebServer(engine *web.WebServer, svc InitializeWebServer, allmids map[string]web.OutsideHandler) {
 	// avoid lint
 	_ = allmids
+	engine.Post(_WebPathInitializeInitStatus, _Initialize_InitStatus_WebHandler(svc.InitStatus))
 	engine.Post(_WebPathInitializeInit, _Initialize_Init_WebHandler(svc.Init))
 	engine.Post(_WebPathInitializeRootLogin, _Initialize_RootLogin_WebHandler(svc.RootLogin))
 	{

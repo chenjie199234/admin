@@ -16,6 +16,7 @@ import (
 	proto "google.golang.org/protobuf/proto"
 )
 
+var _CrpcPathInitializeInitStatus = "/admin.initialize/init_status"
 var _CrpcPathInitializeInit = "/admin.initialize/init"
 var _CrpcPathInitializeRootLogin = "/admin.initialize/root_login"
 var _CrpcPathInitializeRootPassword = "/admin.initialize/root_password"
@@ -25,6 +26,8 @@ var _CrpcPathInitializeListProject = "/admin.initialize/list_project"
 var _CrpcPathInitializeDeleteProject = "/admin.initialize/delete_project"
 
 type InitializeCrpcClient interface {
+	// 初始化状态
+	InitStatus(context.Context, *InitStatusReq) (*InitStatusResp, error)
 	// 初始化
 	Init(context.Context, *InitReq) (*InitResp, error)
 	// 登录
@@ -49,6 +52,28 @@ func NewInitializeCrpcClient(c *crpc.CrpcClient) InitializeCrpcClient {
 	return &initializeCrpcClient{cc: c}
 }
 
+func (c *initializeCrpcClient) InitStatus(ctx context.Context, req *InitStatusReq) (*InitStatusResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeInitStatus, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(InitStatusResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 func (c *initializeCrpcClient) Init(ctx context.Context, req *InitReq) (*InitResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -205,6 +230,8 @@ func (c *initializeCrpcClient) DeleteProject(ctx context.Context, req *DeletePro
 }
 
 type InitializeCrpcServer interface {
+	// 初始化状态
+	InitStatus(context.Context, *InitStatusReq) (*InitStatusResp, error)
 	// 初始化
 	Init(context.Context, *InitReq) (*InitResp, error)
 	// 登录
@@ -221,6 +248,49 @@ type InitializeCrpcServer interface {
 	DeleteProject(context.Context, *DeleteProjectReq) (*DeleteProjectResp, error)
 }
 
+func _Initialize_InitStatus_CrpcHandler(handler func(context.Context, *InitStatusReq) (*InitStatusResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(InitStatusReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(InitStatusResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
 func _Initialize_Init_CrpcHandler(handler func(context.Context, *InitReq) (*InitResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
@@ -555,6 +625,7 @@ func _Initialize_DeleteProject_CrpcHandler(handler func(context.Context, *Delete
 func RegisterInitializeCrpcServer(engine *crpc.CrpcServer, svc InitializeCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
+	engine.RegisterHandler(_CrpcPathInitializeInitStatus, _Initialize_InitStatus_CrpcHandler(svc.InitStatus))
 	engine.RegisterHandler(_CrpcPathInitializeInit, _Initialize_Init_CrpcHandler(svc.Init))
 	engine.RegisterHandler(_CrpcPathInitializeRootLogin, _Initialize_RootLogin_CrpcHandler(svc.RootLogin))
 	engine.RegisterHandler(_CrpcPathInitializeRootPassword, _Initialize_RootPassword_CrpcHandler(svc.RootPassword))

@@ -126,6 +126,33 @@ function JsonToInitResp(jsonobj: { [k:string]:any }): InitResp{
 	}
 	return obj
 }
+export interface InitStatusReq{
+}
+function InitStatusReqToJson(msg: InitStatusReq): string{
+	let s: string="{"
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface InitStatusResp{
+	status: boolean;
+}
+function JsonToInitStatusResp(jsonobj: { [k:string]:any }): InitStatusResp{
+	let obj: InitStatusResp={
+		status:false,
+	}
+	//status
+	if(jsonobj['status']!=null&&jsonobj['status']!=undefined){
+		if(typeof jsonobj['status']!='boolean'){
+			throw 'InitStatusResp.status must be boolean'
+		}
+		obj['status']=jsonobj['status']
+	}
+	return obj
+}
 export interface ListProjectReq{
 }
 function ListProjectReqToJson(msg: ListProjectReq): string{
@@ -324,6 +351,7 @@ function JsonToUpdateProjectResp(jsonobj: { [k:string]:any }): UpdateProjectResp
 	}
 	return obj
 }
+const _WebPathInitializeInitStatus: string ="/admin.initialize/init_status";
 const _WebPathInitializeInit: string ="/admin.initialize/init";
 const _WebPathInitializeRootLogin: string ="/admin.initialize/root_login";
 const _WebPathInitializeRootPassword: string ="/admin.initialize/root_password";
@@ -338,6 +366,50 @@ export class InitializeBrowserClientToC {
 			throw "InitializeBrowserClientToC's host missing"
 		}
 		this.host=host
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	init_status(header: { [k: string]: string },req: InitStatusReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: InitStatusResp)=>void){
+		if(!Number.isInteger(timeout)){
+			throw 'timeout must be integer'
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let config={
+			url:_WebPathInitializeInitStatus,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: InitStatusReqToJson(req),
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:InitStatusResp=JsonToInitStatusResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header

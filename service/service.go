@@ -5,18 +5,20 @@ import (
 	"github.com/chenjie199234/admin/service/config"
 	"github.com/chenjie199234/admin/service/initialize"
 	"github.com/chenjie199234/admin/service/permission"
+	"github.com/chenjie199234/admin/service/proxy"
 	"github.com/chenjie199234/admin/service/status"
 	"github.com/chenjie199234/admin/service/user"
 )
 
-//SvcStatus one specify sub service
+// SvcStatus one specify sub service
 var SvcStatus *status.Service
 var SvcConfig *config.Service
 var SvcUser *user.Service
 var SvcPermission *permission.Service
 var SvcInitialize *initialize.Service
+var SvcProxy *proxy.Service
 
-//StartService start the whole service
+// StartService start the whole service
 func StartService() error {
 	if e := dao.NewApi(); e != nil {
 		return e
@@ -30,7 +32,7 @@ func StartService() error {
 	return nil
 }
 
-//StopService stop the whole service
+// StopService stop the whole service
 func StopService() {
 	//stop sub service
 	SvcStatus.Stop()

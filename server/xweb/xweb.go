@@ -57,6 +57,7 @@ func StartWebServer() {
 	api.RegisterUserWebServer(s, service.SvcUser, mids.AllMids())
 	api.RegisterPermissionWebServer(s, service.SvcPermission, mids.AllMids())
 	api.RegisterInitializeWebServer(s, service.SvcInitialize, mids.AllMids())
+	api.RegisterProxyWebServer(s, service.SvcProxy, mids.AllMids())
 	//example
 	//api.RegisterExampleWebServer(s, service.SvcExample, mids.AllMids())
 

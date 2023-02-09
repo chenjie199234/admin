@@ -29,6 +29,7 @@ func StartService() error {
 	SvcUser = user.Start()
 	SvcPermission = permission.Start()
 	SvcInitialize = initialize.Start()
+	SvcProxy = proxy.Start()
 	return nil
 }
 
@@ -40,4 +41,5 @@ func StopService() {
 	SvcUser.Stop()
 	SvcPermission.Stop()
 	SvcInitialize.Stop()
+	SvcProxy.Stop()
 }

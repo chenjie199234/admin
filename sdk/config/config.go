@@ -59,47 +59,55 @@ func (instance *Sdk) watch(selfgroup, selfname string) {
 		instance.ctx, instance.cancel = context.WithCancel(context.Background())
 		instance.lker.Unlock()
 		resp, e := instance.client.Watch(instance.ctx, &api.WatchReq{Groupname: selfgroup, Appname: selfname, Keys: keys}, nil)
-		if e != nil && !cerror.Equal(e, cerror.ErrCanceled) {
-			log.Error(nil, "[config.sdk.watch] keys:", keys, e)
-			time.Sleep(time.Millisecond * 100)
-		} else if e == nil {
-			broken := false
-			instance.lker.Lock()
-			for key, data := range resp.Datas {
-				if keys[key] == data.Version {
-					//didn't changed
-					continue
-				}
-				_, ok := instance.keys[key]
-				if !ok {
-					//already deleted
-					continue
-				}
-				if data.Version != 0 && instance.secret != "" {
-					plaintext, e := util.Decrypt(instance.secret, data.Value)
-					if e != nil {
-						broken = true
-						log.Error(nil, "[config.sdk.watch] key:", data.Key, e)
-						continue
-					}
-					data.Value = common.Byte2str(plaintext)
-				}
-				instance.keys[key] = data
-				notice, ok := instance.keysnotice[key]
-				if !ok || notice == nil {
-					continue
-				}
-				notice(key, data.Value, data.ValueType)
-			}
-			instance.lker.Unlock()
-			if broken {
+		if e != nil {
+			if !cerror.Equal(e, cerror.ErrCanceled) {
+				log.Error(nil, "[config.sdk.watch] keys:", keys, e)
 				time.Sleep(time.Millisecond * 100)
+				instance.cancel()
 			}
+			continue
+		}
+		broken := false
+		instance.lker.Lock()
+		for key, data := range resp.Datas {
+			if keys[key] == data.Version {
+				//didn't changed
+				continue
+			}
+			_, ok := instance.keys[key]
+			if !ok {
+				//already deleted
+				continue
+			}
+			if data.Version == 0 {
+				log.Error(nil, "[config.sdk.watch] key:", data.Key, "return version 0")
+				continue
+			}
+			if instance.secret != "" {
+				plaintext, e := util.Decrypt(instance.secret, data.Value)
+				if e != nil {
+					broken = true
+					log.Error(nil, "[config.sdk.watch] decrypt key:", data.Key, e)
+					continue
+				}
+				data.Value = common.Byte2str(plaintext)
+			}
+			instance.keys[key] = data
+			notice, ok := instance.keysnotice[key]
+			if !ok || notice == nil {
+				continue
+			}
+			notice(key, data.Value, data.ValueType)
+		}
+		instance.lker.Unlock()
+		if broken {
+			time.Sleep(time.Millisecond * 100)
 		}
 		instance.cancel()
 	}
 }
 
+// Warning!!!Don't block in notice function
 // watch the same key will overwrite the old one's notice function
 // but the old's cancel function can still work
 func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {

@@ -509,7 +509,7 @@ func (d *Dao) MongoWatchConfig(update WatchUpdateHandler, delA WatchDeleteAppHan
 				if stream, e = d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime)); e != nil {
 					log.Error(nil, "[dao.MongoWatchConfig] connect stream error:", e)
 					stream = nil
-					time.Sleep(time.Millisecond * 5)
+					time.Sleep(time.Millisecond * 100)
 					continue
 				}
 			}

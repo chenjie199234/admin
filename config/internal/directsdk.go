@@ -23,10 +23,13 @@ import (
 
 type Sdk struct {
 	client     *mongo.Client
+	selfgroup  string
+	selfname   string
 	secret     string
 	lker       sync.Mutex
 	appsummary *model.AppSummary
 	notices    map[string]NoticeHandler
+	start      *primitive.Timestamp
 }
 
 // keyvalue: map's key is the key name,map's value is the key's data
@@ -39,135 +42,145 @@ func NewDirectSdk(selfgroup, selfname, mongourl, secret string, AppConfigTemplat
 	if e != nil {
 		return nil, e
 	}
-	starttime := &primitive.Timestamp{T: uint32(time.Now().Unix()), I: 0}
-	watchfilter := mongo.Pipeline{bson.D{bson.E{Key: "$match", Value: bson.M{"ns.db": "config_" + selfgroup, "ns.coll": selfname}}}}
-	stream, e := client.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime))
-	if e != nil {
-		return nil, e
+	instance := &Sdk{
+		client:     client,
+		selfgroup:  selfgroup,
+		selfname:   selfname,
+		secret:     secret,
+		appsummary: &model.AppSummary{},
+		notices:    make(map[string]NoticeHandler),
+		start:      &primitive.Timestamp{T: uint32(time.Now().Unix() - 1), I: 0},
 	}
-	col := client.Database("config_"+selfgroup, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection(selfname)
-	//get first,then watch change stream
-	appsummary := &model.AppSummary{}
-	if e = col.FindOne(context.Background(), bson.M{"key": "", "index": 0}).Decode(appsummary); e != nil && e != mongo.ErrNoDocuments {
-		return nil, e
-	} else if e == nil {
-		//sign check
-		if e := util.SignCheck(secret, appsummary.Value); e != nil {
-			return nil, e
+
+	instance.first()
+	go instance.watch()
+
+	return instance, nil
+}
+func (instance *Sdk) first() error {
+	col := instance.client.Database("config_"+instance.selfgroup, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection(instance.selfname)
+	if e := col.FindOne(context.Background(), bson.M{"key": "", "index": 0}).Decode(instance.appsummary); e != nil {
+		return e
+	}
+	//sign check
+	if e := util.SignCheck(instance.secret, instance.appsummary.Value); e != nil {
+		return e
+	}
+	if instance.secret == "" {
+		return nil
+	}
+	for _, keysummary := range instance.appsummary.Keys {
+		plaintext, e := util.Decrypt(instance.secret, keysummary.CurValue)
+		if e != nil {
+			return e
 		}
-		if secret != "" {
-			for _, keysummary := range appsummary.Keys {
-				plaintext, e := util.Decrypt(secret, keysummary.CurValue)
-				if e != nil {
-					return nil, e
-				}
-				keysummary.CurValue = common.Byte2str(plaintext)
+		keysummary.CurValue = common.Byte2str(plaintext)
+	}
+	return nil
+}
+func (instance *Sdk) watch() {
+	watchfilter := mongo.Pipeline{bson.D{bson.E{Key: "$match", Value: bson.M{"ns.db": "config_" + instance.selfgroup, "ns.coll": instance.selfname}}}}
+	var stream *mongo.ChangeStream
+	for {
+		for stream == nil {
+			//connect
+			var e error
+			if stream, e = instance.client.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(instance.start)); e != nil {
+				log.Error(nil, "[config.directsdk.watch] connect:", e)
+				stream = nil
+				time.Sleep(time.Millisecond * 100)
+				continue
 			}
 		}
-	}
-	instance := &Sdk{
-		appsummary: appsummary,
-		notices:    make(map[string]NoticeHandler),
-	}
-	go func() {
-		for {
-			for stream == nil {
-				//reconnect
-				time.Sleep(time.Millisecond * 100)
-				if stream, e = client.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime)); e != nil {
-					log.Error(nil, "[config.directsdk.watch] reconnect:", e)
-					stream = nil
+		for stream.Next(context.Background()) {
+			instance.start.T, instance.start.I = stream.Current.Lookup("clusterTime").Timestamp()
+			instance.start.I++
+			switch stream.Current.Lookup("operationType").StringValue() {
+			case "drop":
+				//drop collection
+				log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, "deleted")
+				instance.lker.Lock()
+				for key, notice := range instance.notices {
+					notice(key, "", "raw")
+				}
+				instance.appsummary = &model.AppSummary{}
+				instance.lker.Unlock()
+			case "insert":
+				//insert
+				fallthrough
+			case "update":
+				//update
+				key, kok := stream.Current.Lookup("fullDocument").Document().Lookup("key").StringValueOK()
+				index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").Int32OK()
+				if !kok || !iok {
+					//unknown doc
 					continue
 				}
-			}
-			for stream.Next(context.Background()) {
-				starttime.T, starttime.I = stream.Current.Lookup("clusterTime").Timestamp()
-				starttime.I++
-				switch stream.Current.Lookup("operationType").StringValue() {
-				case "drop":
-					//drop collection
-					instance.lker.Lock()
-					for key, notice := range instance.notices {
-						notice(key, "", "raw")
-					}
-					instance.appsummary = &model.AppSummary{}
-					instance.lker.Unlock()
-				case "insert":
-					//insert
-					fallthrough
-				case "update":
-					//update
-					key, kok := stream.Current.Lookup("fullDocument").Document().Lookup("key").StringValueOK()
-					index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").Int32OK()
-					if !kok || !iok {
-						//unknown doc
-						continue
-					}
-					if key != "" || index != 0 {
-						//this is not the appsummary
-						continue
-					}
-					tmp := &model.AppSummary{}
-					if e := stream.Current.Lookup("fullDocument").Unmarshal(tmp); e != nil {
-						log.Error(nil, "[config.directsdk.watch] group:", selfgroup, "app:", selfname, e)
-						continue
-					}
-					//check sign
-					if e := util.SignCheck(secret, tmp.Value); e != nil {
-						log.Error(nil, "[config.directsdk.watch] group:", selfgroup, "app:", selfname, e)
-						continue
-					}
-					if secret != "" {
-						for _, keysummary := range tmp.Keys {
-							plaintext, e := util.Decrypt(secret, keysummary.CurValue)
-							if e != nil {
-								log.Error(nil, "[config.directsdk.watch] group:", selfgroup, "app:", selfname, e)
-								break
-							}
-							keysummary.CurValue = common.Byte2str(plaintext)
+				if key != "" || index != 0 {
+					//this is not the appsummary
+					continue
+				}
+				tmp := &model.AppSummary{}
+				if e := stream.Current.Lookup("fullDocument").Unmarshal(tmp); e != nil {
+					log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, e)
+					continue
+				}
+				//check sign
+				if e := util.SignCheck(instance.secret, tmp.Value); e != nil {
+					log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, e)
+					continue
+				}
+				if instance.secret != "" {
+					for _, keysummary := range tmp.Keys {
+						plaintext, e := util.Decrypt(instance.secret, keysummary.CurValue)
+						if e != nil {
+							log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, e)
+							break
 						}
+						keysummary.CurValue = common.Byte2str(plaintext)
 					}
-					instance.lker.Lock()
-					for key, notice := range instance.notices {
-						old, oldok := instance.appsummary.Keys[key]
-						new, newok := tmp.Keys[key]
-						if oldok {
-							if !newok {
-								notice(key, "", "raw")
-							} else if old.CurVersion == new.CurVersion {
-								continue
-							} else {
-								notice(key, new.CurValue, new.CurValueType)
-							}
-						} else if !newok {
+				}
+				instance.lker.Lock()
+				for key, notice := range instance.notices {
+					old, oldok := instance.appsummary.Keys[key]
+					new, newok := tmp.Keys[key]
+					if oldok {
+						if !newok {
+							notice(key, "", "raw")
+						} else if old.CurVersion == new.CurVersion {
 							continue
 						} else {
 							notice(key, new.CurValue, new.CurValueType)
 						}
-					}
-					instance.appsummary = tmp
-					instance.lker.Unlock()
-				case "delete":
-					if appsummary.ID.IsZero() || stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex() != appsummary.ID.Hex() {
-						//this is not the appsummary
+					} else if !newok {
 						continue
+					} else {
+						notice(key, new.CurValue, new.CurValueType)
 					}
-					instance.lker.Lock()
-					for key, notice := range instance.notices {
-						notice(key, "", "raw")
-					}
-					appsummary = &model.AppSummary{}
-					instance.lker.Unlock()
 				}
+				instance.appsummary = tmp
+				instance.lker.Unlock()
+			case "delete":
+				if instance.appsummary.ID.IsZero() || stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex() != instance.appsummary.ID.Hex() {
+					//this is not the appsummary
+					continue
+				}
+				//this is same as delete the app
+				log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, "appsummary deleted")
+				instance.lker.Lock()
+				for key, notice := range instance.notices {
+					notice(key, "", "raw")
+				}
+				instance.appsummary = &model.AppSummary{}
+				instance.lker.Unlock()
 			}
-			if stream.Err() != nil {
-				log.Error(nil, "[config.selfsdk.watch] error:", stream.Err())
-			}
-			stream.Close(context.Background())
-			stream = nil
 		}
-	}()
-	return instance, nil
+		if stream.Err() != nil {
+			log.Error(nil, "[config.selfsdk.watch] error:", stream.Err())
+		}
+		stream.Close(context.Background())
+		stream = nil
+	}
 }
 
 // watch the same key will overwrite the old one's notice function

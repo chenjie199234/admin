@@ -11,7 +11,6 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
-	pool "github.com/chenjie199234/Corelib/pool"
 	web "github.com/chenjie199234/Corelib/web"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
@@ -414,45 +413,8 @@ func _Permission_GetUserPermission_WebHandler(handler func(context.Context, *Get
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("user_id"); len(form) != 0 {
-				data.AppendString("\"user_id\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if forms := ctx.GetForms("node_id"); len(forms) != 0 {
-				data.AppendString("\"node_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/get_user_permission]", errstr)
@@ -505,60 +467,8 @@ func _Permission_UpdateUserPermission_WebHandler(handler func(context.Context, *
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("user_id"); len(form) != 0 {
-				data.AppendString("\"user_id\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if forms := ctx.GetForms("node_id"); len(forms) != 0 {
-				data.AppendString("\"node_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("admin"); len(form) != 0 {
-				data.AppendString("\"admin\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("canread"); len(form) != 0 {
-				data.AppendString("\"canread\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("canwrite"); len(form) != 0 {
-				data.AppendString("\"canwrite\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/update_user_permission]", errstr)
@@ -611,70 +521,8 @@ func _Permission_UpdateRolePermission_WebHandler(handler func(context.Context, *
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("role_name"); len(form) != 0 {
-				data.AppendString("\"role_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if forms := ctx.GetForms("node_id"); len(forms) != 0 {
-				data.AppendString("\"node_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("admin"); len(form) != 0 {
-				data.AppendString("\"admin\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("canread"); len(form) != 0 {
-				data.AppendString("\"canread\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("canwrite"); len(form) != 0 {
-				data.AppendString("\"canwrite\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/update_role_permission]", errstr)
@@ -727,56 +575,8 @@ func _Permission_AddNode_WebHandler(handler func(context.Context, *AddNodeReq) (
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("pnode_id"); len(forms) != 0 {
-				data.AppendString("\"pnode_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("node_name"); len(form) != 0 {
-				data.AppendString("\"node_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("node_data"); len(form) != 0 {
-				data.AppendString("\"node_data\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/add_node]", errstr)
@@ -829,56 +629,8 @@ func _Permission_UpdateNode_WebHandler(handler func(context.Context, *UpdateNode
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("node_id"); len(forms) != 0 {
-				data.AppendString("\"node_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("new_node_name"); len(form) != 0 {
-				data.AppendString("\"new_node_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("new_node_data"); len(form) != 0 {
-				data.AppendString("\"new_node_data\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/update_node]", errstr)
@@ -931,44 +683,8 @@ func _Permission_MoveNode_WebHandler(handler func(context.Context, *MoveNodeReq)
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("node_id"); len(forms) != 0 {
-				data.AppendString("\"node_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if forms := ctx.GetForms("pnode_id"); len(forms) != 0 {
-				data.AppendString("\"pnode_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/move_node]", errstr)
@@ -1021,34 +737,8 @@ func _Permission_DelNode_WebHandler(handler func(context.Context, *DelNodeReq) (
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("node_id"); len(forms) != 0 {
-				data.AppendString("\"node_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/del_node]", errstr)
@@ -1101,50 +791,8 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("user_id"); len(form) != 0 {
-				data.AppendString("\"user_id\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("need_user_role_node"); len(form) != 0 {
-				data.AppendString("\"need_user_role_node\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/list_user_node]", errstr)
@@ -1197,45 +845,8 @@ func _Permission_ListRoleNode_WebHandler(handler func(context.Context, *ListRole
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("role_name"); len(form) != 0 {
-				data.AppendString("\"role_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/list_role_node]", errstr)
@@ -1288,34 +899,8 @@ func _Permission_ListProjectNode_WebHandler(handler func(context.Context, *ListP
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.permission/list_project_node]", errstr)

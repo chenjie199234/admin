@@ -11,7 +11,6 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
-	pool "github.com/chenjie199234/Corelib/pool"
 	web "github.com/chenjie199234/Corelib/web"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
@@ -449,20 +448,8 @@ func _User_UserLogin_WebHandler(handler func(context.Context, *UserLoginReq) (*U
 				}
 			}
 		} else {
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		resp, e := handler(ctx, req)
 		ee := cerror.ConvertStdError(e)
@@ -510,45 +497,8 @@ func _User_InviteProject_WebHandler(handler func(context.Context, *InviteProject
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("user_id"); len(form) != 0 {
-				data.AppendString("\"user_id\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/invite_project]", errstr)
@@ -601,45 +551,8 @@ func _User_KickProject_WebHandler(handler func(context.Context, *KickProjectReq)
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("user_id"); len(form) != 0 {
-				data.AppendString("\"user_id\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/kick_project]", errstr)
@@ -692,55 +605,8 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("user_name"); len(form) != 0 {
-				data.AppendString("\"user_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("only_project"); len(form) != 0 {
-				data.AppendString("\"only_project\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("page"); len(form) != 0 {
-				data.AppendString("\"page\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/search_users]", errstr)
@@ -793,64 +659,8 @@ func _User_UpdateUser_WebHandler(handler func(context.Context, *UpdateUserReq) (
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("user_id"); len(form) != 0 {
-				data.AppendString("\"user_id\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("new_user_name"); len(form) != 0 {
-				data.AppendString("\"new_user_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if forms := ctx.GetForms("new_department"); len(forms) != 0 {
-				data.AppendString("\"new_department\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					if len(form) == 0 {
-						data.AppendString("\"\"")
-					} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-						data.AppendByte('"')
-						data.AppendString(form)
-						data.AppendByte('"')
-					} else {
-						data.AppendString(form)
-					}
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/update_user]", errstr)
@@ -903,56 +713,8 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("role_name"); len(form) != 0 {
-				data.AppendString("\"role_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("comment"); len(form) != 0 {
-				data.AppendString("\"comment\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/create_role]", errstr)
@@ -1005,50 +767,8 @@ func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq)
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("role_name"); len(form) != 0 {
-				data.AppendString("\"role_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("page"); len(form) != 0 {
-				data.AppendString("\"page\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/search_roles]", errstr)
@@ -1101,56 +821,8 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("role_name"); len(form) != 0 {
-				data.AppendString("\"role_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("new_comment"); len(form) != 0 {
-				data.AppendString("\"new_comment\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/update_role]", errstr)
@@ -1203,52 +875,8 @@ func _User_DelRoles_WebHandler(handler func(context.Context, *DelRolesReq) (*Del
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if forms := ctx.GetForms("role_names"); len(forms) != 0 {
-				data.AppendString("\"role_names\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					if len(form) == 0 {
-						data.AppendString("\"\"")
-					} else if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-						data.AppendByte('"')
-						data.AppendString(form)
-						data.AppendByte('"')
-					} else {
-						data.AppendString(form)
-					}
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/del_roles]", errstr)
@@ -1301,56 +929,8 @@ func _User_AddUserRole_WebHandler(handler func(context.Context, *AddUserRoleReq)
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("user_id"); len(form) != 0 {
-				data.AppendString("\"user_id\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("role_name"); len(form) != 0 {
-				data.AppendString("\"role_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/add_user_role]", errstr)
@@ -1403,56 +983,8 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("user_id"); len(form) != 0 {
-				data.AppendString("\"user_id\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("role_name"); len(form) != 0 {
-				data.AppendString("\"role_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.user/del_user_role]", errstr)

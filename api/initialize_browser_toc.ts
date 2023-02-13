@@ -21,13 +21,17 @@ function CreateProjectReqToJson(msg: CreateProjectReq): string{
 	if(msg.project_name==null||msg.project_name==undefined){
 		throw 'CreateProjectReq.project_name must be string'
 	}else{
-		s+='"project_name":"'+msg.project_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.project_name)
+		s+='"project_name":'+vv+','
 	}
 	//project_data
 	if(msg.project_data==null||msg.project_data==undefined){
 		throw 'CreateProjectReq.project_data must be string'
 	}else{
-		s+='"project_data":"'+msg.project_data+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.project_data)
+		s+='"project_data":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -110,7 +114,9 @@ function InitReqToJson(msg: InitReq): string{
 	if(msg.password==null||msg.password==undefined){
 		throw 'InitReq.password must be string'
 	}else{
-		s+='"password":"'+msg.password+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.password)
+		s+='"password":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -138,7 +144,7 @@ function InitStatusReqToJson(msg: InitStatusReq): string{
 	return s
 }
 export interface InitStatusResp{
-	status: boolean;
+	status: boolean;//true-already inited,false-not inited
 }
 function JsonToInitStatusResp(jsonobj: { [k:string]:any }): InitStatusResp{
 	let obj: InitStatusResp={
@@ -242,7 +248,9 @@ function RootLoginReqToJson(msg: RootLoginReq): string{
 	if(msg.password==null||msg.password==undefined){
 		throw 'RootLoginReq.password must be string'
 	}else{
-		s+='"password":"'+msg.password+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.password)
+		s+='"password":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -277,13 +285,17 @@ function RootPasswordReqToJson(msg: RootPasswordReq): string{
 	if(msg.old_password==null||msg.old_password==undefined){
 		throw 'RootPasswordReq.old_password must be string'
 	}else{
-		s+='"old_password":"'+msg.old_password+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.old_password)
+		s+='"old_password":'+vv+','
 	}
 	//new_password
 	if(msg.new_password==null||msg.new_password==undefined){
 		throw 'RootPasswordReq.new_password must be string'
 	}else{
-		s+='"new_password":"'+msg.new_password+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.new_password)
+		s+='"new_password":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -329,13 +341,17 @@ function UpdateProjectReqToJson(msg: UpdateProjectReq): string{
 	if(msg.new_project_name==null||msg.new_project_name==undefined){
 		throw 'UpdateProjectReq.new_project_name must be string'
 	}else{
-		s+='"new_project_name":"'+msg.new_project_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.new_project_name)
+		s+='"new_project_name":'+vv+','
 	}
 	//new_project_data
 	if(msg.new_project_data==null||msg.new_project_data==undefined){
 		throw 'UpdateProjectReq.new_project_data must be string'
 	}else{
-		s+='"new_project_data":"'+msg.new_project_data+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.new_project_data)
+		s+='"new_project_data":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"

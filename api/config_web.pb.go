@@ -11,7 +11,6 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
-	pool "github.com/chenjie199234/Corelib/pool"
 	web "github.com/chenjie199234/Corelib/web"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
@@ -31,6 +30,7 @@ var _WebPathConfigGetKeyConfig = "/admin.config/get_key_config"
 var _WebPathConfigSetKeyConfig = "/admin.config/set_key_config"
 var _WebPathConfigRollback = "/admin.config/rollback"
 var _WebPathConfigWatch = "/admin.config/watch"
+var _WebPathConfigProxy = "/admin.config/proxy"
 
 type ConfigWebClient interface {
 	// get all groups
@@ -55,6 +55,7 @@ type ConfigWebClient interface {
 	Rollback(context.Context, *RollbackReq, http.Header) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq, http.Header) (*WatchResp, error)
+	Proxy(context.Context, *ProxyReq, http.Header) (*ProxyResp, error)
 }
 
 type configWebClient struct {
@@ -417,6 +418,38 @@ func (c *configWebClient) Watch(ctx context.Context, req *WatchReq, header http.
 	}
 	return resp, nil
 }
+func (c *configWebClient) Proxy(ctx context.Context, req *ProxyReq, header http.Header) (*ProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathConfigProxy, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(ProxyResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 
 type ConfigWebServer interface {
 	// get all groups
@@ -441,6 +474,7 @@ type ConfigWebServer interface {
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
 func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*GroupsResp, error)) web.OutsideHandler {
@@ -471,45 +505,8 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("search_filter"); len(form) != 0 {
-				data.AppendString("\"search_filter\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/groups]", errstr)
@@ -562,56 +559,8 @@ func _Config_Apps_WebHandler(handler func(context.Context, *AppsReq) (*AppsResp,
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("search_filter"); len(form) != 0 {
-				data.AppendString("\"search_filter\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/apps]", errstr)
@@ -664,67 +613,8 @@ func _Config_CreateApp_WebHandler(handler func(context.Context, *CreateAppReq) (
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("appname"); len(form) != 0 {
-				data.AppendString("\"appname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("secret"); len(form) != 0 {
-				data.AppendString("\"secret\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/create_app]", errstr)
@@ -777,57 +667,8 @@ func _Config_DelApp_WebHandler(handler func(context.Context, *DelAppReq) (*DelAp
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("appname"); len(form) != 0 {
-				data.AppendString("\"appname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("secret"); len(form) != 0 {
-				data.AppendString("\"secret\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_app]", errstr)
@@ -880,68 +721,8 @@ func _Config_UpdateAppSecret_WebHandler(handler func(context.Context, *UpdateApp
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("appname"); len(form) != 0 {
-				data.AppendString("\"appname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("old_secret"); len(form) != 0 {
-				data.AppendString("\"old_secret\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("new_secret"); len(form) != 0 {
-				data.AppendString("\"new_secret\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/update_app_secret]", errstr)
@@ -994,57 +775,8 @@ func _Config_Keys_WebHandler(handler func(context.Context, *KeysReq) (*KeysResp,
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("appname"); len(form) != 0 {
-				data.AppendString("\"appname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("secret"); len(form) != 0 {
-				data.AppendString("\"secret\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/keys]", errstr)
@@ -1097,68 +829,8 @@ func _Config_DelKey_WebHandler(handler func(context.Context, *DelKeyReq) (*DelKe
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("appname"); len(form) != 0 {
-				data.AppendString("\"appname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("key"); len(form) != 0 {
-				data.AppendString("\"key\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("secret"); len(form) != 0 {
-				data.AppendString("\"secret\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/del_key]", errstr)
@@ -1211,73 +883,8 @@ func _Config_GetKeyConfig_WebHandler(handler func(context.Context, *GetKeyConfig
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("appname"); len(form) != 0 {
-				data.AppendString("\"appname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("key"); len(form) != 0 {
-				data.AppendString("\"key\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("index"); len(form) != 0 {
-				data.AppendString("\"index\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("secret"); len(form) != 0 {
-				data.AppendString("\"secret\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/get_key_config]", errstr)
@@ -1330,90 +937,8 @@ func _Config_SetKeyConfig_WebHandler(handler func(context.Context, *SetKeyConfig
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("appname"); len(form) != 0 {
-				data.AppendString("\"appname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("key"); len(form) != 0 {
-				data.AppendString("\"key\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("value"); len(form) != 0 {
-				data.AppendString("\"value\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("value_type"); len(form) != 0 {
-				data.AppendString("\"value_type\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("secret"); len(form) != 0 {
-				data.AppendString("\"secret\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/set_key_config]", errstr)
@@ -1466,73 +991,8 @@ func _Config_Rollback_WebHandler(handler func(context.Context, *RollbackReq) (*R
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("appname"); len(form) != 0 {
-				data.AppendString("\"appname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("key"); len(form) != 0 {
-				data.AppendString("\"key\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("secret"); len(form) != 0 {
-				data.AppendString("\"secret\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("index"); len(form) != 0 {
-				data.AppendString("\"index\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/rollback]", errstr)
@@ -1585,51 +1045,8 @@ func _Config_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchRe
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("groupname"); len(form) != 0 {
-				data.AppendString("\"groupname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("appname"); len(form) != 0 {
-				data.AppendString("\"appname\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("keys"); len(form) != 0 {
-				data.AppendString("\"keys\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.config/watch]", errstr)
@@ -1644,6 +1061,60 @@ func _Config_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchRe
 		}
 		if resp == nil {
 			resp = new(WatchResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
+func _Config_Proxy_WebHandler(handler func(context.Context, *ProxyReq) (*ProxyResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(ProxyReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(ProxyResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1788,4 +1259,17 @@ func RegisterConfigWebServer(engine *web.WebServer, svc ConfigWebServer, allmids
 		engine.Post(_WebPathConfigRollback, mids...)
 	}
 	engine.Post(_WebPathConfigWatch, _Config_Watch_WebHandler(svc.Watch))
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_Proxy_WebHandler(svc.Proxy))
+		engine.Post(_WebPathConfigProxy, mids...)
+	}
 }

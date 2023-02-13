@@ -42,13 +42,17 @@ function AddNodeReqToJson(msg: AddNodeReq): string{
 	if(msg.node_name==null||msg.node_name==undefined){
 		throw 'AddNodeReq.node_name must be string'
 	}else{
-		s+='"node_name":"'+msg.node_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.node_name)
+		s+='"node_name":'+vv+','
 	}
 	//node_data
 	if(msg.node_data==null||msg.node_data==undefined){
 		throw 'AddNodeReq.node_data must be string'
 	}else{
-		s+='"node_data":"'+msg.node_data+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.node_data)
+		s+='"node_data":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -115,7 +119,9 @@ function GetUserPermissionReqToJson(msg: GetUserPermissionReq): string{
 	if(msg.user_id==null||msg.user_id==undefined){
 		throw 'GetUserPermissionReq.user_id must be string'
 	}else{
-		s+='"user_id":"'+msg.user_id+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.user_id)
+		s+='"user_id":'+vv+','
 	}
 	//node_id
 	if(msg.node_id==null||msg.node_id==undefined){
@@ -263,7 +269,9 @@ function ListRoleNodeReqToJson(msg: ListRoleNodeReq): string{
 	if(msg.role_name==null||msg.role_name==undefined){
 		throw 'ListRoleNodeReq.role_name must be string'
 	}else{
-		s+='"role_name":"'+msg.role_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.role_name)
+		s+='"role_name":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -327,7 +335,9 @@ function ListUserNodeReqToJson(msg: ListUserNodeReq): string{
 	if(msg.user_id==null||msg.user_id==undefined){
 		throw 'ListUserNodeReq.user_id must be string'
 	}else{
-		s+='"user_id":"'+msg.user_id+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.user_id)
+		s+='"user_id":'+vv+','
 	}
 	//need_user_role_node
 	if(msg.need_user_role_node==null||msg.need_user_role_node==undefined){
@@ -546,13 +556,17 @@ function UpdateNodeReqToJson(msg: UpdateNodeReq): string{
 	if(msg.new_node_name==null||msg.new_node_name==undefined){
 		throw 'UpdateNodeReq.new_node_name must be string'
 	}else{
-		s+='"new_node_name":"'+msg.new_node_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.new_node_name)
+		s+='"new_node_name":'+vv+','
 	}
 	//new_node_data
 	if(msg.new_node_data==null||msg.new_node_data==undefined){
 		throw 'UpdateNodeReq.new_node_data must be string'
 	}else{
-		s+='"new_node_data":"'+msg.new_node_data+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.new_node_data)
+		s+='"new_node_data":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -608,7 +622,9 @@ function UpdateRolePermissionReqToJson(msg: UpdateRolePermissionReq): string{
 	if(msg.role_name==null||msg.role_name==undefined){
 		throw 'UpdateRolePermissionReq.role_name must be string'
 	}else{
-		s+='"role_name":"'+msg.role_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.role_name)
+		s+='"role_name":'+vv+','
 	}
 	//node_id
 	if(msg.node_id==null||msg.node_id==undefined){
@@ -679,7 +695,9 @@ function UpdateUserPermissionReqToJson(msg: UpdateUserPermissionReq): string{
 	if(msg.user_id==null||msg.user_id==undefined){
 		throw 'UpdateUserPermissionReq.user_id must be string'
 	}else{
-		s+='"user_id":"'+msg.user_id+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.user_id)
+		s+='"user_id":'+vv+','
 	}
 	//node_id
 	if(msg.node_id==null||msg.node_id==undefined){

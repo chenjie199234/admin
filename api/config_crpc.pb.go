@@ -27,6 +27,7 @@ var _CrpcPathConfigGetKeyConfig = "/admin.config/get_key_config"
 var _CrpcPathConfigSetKeyConfig = "/admin.config/set_key_config"
 var _CrpcPathConfigRollback = "/admin.config/rollback"
 var _CrpcPathConfigWatch = "/admin.config/watch"
+var _CrpcPathConfigProxy = "/admin.config/proxy"
 
 type ConfigCrpcClient interface {
 	// get all groups
@@ -51,6 +52,7 @@ type ConfigCrpcClient interface {
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
 type configCrpcClient struct {
@@ -303,6 +305,28 @@ func (c *configCrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp
 	}
 	return resp, nil
 }
+func (c *configCrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathConfigProxy, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(ProxyResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 
 type ConfigCrpcServer interface {
 	// get all groups
@@ -327,6 +351,7 @@ type ConfigCrpcServer interface {
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
 func _Config_Groups_CrpcHandler(handler func(context.Context, *GroupsReq) (*GroupsResp, error)) crpc.OutsideHandler {
@@ -857,6 +882,54 @@ func _Config_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchR
 		}
 	}
 }
+func _Config_Proxy_CrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(ProxyReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.config/proxy] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.config/proxy] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(ProxyResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
 func RegisterConfigCrpcServer(engine *crpc.CrpcServer, svc ConfigCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
@@ -871,4 +944,5 @@ func RegisterConfigCrpcServer(engine *crpc.CrpcServer, svc ConfigCrpcServer, all
 	engine.RegisterHandler(_CrpcPathConfigSetKeyConfig, _Config_SetKeyConfig_CrpcHandler(svc.SetKeyConfig))
 	engine.RegisterHandler(_CrpcPathConfigRollback, _Config_Rollback_CrpcHandler(svc.Rollback))
 	engine.RegisterHandler(_CrpcPathConfigWatch, _Config_Watch_CrpcHandler(svc.Watch))
+	engine.RegisterHandler(_CrpcPathConfigProxy, _Config_Proxy_CrpcHandler(svc.Proxy))
 }

@@ -42,13 +42,17 @@ function AddUserRoleReqToJson(msg: AddUserRoleReq): string{
 	if(msg.user_id==null||msg.user_id==undefined){
 		throw 'AddUserRoleReq.user_id must be string'
 	}else{
-		s+='"user_id":"'+msg.user_id+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.user_id)
+		s+='"user_id":'+vv+','
 	}
 	//role_name
 	if(msg.role_name==null||msg.role_name==undefined){
 		throw 'AddUserRoleReq.role_name must be string'
 	}else{
-		s+='"role_name":"'+msg.role_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.role_name)
+		s+='"role_name":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -95,13 +99,17 @@ function CreateRoleReqToJson(msg: CreateRoleReq): string{
 	if(msg.role_name==null||msg.role_name==undefined){
 		throw 'CreateRoleReq.role_name must be string'
 	}else{
-		s+='"role_name":"'+msg.role_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.role_name)
+		s+='"role_name":'+vv+','
 	}
 	//comment
 	if(msg.comment==null||msg.comment==undefined){
 		throw 'CreateRoleReq.comment must be string'
 	}else{
-		s+='"comment":"'+msg.comment+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.comment)
+		s+='"comment":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -154,7 +162,9 @@ function DelRolesReqToJson(msg: DelRolesReq): string{
 			if(element==null||element==undefined){
 				throw 'element in DelRolesReq.role_names must be string'
 			}
-			s+='"'+element+'",'
+			//transfer the json escape
+			let vv=JSON.stringify(element)
+			s+=vv+','
 		}
 		s=s.substr(0,s.length-1)+'],'
 	}
@@ -203,13 +213,17 @@ function DelUserRoleReqToJson(msg: DelUserRoleReq): string{
 	if(msg.user_id==null||msg.user_id==undefined){
 		throw 'DelUserRoleReq.user_id must be string'
 	}else{
-		s+='"user_id":"'+msg.user_id+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.user_id)
+		s+='"user_id":'+vv+','
 	}
 	//role_name
 	if(msg.role_name==null||msg.role_name==undefined){
 		throw 'DelUserRoleReq.role_name must be string'
 	}else{
-		s+='"role_name":"'+msg.role_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.role_name)
+		s+='"role_name":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -255,7 +269,9 @@ function InviteProjectReqToJson(msg: InviteProjectReq): string{
 	if(msg.user_id==null||msg.user_id==undefined){
 		throw 'InviteProjectReq.user_id must be string'
 	}else{
-		s+='"user_id":"'+msg.user_id+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.user_id)
+		s+='"user_id":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -301,7 +317,9 @@ function KickProjectReqToJson(msg: KickProjectReq): string{
 	if(msg.user_id==null||msg.user_id==undefined){
 		throw 'KickProjectReq.user_id must be string'
 	}else{
-		s+='"user_id":"'+msg.user_id+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.user_id)
+		s+='"user_id":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -406,7 +424,9 @@ function SearchRolesReqToJson(msg: SearchRolesReq): string{
 	if(msg.role_name==null||msg.role_name==undefined){
 		throw 'SearchRolesReq.role_name must be string'
 	}else{
-		s+='"role_name":"'+msg.role_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.role_name)
+		s+='"role_name":'+vv+','
 	}
 	//page
 	if(msg.page==null||msg.page==undefined||!Number.isInteger(msg.page)){
@@ -518,7 +538,9 @@ function SearchUsersReqToJson(msg: SearchUsersReq): string{
 	if(msg.user_name==null||msg.user_name==undefined){
 		throw 'SearchUsersReq.user_name must be string'
 	}else{
-		s+='"user_name":"'+msg.user_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.user_name)
+		s+='"user_name":'+vv+','
 	}
 	//only_project
 	if(msg.only_project==null||msg.only_project==undefined){
@@ -632,13 +654,17 @@ function UpdateRoleReqToJson(msg: UpdateRoleReq): string{
 	if(msg.role_name==null||msg.role_name==undefined){
 		throw 'UpdateRoleReq.role_name must be string'
 	}else{
-		s+='"role_name":"'+msg.role_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.role_name)
+		s+='"role_name":'+vv+','
 	}
 	//new_comment
 	if(msg.new_comment==null||msg.new_comment==undefined){
 		throw 'UpdateRoleReq.new_comment must be string'
 	}else{
-		s+='"new_comment":"'+msg.new_comment+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.new_comment)
+		s+='"new_comment":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -665,13 +691,17 @@ function UpdateUserReqToJson(msg: UpdateUserReq): string{
 	if(msg.user_id==null||msg.user_id==undefined){
 		throw 'UpdateUserReq.user_id must be string'
 	}else{
-		s+='"user_id":"'+msg.user_id+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.user_id)
+		s+='"user_id":'+vv+','
 	}
 	//new_user_name
 	if(msg.new_user_name==null||msg.new_user_name==undefined){
 		throw 'UpdateUserReq.new_user_name must be string'
 	}else{
-		s+='"new_user_name":"'+msg.new_user_name+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.new_user_name)
+		s+='"new_user_name":'+vv+','
 	}
 	//new_department
 	if(msg.new_department==null||msg.new_department==undefined){
@@ -684,7 +714,9 @@ function UpdateUserReqToJson(msg: UpdateUserReq): string{
 			if(element==null||element==undefined){
 				throw 'element in UpdateUserReq.new_department must be string'
 			}
-			s+='"'+element+'",'
+			//transfer the json escape
+			let vv=JSON.stringify(element)
+			s+=vv+','
 		}
 		s=s.substr(0,s.length-1)+'],'
 	}

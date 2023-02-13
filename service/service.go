@@ -5,7 +5,6 @@ import (
 	"github.com/chenjie199234/admin/service/config"
 	"github.com/chenjie199234/admin/service/initialize"
 	"github.com/chenjie199234/admin/service/permission"
-	"github.com/chenjie199234/admin/service/proxy"
 	"github.com/chenjie199234/admin/service/status"
 	"github.com/chenjie199234/admin/service/user"
 )
@@ -16,7 +15,6 @@ var SvcConfig *config.Service
 var SvcUser *user.Service
 var SvcPermission *permission.Service
 var SvcInitialize *initialize.Service
-var SvcProxy *proxy.Service
 
 // StartService start the whole service
 func StartService() error {
@@ -29,7 +27,6 @@ func StartService() error {
 	SvcUser = user.Start()
 	SvcPermission = permission.Start()
 	SvcInitialize = initialize.Start()
-	SvcProxy = proxy.Start()
 	return nil
 }
 
@@ -41,5 +38,4 @@ func StopService() {
 	SvcUser.Stop()
 	SvcPermission.Stop()
 	SvcInitialize.Stop()
-	SvcProxy.Stop()
 }

@@ -41,13 +41,17 @@ function AppsReqToJson(msg: AppsReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'AppsReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//search_filter
 	if(msg.search_filter==null||msg.search_filter==undefined){
 		throw 'AppsReq.search_filter must be string'
 	}else{
-		s+='"search_filter":"'+msg.search_filter+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.search_filter)
+		s+='"search_filter":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -111,19 +115,25 @@ function CreateAppReqToJson(msg: CreateAppReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'CreateAppReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//appname
 	if(msg.appname==null||msg.appname==undefined){
 		throw 'CreateAppReq.appname must be string'
 	}else{
-		s+='"appname":"'+msg.appname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){
 		throw 'CreateAppReq.secret must be string'
 	}else{
-		s+='"secret":"'+msg.secret+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -150,19 +160,25 @@ function DelAppReqToJson(msg: DelAppReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'DelAppReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//appname
 	if(msg.appname==null||msg.appname==undefined){
 		throw 'DelAppReq.appname must be string'
 	}else{
-		s+='"appname":"'+msg.appname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){
 		throw 'DelAppReq.secret must be string'
 	}else{
-		s+='"secret":"'+msg.secret+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -190,25 +206,33 @@ function DelKeyReqToJson(msg: DelKeyReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'DelKeyReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//appname
 	if(msg.appname==null||msg.appname==undefined){
 		throw 'DelKeyReq.appname must be string'
 	}else{
-		s+='"appname":"'+msg.appname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
 	}
 	//key
 	if(msg.key==null||msg.key==undefined){
 		throw 'DelKeyReq.key must be string'
 	}else{
-		s+='"key":"'+msg.key+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.key)
+		s+='"key":'+vv+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){
 		throw 'DelKeyReq.secret must be string'
 	}else{
-		s+='"secret":"'+msg.secret+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -238,19 +262,25 @@ function GetKeyConfigReqToJson(msg: GetKeyConfigReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'GetKeyConfigReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//appname
 	if(msg.appname==null||msg.appname==undefined){
 		throw 'GetKeyConfigReq.appname must be string'
 	}else{
-		s+='"appname":"'+msg.appname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
 	}
 	//key
 	if(msg.key==null||msg.key==undefined){
 		throw 'GetKeyConfigReq.key must be string'
 	}else{
-		s+='"key":"'+msg.key+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.key)
+		s+='"key":'+vv+','
 	}
 	//index
 	if(msg.index==null||msg.index==undefined||!Number.isInteger(msg.index)){
@@ -264,7 +294,9 @@ function GetKeyConfigReqToJson(msg: GetKeyConfigReq): string{
 	if(msg.secret==null||msg.secret==undefined){
 		throw 'GetKeyConfigReq.secret must be string'
 	}else{
-		s+='"secret":"'+msg.secret+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -375,7 +407,9 @@ function GroupsReqToJson(msg: GroupsReq): string{
 	if(msg.search_filter==null||msg.search_filter==undefined){
 		throw 'GroupsReq.search_filter must be string'
 	}else{
-		s+='"search_filter":"'+msg.search_filter+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.search_filter)
+		s+='"search_filter":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -419,19 +453,25 @@ function KeysReqToJson(msg: KeysReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'KeysReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//appname
 	if(msg.appname==null||msg.appname==undefined){
 		throw 'KeysReq.appname must be string'
 	}else{
-		s+='"appname":"'+msg.appname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){
 		throw 'KeysReq.secret must be string'
 	}else{
-		s+='"secret":"'+msg.secret+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -464,6 +504,89 @@ function JsonToKeysResp(jsonobj: { [k:string]:any }): KeysResp{
 	}
 	return obj
 }
+export interface ProxyReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
+	path: string;
+	appname: string;
+	groupname: string;
+	data: string;
+}
+function ProxyReqToJson(msg: ProxyReq): string{
+	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in ProxyReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in ProxyReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
+	//path
+	if(msg.path==null||msg.path==undefined){
+		throw 'ProxyReq.path must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.path)
+		s+='"path":'+vv+','
+	}
+	//appname
+	if(msg.appname==null||msg.appname==undefined){
+		throw 'ProxyReq.appname must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
+	}
+	//groupname
+	if(msg.groupname==null||msg.groupname==undefined){
+		throw 'ProxyReq.groupname must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
+	}
+	//data
+	if(msg.data==null||msg.data==undefined){
+		throw 'ProxyReq.data must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.data)
+		s+='"data":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface ProxyResp{
+	data: string;
+}
+function JsonToProxyResp(jsonobj: { [k:string]:any }): ProxyResp{
+	let obj: ProxyResp={
+		data:'',
+	}
+	//data
+	if(jsonobj['data']!=null&&jsonobj['data']!=undefined){
+		if(typeof jsonobj['data']!='string'){
+			throw 'ProxyResp.data must be string'
+		}
+		obj['data']=jsonobj['data']
+	}
+	return obj
+}
 export interface RollbackReq{
 	groupname: string;
 	appname: string;
@@ -478,25 +601,33 @@ function RollbackReqToJson(msg: RollbackReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'RollbackReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//appname
 	if(msg.appname==null||msg.appname==undefined){
 		throw 'RollbackReq.appname must be string'
 	}else{
-		s+='"appname":"'+msg.appname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
 	}
 	//key
 	if(msg.key==null||msg.key==undefined){
 		throw 'RollbackReq.key must be string'
 	}else{
-		s+='"key":"'+msg.key+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.key)
+		s+='"key":'+vv+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){
 		throw 'RollbackReq.secret must be string'
 	}else{
-		s+='"secret":"'+msg.secret+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	//index
 	if(msg.index==null||msg.index==undefined||!Number.isInteger(msg.index)){
@@ -534,37 +665,49 @@ function SetKeyConfigReqToJson(msg: SetKeyConfigReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'SetKeyConfigReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//appname
 	if(msg.appname==null||msg.appname==undefined){
 		throw 'SetKeyConfigReq.appname must be string'
 	}else{
-		s+='"appname":"'+msg.appname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
 	}
 	//key
 	if(msg.key==null||msg.key==undefined){
 		throw 'SetKeyConfigReq.key must be string'
 	}else{
-		s+='"key":"'+msg.key+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.key)
+		s+='"key":'+vv+','
 	}
 	//value
 	if(msg.value==null||msg.value==undefined){
 		throw 'SetKeyConfigReq.value must be string'
 	}else{
-		s+='"value":"'+msg.value+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.value)
+		s+='"value":'+vv+','
 	}
 	//value_type
 	if(msg.value_type==null||msg.value_type==undefined){
 		throw 'SetKeyConfigReq.value_type must be string'
 	}else{
-		s+='"value_type":"'+msg.value_type+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.value_type)
+		s+='"value_type":'+vv+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){
 		throw 'SetKeyConfigReq.secret must be string'
 	}else{
-		s+='"secret":"'+msg.secret+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -592,25 +735,33 @@ function UpdateAppSecretReqToJson(msg: UpdateAppSecretReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'UpdateAppSecretReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//appname
 	if(msg.appname==null||msg.appname==undefined){
 		throw 'UpdateAppSecretReq.appname must be string'
 	}else{
-		s+='"appname":"'+msg.appname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
 	}
 	//old_secret
 	if(msg.old_secret==null||msg.old_secret==undefined){
 		throw 'UpdateAppSecretReq.old_secret must be string'
 	}else{
-		s+='"old_secret":"'+msg.old_secret+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.old_secret)
+		s+='"old_secret":'+vv+','
 	}
 	//new_secret
 	if(msg.new_secret==null||msg.new_secret==undefined){
 		throw 'UpdateAppSecretReq.new_secret must be string'
 	}else{
-		s+='"new_secret":"'+msg.new_secret+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.new_secret)
+		s+='"new_secret":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -688,13 +839,17 @@ function WatchReqToJson(msg: WatchReq): string{
 	if(msg.groupname==null||msg.groupname==undefined){
 		throw 'WatchReq.groupname must be string'
 	}else{
-		s+='"groupname":"'+msg.groupname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
 	}
 	//appname
 	if(msg.appname==null||msg.appname==undefined){
 		throw 'WatchReq.appname must be string'
 	}else{
-		s+='"appname":"'+msg.appname+'",'
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
 	}
 	//keys
 	if(msg.keys==null||msg.keys==undefined){
@@ -707,7 +862,9 @@ function WatchReqToJson(msg: WatchReq): string{
 			if(kv[0]==null||kv[0]==undefined){
 				throw "map's key in WatchReq.keys must be string"
 			}
-			s+='"'+kv[0]+'":'
+			//transfer the json escape
+			let vv=JSON.stringify(kv[0])
+			s+=vv+':'
 			if(kv[1]==null||kv[1]==undefined||!Number.isInteger(kv[1])){
 				throw "map's value in WatchReq.keys must be integer"
 			}else if(kv[1]>4294967295||kv[1]<0){
@@ -766,6 +923,7 @@ const _WebPathConfigGetKeyConfig: string ="/admin.config/get_key_config";
 const _WebPathConfigSetKeyConfig: string ="/admin.config/set_key_config";
 const _WebPathConfigRollback: string ="/admin.config/rollback";
 const _WebPathConfigWatch: string ="/admin.config/watch";
+const _WebPathConfigProxy: string ="/admin.config/proxy";
 //ToC means this is used for users
 export class ConfigBrowserClientToC {
 	constructor(host: string){
@@ -1236,6 +1394,50 @@ export class ConfigBrowserClientToC {
 		.then(function(response){
 			try{
 				let obj:WatchResp=JsonToWatchResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	proxy(header: { [k: string]: string },req: ProxyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ProxyResp)=>void){
+		if(!Number.isInteger(timeout)){
+			throw 'timeout must be integer'
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let config={
+			url:_WebPathConfigProxy,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: ProxyReqToJson(req),
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:ProxyResp=JsonToProxyResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

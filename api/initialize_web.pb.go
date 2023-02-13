@@ -11,7 +11,6 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	log "github.com/chenjie199234/Corelib/log"
 	metadata "github.com/chenjie199234/Corelib/metadata"
-	pool "github.com/chenjie199234/Corelib/pool"
 	web "github.com/chenjie199234/Corelib/web"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
@@ -360,20 +359,8 @@ func _Initialize_InitStatus_WebHandler(handler func(context.Context, *InitStatus
 				}
 			}
 		} else {
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		resp, e := handler(ctx, req)
 		ee := cerror.ConvertStdError(e)
@@ -421,35 +408,8 @@ func _Initialize_Init_WebHandler(handler func(context.Context, *InitReq) (*InitR
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("password"); len(form) != 0 {
-				data.AppendString("\"password\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.initialize/init]", errstr)
@@ -502,35 +462,8 @@ func _Initialize_RootLogin_WebHandler(handler func(context.Context, *RootLoginRe
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("password"); len(form) != 0 {
-				data.AppendString("\"password\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.initialize/root_login]", errstr)
@@ -583,46 +516,8 @@ func _Initialize_RootPassword_WebHandler(handler func(context.Context, *RootPass
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("old_password"); len(form) != 0 {
-				data.AppendString("\"old_password\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("new_password"); len(form) != 0 {
-				data.AppendString("\"new_password\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.initialize/root_password]", errstr)
@@ -675,46 +570,8 @@ func _Initialize_CreateProject_WebHandler(handler func(context.Context, *CreateP
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("project_name"); len(form) != 0 {
-				data.AppendString("\"project_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("project_data"); len(form) != 0 {
-				data.AppendString("\"project_data\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.initialize/create_project]", errstr)
@@ -767,56 +624,8 @@ func _Initialize_UpdateProject_WebHandler(handler func(context.Context, *UpdateP
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("new_project_name"); len(form) != 0 {
-				data.AppendString("\"new_project_name\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if form := ctx.GetForm("new_project_data"); len(form) != 0 {
-				data.AppendString("\"new_project_data\":")
-				if len(form) < 2 || form[0] != '"' || form[len(form)-1] != '"' {
-					data.AppendByte('"')
-					data.AppendString(form)
-					data.AppendByte('"')
-				} else {
-					data.AppendString(form)
-				}
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.initialize/update_project]", errstr)
@@ -869,20 +678,8 @@ func _Initialize_ListProject_WebHandler(handler func(context.Context, *ListProje
 				}
 			}
 		} else {
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		resp, e := handler(ctx, req)
 		ee := cerror.ConvertStdError(e)
@@ -930,34 +727,8 @@ func _Initialize_DeleteProject_WebHandler(handler func(context.Context, *DeleteP
 				}
 			}
 		} else {
-			if e := ctx.ParseForm(); e != nil {
-				ctx.Abort(cerror.ErrReq)
-				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if forms := ctx.GetForms("project_id"); len(forms) != 0 {
-				data.AppendString("\"project_id\":")
-				data.AppendByte('[')
-				for _, form := range forms {
-					data.AppendString(form)
-					data.AppendByte(',')
-				}
-				data.Bytes()[data.Len()-1] = ']'
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		if errstr := req.Validate(); errstr != "" {
 			log.Error(ctx, "[/admin.initialize/delete_project]", errstr)

@@ -177,3 +177,23 @@ func (m *WatchReq) Validate() (errstr string) {
 	}
 	return ""
 }
+
+// return empty means pass
+func (m *ProxyReq) Validate() (errstr string) {
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: proxy_req check len eq failed"
+	}
+	if len(m.GetPath()) == 0 {
+		return "field: path in object: proxy_req check value str len not eq failed"
+	}
+	if len(m.GetAppname()) == 0 {
+		return "field: appname in object: proxy_req check value str len not eq failed"
+	}
+	if len(m.GetGroupname()) == 0 {
+		return "field: groupname in object: proxy_req check value str len not eq failed"
+	}
+	if len(m.GetData()) < 2 {
+		return "field: data in object: proxy_req check value str len gte failed"
+	}
+	return ""
+}

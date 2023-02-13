@@ -76,6 +76,10 @@ service config{
 	rpc watch(watch_req)returns(watch_resp){
 		option (pbex.method)="post";
 	}
+	rpc proxy(proxy_req)returns(proxy_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
 }
 
 //req can be set with pbex extentions
@@ -195,4 +199,14 @@ message watch_data{
 	string value=2;
 	string value_type=3;
 	uint32 version=4;
+}
+message proxy_req{
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string path=2[(pbex.string_bytes_len_not_eq)=0];
+	string appname=3[(pbex.string_bytes_len_not_eq)=0];
+	string groupname=4[(pbex.string_bytes_len_not_eq)=0];
+	string data=5[(pbex.string_bytes_len_gte)=2];
+}
+message proxy_resp{
+	string data=1;
 }

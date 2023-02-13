@@ -66,7 +66,7 @@ type InitStatusResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Status bool `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Status bool `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"` //true-already inited,false-not inited
 }
 
 func (x *InitStatusResp) Reset() {

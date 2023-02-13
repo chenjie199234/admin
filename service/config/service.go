@@ -4,22 +4,25 @@ import (
 	"context"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"
+	"github.com/chenjie199234/admin/dao"
 	configdao "github.com/chenjie199234/admin/dao/config"
 	permissiondao "github.com/chenjie199234/admin/dao/permission"
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
 
 	"github.com/chenjie199234/Corelib/cerror"
+	"github.com/chenjie199234/Corelib/crpc"
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	"github.com/chenjie199234/Corelib/pool"
+	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/graceful"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	//"github.com/chenjie199234/Corelib/cgrpc"
-	//"github.com/chenjie199234/Corelib/crpc"
 	//"github.com/chenjie199234/Corelib/web"
 )
 
@@ -31,8 +34,10 @@ type Service struct {
 	permissionDao *permissiondao.Dao
 
 	sync.Mutex
-	apps    map[string]*model.AppSummary            //key:appgroup.appname,value:appinfo
-	notices map[string]map[chan *struct{}]*struct{} //key:appgroup.appname,value:waiting chans
+	apps          map[string]*model.AppSummary            //key:appgroup.appname,value:appinfo
+	notices       map[string]map[chan *struct{}]*struct{} //key:appgroup.appname,value:waiting chans
+	clients       map[string]*crpc.CrpcClient             //key:appgroup.appname,value:client
+	clientsActive map[string]int64                        //key:appgroup.appname,value:last use timestamp(unixnano)
 }
 
 // Start -
@@ -43,16 +48,38 @@ func Start() *Service {
 		configDao:     configdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		permissionDao: permissiondao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 
-		apps:    make(map[string]*model.AppSummary),
-		notices: make(map[string]map[chan *struct{}]*struct{}),
+		apps:          make(map[string]*model.AppSummary),
+		notices:       make(map[string]map[chan *struct{}]*struct{}),
+		clients:       make(map[string]*crpc.CrpcClient),
+		clientsActive: make(map[string]int64),
 	}
 	if e := s.configDao.MongoWatchConfig(s.update, s.delapp, s.delconfig, s.apps); e != nil {
 		panic("[Config.Start] watch error: " + e.Error())
 	}
-
+	go s.job()
 	return s
 }
 
+func (s *Service) job() {
+	tker := time.NewTicker(time.Minute)
+	for {
+		now := <-tker.C
+		s.Lock()
+		for name, last := range s.clientsActive {
+			if now.UnixNano()-last < time.Minute.Nanoseconds() {
+				continue
+			}
+			delete(s.clientsActive, name)
+			client, ok := s.clients[name]
+			if !ok {
+				continue
+			}
+			go client.Close(false)
+			delete(s.clients, name)
+		}
+		s.Unlock()
+	}
+}
 func (s *Service) update(gname, aname string, cur *model.AppSummary) {
 	log.Debug(nil, "[update] group:", gname, "app:", aname, "keys:", cur.Keys)
 	s.Lock()
@@ -76,6 +103,11 @@ func (s *Service) delapp(gname, aname string) {
 		return
 	}
 	delete(s.apps, gname+"."+aname)
+	if client, ok := s.clients[gname+"."+aname]; ok {
+		delete(s.clients, gname+"."+aname)
+		delete(s.clientsActive, gname+"."+aname)
+		go client.Close(false)
+	}
 	for notice := range s.notices[gname+"."+aname] {
 		select {
 		case notice <- nil:
@@ -98,6 +130,11 @@ func (s *Service) delconfig(gname, aname, id string) {
 	//delete the summary,this is same as delete the app
 	log.Debug(nil, "[delconfig] group:", gname, "app:", aname, "summary")
 	delete(s.apps, gname+"."+aname)
+	if client, ok := s.clients[gname+"."+aname]; ok {
+		delete(s.clients, gname+"."+aname)
+		delete(s.clientsActive, gname+"."+aname)
+		go client.Close(false)
+	}
 	for notice := range s.notices[gname+"."+aname] {
 		select {
 		case notice <- nil:
@@ -614,6 +651,36 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 			return resp, nil
 		}
 	}
+}
+
+func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp, error) {
+	s.Lock()
+	if _, ok := s.apps[req.Groupname+"."+req.Appname]; !ok {
+		s.Unlock()
+		return nil, ecode.ErrAppNotExist
+	}
+	now := time.Now()
+	client, ok := s.clients[req.Groupname+"."+req.Appname]
+	if !ok {
+		var e error
+		client, e = crpc.NewCrpcClient(dao.GetCrpcClientConfig(), model.Group, model.Name, req.Groupname, req.Appname)
+		if e != nil {
+			log.Error(ctx, "[Proxy] new crpc client to group:", req.Groupname, "app:", req.Appname, e)
+			s.Unlock()
+			return nil, ecode.ErrSystem
+		}
+		s.clients[req.Groupname+"."+req.Appname] = client
+	}
+	s.clientsActive[req.Groupname+"."+req.Appname] = now.UnixNano()
+	s.Unlock()
+	md := metadata.GetMetadata(ctx)
+	out, e := client.Call(ctx, req.Path, common.Str2byte(req.Data), metadata.GetMetadata(ctx))
+	if e != nil {
+		log.Error(ctx, "[Proxy] operator:", md["Token-Data"], "call group:", req.Groupname, "app:", req.Appname, "path:", req.Path, "reqdata:", req.Data, e)
+		return nil, e
+	}
+	log.Info(ctx, "[Proxy] operator:", md["Token-Data"], "call group:", req.Groupname, "app:", req.Appname, "path:", req.Path, "reqdata:", req.Data, "respdata:", out)
+	return &api.ProxyResp{Data: common.Byte2str(out)}, nil
 }
 
 // Stop -

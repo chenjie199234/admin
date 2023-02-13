@@ -92,13 +92,6 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		NodeData:     "",
 		CurNodeIndex: 1,
 	})
-	//project admin's proxy node
-	docs = append(docs, &model.Node{
-		NodeId:       model.AdminProjectID + model.Proxy,
-		NodeName:     "Proxy",
-		NodeData:     "",
-		CurNodeIndex: 0,
-	})
 	selfConfigNodeID := model.AdminProjectID + model.ConfigControl + ",1"
 	docs = append(docs, &model.Node{
 		NodeId:       selfConfigNodeID,

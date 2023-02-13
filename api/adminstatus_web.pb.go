@@ -85,53 +85,23 @@ type StatusWebServer interface {
 func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
 		req := new(Pingreq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			if e := ctx.ParseForm(); e != nil {
+		if e := ctx.ParseForm(); e != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		data := pool.GetBuffer()
+		defer pool.PutBuffer(data)
+		data.AppendByte('{')
+		if form := ctx.GetForm("timestamp"); len(form) != 0 {
+			data.AppendString("\"timestamp\":")
+			data.AppendString(form)
+			data.AppendByte(',')
+		}
+		if data.Len() > 1 {
+			data.Bytes()[data.Len()-1] = '}'
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
 				ctx.Abort(cerror.ErrReq)
 				return
-			}
-			data := pool.GetBuffer()
-			defer pool.PutBuffer(data)
-			data.AppendByte('{')
-			if form := ctx.GetForm("timestamp"); len(form) != 0 {
-				data.AppendString("\"timestamp\":")
-				data.AppendString(form)
-				data.AppendByte(',')
-			}
-			if data.Len() == 1 {
-				data.AppendByte('}')
-			} else {
-				data.Bytes()[data.Len()-1] = '}'
-			}
-			if data.Len() > 2 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {

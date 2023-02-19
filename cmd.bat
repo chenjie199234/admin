@@ -75,23 +75,23 @@ if %1 == "kube" (
 if "%1" ==  "kube" (
 	goto :kube
 )
-if %1 == "new" (
+if %1 == "sub" (
 	if "%2" == "" (
 		goto :help
 	)
 	if %2 == "" (
 		goto :help
 	)
-	goto :new
+	goto :sub
 )
-if "%1" == "new" (
+if "%1" == "sub" (
 	if "%2" == "" (
 		goto :help
 	)
 	if %2 == "" (
 		goto :help
 	)
-	goto :new
+	goto :sub
 )
 
 :pb
@@ -115,17 +115,21 @@ if "%1" == "new" (
 goto :end
 
 :kube
-	codegen -n admin -p github.com/chenjie199234/admin -k
+	codegen -n admin -p github.com/chenjie199234/admin -kube
 goto :end
 
-:new
-	codegen -n admin -p github.com/chenjie199234/admin -s %2
+:html
+	codegen -n admin -p github.com/chenjie199234/admin -html
+goto :end
+
+:sub
+	codegen -n admin -p github.com/chenjie199234/admin -sub %2
 goto :end
 
 :help
 	echo cmd.bat — every thing you need
 	echo           please install git
-	echo           please install golang
+	echo           please install golang(1.18+)
 	echo           please install protoc           (github.com/protocolbuffers/protobuf)
 	echo           please install protoc-gen-go    (github.com/protocolbuffers/protobuf-go)
 	echo           please install codegen          (github.com/chenjie199234/Corelib)
@@ -135,8 +139,9 @@ goto :end
 	echo
 	echo Options:
 	echo    pb                        Generate the proto in this program.
-	echo    new <sub service name^>    Create a new sub service.
-	echo    kube                      Update or add kubernetes config.
+	echo    sub <sub service name^>    Create a new sub service.
+	echo    kube                      Update kubernetes config.
+	echo    html                      Create html template.
 	echo    h/-h/help/-help/--help    Show this message.
 
 :end

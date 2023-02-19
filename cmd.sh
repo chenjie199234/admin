@@ -6,7 +6,7 @@ cd $(dirname $0)
 help() {
 	echo "cmd.sh — every thing you need"
 	echo "         please install git"
-	echo "         please install golang"
+	echo "         please install golang(1.18+)"
 	echo "         please install protoc           (github.com/protocolbuffers/protobuf)"
 	echo "         please install protoc-gen-go    (github.com/protocolbuffers/protobuf-go)"
 	echo "         please install codegen          (github.com/chenjie199234/Corelib)"
@@ -15,10 +15,11 @@ help() {
 	echo "   ./cmd.sh <option>"
 	echo ""
 	echo "Options:"
-	echo "   pb                        Generate the proto in this program"
-	echo "   new <sub service name>    Create a new sub service"
-	echo "   kube                      Update or add kubernetes config"
-	echo "   h/-h/help/-help/--help    Show this message"
+	echo "   pb                        Generate the proto in this program."
+	echo "   sub <sub service name>    Create a new sub service."
+	echo "   kube                      Update kubernetes config."
+	echo "   html                      Create html template."
+	echo "   h/-h/help/-help/--help    Show this message."
 }
 
 pb() {
@@ -41,12 +42,16 @@ pb() {
 	go mod tidy
 }
 
-new() {
-	codegen -n admin -p github.com/chenjie199234/admin -s $1
+sub() {
+	codegen -n admin -p github.com/chenjie199234/admin -sub $1
 }
 
 kube() {
-	codegen -n admin -p github.com/chenjie199234/admin -k
+	codegen -n admin -p github.com/chenjie199234/admin -kube
+}
+
+html() {
+	codegen -n admin -p github.com/chenjie199234/admin -html
 }
 
 if !(type git >/dev/null 2>&1);then
@@ -89,8 +94,13 @@ if [[ "$1" == "kube" ]];then
 	exit 0
 fi
 
-if [[ $# == 2 ]] && [[ "$1" == "new" ]];then
-	new $2
+if [[ "$1" == "html" ]];then
+	html
+	exit 0
+fi
+
+if [[ $# == 2 ]] && [[ "$1" == "sub" ]];then
+	sub $2
 	exit 0
 fi
 

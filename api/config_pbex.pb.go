@@ -179,6 +179,45 @@ func (m *WatchReq) Validate() (errstr string) {
 }
 
 // return empty means pass
+func (m *ListProxyReq) Validate() (errstr string) {
+	if len(m.GetGroupname()) == 0 {
+		return "field: groupname in object: list_proxy_req check value str len not eq failed"
+	}
+	if len(m.GetAppname()) == 0 {
+		return "field: appname in object: list_proxy_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *SetProxyReq) Validate() (errstr string) {
+	if len(m.GetGroupname()) == 0 {
+		return "field: groupname in object: set_proxy_req check value str len not eq failed"
+	}
+	if len(m.GetAppname()) == 0 {
+		return "field: appname in object: set_proxy_req check value str len not eq failed"
+	}
+	if len(m.GetPath()) == 0 {
+		return "field: path in object: set_proxy_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *DelProxyReq) Validate() (errstr string) {
+	if len(m.GetGroupname()) == 0 {
+		return "field: groupname in object: del_proxy_req check value str len not eq failed"
+	}
+	if len(m.GetAppname()) == 0 {
+		return "field: appname in object: del_proxy_req check value str len not eq failed"
+	}
+	if len(m.GetPath()) == 0 {
+		return "field: path in object: del_proxy_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
 func (m *ProxyReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
 		return "field: project_id in object: proxy_req check len eq failed"

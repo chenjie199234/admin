@@ -30,6 +30,9 @@ var _WebPathConfigGetKeyConfig = "/admin.config/get_key_config"
 var _WebPathConfigSetKeyConfig = "/admin.config/set_key_config"
 var _WebPathConfigRollback = "/admin.config/rollback"
 var _WebPathConfigWatch = "/admin.config/watch"
+var _WebPathConfigListProxy = "/admin.config/list_proxy"
+var _WebPathConfigSetProxy = "/admin.config/set_proxy"
+var _WebPathConfigDelProxy = "/admin.config/del_proxy"
 var _WebPathConfigProxy = "/admin.config/proxy"
 
 type ConfigWebClient interface {
@@ -55,6 +58,9 @@ type ConfigWebClient interface {
 	Rollback(context.Context, *RollbackReq, http.Header) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq, http.Header) (*WatchResp, error)
+	ListProxy(context.Context, *ListProxyReq, http.Header) (*ListProxyResp, error)
+	SetProxy(context.Context, *SetProxyReq, http.Header) (*SetProxyResp, error)
+	DelProxy(context.Context, *DelProxyReq, http.Header) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq, http.Header) (*ProxyResp, error)
 }
 
@@ -418,6 +424,102 @@ func (c *configWebClient) Watch(ctx context.Context, req *WatchReq, header http.
 	}
 	return resp, nil
 }
+func (c *configWebClient) ListProxy(ctx context.Context, req *ListProxyReq, header http.Header) (*ListProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathConfigListProxy, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(ListProxyResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *configWebClient) SetProxy(ctx context.Context, req *SetProxyReq, header http.Header) (*SetProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathConfigSetProxy, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(SetProxyResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *configWebClient) DelProxy(ctx context.Context, req *DelProxyReq, header http.Header) (*DelProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathConfigDelProxy, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(DelProxyResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 func (c *configWebClient) Proxy(ctx context.Context, req *ProxyReq, header http.Header) (*ProxyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -474,6 +576,9 @@ type ConfigWebServer interface {
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
+	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
+	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
@@ -1071,6 +1176,168 @@ func _Config_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchRe
 		}
 	}
 }
+func _Config_ListProxy_WebHandler(handler func(context.Context, *ListProxyReq) (*ListProxyResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(ListProxyReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/list_proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(ListProxyResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
+func _Config_SetProxy_WebHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(SetProxyReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/set_proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(SetProxyResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
+func _Config_DelProxy_WebHandler(handler func(context.Context, *DelProxyReq) (*DelProxyResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(DelProxyReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/del_proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(DelProxyResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
 func _Config_Proxy_WebHandler(handler func(context.Context, *ProxyReq) (*ProxyResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
 		req := new(ProxyReq)
@@ -1259,6 +1526,45 @@ func RegisterConfigWebServer(engine *web.WebServer, svc ConfigWebServer, allmids
 		engine.Post(_WebPathConfigRollback, mids...)
 	}
 	engine.Post(_WebPathConfigWatch, _Config_Watch_WebHandler(svc.Watch))
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_ListProxy_WebHandler(svc.ListProxy))
+		engine.Post(_WebPathConfigListProxy, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_SetProxy_WebHandler(svc.SetProxy))
+		engine.Post(_WebPathConfigSetProxy, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Config_DelProxy_WebHandler(svc.DelProxy))
+		engine.Post(_WebPathConfigDelProxy, mids...)
+	}
 	{
 		requiredMids := []string{"token"}
 		mids := make([]web.OutsideHandler, 0, 2)

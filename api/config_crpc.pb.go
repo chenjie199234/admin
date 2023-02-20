@@ -27,6 +27,9 @@ var _CrpcPathConfigGetKeyConfig = "/admin.config/get_key_config"
 var _CrpcPathConfigSetKeyConfig = "/admin.config/set_key_config"
 var _CrpcPathConfigRollback = "/admin.config/rollback"
 var _CrpcPathConfigWatch = "/admin.config/watch"
+var _CrpcPathConfigListProxy = "/admin.config/list_proxy"
+var _CrpcPathConfigSetProxy = "/admin.config/set_proxy"
+var _CrpcPathConfigDelProxy = "/admin.config/del_proxy"
 var _CrpcPathConfigProxy = "/admin.config/proxy"
 
 type ConfigCrpcClient interface {
@@ -52,6 +55,9 @@ type ConfigCrpcClient interface {
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
+	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
+	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
@@ -305,6 +311,72 @@ func (c *configCrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp
 	}
 	return resp, nil
 }
+func (c *configCrpcClient) ListProxy(ctx context.Context, req *ListProxyReq) (*ListProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathConfigListProxy, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(ListProxyResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *configCrpcClient) SetProxy(ctx context.Context, req *SetProxyReq) (*SetProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathConfigSetProxy, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(SetProxyResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *configCrpcClient) DelProxy(ctx context.Context, req *DelProxyReq) (*DelProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathConfigDelProxy, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(DelProxyResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 func (c *configCrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -351,6 +423,9 @@ type ConfigCrpcServer interface {
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
+	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
+	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
@@ -882,6 +957,150 @@ func _Config_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchR
 		}
 	}
 }
+func _Config_ListProxy_CrpcHandler(handler func(context.Context, *ListProxyReq) (*ListProxyResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(ListProxyReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.config/list_proxy] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.config/list_proxy] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/list_proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(ListProxyResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
+func _Config_SetProxy_CrpcHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(SetProxyReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.config/set_proxy] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.config/set_proxy] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/set_proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(SetProxyResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
+func _Config_DelProxy_CrpcHandler(handler func(context.Context, *DelProxyReq) (*DelProxyResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(DelProxyReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.config/del_proxy] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.config/del_proxy] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/del_proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(DelProxyResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
 func _Config_Proxy_CrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
@@ -944,5 +1163,8 @@ func RegisterConfigCrpcServer(engine *crpc.CrpcServer, svc ConfigCrpcServer, all
 	engine.RegisterHandler(_CrpcPathConfigSetKeyConfig, _Config_SetKeyConfig_CrpcHandler(svc.SetKeyConfig))
 	engine.RegisterHandler(_CrpcPathConfigRollback, _Config_Rollback_CrpcHandler(svc.Rollback))
 	engine.RegisterHandler(_CrpcPathConfigWatch, _Config_Watch_CrpcHandler(svc.Watch))
+	engine.RegisterHandler(_CrpcPathConfigListProxy, _Config_ListProxy_CrpcHandler(svc.ListProxy))
+	engine.RegisterHandler(_CrpcPathConfigSetProxy, _Config_SetProxy_CrpcHandler(svc.SetProxy))
+	engine.RegisterHandler(_CrpcPathConfigDelProxy, _Config_DelProxy_CrpcHandler(svc.DelProxy))
 	engine.RegisterHandler(_CrpcPathConfigProxy, _Config_Proxy_CrpcHandler(svc.Proxy))
 }

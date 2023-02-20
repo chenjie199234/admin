@@ -76,6 +76,21 @@ service config{
 	rpc watch(watch_req)returns(watch_resp){
 		option (pbex.method)="post";
 	}
+
+	//proxy
+
+	rpc list_proxy(list_proxy_req)returns(list_proxy_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	rpc set_proxy(set_proxy_req)returns(set_proxy_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	rpc del_proxy(del_proxy_req)returns(del_proxy_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
 	rpc proxy(proxy_req)returns(proxy_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
@@ -199,6 +214,35 @@ message watch_data{
 	string value=2;
 	string value_type=3;
 	uint32 version=4;
+}
+
+message proxy_path_info{
+	repeated uint32 node_id=1;
+	bool read=2;//need read permission on this node
+	bool write=3;//need write permission on this node
+}
+message list_proxy_req{
+	string groupname=1[(pbex.string_bytes_len_not_eq)=0];
+	string appname=2[(pbex.string_bytes_len_not_eq)=0];
+}
+message list_proxy_resp{
+	map<string,proxy_path_info> paths=1;
+}
+message set_proxy_req{
+	string groupname=1[(pbex.string_bytes_len_not_eq)=0];
+	string appname=2[(pbex.string_bytes_len_not_eq)=0];
+	string path=3[(pbex.string_bytes_len_not_eq)=0];
+	bool read=4;//need read permission on this node
+	bool write=5;//need write permission on this node
+}
+message set_proxy_resp{
+}
+message del_proxy_req{
+	string groupname=1[(pbex.string_bytes_len_not_eq)=0];
+	string appname=2[(pbex.string_bytes_len_not_eq)=0];
+	string path=3[(pbex.string_bytes_len_not_eq)=0];
+}
+message del_proxy_resp{
 }
 message proxy_req{
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];

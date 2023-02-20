@@ -25,6 +25,9 @@ var _CGrpcPathConfigGetKeyConfig = "/admin.config/get_key_config"
 var _CGrpcPathConfigSetKeyConfig = "/admin.config/set_key_config"
 var _CGrpcPathConfigRollback = "/admin.config/rollback"
 var _CGrpcPathConfigWatch = "/admin.config/watch"
+var _CGrpcPathConfigListProxy = "/admin.config/list_proxy"
+var _CGrpcPathConfigSetProxy = "/admin.config/set_proxy"
+var _CGrpcPathConfigDelProxy = "/admin.config/del_proxy"
 var _CGrpcPathConfigProxy = "/admin.config/proxy"
 
 type ConfigCGrpcClient interface {
@@ -50,6 +53,9 @@ type ConfigCGrpcClient interface {
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
+	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
+	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
@@ -171,6 +177,36 @@ func (c *configCGrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchRes
 	}
 	return resp, nil
 }
+func (c *configCGrpcClient) ListProxy(ctx context.Context, req *ListProxyReq) (*ListProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(ListProxyResp)
+	if e := c.cc.Call(ctx, _CGrpcPathConfigListProxy, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *configCGrpcClient) SetProxy(ctx context.Context, req *SetProxyReq) (*SetProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(SetProxyResp)
+	if e := c.cc.Call(ctx, _CGrpcPathConfigSetProxy, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *configCGrpcClient) DelProxy(ctx context.Context, req *DelProxyReq) (*DelProxyResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(DelProxyResp)
+	if e := c.cc.Call(ctx, _CGrpcPathConfigDelProxy, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
 func (c *configCGrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -205,6 +241,9 @@ type ConfigCGrpcServer interface {
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
+	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
+	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
@@ -461,6 +500,75 @@ func _Config_Watch_CGrpcHandler(handler func(context.Context, *WatchReq) (*Watch
 		ctx.Write(resp)
 	}
 }
+func _Config_ListProxy_CGrpcHandler(handler func(context.Context, *ListProxyReq) (*ListProxyResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(ListProxyReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/list_proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(ListProxyResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _Config_SetProxy_CGrpcHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(SetProxyReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/set_proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(SetProxyResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _Config_DelProxy_CGrpcHandler(handler func(context.Context, *DelProxyReq) (*DelProxyResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(DelProxyReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.config/del_proxy]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(DelProxyResp)
+		}
+		ctx.Write(resp)
+	}
+}
 func _Config_Proxy_CGrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(ProxyReq)
@@ -498,5 +606,8 @@ func RegisterConfigCGrpcServer(engine *cgrpc.CGrpcServer, svc ConfigCGrpcServer,
 	engine.RegisterHandler("admin.config", "set_key_config", _Config_SetKeyConfig_CGrpcHandler(svc.SetKeyConfig))
 	engine.RegisterHandler("admin.config", "rollback", _Config_Rollback_CGrpcHandler(svc.Rollback))
 	engine.RegisterHandler("admin.config", "watch", _Config_Watch_CGrpcHandler(svc.Watch))
+	engine.RegisterHandler("admin.config", "list_proxy", _Config_ListProxy_CGrpcHandler(svc.ListProxy))
+	engine.RegisterHandler("admin.config", "set_proxy", _Config_SetProxy_CGrpcHandler(svc.SetProxy))
+	engine.RegisterHandler("admin.config", "del_proxy", _Config_DelProxy_CGrpcHandler(svc.DelProxy))
 	engine.RegisterHandler("admin.config", "proxy", _Config_Proxy_CGrpcHandler(svc.Proxy))
 }

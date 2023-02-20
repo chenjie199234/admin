@@ -248,6 +248,51 @@ function JsonToDelKeyResp(jsonobj: { [k:string]:any }): DelKeyResp{
 	}
 	return obj
 }
+export interface DelProxyReq{
+	groupname: string;
+	appname: string;
+	path: string;
+}
+function DelProxyReqToJson(msg: DelProxyReq): string{
+	let s: string="{"
+	//groupname
+	if(msg.groupname==null||msg.groupname==undefined){
+		throw 'DelProxyReq.groupname must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
+	}
+	//appname
+	if(msg.appname==null||msg.appname==undefined){
+		throw 'DelProxyReq.appname must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
+	}
+	//path
+	if(msg.path==null||msg.path==undefined){
+		throw 'DelProxyReq.path must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.path)
+		s+='"path":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface DelProxyResp{
+}
+function JsonToDelProxyResp(jsonobj: { [k:string]:any }): DelProxyResp{
+	let obj: DelProxyResp={
+	}
+	return obj
+}
 export interface GetKeyConfigReq{
 	groupname: string;
 	appname: string;
@@ -504,6 +549,111 @@ function JsonToKeysResp(jsonobj: { [k:string]:any }): KeysResp{
 	}
 	return obj
 }
+export interface ListProxyReq{
+	groupname: string;
+	appname: string;
+}
+function ListProxyReqToJson(msg: ListProxyReq): string{
+	let s: string="{"
+	//groupname
+	if(msg.groupname==null||msg.groupname==undefined){
+		throw 'ListProxyReq.groupname must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
+	}
+	//appname
+	if(msg.appname==null||msg.appname==undefined){
+		throw 'ListProxyReq.appname must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface ListProxyResp{
+	paths: Map<string,ProxyPathInfo|null|undefined>|null|undefined;
+}
+function JsonToListProxyResp(jsonobj: { [k:string]:any }): ListProxyResp{
+	let obj: ListProxyResp={
+		paths:null,
+	}
+	//paths
+	if(jsonobj['paths']!=null&&jsonobj['paths']!=undefined){
+		if(typeof jsonobj['paths']!='object'){
+			throw 'ListProxyResp.paths must be Map<string,ProxyPathInfo|null|undefined>|null|undefined'
+		}
+		for(let key of Object.keys(jsonobj['paths'])){
+			let value=jsonobj['paths'][key]
+			let k: string=key
+			let v: ProxyPathInfo|null|undefined=null
+			if(typeof value==null||typeof value==undefined){
+				v=null
+			}else if(typeof value!='object'){
+				throw 'value in ListProxyResp.paths must be ProxyPathInfo|null|undefined'
+			}else{
+				v=JsonToProxyPathInfo(value)
+			}
+			if(obj['paths']==undefined){
+				obj['paths']=new Map<string,ProxyPathInfo|null|undefined>
+			}
+			obj['paths'].set(k,v)
+		}
+	}
+	return obj
+}
+export interface ProxyPathInfo{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	node_id: Array<number>|null|undefined;
+	read: boolean;//need read permission on this node
+	write: boolean;//need write permission on this node
+}
+function JsonToProxyPathInfo(jsonobj: { [k:string]:any }): ProxyPathInfo{
+	let obj: ProxyPathInfo={
+		node_id:null,
+		read:false,
+		write:false,
+	}
+	//node_id
+	if(jsonobj['node_id']!=null&&jsonobj['node_id']!=undefined){
+		if(!(jsonobj['node_id'] instanceof Array)){
+			throw 'ProxyPathInfo.node_id must be Array<number>|null|undefined'
+		}
+		for(let element of jsonobj['node_id']){
+			if(typeof element!='number'||!Number.isInteger(element)){
+				throw 'element in ProxyPathInfo.node_id must be integer'
+			}else if(element>4294967295||element<0){
+				throw 'element in ProxyPathInfo.node_id overflow'
+			}
+			if(obj['node_id']==undefined){
+				obj['node_id']=new Array<number>
+			}
+			obj['node_id'].push(element)
+		}
+	}
+	//read
+	if(jsonobj['read']!=null&&jsonobj['read']!=undefined){
+		if(typeof jsonobj['read']!='boolean'){
+			throw 'ProxyPathInfo.read must be boolean'
+		}
+		obj['read']=jsonobj['read']
+	}
+	//write
+	if(jsonobj['write']!=null&&jsonobj['write']!=undefined){
+		if(typeof jsonobj['write']!='boolean'){
+			throw 'ProxyPathInfo.write must be boolean'
+		}
+		obj['write']=jsonobj['write']
+	}
+	return obj
+}
 export interface ProxyReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
@@ -723,6 +873,65 @@ function JsonToSetKeyConfigResp(jsonobj: { [k:string]:any }): SetKeyConfigResp{
 	}
 	return obj
 }
+export interface SetProxyReq{
+	groupname: string;
+	appname: string;
+	path: string;
+	read: boolean;//need read permission on this node
+	write: boolean;//need write permission on this node
+}
+function SetProxyReqToJson(msg: SetProxyReq): string{
+	let s: string="{"
+	//groupname
+	if(msg.groupname==null||msg.groupname==undefined){
+		throw 'SetProxyReq.groupname must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.groupname)
+		s+='"groupname":'+vv+','
+	}
+	//appname
+	if(msg.appname==null||msg.appname==undefined){
+		throw 'SetProxyReq.appname must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.appname)
+		s+='"appname":'+vv+','
+	}
+	//path
+	if(msg.path==null||msg.path==undefined){
+		throw 'SetProxyReq.path must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.path)
+		s+='"path":'+vv+','
+	}
+	//read
+	if(msg.read==null||msg.read==undefined){
+		throw 'SetProxyReq.read must be boolean'
+	}else{
+		s+='"read":'+msg.read+','
+	}
+	//write
+	if(msg.write==null||msg.write==undefined){
+		throw 'SetProxyReq.write must be boolean'
+	}else{
+		s+='"write":'+msg.write+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface SetProxyResp{
+}
+function JsonToSetProxyResp(jsonobj: { [k:string]:any }): SetProxyResp{
+	let obj: SetProxyResp={
+	}
+	return obj
+}
 export interface UpdateAppSecretReq{
 	groupname: string;
 	appname: string;
@@ -923,6 +1132,9 @@ const _WebPathConfigGetKeyConfig: string ="/admin.config/get_key_config";
 const _WebPathConfigSetKeyConfig: string ="/admin.config/set_key_config";
 const _WebPathConfigRollback: string ="/admin.config/rollback";
 const _WebPathConfigWatch: string ="/admin.config/watch";
+const _WebPathConfigListProxy: string ="/admin.config/list_proxy";
+const _WebPathConfigSetProxy: string ="/admin.config/set_proxy";
+const _WebPathConfigDelProxy: string ="/admin.config/del_proxy";
 const _WebPathConfigProxy: string ="/admin.config/proxy";
 //ToC means this is used for users
 export class ConfigBrowserClientToC {
@@ -1394,6 +1606,138 @@ export class ConfigBrowserClientToC {
 		.then(function(response){
 			try{
 				let obj:WatchResp=JsonToWatchResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	list_proxy(header: { [k: string]: string },req: ListProxyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListProxyResp)=>void){
+		if(!Number.isInteger(timeout)){
+			throw 'timeout must be integer'
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let config={
+			url:_WebPathConfigListProxy,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: ListProxyReqToJson(req),
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:ListProxyResp=JsonToListProxyResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	set_proxy(header: { [k: string]: string },req: SetProxyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: SetProxyResp)=>void){
+		if(!Number.isInteger(timeout)){
+			throw 'timeout must be integer'
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let config={
+			url:_WebPathConfigSetProxy,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: SetProxyReqToJson(req),
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:SetProxyResp=JsonToSetProxyResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	del_proxy(header: { [k: string]: string },req: DelProxyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: DelProxyResp)=>void){
+		if(!Number.isInteger(timeout)){
+			throw 'timeout must be integer'
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let config={
+			url:_WebPathConfigDelProxy,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: DelProxyReqToJson(req),
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:DelProxyResp=JsonToDelProxyResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

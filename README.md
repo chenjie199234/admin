@@ -50,6 +50,18 @@ collection: {appname}
 	"_id":ObjectId("xxxx"),
 	"key":"",//always empty
 	"index":0,//always be 0
+	"paths":{
+		"base64(/path1)":{
+			"permission_node_id":"",
+			"permission_read":true,
+			"permission_write":true
+		},
+		"base64(/path2)":{
+			"permission_node_id":"",
+			"permission_read":true,
+			"permission_write":true
+		}
+	},
 	"keys":{
 		"config_key1":{
 			"cur_index":0,

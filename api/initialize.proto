@@ -29,6 +29,7 @@ service initialize{
 	//初始化
 	rpc init(init_req)returns(init_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="accesskey";
 	}
 	//登录
 	rpc root_login(root_login_req)returns(root_login_resp){

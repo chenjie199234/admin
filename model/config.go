@@ -2,19 +2,17 @@ package model
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-/*
-| config_groupname1(database)
-|      appname1(collection)
-|      appname2
-|      appname3
-| config_groupname2(database)
-|      appnameN(collection)
-*/
-//every collection has two kinds of data
+// AppSummary and Log exist in same collection
+// key=="" && index==0 => AppSummary
+// key!="" && index!=0 => Log
+// group+app+key+index add unique index
+// permission_node_id add sparse index
 type AppSummary struct {
-	ID               primitive.ObjectID     `bson:"_id"`
-	Key              string                 `bson:"key"`   //this is always empty
-	Index            uint32                 `bson:"index"` //this is always 0
+	ID               primitive.ObjectID     `bson:"_id,omitempty"`
+	Group            string                 `bson:"group"`
+	App              string                 `bson:"app"`
+	Key              string                 `bson:"key"`   //this is always empty for Summary
+	Index            uint32                 `bson:"index"` //this is always 0 for Summary
 	Paths            map[string]*ProxyPath  `bson:"paths"` //map's key is the base64(proxy path)
 	Keys             map[string]*KeySummary `bson:"keys"`  //map's key is config's key name
 	Value            string                 `bson:"value"`
@@ -33,8 +31,10 @@ type ProxyPath struct {
 	PermissionWrite  bool   `bson:"permission_write"`
 }
 type Log struct {
-	Key       string `bson:"key"`   //this is always not empty
-	Index     uint32 `bson:"index"` //this is always > 0  for Config
+	Group     string `bson:"group"`
+	App       string `bson:"app"`
+	Key       string `bson:"key"`   //this is always not empty for Log
+	Index     uint32 `bson:"index"` //this is always > 0  for Log
 	Value     string `bson:"value"`
 	ValueType string `bson:"value_type"`
 }

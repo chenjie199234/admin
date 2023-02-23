@@ -19,12 +19,12 @@ import (
 	strings "strings"
 )
 
-var _WebPathConfigGroups = "/admin.config/groups"
-var _WebPathConfigApps = "/admin.config/apps"
+var _WebPathConfigListGroup = "/admin.config/list_group"
+var _WebPathConfigListApp = "/admin.config/list_app"
 var _WebPathConfigCreateApp = "/admin.config/create_app"
 var _WebPathConfigDelApp = "/admin.config/del_app"
 var _WebPathConfigUpdateAppSecret = "/admin.config/update_app_secret"
-var _WebPathConfigKeys = "/admin.config/keys"
+var _WebPathConfigListKey = "/admin.config/list_key"
 var _WebPathConfigDelKey = "/admin.config/del_key"
 var _WebPathConfigGetKeyConfig = "/admin.config/get_key_config"
 var _WebPathConfigSetKeyConfig = "/admin.config/set_key_config"
@@ -37,9 +37,9 @@ var _WebPathConfigProxy = "/admin.config/proxy"
 
 type ConfigWebClient interface {
 	// get all groups
-	Groups(context.Context, *GroupsReq, http.Header) (*GroupsResp, error)
+	ListGroup(context.Context, *ListGroupReq, http.Header) (*ListGroupResp, error)
 	// get all apps in one specific group
-	Apps(context.Context, *AppsReq, http.Header) (*AppsResp, error)
+	ListApp(context.Context, *ListAppReq, http.Header) (*ListAppResp, error)
 	// create one specific app
 	CreateApp(context.Context, *CreateAppReq, http.Header) (*CreateAppResp, error)
 	// del one specific app in one specific group
@@ -47,7 +47,7 @@ type ConfigWebClient interface {
 	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq, http.Header) (*UpdateAppSecretResp, error)
 	// get all config's keys in one specific app
-	Keys(context.Context, *KeysReq, http.Header) (*KeysResp, error)
+	ListKey(context.Context, *ListKeyReq, http.Header) (*ListKeyResp, error)
 	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq, http.Header) (*DelKeyResp, error)
 	// get config
@@ -72,7 +72,7 @@ func NewConfigWebClient(c *web.WebClient) ConfigWebClient {
 	return &configWebClient{cc: c}
 }
 
-func (c *configWebClient) Groups(ctx context.Context, req *GroupsReq, header http.Header) (*GroupsResp, error) {
+func (c *configWebClient) ListGroup(ctx context.Context, req *ListGroupReq, header http.Header) (*ListGroupResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -82,7 +82,7 @@ func (c *configWebClient) Groups(ctx context.Context, req *GroupsReq, header htt
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathConfigGroups, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathConfigListGroup, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -91,7 +91,7 @@ func (c *configWebClient) Groups(ctx context.Context, req *GroupsReq, header htt
 	if e != nil {
 		return nil, cerror.ConvertStdError(e)
 	}
-	resp := new(GroupsResp)
+	resp := new(ListGroupResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -104,7 +104,7 @@ func (c *configWebClient) Groups(ctx context.Context, req *GroupsReq, header htt
 	}
 	return resp, nil
 }
-func (c *configWebClient) Apps(ctx context.Context, req *AppsReq, header http.Header) (*AppsResp, error) {
+func (c *configWebClient) ListApp(ctx context.Context, req *ListAppReq, header http.Header) (*ListAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -114,7 +114,7 @@ func (c *configWebClient) Apps(ctx context.Context, req *AppsReq, header http.He
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathConfigApps, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathConfigListApp, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -123,7 +123,7 @@ func (c *configWebClient) Apps(ctx context.Context, req *AppsReq, header http.He
 	if e != nil {
 		return nil, cerror.ConvertStdError(e)
 	}
-	resp := new(AppsResp)
+	resp := new(ListAppResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -232,7 +232,7 @@ func (c *configWebClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSec
 	}
 	return resp, nil
 }
-func (c *configWebClient) Keys(ctx context.Context, req *KeysReq, header http.Header) (*KeysResp, error) {
+func (c *configWebClient) ListKey(ctx context.Context, req *ListKeyReq, header http.Header) (*ListKeyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -242,7 +242,7 @@ func (c *configWebClient) Keys(ctx context.Context, req *KeysReq, header http.He
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathConfigKeys, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathConfigListKey, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -251,7 +251,7 @@ func (c *configWebClient) Keys(ctx context.Context, req *KeysReq, header http.He
 	if e != nil {
 		return nil, cerror.ConvertStdError(e)
 	}
-	resp := new(KeysResp)
+	resp := new(ListKeyResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -555,9 +555,9 @@ func (c *configWebClient) Proxy(ctx context.Context, req *ProxyReq, header http.
 
 type ConfigWebServer interface {
 	// get all groups
-	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
+	ListGroup(context.Context, *ListGroupReq) (*ListGroupResp, error)
 	// get all apps in one specific group
-	Apps(context.Context, *AppsReq) (*AppsResp, error)
+	ListApp(context.Context, *ListAppReq) (*ListAppResp, error)
 	// create one specific app
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	// del one specific app in one specific group
@@ -565,7 +565,7 @@ type ConfigWebServer interface {
 	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
 	// get all config's keys in one specific app
-	Keys(context.Context, *KeysReq) (*KeysResp, error)
+	ListKey(context.Context, *ListKeyReq) (*ListKeyResp, error)
 	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
 	// get config
@@ -582,9 +582,9 @@ type ConfigWebServer interface {
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
-func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*GroupsResp, error)) web.OutsideHandler {
+func _Config_ListGroup_WebHandler(handler func(context.Context, *ListGroupReq) (*ListGroupResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(GroupsReq)
+		req := new(ListGroupReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
@@ -614,7 +614,7 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/groups]", errstr)
+			log.Error(ctx, "[/admin.config/list_group]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -625,7 +625,7 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 			return
 		}
 		if resp == nil {
-			resp = new(GroupsResp)
+			resp = new(ListGroupResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -636,9 +636,9 @@ func _Config_Groups_WebHandler(handler func(context.Context, *GroupsReq) (*Group
 		}
 	}
 }
-func _Config_Apps_WebHandler(handler func(context.Context, *AppsReq) (*AppsResp, error)) web.OutsideHandler {
+func _Config_ListApp_WebHandler(handler func(context.Context, *ListAppReq) (*ListAppResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(AppsReq)
+		req := new(ListAppReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
@@ -668,7 +668,7 @@ func _Config_Apps_WebHandler(handler func(context.Context, *AppsReq) (*AppsResp,
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/apps]", errstr)
+			log.Error(ctx, "[/admin.config/list_app]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -679,7 +679,7 @@ func _Config_Apps_WebHandler(handler func(context.Context, *AppsReq) (*AppsResp,
 			return
 		}
 		if resp == nil {
-			resp = new(AppsResp)
+			resp = new(ListAppResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -852,9 +852,9 @@ func _Config_UpdateAppSecret_WebHandler(handler func(context.Context, *UpdateApp
 		}
 	}
 }
-func _Config_Keys_WebHandler(handler func(context.Context, *KeysReq) (*KeysResp, error)) web.OutsideHandler {
+func _Config_ListKey_WebHandler(handler func(context.Context, *ListKeyReq) (*ListKeyResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(KeysReq)
+		req := new(ListKeyReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
@@ -884,7 +884,7 @@ func _Config_Keys_WebHandler(handler func(context.Context, *KeysReq) (*KeysResp,
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/keys]", errstr)
+			log.Error(ctx, "[/admin.config/list_key]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -895,7 +895,7 @@ func _Config_Keys_WebHandler(handler func(context.Context, *KeysReq) (*KeysResp,
 			return
 		}
 		if resp == nil {
-			resp = new(KeysResp)
+			resp = new(ListKeyResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1405,8 +1405,8 @@ func RegisterConfigWebServer(engine *web.WebServer, svc ConfigWebServer, allmids
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _Config_Groups_WebHandler(svc.Groups))
-		engine.Post(_WebPathConfigGroups, mids...)
+		mids = append(mids, _Config_ListGroup_WebHandler(svc.ListGroup))
+		engine.Post(_WebPathConfigListGroup, mids...)
 	}
 	{
 		requiredMids := []string{"token"}
@@ -1418,8 +1418,8 @@ func RegisterConfigWebServer(engine *web.WebServer, svc ConfigWebServer, allmids
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _Config_Apps_WebHandler(svc.Apps))
-		engine.Post(_WebPathConfigApps, mids...)
+		mids = append(mids, _Config_ListApp_WebHandler(svc.ListApp))
+		engine.Post(_WebPathConfigListApp, mids...)
 	}
 	{
 		requiredMids := []string{"token"}
@@ -1470,8 +1470,8 @@ func RegisterConfigWebServer(engine *web.WebServer, svc ConfigWebServer, allmids
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _Config_Keys_WebHandler(svc.Keys))
-		engine.Post(_WebPathConfigKeys, mids...)
+		mids = append(mids, _Config_ListKey_WebHandler(svc.ListKey))
+		engine.Post(_WebPathConfigListKey, mids...)
 	}
 	{
 		requiredMids := []string{"token"}

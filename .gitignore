@@ -28,6 +28,10 @@
 !/util/*
 !/util/**/
 !/util/**/*
+!/html/
+!/html/*
+!/html/**/
+!/html/**/*
 !/server/
 !/server/*
 !/server/**/

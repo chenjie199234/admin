@@ -16,12 +16,12 @@ import (
 	proto "google.golang.org/protobuf/proto"
 )
 
-var _CrpcPathConfigGroups = "/admin.config/groups"
-var _CrpcPathConfigApps = "/admin.config/apps"
+var _CrpcPathConfigListGroup = "/admin.config/list_group"
+var _CrpcPathConfigListApp = "/admin.config/list_app"
 var _CrpcPathConfigCreateApp = "/admin.config/create_app"
 var _CrpcPathConfigDelApp = "/admin.config/del_app"
 var _CrpcPathConfigUpdateAppSecret = "/admin.config/update_app_secret"
-var _CrpcPathConfigKeys = "/admin.config/keys"
+var _CrpcPathConfigListKey = "/admin.config/list_key"
 var _CrpcPathConfigDelKey = "/admin.config/del_key"
 var _CrpcPathConfigGetKeyConfig = "/admin.config/get_key_config"
 var _CrpcPathConfigSetKeyConfig = "/admin.config/set_key_config"
@@ -34,9 +34,9 @@ var _CrpcPathConfigProxy = "/admin.config/proxy"
 
 type ConfigCrpcClient interface {
 	// get all groups
-	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
+	ListGroup(context.Context, *ListGroupReq) (*ListGroupResp, error)
 	// get all apps in one specific group
-	Apps(context.Context, *AppsReq) (*AppsResp, error)
+	ListApp(context.Context, *ListAppReq) (*ListAppResp, error)
 	// create one specific app
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	// del one specific app in one specific group
@@ -44,7 +44,7 @@ type ConfigCrpcClient interface {
 	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
 	// get all config's keys in one specific app
-	Keys(context.Context, *KeysReq) (*KeysResp, error)
+	ListKey(context.Context, *ListKeyReq) (*ListKeyResp, error)
 	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
 	// get config
@@ -69,16 +69,16 @@ func NewConfigCrpcClient(c *crpc.CrpcClient) ConfigCrpcClient {
 	return &configCrpcClient{cc: c}
 }
 
-func (c *configCrpcClient) Groups(ctx context.Context, req *GroupsReq) (*GroupsResp, error) {
+func (c *configCrpcClient) ListGroup(ctx context.Context, req *ListGroupReq) (*ListGroupResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathConfigGroups, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathConfigListGroup, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(GroupsResp)
+	resp := new(ListGroupResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -91,16 +91,16 @@ func (c *configCrpcClient) Groups(ctx context.Context, req *GroupsReq) (*GroupsR
 	}
 	return resp, nil
 }
-func (c *configCrpcClient) Apps(ctx context.Context, req *AppsReq) (*AppsResp, error) {
+func (c *configCrpcClient) ListApp(ctx context.Context, req *ListAppReq) (*ListAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathConfigApps, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathConfigListApp, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(AppsResp)
+	resp := new(ListAppResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -179,16 +179,16 @@ func (c *configCrpcClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSe
 	}
 	return resp, nil
 }
-func (c *configCrpcClient) Keys(ctx context.Context, req *KeysReq) (*KeysResp, error) {
+func (c *configCrpcClient) ListKey(ctx context.Context, req *ListKeyReq) (*ListKeyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathConfigKeys, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathConfigListKey, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(KeysResp)
+	resp := new(ListKeyResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -402,9 +402,9 @@ func (c *configCrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp
 
 type ConfigCrpcServer interface {
 	// get all groups
-	Groups(context.Context, *GroupsReq) (*GroupsResp, error)
+	ListGroup(context.Context, *ListGroupReq) (*ListGroupResp, error)
 	// get all apps in one specific group
-	Apps(context.Context, *AppsReq) (*AppsResp, error)
+	ListApp(context.Context, *ListAppReq) (*ListAppResp, error)
 	// create one specific app
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	// del one specific app in one specific group
@@ -412,7 +412,7 @@ type ConfigCrpcServer interface {
 	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
 	// get all config's keys in one specific app
-	Keys(context.Context, *KeysReq) (*KeysResp, error)
+	ListKey(context.Context, *ListKeyReq) (*ListKeyResp, error)
 	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
 	// get config
@@ -429,16 +429,16 @@ type ConfigCrpcServer interface {
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
-func _Config_Groups_CrpcHandler(handler func(context.Context, *GroupsReq) (*GroupsResp, error)) crpc.OutsideHandler {
+func _Config_ListGroup_CrpcHandler(handler func(context.Context, *ListGroupReq) (*ListGroupResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
-		req := new(GroupsReq)
+		req := new(ListGroupReq)
 		reqbody := ctx.GetBody()
 		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.config/groups] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.config/list_group] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -448,7 +448,7 @@ func _Config_Groups_CrpcHandler(handler func(context.Context, *GroupsReq) (*Grou
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.config/groups] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.config/list_group] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -456,7 +456,7 @@ func _Config_Groups_CrpcHandler(handler func(context.Context, *GroupsReq) (*Grou
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/groups]", errstr)
+			log.Error(ctx, "[/admin.config/list_group]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -466,7 +466,7 @@ func _Config_Groups_CrpcHandler(handler func(context.Context, *GroupsReq) (*Grou
 			return
 		}
 		if resp == nil {
-			resp = new(GroupsResp)
+			resp = new(ListGroupResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -477,16 +477,16 @@ func _Config_Groups_CrpcHandler(handler func(context.Context, *GroupsReq) (*Grou
 		}
 	}
 }
-func _Config_Apps_CrpcHandler(handler func(context.Context, *AppsReq) (*AppsResp, error)) crpc.OutsideHandler {
+func _Config_ListApp_CrpcHandler(handler func(context.Context, *ListAppReq) (*ListAppResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
-		req := new(AppsReq)
+		req := new(ListAppReq)
 		reqbody := ctx.GetBody()
 		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.config/apps] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.config/list_app] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -496,7 +496,7 @@ func _Config_Apps_CrpcHandler(handler func(context.Context, *AppsReq) (*AppsResp
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.config/apps] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.config/list_app] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -504,7 +504,7 @@ func _Config_Apps_CrpcHandler(handler func(context.Context, *AppsReq) (*AppsResp
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/apps]", errstr)
+			log.Error(ctx, "[/admin.config/list_app]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -514,7 +514,7 @@ func _Config_Apps_CrpcHandler(handler func(context.Context, *AppsReq) (*AppsResp
 			return
 		}
 		if resp == nil {
-			resp = new(AppsResp)
+			resp = new(ListAppResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -669,16 +669,16 @@ func _Config_UpdateAppSecret_CrpcHandler(handler func(context.Context, *UpdateAp
 		}
 	}
 }
-func _Config_Keys_CrpcHandler(handler func(context.Context, *KeysReq) (*KeysResp, error)) crpc.OutsideHandler {
+func _Config_ListKey_CrpcHandler(handler func(context.Context, *ListKeyReq) (*ListKeyResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
-		req := new(KeysReq)
+		req := new(ListKeyReq)
 		reqbody := ctx.GetBody()
 		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.config/keys] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.config/list_key] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -688,7 +688,7 @@ func _Config_Keys_CrpcHandler(handler func(context.Context, *KeysReq) (*KeysResp
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.config/keys] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.config/list_key] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -696,7 +696,7 @@ func _Config_Keys_CrpcHandler(handler func(context.Context, *KeysReq) (*KeysResp
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.config/keys]", errstr)
+			log.Error(ctx, "[/admin.config/list_key]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -706,7 +706,7 @@ func _Config_Keys_CrpcHandler(handler func(context.Context, *KeysReq) (*KeysResp
 			return
 		}
 		if resp == nil {
-			resp = new(KeysResp)
+			resp = new(ListKeyResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -1152,12 +1152,12 @@ func _Config_Proxy_CrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyR
 func RegisterConfigCrpcServer(engine *crpc.CrpcServer, svc ConfigCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	engine.RegisterHandler(_CrpcPathConfigGroups, _Config_Groups_CrpcHandler(svc.Groups))
-	engine.RegisterHandler(_CrpcPathConfigApps, _Config_Apps_CrpcHandler(svc.Apps))
+	engine.RegisterHandler(_CrpcPathConfigListGroup, _Config_ListGroup_CrpcHandler(svc.ListGroup))
+	engine.RegisterHandler(_CrpcPathConfigListApp, _Config_ListApp_CrpcHandler(svc.ListApp))
 	engine.RegisterHandler(_CrpcPathConfigCreateApp, _Config_CreateApp_CrpcHandler(svc.CreateApp))
 	engine.RegisterHandler(_CrpcPathConfigDelApp, _Config_DelApp_CrpcHandler(svc.DelApp))
 	engine.RegisterHandler(_CrpcPathConfigUpdateAppSecret, _Config_UpdateAppSecret_CrpcHandler(svc.UpdateAppSecret))
-	engine.RegisterHandler(_CrpcPathConfigKeys, _Config_Keys_CrpcHandler(svc.Keys))
+	engine.RegisterHandler(_CrpcPathConfigListKey, _Config_ListKey_CrpcHandler(svc.ListKey))
 	engine.RegisterHandler(_CrpcPathConfigDelKey, _Config_DelKey_CrpcHandler(svc.DelKey))
 	engine.RegisterHandler(_CrpcPathConfigGetKeyConfig, _Config_GetKeyConfig_CrpcHandler(svc.GetKeyConfig))
 	engine.RegisterHandler(_CrpcPathConfigSetKeyConfig, _Config_SetKeyConfig_CrpcHandler(svc.SetKeyConfig))

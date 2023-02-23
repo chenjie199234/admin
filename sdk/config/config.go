@@ -58,7 +58,7 @@ func (instance *Sdk) watch(selfgroup, selfname string) {
 		}
 		instance.ctx, instance.cancel = context.WithCancel(context.Background())
 		instance.lker.Unlock()
-		resp, e := instance.client.Watch(instance.ctx, &api.WatchReq{Groupname: selfgroup, Appname: selfname, Keys: keys}, nil)
+		resp, e := instance.client.Watch(instance.ctx, &api.WatchReq{GName: selfgroup, AName: selfname, Keys: keys}, nil)
 		if e != nil {
 			if !cerror.Equal(e, cerror.ErrCanceled) {
 				log.Error(nil, "[config.sdk.watch] keys:", keys, e)

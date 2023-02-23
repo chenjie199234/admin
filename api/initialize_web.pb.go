@@ -757,7 +757,19 @@ func RegisterInitializeWebServer(engine *web.WebServer, svc InitializeWebServer,
 	// avoid lint
 	_ = allmids
 	engine.Post(_WebPathInitializeInitStatus, _Initialize_InitStatus_WebHandler(svc.InitStatus))
-	engine.Post(_WebPathInitializeInit, _Initialize_Init_WebHandler(svc.Init))
+	{
+		requiredMids := []string{"accesskey"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Initialize_Init_WebHandler(svc.Init))
+		engine.Post(_WebPathInitializeInit, mids...)
+	}
 	engine.Post(_WebPathInitializeRootLogin, _Initialize_RootLogin_WebHandler(svc.RootLogin))
 	{
 		requiredMids := []string{"token"}

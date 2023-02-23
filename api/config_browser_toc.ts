@@ -11,84 +11,11 @@ export interface Error{
 	msg: string;
 }
 
-export interface AppsReq{
-	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
-	project_id: Array<number>|null|undefined;
-	groupname: string;
-	search_filter: string;
-}
-function AppsReqToJson(msg: AppsReq): string{
-	let s: string="{"
-	//project_id
-	if(msg.project_id==null||msg.project_id==undefined){
-		s+='"project_id":null,'
-	}else if(msg.project_id.length==0){
-		s+='"project_id":[],'
-	}else{
-		s+='"project_id":['
-		for(let element of msg.project_id){
-			if(element==null||element==undefined||!Number.isInteger(element)){
-				throw 'element in AppsReq.project_id must be integer'
-			}
-			if(element>4294967295||element<0){
-				throw 'element in AppsReq.project_id overflow'
-			}
-			s+=element+','
-		}
-		s=s.substr(0,s.length-1)+'],'
-	}
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'AppsReq.groupname must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
-	}
-	//search_filter
-	if(msg.search_filter==null||msg.search_filter==undefined){
-		throw 'AppsReq.search_filter must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.search_filter)
-		s+='"search_filter":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface AppsResp{
-	apps: Array<string>|null|undefined;
-}
-function JsonToAppsResp(jsonobj: { [k:string]:any }): AppsResp{
-	let obj: AppsResp={
-		apps:null,
-	}
-	//apps
-	if(jsonobj['apps']!=null&&jsonobj['apps']!=undefined){
-		if(!(jsonobj['apps'] instanceof Array)){
-			throw 'AppsResp.apps must be Array<string>|null|undefined'
-		}
-		for(let element of jsonobj['apps']){
-			if(typeof element!='string'){
-				throw 'element in AppsResp.apps must be string'
-			}
-			if(obj['apps']==undefined){
-				obj['apps']=new Array<string>
-			}
-			obj['apps'].push(element)
-		}
-	}
-	return obj
-}
 export interface CreateAppReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
-	groupname: string;
-	appname: string;
+	g_name: string;
+	a_name: string;
 	secret: string;
 }
 function CreateAppReqToJson(msg: CreateAppReq): string{
@@ -111,21 +38,21 @@ function CreateAppReqToJson(msg: CreateAppReq): string{
 		}
 		s=s.substr(0,s.length-1)+'],'
 	}
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'CreateAppReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'CreateAppReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'CreateAppReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'CreateAppReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){
@@ -150,27 +77,27 @@ function JsonToCreateAppResp(jsonobj: { [k:string]:any }): CreateAppResp{
 	return obj
 }
 export interface DelAppReq{
-	groupname: string;
-	appname: string;
+	g_name: string;
+	a_name: string;
 	secret: string;
 }
 function DelAppReqToJson(msg: DelAppReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'DelAppReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'DelAppReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'DelAppReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'DelAppReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){
@@ -195,28 +122,28 @@ function JsonToDelAppResp(jsonobj: { [k:string]:any }): DelAppResp{
 	return obj
 }
 export interface DelKeyReq{
-	groupname: string;
-	appname: string;
-	key: string;
+	g_name: string;
+	a_name: string;
+	key: string;//can't contain '.' in key
 	secret: string;
 }
 function DelKeyReqToJson(msg: DelKeyReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'DelKeyReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'DelKeyReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'DelKeyReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'DelKeyReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//key
 	if(msg.key==null||msg.key==undefined){
@@ -249,27 +176,28 @@ function JsonToDelKeyResp(jsonobj: { [k:string]:any }): DelKeyResp{
 	return obj
 }
 export interface DelProxyReq{
-	groupname: string;
-	appname: string;
+	g_name: string;
+	a_name: string;
 	path: string;
+	secret: string;
 }
 function DelProxyReqToJson(msg: DelProxyReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'DelProxyReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'DelProxyReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'DelProxyReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'DelProxyReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//path
 	if(msg.path==null||msg.path==undefined){
@@ -278,6 +206,14 @@ function DelProxyReqToJson(msg: DelProxyReq): string{
 		//transfer the json escape
 		let vv=JSON.stringify(msg.path)
 		s+='"path":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'DelProxyReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -294,30 +230,30 @@ function JsonToDelProxyResp(jsonobj: { [k:string]:any }): DelProxyResp{
 	return obj
 }
 export interface GetKeyConfigReq{
-	groupname: string;
-	appname: string;
-	key: string;
+	g_name: string;
+	a_name: string;
+	key: string;//can't contain '.' in key
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	index: number;//0 means return current active config,config's index start from 1
 	secret: string;
 }
 function GetKeyConfigReqToJson(msg: GetKeyConfigReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'GetKeyConfigReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'GetKeyConfigReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'GetKeyConfigReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'GetKeyConfigReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//key
 	if(msg.key==null||msg.key==undefined){
@@ -423,12 +359,12 @@ function JsonToGetKeyConfigResp(jsonobj: { [k:string]:any }): GetKeyConfigResp{
 	}
 	return obj
 }
-export interface GroupsReq{
+export interface ListAppReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
-	search_filter: string;
+	g_name: string;
 }
-function GroupsReqToJson(msg: GroupsReq): string{
+function ListAppReqToJson(msg: ListAppReq): string{
 	let s: string="{"
 	//project_id
 	if(msg.project_id==null||msg.project_id==undefined){
@@ -439,22 +375,22 @@ function GroupsReqToJson(msg: GroupsReq): string{
 		s+='"project_id":['
 		for(let element of msg.project_id){
 			if(element==null||element==undefined||!Number.isInteger(element)){
-				throw 'element in GroupsReq.project_id must be integer'
+				throw 'element in ListAppReq.project_id must be integer'
 			}
 			if(element>4294967295||element<0){
-				throw 'element in GroupsReq.project_id overflow'
+				throw 'element in ListAppReq.project_id overflow'
 			}
 			s+=element+','
 		}
 		s=s.substr(0,s.length-1)+'],'
 	}
-	//search_filter
-	if(msg.search_filter==null||msg.search_filter==undefined){
-		throw 'GroupsReq.search_filter must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'ListAppReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.search_filter)
-		s+='"search_filter":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -463,21 +399,76 @@ function GroupsReqToJson(msg: GroupsReq): string{
 	}
 	return s
 }
-export interface GroupsResp{
+export interface ListAppResp{
+	apps: Array<string>|null|undefined;
+}
+function JsonToListAppResp(jsonobj: { [k:string]:any }): ListAppResp{
+	let obj: ListAppResp={
+		apps:null,
+	}
+	//apps
+	if(jsonobj['apps']!=null&&jsonobj['apps']!=undefined){
+		if(!(jsonobj['apps'] instanceof Array)){
+			throw 'ListAppResp.apps must be Array<string>|null|undefined'
+		}
+		for(let element of jsonobj['apps']){
+			if(typeof element!='string'){
+				throw 'element in ListAppResp.apps must be string'
+			}
+			if(obj['apps']==undefined){
+				obj['apps']=new Array<string>
+			}
+			obj['apps'].push(element)
+		}
+	}
+	return obj
+}
+export interface ListGroupReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
+}
+function ListGroupReqToJson(msg: ListGroupReq): string{
+	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in ListGroupReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in ListGroupReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface ListGroupResp{
 	groups: Array<string>|null|undefined;
 }
-function JsonToGroupsResp(jsonobj: { [k:string]:any }): GroupsResp{
-	let obj: GroupsResp={
+function JsonToListGroupResp(jsonobj: { [k:string]:any }): ListGroupResp{
+	let obj: ListGroupResp={
 		groups:null,
 	}
 	//groups
 	if(jsonobj['groups']!=null&&jsonobj['groups']!=undefined){
 		if(!(jsonobj['groups'] instanceof Array)){
-			throw 'GroupsResp.groups must be Array<string>|null|undefined'
+			throw 'ListGroupResp.groups must be Array<string>|null|undefined'
 		}
 		for(let element of jsonobj['groups']){
 			if(typeof element!='string'){
-				throw 'element in GroupsResp.groups must be string'
+				throw 'element in ListGroupResp.groups must be string'
 			}
 			if(obj['groups']==undefined){
 				obj['groups']=new Array<string>
@@ -487,32 +478,32 @@ function JsonToGroupsResp(jsonobj: { [k:string]:any }): GroupsResp{
 	}
 	return obj
 }
-export interface KeysReq{
-	groupname: string;
-	appname: string;
+export interface ListKeyReq{
+	g_name: string;
+	a_name: string;
 	secret: string;
 }
-function KeysReqToJson(msg: KeysReq): string{
+function ListKeyReqToJson(msg: ListKeyReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'KeysReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'ListKeyReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'KeysReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'ListKeyReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){
-		throw 'KeysReq.secret must be string'
+		throw 'ListKeyReq.secret must be string'
 	}else{
 		//transfer the json escape
 		let vv=JSON.stringify(msg.secret)
@@ -525,21 +516,21 @@ function KeysReqToJson(msg: KeysReq): string{
 	}
 	return s
 }
-export interface KeysResp{
+export interface ListKeyResp{
 	keys: Array<string>|null|undefined;
 }
-function JsonToKeysResp(jsonobj: { [k:string]:any }): KeysResp{
-	let obj: KeysResp={
+function JsonToListKeyResp(jsonobj: { [k:string]:any }): ListKeyResp{
+	let obj: ListKeyResp={
 		keys:null,
 	}
 	//keys
 	if(jsonobj['keys']!=null&&jsonobj['keys']!=undefined){
 		if(!(jsonobj['keys'] instanceof Array)){
-			throw 'KeysResp.keys must be Array<string>|null|undefined'
+			throw 'ListKeyResp.keys must be Array<string>|null|undefined'
 		}
 		for(let element of jsonobj['keys']){
 			if(typeof element!='string'){
-				throw 'element in KeysResp.keys must be string'
+				throw 'element in ListKeyResp.keys must be string'
 			}
 			if(obj['keys']==undefined){
 				obj['keys']=new Array<string>
@@ -550,26 +541,35 @@ function JsonToKeysResp(jsonobj: { [k:string]:any }): KeysResp{
 	return obj
 }
 export interface ListProxyReq{
-	groupname: string;
-	appname: string;
+	g_name: string;
+	a_name: string;
+	secret: string;
 }
 function ListProxyReqToJson(msg: ListProxyReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'ListProxyReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'ListProxyReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'ListProxyReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'ListProxyReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'ListProxyReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -658,8 +658,8 @@ export interface ProxyReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
 	path: string;
-	appname: string;
-	groupname: string;
+	g_name: string;
+	a_name: string;
 	data: string;
 }
 function ProxyReqToJson(msg: ProxyReq): string{
@@ -690,21 +690,21 @@ function ProxyReqToJson(msg: ProxyReq): string{
 		let vv=JSON.stringify(msg.path)
 		s+='"path":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'ProxyReq.appname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'ProxyReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'ProxyReq.groupname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'ProxyReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//data
 	if(msg.data==null||msg.data==undefined){
@@ -738,30 +738,30 @@ function JsonToProxyResp(jsonobj: { [k:string]:any }): ProxyResp{
 	return obj
 }
 export interface RollbackReq{
-	groupname: string;
-	appname: string;
-	key: string;
+	g_name: string;
+	a_name: string;
+	key: string;//can't contain '.' in key
 	secret: string;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	index: number;
 }
 function RollbackReqToJson(msg: RollbackReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'RollbackReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'RollbackReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'RollbackReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'RollbackReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//key
 	if(msg.key==null||msg.key==undefined){
@@ -802,30 +802,30 @@ function JsonToRollbackResp(jsonobj: { [k:string]:any }): RollbackResp{
 	return obj
 }
 export interface SetKeyConfigReq{
-	groupname: string;
-	appname: string;
-	key: string;
+	g_name: string;
+	a_name: string;
+	key: string;//can't contain '.' in key
 	value: string;
 	value_type: string;
 	secret: string;
 }
 function SetKeyConfigReqToJson(msg: SetKeyConfigReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'SetKeyConfigReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'SetKeyConfigReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'SetKeyConfigReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'SetKeyConfigReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//key
 	if(msg.key==null||msg.key==undefined){
@@ -874,29 +874,30 @@ function JsonToSetKeyConfigResp(jsonobj: { [k:string]:any }): SetKeyConfigResp{
 	return obj
 }
 export interface SetProxyReq{
-	groupname: string;
-	appname: string;
+	g_name: string;
+	a_name: string;
 	path: string;
 	read: boolean;//need read permission on this node
 	write: boolean;//need write permission on this node
+	secret: string;
 }
 function SetProxyReqToJson(msg: SetProxyReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'SetProxyReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'SetProxyReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'SetProxyReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'SetProxyReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//path
 	if(msg.path==null||msg.path==undefined){
@@ -918,6 +919,14 @@ function SetProxyReqToJson(msg: SetProxyReq): string{
 	}else{
 		s+='"write":'+msg.write+','
 	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'SetProxyReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
+	}
 	if(s.length==1){
 		s+="}"
 	}else{
@@ -933,28 +942,28 @@ function JsonToSetProxyResp(jsonobj: { [k:string]:any }): SetProxyResp{
 	return obj
 }
 export interface UpdateAppSecretReq{
-	groupname: string;
-	appname: string;
+	g_name: string;
+	a_name: string;
 	old_secret: string;
 	new_secret: string;
 }
 function UpdateAppSecretReqToJson(msg: UpdateAppSecretReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'UpdateAppSecretReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'UpdateAppSecretReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'UpdateAppSecretReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'UpdateAppSecretReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//old_secret
 	if(msg.old_secret==null||msg.old_secret==undefined){
@@ -1033,32 +1042,32 @@ function JsonToWatchData(jsonobj: { [k:string]:any }): WatchData{
 	return obj
 }
 export interface WatchReq{
-	groupname: string;
-	appname: string;
+	g_name: string;
+	a_name: string;
 	//map's key is config's keyname,map's value is config's cur version
 	//if cur version == 0 means return current active config
 	//if all cur version is the newest,the request will block until a new version come
 	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
 	//Warning!!!map's value's type is uint32,be careful of sign(+) and overflow
-	keys: Map<string,number>|null|undefined;
+	keys: Map<string,number>|null|undefined;//can't contain '.' in key
 }
 function WatchReqToJson(msg: WatchReq): string{
 	let s: string="{"
-	//groupname
-	if(msg.groupname==null||msg.groupname==undefined){
-		throw 'WatchReq.groupname must be string'
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'WatchReq.g_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.groupname)
-		s+='"groupname":'+vv+','
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
 	}
-	//appname
-	if(msg.appname==null||msg.appname==undefined){
-		throw 'WatchReq.appname must be string'
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'WatchReq.a_name must be string'
 	}else{
 		//transfer the json escape
-		let vv=JSON.stringify(msg.appname)
-		s+='"appname":'+vv+','
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
 	}
 	//keys
 	if(msg.keys==null||msg.keys==undefined){
@@ -1121,12 +1130,12 @@ function JsonToWatchResp(jsonobj: { [k:string]:any }): WatchResp{
 	}
 	return obj
 }
-const _WebPathConfigGroups: string ="/admin.config/groups";
-const _WebPathConfigApps: string ="/admin.config/apps";
+const _WebPathConfigListGroup: string ="/admin.config/list_group";
+const _WebPathConfigListApp: string ="/admin.config/list_app";
 const _WebPathConfigCreateApp: string ="/admin.config/create_app";
 const _WebPathConfigDelApp: string ="/admin.config/del_app";
 const _WebPathConfigUpdateAppSecret: string ="/admin.config/update_app_secret";
-const _WebPathConfigKeys: string ="/admin.config/keys";
+const _WebPathConfigListKey: string ="/admin.config/list_key";
 const _WebPathConfigDelKey: string ="/admin.config/del_key";
 const _WebPathConfigGetKeyConfig: string ="/admin.config/get_key_config";
 const _WebPathConfigSetKeyConfig: string ="/admin.config/set_key_config";
@@ -1146,7 +1155,7 @@ export class ConfigBrowserClientToC {
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
-	groups(header: { [k: string]: string },req: GroupsReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GroupsResp)=>void){
+	list_group(header: { [k: string]: string },req: ListGroupReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListGroupResp)=>void){
 		if(!Number.isInteger(timeout)){
 			throw 'timeout must be integer'
 		}
@@ -1155,17 +1164,17 @@ export class ConfigBrowserClientToC {
 		}
 		header["Content-Type"] = "application/json"
 		let config={
-			url:_WebPathConfigGroups,
+			url:_WebPathConfigListGroup,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: GroupsReqToJson(req),
+			data: ListGroupReqToJson(req),
 			timeout: timeout,
 		}
 		Axios.request(config)
 		.then(function(response){
 			try{
-				let obj:GroupsResp=JsonToGroupsResp(response.data)
+				let obj:ListGroupResp=JsonToListGroupResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}
@@ -1190,7 +1199,7 @@ export class ConfigBrowserClientToC {
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
-	apps(header: { [k: string]: string },req: AppsReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: AppsResp)=>void){
+	list_app(header: { [k: string]: string },req: ListAppReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListAppResp)=>void){
 		if(!Number.isInteger(timeout)){
 			throw 'timeout must be integer'
 		}
@@ -1199,17 +1208,17 @@ export class ConfigBrowserClientToC {
 		}
 		header["Content-Type"] = "application/json"
 		let config={
-			url:_WebPathConfigApps,
+			url:_WebPathConfigListApp,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: AppsReqToJson(req),
+			data: ListAppReqToJson(req),
 			timeout: timeout,
 		}
 		Axios.request(config)
 		.then(function(response){
 			try{
-				let obj:AppsResp=JsonToAppsResp(response.data)
+				let obj:ListAppResp=JsonToListAppResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}
@@ -1366,7 +1375,7 @@ export class ConfigBrowserClientToC {
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
-	keys(header: { [k: string]: string },req: KeysReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: KeysResp)=>void){
+	list_key(header: { [k: string]: string },req: ListKeyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListKeyResp)=>void){
 		if(!Number.isInteger(timeout)){
 			throw 'timeout must be integer'
 		}
@@ -1375,17 +1384,17 @@ export class ConfigBrowserClientToC {
 		}
 		header["Content-Type"] = "application/json"
 		let config={
-			url:_WebPathConfigKeys,
+			url:_WebPathConfigListKey,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: KeysReqToJson(req),
+			data: ListKeyReqToJson(req),
 			timeout: timeout,
 		}
 		Axios.request(config)
 		.then(function(response){
 			try{
-				let obj:KeysResp=JsonToKeysResp(response.data)
+				let obj:ListKeyResp=JsonToListKeyResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

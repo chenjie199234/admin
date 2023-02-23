@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"sync"
 	"time"
 
@@ -23,8 +24,8 @@ import (
 
 type Sdk struct {
 	client     *mongo.Client
-	selfgroup  string
-	selfname   string
+	gname      string //self group name
+	aname      string //self app name
 	secret     string
 	lker       sync.Mutex
 	appsummary *model.AppSummary
@@ -37,15 +38,15 @@ type Sdk struct {
 type NoticeHandler func(key, keyvalue, keytype string)
 
 // url format [mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
-func NewDirectSdk(selfgroup, selfname, mongourl, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (*Sdk, error) {
-	client, e := newMongo(mongourl, selfgroup, selfname, secret, AppConfigTemplate, SourceConfigTemplate)
+func NewDirectSdk(gname, aname, mongourl, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (*Sdk, error) {
+	client, e := newMongo(mongourl, gname, aname, secret, AppConfigTemplate, SourceConfigTemplate)
 	if e != nil {
 		return nil, e
 	}
 	instance := &Sdk{
 		client:     client,
-		selfgroup:  selfgroup,
-		selfname:   selfname,
+		gname:      gname,
+		aname:      aname,
 		secret:     secret,
 		appsummary: &model.AppSummary{},
 		notices:    make(map[string]NoticeHandler),
@@ -58,8 +59,7 @@ func NewDirectSdk(selfgroup, selfname, mongourl, secret string, AppConfigTemplat
 	return instance, nil
 }
 func (instance *Sdk) first() error {
-	col := instance.client.Database("config_"+instance.selfgroup, options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection(instance.selfname)
-	if e := col.FindOne(context.Background(), bson.M{"key": "", "index": 0}).Decode(instance.appsummary); e != nil {
+	if e := instance.client.Database("service").Collection("config").FindOne(context.Background(), bson.M{"group": instance.gname, "app": instance.aname, "key": "", "index": 0}).Decode(instance.appsummary); e != nil {
 		return e
 	}
 	//sign check
@@ -79,7 +79,7 @@ func (instance *Sdk) first() error {
 	return nil
 }
 func (instance *Sdk) watch() {
-	watchfilter := mongo.Pipeline{bson.D{bson.E{Key: "$match", Value: bson.M{"ns.db": "config_" + instance.selfgroup, "ns.coll": instance.selfname}}}}
+	watchfilter := mongo.Pipeline{bson.D{bson.E{Key: "$match", Value: bson.M{"ns.db": "service", "ns.coll": "config"}}}}
 	var stream *mongo.ChangeStream
 	for {
 		for stream == nil {
@@ -98,7 +98,7 @@ func (instance *Sdk) watch() {
 			switch stream.Current.Lookup("operationType").StringValue() {
 			case "drop":
 				//drop collection
-				log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, "deleted")
+				log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, "deleted")
 				instance.lker.Lock()
 				for key, notice := range instance.notices {
 					notice(key, "", "raw")
@@ -110,31 +110,33 @@ func (instance *Sdk) watch() {
 				fallthrough
 			case "update":
 				//update
+				group, gok := stream.Current.Lookup("fullDocument").Document().Lookup("group").StringValueOK()
+				app, aok := stream.Current.Lookup("fullDocument").Document().Lookup("app").StringValueOK()
 				key, kok := stream.Current.Lookup("fullDocument").Document().Lookup("key").StringValueOK()
-				index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").Int32OK()
-				if !kok || !iok {
+				index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").AsInt32OK()
+				if !gok || !aok || !kok || !iok {
 					//unknown doc
 					continue
 				}
-				if key != "" || index != 0 {
-					//this is not the appsummary
+				if group != instance.gname || app != instance.aname || key != "" || index != 0 {
+					//this is not the needed appsummary
 					continue
 				}
 				tmp := &model.AppSummary{}
 				if e := stream.Current.Lookup("fullDocument").Unmarshal(tmp); e != nil {
-					log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, e)
+					log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, e)
 					continue
 				}
 				//check sign
 				if e := util.SignCheck(instance.secret, tmp.Value); e != nil {
-					log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, e)
+					log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, e)
 					continue
 				}
 				if instance.secret != "" {
 					for _, keysummary := range tmp.Keys {
 						plaintext, e := util.Decrypt(instance.secret, keysummary.CurValue)
 						if e != nil {
-							log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, e)
+							log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, e)
 							break
 						}
 						keysummary.CurValue = common.Byte2str(plaintext)
@@ -162,11 +164,11 @@ func (instance *Sdk) watch() {
 				instance.lker.Unlock()
 			case "delete":
 				if instance.appsummary.ID.IsZero() || stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex() != instance.appsummary.ID.Hex() {
-					//this is not the appsummary
+					//this is not the needed appsummary
 					continue
 				}
 				//this is same as delete the app
-				log.Error(nil, "[config.directsdk.watch] group:", instance.selfgroup, "app:", instance.selfname, "appsummary deleted")
+				log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, "appsummary deleted")
 				instance.lker.Lock()
 				for key, notice := range instance.notices {
 					notice(key, "", "raw")
@@ -209,7 +211,7 @@ func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {
 	}
 }
 
-func newMongo(url, groupname, appname, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (db *mongo.Client, e error) {
+func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (db *mongo.Client, e error) {
 	op := options.Client().ApplyURI(url)
 	op = op.SetMaxPoolSize(2)
 	op = op.SetConnectTimeout(time.Second)
@@ -224,10 +226,6 @@ func newMongo(url, groupname, appname, secret string, AppConfigTemplate, SourceC
 		return nil, e
 	}
 	//init self mongo
-	col := db.Database("config_" + groupname).Collection(appname)
-	if _, e = col.Indexes().CreateOne(context.Background(), mongo.IndexModel{Keys: bson.D{{Key: "key", Value: 1}, {Key: "index", Value: 1}}, Options: options.Index().SetUnique(true)}); e != nil && !mongo.IsDuplicateKeyError(e) {
-		return
-	}
 	bufapp := bytes.NewBuffer(nil)
 	if e = json.Compact(bufapp, AppConfigTemplate); e != nil {
 		return
@@ -269,10 +267,13 @@ func newMongo(url, groupname, appname, secret string, AppConfigTemplate, SourceC
 			s.AbortTransaction(sctx)
 		}
 	}()
-	if _, e = col.InsertOne(context.Background(), bson.M{
-		"key":   "",
-		"index": 0,
-		"keys": map[string]*model.KeySummary{
+	appsummary := &model.AppSummary{
+		Group: gname,
+		App:   aname,
+		Key:   "",
+		Index: 0,
+		Paths: map[string]*model.ProxyPath{},
+		Keys: map[string]*model.KeySummary{
 			"AppConfig": {
 				CurIndex:     1,
 				CurVersion:   1,
@@ -288,14 +289,40 @@ func newMongo(url, groupname, appname, secret string, AppConfigTemplate, SourceC
 				CurValueType: "json",
 			},
 		},
-		"value": util.SignMake(secret, nonce),
-	}); e != nil {
+		Value:            util.SignMake(secret, nonce),
+		PermissionNodeID: "",
+	}
+	if _, e = db.Database("service").Collection("config").InsertOne(sctx, appsummary); e != nil {
 		return
 	}
-	if _, e = col.UpdateOne(sctx, bson.M{"key": "AppConfig", "index": 1}, bson.M{"$set": bson.M{"value": appconfig, "value_type": "json"}}, options.Update().SetUpsert(true)); e != nil {
+	applog := &model.Log{
+		Group:     gname,
+		App:       aname,
+		Key:       "AppConfig",
+		Index:     1,
+		Value:     appconfig,
+		ValueType: "json",
+	}
+	if _, e = db.Database("service").Collection("config").InsertOne(sctx, applog); e != nil {
+		if mongo.IsDuplicateKeyError(e) {
+			//if appsummary not exist,log shouldn't exist
+			e = errors.New("AppConfig conflict")
+		}
 		return
 	}
-	if _, e = col.UpdateOne(sctx, bson.M{"key": "SourceConfig", "index": 1}, bson.M{"$set": bson.M{"value": sourceconfig, "value_type": "json"}}, options.Update().SetUpsert(true)); e != nil {
+	sourcelog := &model.Log{
+		Group:     gname,
+		App:       aname,
+		Key:       "SourceConfig",
+		Index:     1,
+		Value:     sourceconfig,
+		ValueType: "json",
+	}
+	if _, e = db.Database("service").Collection("config").InsertOne(sctx, sourcelog); e != nil {
+		if mongo.IsDuplicateKeyError(e) {
+			//if appsummary not exist,log shouldn't exist
+			e = errors.New("SourceConfig conflict")
+		}
 		return
 	}
 	return db, nil

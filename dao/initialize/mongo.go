@@ -105,7 +105,7 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		e = ecode.ErrAlreadyInited
 		return
 	}
-	if _, e = d.mongo.Database("config_"+model.Group).Collection(model.Name).UpdateOne(sctx, bson.M{"key": "", "index": 0}, bson.M{"$set": bson.M{"permission_node_id": selfConfigNodeID}}); e != nil {
+	if _, e = d.mongo.Database("service").Collection("config").UpdateOne(sctx, bson.M{"group": model.Group, "app": model.Name, "key": "", "index": 0}, bson.M{"$set": bson.M{"permission_node_id": selfConfigNodeID}}); e != nil {
 		return
 	}
 	if _, e = d.mongo.Database("permission").Collection("usernode").InsertOne(sctx, &model.UserNode{

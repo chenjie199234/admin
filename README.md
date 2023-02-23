@@ -43,11 +43,13 @@ SourceConfig.json该文件配置了该服务需要使用的资源配置,不热�
 ### Mongo(ReplicaSet mode)(Version >= 4.4)
 #### config
 ```
-database: config_{groupname}
+database: service
 
-collection: {appname}
+collection: config
 {
 	"_id":ObjectId("xxxx"),
+	"group":"",
+	"app":"",
 	"key":"",//always empty
 	"index":0,//always be 0
 	"paths":{
@@ -80,13 +82,18 @@ collection: {appname}
 	"permission_node_id":"",
 }//summary
 {
+	"group":"",
+	"app":"",
 	"_id":ObjectId("xxx"),
 	"key":"config_key1",//always not empty
 	"index":1,//always > 0
 	"value":""
 }//log
-//key+index增加唯一索引
-//由代码自动创建,无需手动创建
+//手动创建数据库
+use service;
+db.createCollection("config");
+db.config.createIndex({group:1,app:1,key:1,index:1},{unique:true});
+db.config.createIndex({permission_node_id:1},{sparse:true,unique:true});
 ```
 #### user
 ```

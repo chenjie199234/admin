@@ -5,14 +5,45 @@
 			"CRPC":"200ms",
 			"GRPC":"200ms"
 		},
+		"/admin.initialize/delete_project":{
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
+		},
 		"/admin.config/watch":{
-			"POST":"0s"
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
+		},
+		"/admin.config/del_app":{
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
 		},
 		"/admin.config/update_app_secret":{
-			"POST":"0s"
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
 		},
-		"/admin.initialize/delete_project":{
-			"POST":"0s"
+		"/admin.config/proxy":{
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
+		},
+		"/admin.permission/del_node":{
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
+		},
+		"/admin.permission/move_node":{
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
+		},
+		"/admin.user/kick_project":{
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
 		}
 	},
 	"web_path_rewrite":{
@@ -26,7 +57,7 @@
 			"max_per_sec":10
 		}]
 	},
-	"access_keys":{
+	"accesses":{
 		"/admin.status/ping":[{
 			"method":["GET","GRPC","CRPC"],
 			"accesses":{

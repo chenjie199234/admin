@@ -5,19 +5,18 @@
 // source: api/config.proto<br />
 
 ## config
-### groups
+### list_group
 //get all groups
 #### Req:
 ```
-Path:         /admin.config/groups
+Path:         /admin.config/list_group
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//uint32
 	//element num must == 2
-	"project_id":[1,2],
-	"search_filter":"str"
+	"project_id":[1,2]
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -34,11 +33,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### apps
+### list_app
 //get all apps in one specific group
 #### Req:
 ```
-Path:         /admin.config/apps
+Path:         /admin.config/list_app
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -47,8 +46,7 @@ Content-Type: application/json
 	//element num must == 2
 	"project_id":[1,2],
 	//value length must > 0
-	"groupname":"str",
-	"search_filter":"str"
+	"g_name":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -78,9 +76,9 @@ Content-Type: application/json
 	//element num must == 2
 	"project_id":[1,2],
 	//value length must > 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must > 0
-	"appname":"str",
+	"a_name":"str",
 	//value length must < 32
 	"secret":"str"
 }
@@ -108,9 +106,9 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must > 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must > 0
-	"appname":"str",
+	"a_name":"str",
 	//value length must < 32
 	"secret":"str"
 }
@@ -138,9 +136,9 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must > 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must > 0
-	"appname":"str",
+	"a_name":"str",
 	//value length must < 32
 	"old_secret":"str",
 	//value length must < 32
@@ -160,19 +158,19 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### keys
+### list_key
 //get all config's keys in one specific app
 #### Req:
 ```
-Path:         /admin.config/keys
+Path:         /admin.config/list_key
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must > 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must > 0
-	"appname":"str",
+	"a_name":"str",
 	//value length must < 32
 	"secret":"str"
 }
@@ -201,9 +199,10 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must > 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must > 0
-	"appname":"str",
+	"a_name":"str",
+	//can't contain '.' in key
 	//value length must > 0
 	"key":"str",
 	//value length must < 32
@@ -233,9 +232,10 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must > 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must > 0
-	"appname":"str",
+	"a_name":"str",
+	//can't contain '.' in key
 	//value length must > 0
 	"key":"str",
 	//0 means return current active config,config's index start from 1
@@ -282,9 +282,10 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must > 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must > 0
-	"appname":"str",
+	"a_name":"str",
+	//can't contain '.' in key
 	//value length must > 0
 	"key":"str",
 	//value length must > 0
@@ -318,9 +319,10 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must > 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must > 0
-	"appname":"str",
+	"a_name":"str",
+	//can't contain '.' in key
 	//value length must > 0
 	"key":"str",
 	//value length must < 32
@@ -353,13 +355,14 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must > 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must > 0
-	"appname":"str",
+	"a_name":"str",
 	//map's key is config's keyname,map's value is config's cur version
 	//if cur version == 0 means return current active config
 	//if all cur version is the newest,the request will block until a new version come
 	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
+	//can't contain '.' in key
 	//kv map,value-uint32
 	//element num must > 0
 	"keys":{"str":0,"str":0}
@@ -398,9 +401,11 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must != 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must != 0
-	"appname":"str"
+	"a_name":"str",
+	//value length must < 32
+	"secret":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -437,15 +442,17 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must != 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must != 0
-	"appname":"str",
+	"a_name":"str",
 	//value length must != 0
 	"path":"str",
 	//need read permission on this node
 	"read":true,
 	//need write permission on this node
-	"write":true
+	"write":true,
+	//value length must < 32
+	"secret":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -471,11 +478,13 @@ Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
 	//value length must != 0
-	"groupname":"str",
+	"g_name":"str",
 	//value length must != 0
-	"appname":"str",
+	"a_name":"str",
 	//value length must != 0
-	"path":"str"
+	"path":"str",
+	//value length must < 32
+	"secret":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -506,9 +515,9 @@ Content-Type: application/json
 	//value length must != 0
 	"path":"str",
 	//value length must != 0
-	"appname":"str",
+	"g_name":"str",
 	//value length must != 0
-	"groupname":"str",
+	"a_name":"str",
 	//value length must >= 2
 	"data":"str"
 }

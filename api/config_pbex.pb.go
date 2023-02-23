@@ -7,20 +7,20 @@
 package api
 
 // return empty means pass
-func (m *GroupsReq) Validate() (errstr string) {
+func (m *ListGroupReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
-		return "field: project_id in object: groups_req check len eq failed"
+		return "field: project_id in object: list_group_req check len eq failed"
 	}
 	return ""
 }
 
 // return empty means pass
-func (m *AppsReq) Validate() (errstr string) {
+func (m *ListAppReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
-		return "field: project_id in object: apps_req check len eq failed"
+		return "field: project_id in object: list_app_req check len eq failed"
 	}
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: apps_req check value str len gt failed"
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: list_app_req check value str len gt failed"
 	}
 	return ""
 }
@@ -30,11 +30,11 @@ func (m *CreateAppReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
 		return "field: project_id in object: create_app_req check len eq failed"
 	}
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: create_app_req check value str len gt failed"
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: create_app_req check value str len gt failed"
 	}
-	if len(m.GetAppname()) <= 0 {
-		return "field: appname in object: create_app_req check value str len gt failed"
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: create_app_req check value str len gt failed"
 	}
 	if len(m.GetSecret()) >= 32 {
 		return "field: secret in object: create_app_req check value str len lt failed"
@@ -44,11 +44,11 @@ func (m *CreateAppReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *DelAppReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: del_app_req check value str len gt failed"
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: del_app_req check value str len gt failed"
 	}
-	if len(m.GetAppname()) <= 0 {
-		return "field: appname in object: del_app_req check value str len gt failed"
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: del_app_req check value str len gt failed"
 	}
 	if len(m.GetSecret()) >= 32 {
 		return "field: secret in object: del_app_req check value str len lt failed"
@@ -58,11 +58,11 @@ func (m *DelAppReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *UpdateAppSecretReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: update_app_secret_req check value str len gt failed"
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: update_app_secret_req check value str len gt failed"
 	}
-	if len(m.GetAppname()) <= 0 {
-		return "field: appname in object: update_app_secret_req check value str len gt failed"
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: update_app_secret_req check value str len gt failed"
 	}
 	if len(m.GetOldSecret()) >= 32 {
 		return "field: old_secret in object: update_app_secret_req check value str len lt failed"
@@ -74,26 +74,26 @@ func (m *UpdateAppSecretReq) Validate() (errstr string) {
 }
 
 // return empty means pass
-func (m *KeysReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: keys_req check value str len gt failed"
+func (m *ListKeyReq) Validate() (errstr string) {
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: list_key_req check value str len gt failed"
 	}
-	if len(m.GetAppname()) <= 0 {
-		return "field: appname in object: keys_req check value str len gt failed"
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: list_key_req check value str len gt failed"
 	}
 	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: keys_req check value str len lt failed"
+		return "field: secret in object: list_key_req check value str len lt failed"
 	}
 	return ""
 }
 
 // return empty means pass
 func (m *DelKeyReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: del_key_req check value str len gt failed"
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: del_key_req check value str len gt failed"
 	}
-	if len(m.GetAppname()) <= 0 {
-		return "field: appname in object: del_key_req check value str len gt failed"
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: del_key_req check value str len gt failed"
 	}
 	if len(m.GetKey()) <= 0 {
 		return "field: key in object: del_key_req check value str len gt failed"
@@ -106,11 +106,11 @@ func (m *DelKeyReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *GetKeyConfigReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: get_key_config_req check value str len gt failed"
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: get_key_config_req check value str len gt failed"
 	}
-	if len(m.GetAppname()) <= 0 {
-		return "field: appname in object: get_key_config_req check value str len gt failed"
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: get_key_config_req check value str len gt failed"
 	}
 	if len(m.GetKey()) <= 0 {
 		return "field: key in object: get_key_config_req check value str len gt failed"
@@ -123,11 +123,11 @@ func (m *GetKeyConfigReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *SetKeyConfigReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: set_key_config_req check value str len gt failed"
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: set_key_config_req check value str len gt failed"
 	}
-	if len(m.GetAppname()) <= 0 {
-		return "field: appname in object: set_key_config_req check value str len gt failed"
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: set_key_config_req check value str len gt failed"
 	}
 	if len(m.GetKey()) <= 0 {
 		return "field: key in object: set_key_config_req check value str len gt failed"
@@ -146,11 +146,11 @@ func (m *SetKeyConfigReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *RollbackReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: rollback_req check value str len gt failed"
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: rollback_req check value str len gt failed"
 	}
-	if len(m.GetAppname()) <= 0 {
-		return "field: appname in object: rollback_req check value str len gt failed"
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: rollback_req check value str len gt failed"
 	}
 	if len(m.GetKey()) <= 0 {
 		return "field: key in object: rollback_req check value str len gt failed"
@@ -166,11 +166,11 @@ func (m *RollbackReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *WatchReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) <= 0 {
-		return "field: groupname in object: watch_req check value str len gt failed"
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: watch_req check value str len gt failed"
 	}
-	if len(m.GetAppname()) <= 0 {
-		return "field: appname in object: watch_req check value str len gt failed"
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: watch_req check value str len gt failed"
 	}
 	if len(m.GetKeys()) <= 0 {
 		return "field: keys in object: watch_req check len gt failed"
@@ -180,39 +180,48 @@ func (m *WatchReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *ListProxyReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) == 0 {
-		return "field: groupname in object: list_proxy_req check value str len not eq failed"
+	if len(m.GetGName()) == 0 {
+		return "field: g_name in object: list_proxy_req check value str len not eq failed"
 	}
-	if len(m.GetAppname()) == 0 {
-		return "field: appname in object: list_proxy_req check value str len not eq failed"
+	if len(m.GetAName()) == 0 {
+		return "field: a_name in object: list_proxy_req check value str len not eq failed"
+	}
+	if len(m.GetSecret()) >= 32 {
+		return "field: secret in object: list_proxy_req check value str len lt failed"
 	}
 	return ""
 }
 
 // return empty means pass
 func (m *SetProxyReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) == 0 {
-		return "field: groupname in object: set_proxy_req check value str len not eq failed"
+	if len(m.GetGName()) == 0 {
+		return "field: g_name in object: set_proxy_req check value str len not eq failed"
 	}
-	if len(m.GetAppname()) == 0 {
-		return "field: appname in object: set_proxy_req check value str len not eq failed"
+	if len(m.GetAName()) == 0 {
+		return "field: a_name in object: set_proxy_req check value str len not eq failed"
 	}
 	if len(m.GetPath()) == 0 {
 		return "field: path in object: set_proxy_req check value str len not eq failed"
+	}
+	if len(m.GetSecret()) >= 32 {
+		return "field: secret in object: set_proxy_req check value str len lt failed"
 	}
 	return ""
 }
 
 // return empty means pass
 func (m *DelProxyReq) Validate() (errstr string) {
-	if len(m.GetGroupname()) == 0 {
-		return "field: groupname in object: del_proxy_req check value str len not eq failed"
+	if len(m.GetGName()) == 0 {
+		return "field: g_name in object: del_proxy_req check value str len not eq failed"
 	}
-	if len(m.GetAppname()) == 0 {
-		return "field: appname in object: del_proxy_req check value str len not eq failed"
+	if len(m.GetAName()) == 0 {
+		return "field: a_name in object: del_proxy_req check value str len not eq failed"
 	}
 	if len(m.GetPath()) == 0 {
 		return "field: path in object: del_proxy_req check value str len not eq failed"
+	}
+	if len(m.GetSecret()) >= 32 {
+		return "field: secret in object: del_proxy_req check value str len lt failed"
 	}
 	return ""
 }
@@ -225,11 +234,11 @@ func (m *ProxyReq) Validate() (errstr string) {
 	if len(m.GetPath()) == 0 {
 		return "field: path in object: proxy_req check value str len not eq failed"
 	}
-	if len(m.GetAppname()) == 0 {
-		return "field: appname in object: proxy_req check value str len not eq failed"
+	if len(m.GetGName()) == 0 {
+		return "field: g_name in object: proxy_req check value str len not eq failed"
 	}
-	if len(m.GetGroupname()) == 0 {
-		return "field: groupname in object: proxy_req check value str len not eq failed"
+	if len(m.GetAName()) == 0 {
+		return "field: a_name in object: proxy_req check value str len not eq failed"
 	}
 	if len(m.GetData()) < 2 {
 		return "field: data in object: proxy_req check value str len gte failed"

@@ -23,12 +23,12 @@ service config{
 	//}
 
 	//get all groups
-	rpc groups(groups_req)returns(groups_resp){
+	rpc list_group(list_group_req)returns(list_group_resp){
 		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
+	 	option (pbex.web_midwares)="token";
 	}
 	//get all apps in one specific group
-	rpc apps(apps_req)returns(apps_resp){
+	rpc list_app(list_app_req)returns(list_app_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -48,7 +48,7 @@ service config{
 		option (pbex.web_midwares)="token";
 	}
 	//get all config's keys in one specific app
-	rpc keys(keys_req)returns(keys_resp){
+	rpc list_key(list_key_req)returns(list_key_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -106,64 +106,62 @@ service config{
 	//int64 example_resp=1;
 //}
 
-message groups_req {
+message list_group_req{
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string search_filter=2;
 }
-message groups_resp {
+message list_group_resp{
 	repeated string groups=1;
 }
-message apps_req {
+message list_app_req{
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string groupname=2[(pbex.string_bytes_len_gt)=0];
-	string search_filter=3;
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
 }
-message apps_resp {
+message list_app_resp{
 	repeated string apps=1;
 }
 message create_app_req {
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string groupname=2[(pbex.string_bytes_len_gt)=0];
-	string appname=3[(pbex.string_bytes_len_gt)=0];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
 	string secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message create_app_resp {
 }
 message del_app_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
 	string secret=3[(pbex.string_bytes_len_lt)=32];
 }
 message del_app_resp {
 }
 message update_app_secret_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
 	string old_secret=3[(pbex.string_bytes_len_lt)=32];
 	string new_secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message update_app_secret_resp{
 }
-message keys_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
+message list_key_req {
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
 	string secret=3[(pbex.string_bytes_len_lt)=32];
 }
-message keys_resp {
+message list_key_resp {
 	repeated string keys=1;
 }
 message del_key_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
-	string key=3[(pbex.string_bytes_len_gt)=0];
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
+	string key=3[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
 	string secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message del_key_resp {
 }
 message get_key_config_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
-	string key=3[(pbex.string_bytes_len_gt)=0];
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
+	string key=3[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
 	uint32 index=4;//0 means return current active config,config's index start from 1
 	string secret=5[(pbex.string_bytes_len_lt)=32];
 }
@@ -176,9 +174,9 @@ message get_key_config_resp {
 	string value_type=6;
 }
 message set_key_config_req {
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
-	string key=3[(pbex.string_bytes_len_gt)=0];
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
+	string key=3[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
 	string value=4[(pbex.string_bytes_len_gt)=0];
 	string value_type=5[(pbex.string_bytes_in)="raw",
 		(pbex.string_bytes_in)="json",
@@ -189,22 +187,22 @@ message set_key_config_req {
 message set_key_config_resp {
 }
 message rollback_req{
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
-	string key=3[(pbex.string_bytes_len_gt)=0];
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
+	string key=3[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
 	string secret=4[(pbex.string_bytes_len_lt)=32];
 	uint32 index=5[(pbex.uint_gt)=0];
 }
 message rollback_resp{
 }
 message watch_req{
-	string groupname=1[(pbex.string_bytes_len_gt)=0];
-	string appname=2[(pbex.string_bytes_len_gt)=0];
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
 	//map's key is config's keyname,map's value is config's cur version
 	//if cur version == 0 means return current active config
 	//if all cur version is the newest,the request will block until a new version come
 	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
-	map<string,uint32> keys=3[(pbex.map_repeated_len_gt)=0];
+	map<string,uint32> keys=3[(pbex.map_repeated_len_gt)=0];//can't contain '.' in key
 }
 message watch_resp{
 	map<string,watch_data> datas=1;
@@ -222,33 +220,36 @@ message proxy_path_info{
 	bool write=3;//need write permission on this node
 }
 message list_proxy_req{
-	string groupname=1[(pbex.string_bytes_len_not_eq)=0];
-	string appname=2[(pbex.string_bytes_len_not_eq)=0];
+	string g_name=1[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string secret=3[(pbex.string_bytes_len_lt)=32];
 }
 message list_proxy_resp{
 	map<string,proxy_path_info> paths=1;
 }
 message set_proxy_req{
-	string groupname=1[(pbex.string_bytes_len_not_eq)=0];
-	string appname=2[(pbex.string_bytes_len_not_eq)=0];
+	string g_name=1[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string path=3[(pbex.string_bytes_len_not_eq)=0];
 	bool read=4;//need read permission on this node
 	bool write=5;//need write permission on this node
+	string secret=6[(pbex.string_bytes_len_lt)=32];
 }
 message set_proxy_resp{
 }
 message del_proxy_req{
-	string groupname=1[(pbex.string_bytes_len_not_eq)=0];
-	string appname=2[(pbex.string_bytes_len_not_eq)=0];
+	string g_name=1[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string path=3[(pbex.string_bytes_len_not_eq)=0];
+	string secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message del_proxy_resp{
 }
 message proxy_req{
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string path=2[(pbex.string_bytes_len_not_eq)=0];
-	string appname=3[(pbex.string_bytes_len_not_eq)=0];
-	string groupname=4[(pbex.string_bytes_len_not_eq)=0];
+	string g_name=3[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=4[(pbex.string_bytes_len_not_eq)=0];
 	string data=5[(pbex.string_bytes_len_gte)=2];
 }
 message proxy_resp{

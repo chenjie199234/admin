@@ -8,7 +8,6 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/segmentio/kafka-go v0.4.38
 	go.mongodb.org/mongo-driver v1.11.1
-	google.golang.org/protobuf v1.28.1
 )
 
 require (
@@ -32,4 +31,5 @@ require (
 	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
 	google.golang.org/grpc v1.52.1 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 )

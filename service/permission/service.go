@@ -342,7 +342,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		return nil, ecode.ErrToken
 	}
 	var target primitive.ObjectID
-	if req.UserId == "" {
+	if req.UserId == "" || req.UserId == md["Token-Data"] {
 		//list self's
 		req.UserId = md["Token-Data"]
 		target = operator
@@ -367,71 +367,95 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	}
 	//logic
 	undup := make(map[string]*api.NodeInfo)
-	usernodes, e := s.permissionDao.MongoGetUserNodes(ctx, target, project, nil)
-	if e != nil {
-		log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
-		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-	}
-	for _, usernode := range usernodes {
-		if exist, ok := undup[usernode.NodeId]; ok {
-			if usernode.R {
-				exist.Canread = usernode.R
-			}
-			if usernode.W {
-				exist.Canwrite = usernode.W
-			}
-			if usernode.X {
-				exist.Admin = usernode.X
-			}
-		} else {
-			nodeid, e := util.ParseNodeIDstr(usernode.NodeId)
-			if e != nil {
-				log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", usernode.NodeId, "format wrong:", e)
-				return nil, ecode.ErrSystem
-			}
-			undup[usernode.NodeId] = &api.NodeInfo{
-				NodeId:   nodeid,
-				NodeName: "",
-				NodeData: "",
-				Canread:  usernode.R,
-				Canwrite: usernode.W,
-				Admin:    usernode.X,
-				Children: make([]*api.NodeInfo, 0, 10),
-			}
-		}
-	}
-	if req.NeedUserRoleNode {
-		userrolenodes, e := s.permissionDao.MongoGetUserRoleNodes(ctx, target, project, nil)
+	if req.UserId == md["Token-Data"] && operator.IsZero() {
+		projectnode, e := s.permissionDao.MongoGetNode(ctx, project)
 		if e != nil {
 			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
-		for _, v := range userrolenodes {
-			for _, userrolenode := range v {
-				if exist, ok := undup[userrolenode.NodeId]; ok {
-					if userrolenode.R {
-						exist.Canread = userrolenode.R
-					}
-					if userrolenode.W {
-						exist.Canwrite = userrolenode.W
-					}
-					if userrolenode.X {
-						exist.Admin = userrolenode.X
-					}
-				} else {
-					nodeid, e := util.ParseNodeIDstr(userrolenode.NodeId)
-					if e != nil {
-						log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", userrolenode.NodeId, "format wrong:", e)
-						return nil, ecode.ErrSystem
-					}
-					undup[userrolenode.NodeId] = &api.NodeInfo{
-						NodeId:   nodeid,
-						NodeName: "",
-						NodeData: "",
-						Canread:  userrolenode.R,
-						Canwrite: userrolenode.W,
-						Admin:    userrolenode.X,
-						Children: make([]*api.NodeInfo, 0, 10),
+		if projectnode == nil {
+			return nil, ecode.ErrProjectNotExist
+		}
+		nodeid, e := util.ParseNodeIDstr(projectnode.NodeId)
+		if e != nil {
+			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", projectnode.NodeId, "format wrong:", e)
+		}
+		undup[projectnode.NodeId] = &api.NodeInfo{
+			NodeId:   nodeid,
+			NodeName: projectnode.NodeName,
+			NodeData: projectnode.NodeData,
+			Canread:  true,
+			Canwrite: true,
+			Admin:    true,
+			Children: make([]*api.NodeInfo, 0, 10),
+		}
+	} else {
+		usernodes, e := s.permissionDao.MongoGetUserNodes(ctx, target, project, nil)
+		if e != nil {
+			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		for _, usernode := range usernodes {
+			if exist, ok := undup[usernode.NodeId]; ok {
+				if usernode.R {
+					exist.Canread = usernode.R
+				}
+				if usernode.W {
+					exist.Canwrite = usernode.W
+				}
+				if usernode.X {
+					exist.Admin = usernode.X
+				}
+			} else {
+				nodeid, e := util.ParseNodeIDstr(usernode.NodeId)
+				if e != nil {
+					log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", usernode.NodeId, "format wrong:", e)
+					return nil, ecode.ErrSystem
+				}
+				undup[usernode.NodeId] = &api.NodeInfo{
+					NodeId:   nodeid,
+					NodeName: "",
+					NodeData: "",
+					Canread:  usernode.R,
+					Canwrite: usernode.W,
+					Admin:    usernode.X,
+					Children: make([]*api.NodeInfo, 0, 10),
+				}
+			}
+		}
+		if req.NeedUserRoleNode {
+			userrolenodes, e := s.permissionDao.MongoGetUserRoleNodes(ctx, target, project, nil)
+			if e != nil {
+				log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
+				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+			}
+			for _, v := range userrolenodes {
+				for _, userrolenode := range v {
+					if exist, ok := undup[userrolenode.NodeId]; ok {
+						if userrolenode.R {
+							exist.Canread = userrolenode.R
+						}
+						if userrolenode.W {
+							exist.Canwrite = userrolenode.W
+						}
+						if userrolenode.X {
+							exist.Admin = userrolenode.X
+						}
+					} else {
+						nodeid, e := util.ParseNodeIDstr(userrolenode.NodeId)
+						if e != nil {
+							log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", userrolenode.NodeId, "format wrong:", e)
+							return nil, ecode.ErrSystem
+						}
+						undup[userrolenode.NodeId] = &api.NodeInfo{
+							NodeId:   nodeid,
+							NodeName: "",
+							NodeData: "",
+							Canread:  userrolenode.R,
+							Canwrite: userrolenode.W,
+							Admin:    userrolenode.X,
+							Children: make([]*api.NodeInfo, 0, 10),
+						}
 					}
 				}
 			}

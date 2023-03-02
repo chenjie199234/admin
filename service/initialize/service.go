@@ -72,6 +72,11 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 
 // RootPassword 更新密码
 func (s *Service) RootPassword(ctx context.Context, req *api.RootPasswordReq) (*api.RootPasswordResp, error) {
+	md := metadata.GetMetadata(ctx)
+	//only super admin can change password
+	if md["Token-Data"] != primitive.NilObjectID.Hex() {
+		return nil, ecode.ErrPermission
+	}
 	if e := s.initializeDao.MongoRootPassword(ctx, req.OldPassword, req.NewPassword); e != nil {
 		log.Error(ctx, "[RootPassword]", e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -97,6 +102,10 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 
 // UpdateProject 更新项目
 func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) (*api.UpdateProjectResp, error) {
+	//0,1 -> project:admin can't be updated
+	if req.ProjectId[0] != 0 || req.ProjectId[1] == 1 {
+		return nil, ecode.ErrReq
+	}
 	md := metadata.GetMetadata(ctx)
 	//only super admin can update project
 	if md["Token-Data"] != primitive.NilObjectID.Hex() {
@@ -112,6 +121,7 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 	}
 	projectid := buf.String()
 	if e := s.initializeDao.MongoUpdateProject(ctx, projectid, req.NewProjectName, req.NewProjectData); e != nil {
+		log.Error(ctx, "[UpdateProject] operator:", md["Token-Data"], "project:", projectid, "new Name:", req.NewProjectName, "new Data:", req.NewProjectData, e)
 		return nil, e
 	}
 	return &api.UpdateProjectResp{}, nil
@@ -195,7 +205,7 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 	}
 	projectid := buf.String()
 	if e := s.initializeDao.MongoDelProject(ctx, projectid); e != nil {
-		log.Error(ctx, "[DeleteProject] operator:", md["Token-Data"], "Name:", projectid, e)
+		log.Error(ctx, "[DeleteProject] operator:", md["Token-Data"], "project:", projectid, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.DeleteProjectResp{}, nil

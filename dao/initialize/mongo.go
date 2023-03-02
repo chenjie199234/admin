@@ -158,7 +158,7 @@ func (d *Dao) MongoRootPassword(ctx context.Context, oldpassword, newpassword st
 	user := &model.User{}
 	filter := bson.M{"_id": primitive.NilObjectID}
 	updater := bson.M{"password": util.SignMake(newpassword, nonce)}
-	if e = d.mongo.Database("user").Collection("user").FindOneAndUpdate(ctx, filter, bson.M{"$set": updater}).Decode(user); e != nil {
+	if e = d.mongo.Database("user").Collection("user").FindOneAndUpdate(sctx, filter, bson.M{"$set": updater}).Decode(user); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrNotInited
 		}

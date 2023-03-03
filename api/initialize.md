@@ -161,7 +161,6 @@ Content-Type: application/json
 	//value length must != 0
 	"new_project_name":"str",
 	//if didn't change,set this with the old value
-	//value length must != 0
 	"new_project_data":"str"
 }
 ------------------------------------------------------------------------------------------------------------

@@ -113,14 +113,22 @@ export class StatusBrowserClientToC {
 	//don't set Content-Type in header
 	ping(header: { [k: string]: string },req: Pingreq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: Pingresp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/x-www-form-urlencoded"
+		let form: string=''
+		try{
+			form=PingreqToForm(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
-			url:_WebPathStatusPing+'?'+PingreqToForm(req),
+			url:_WebPathStatusPing+'?'+form,
 			method: "get",
 			baseURL: this.host,
 			headers: header,

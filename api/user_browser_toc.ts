@@ -897,18 +897,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	user_login(header: { [k: string]: string },req: UserLoginReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UserLoginResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=UserLoginReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserUserLogin,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: UserLoginReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -941,18 +949,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	invite_project(header: { [k: string]: string },req: InviteProjectReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: InviteProjectResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=InviteProjectReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserInviteProject,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: InviteProjectReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -985,18 +1001,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	kick_project(header: { [k: string]: string },req: KickProjectReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: KickProjectResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=KickProjectReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserKickProject,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: KickProjectReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1029,18 +1053,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	search_users(header: { [k: string]: string },req: SearchUsersReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: SearchUsersResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=SearchUsersReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserSearchUsers,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: SearchUsersReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1073,18 +1105,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	update_user(header: { [k: string]: string },req: UpdateUserReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UpdateUserResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=UpdateUserReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserUpdateUser,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: UpdateUserReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1117,18 +1157,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	create_role(header: { [k: string]: string },req: CreateRoleReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: CreateRoleResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=CreateRoleReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserCreateRole,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: CreateRoleReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1161,18 +1209,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	search_roles(header: { [k: string]: string },req: SearchRolesReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: SearchRolesResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=SearchRolesReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserSearchRoles,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: SearchRolesReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1205,18 +1261,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	update_role(header: { [k: string]: string },req: UpdateRoleReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UpdateRoleResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=UpdateRoleReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserUpdateRole,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: UpdateRoleReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1249,18 +1313,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	del_roles(header: { [k: string]: string },req: DelRolesReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: DelRolesResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=DelRolesReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserDelRoles,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: DelRolesReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1293,18 +1365,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	add_user_role(header: { [k: string]: string },req: AddUserRoleReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: AddUserRoleResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=AddUserRoleReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserAddUserRole,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: AddUserRoleReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1337,18 +1417,26 @@ export class UserBrowserClientToC {
 	//don't set Content-Type in header
 	del_user_role(header: { [k: string]: string },req: DelUserRoleReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: DelUserRoleResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=DelUserRoleReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathUserDelUserRole,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: DelUserRoleReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)

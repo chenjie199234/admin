@@ -61,9 +61,6 @@ func (m *UpdateProjectReq) Validate() (errstr string) {
 	if len(m.GetNewProjectName()) == 0 {
 		return "field: new_project_name in object: update_project_req check value str len not eq failed"
 	}
-	if len(m.GetNewProjectData()) == 0 {
-		return "field: new_project_data in object: update_project_req check value str len not eq failed"
-	}
 	return ""
 }
 

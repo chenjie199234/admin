@@ -771,18 +771,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	get_user_permission(header: { [k: string]: string },req: GetUserPermissionReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GetUserPermissionResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=GetUserPermissionReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionGetUserPermission,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: GetUserPermissionReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -815,18 +823,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	update_user_permission(header: { [k: string]: string },req: UpdateUserPermissionReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UpdateUserPermissionResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=UpdateUserPermissionReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionUpdateUserPermission,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: UpdateUserPermissionReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -859,18 +875,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	update_role_permission(header: { [k: string]: string },req: UpdateRolePermissionReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UpdateRolePermissionResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=UpdateRolePermissionReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionUpdateRolePermission,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: UpdateRolePermissionReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -903,18 +927,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	add_node(header: { [k: string]: string },req: AddNodeReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: AddNodeResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=AddNodeReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionAddNode,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: AddNodeReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -947,18 +979,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	update_node(header: { [k: string]: string },req: UpdateNodeReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UpdateNodeResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=UpdateNodeReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionUpdateNode,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: UpdateNodeReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -991,18 +1031,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	move_node(header: { [k: string]: string },req: MoveNodeReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: MoveNodeResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=MoveNodeReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionMoveNode,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: MoveNodeReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1035,18 +1083,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	del_node(header: { [k: string]: string },req: DelNodeReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: DelNodeResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=DelNodeReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionDelNode,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: DelNodeReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1079,18 +1135,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	list_user_node(header: { [k: string]: string },req: ListUserNodeReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListUserNodeResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=ListUserNodeReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionListUserNode,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: ListUserNodeReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1123,18 +1187,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	list_role_node(header: { [k: string]: string },req: ListRoleNodeReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListRoleNodeResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=ListRoleNodeReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionListRoleNode,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: ListRoleNodeReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1167,18 +1239,26 @@ export class PermissionBrowserClientToC {
 	//don't set Content-Type in header
 	list_project_node(header: { [k: string]: string },req: ListProjectNodeReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListProjectNodeResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=ListProjectNodeReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathPermissionListProjectNode,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: ListProjectNodeReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)

@@ -1157,18 +1157,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	list_group(header: { [k: string]: string },req: ListGroupReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListGroupResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=ListGroupReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigListGroup,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: ListGroupReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1201,18 +1209,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	list_app(header: { [k: string]: string },req: ListAppReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListAppResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=ListAppReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigListApp,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: ListAppReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1245,18 +1261,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	create_app(header: { [k: string]: string },req: CreateAppReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: CreateAppResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=CreateAppReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigCreateApp,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: CreateAppReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1289,18 +1313,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	del_app(header: { [k: string]: string },req: DelAppReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: DelAppResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=DelAppReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigDelApp,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: DelAppReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1333,18 +1365,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	update_app_secret(header: { [k: string]: string },req: UpdateAppSecretReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UpdateAppSecretResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=UpdateAppSecretReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigUpdateAppSecret,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: UpdateAppSecretReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1377,18 +1417,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	list_key(header: { [k: string]: string },req: ListKeyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListKeyResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=ListKeyReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigListKey,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: ListKeyReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1421,18 +1469,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	del_key(header: { [k: string]: string },req: DelKeyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: DelKeyResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=DelKeyReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigDelKey,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: DelKeyReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1465,18 +1521,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	get_key_config(header: { [k: string]: string },req: GetKeyConfigReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GetKeyConfigResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=GetKeyConfigReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigGetKeyConfig,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: GetKeyConfigReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1509,18 +1573,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	set_key_config(header: { [k: string]: string },req: SetKeyConfigReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: SetKeyConfigResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=SetKeyConfigReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigSetKeyConfig,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: SetKeyConfigReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1553,18 +1625,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	rollback(header: { [k: string]: string },req: RollbackReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: RollbackResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=RollbackReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigRollback,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: RollbackReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1597,18 +1677,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	watch(header: { [k: string]: string },req: WatchReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: WatchResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=WatchReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigWatch,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: WatchReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1641,18 +1729,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	list_proxy(header: { [k: string]: string },req: ListProxyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListProxyResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=ListProxyReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigListProxy,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: ListProxyReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1685,18 +1781,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	set_proxy(header: { [k: string]: string },req: SetProxyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: SetProxyResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=SetProxyReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigSetProxy,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: SetProxyReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1729,18 +1833,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	del_proxy(header: { [k: string]: string },req: DelProxyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: DelProxyResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=DelProxyReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigDelProxy,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: DelProxyReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -1773,18 +1885,26 @@ export class ConfigBrowserClientToC {
 	//don't set Content-Type in header
 	proxy(header: { [k: string]: string },req: ProxyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ProxyResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=ProxyReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathConfigProxy,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: ProxyReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)

@@ -387,18 +387,26 @@ export class InitializeBrowserClientToC {
 	//don't set Content-Type in header
 	init_status(header: { [k: string]: string },req: InitStatusReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: InitStatusResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=InitStatusReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathInitializeInitStatus,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: InitStatusReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -431,18 +439,26 @@ export class InitializeBrowserClientToC {
 	//don't set Content-Type in header
 	init(header: { [k: string]: string },req: InitReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: InitResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=InitReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathInitializeInit,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: InitReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -475,18 +491,26 @@ export class InitializeBrowserClientToC {
 	//don't set Content-Type in header
 	root_login(header: { [k: string]: string },req: RootLoginReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: RootLoginResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=RootLoginReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathInitializeRootLogin,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: RootLoginReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -519,18 +543,26 @@ export class InitializeBrowserClientToC {
 	//don't set Content-Type in header
 	root_password(header: { [k: string]: string },req: RootPasswordReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: RootPasswordResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=RootPasswordReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathInitializeRootPassword,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: RootPasswordReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -563,18 +595,26 @@ export class InitializeBrowserClientToC {
 	//don't set Content-Type in header
 	create_project(header: { [k: string]: string },req: CreateProjectReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: CreateProjectResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=CreateProjectReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathInitializeCreateProject,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: CreateProjectReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -607,18 +647,26 @@ export class InitializeBrowserClientToC {
 	//don't set Content-Type in header
 	update_project(header: { [k: string]: string },req: UpdateProjectReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UpdateProjectResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=UpdateProjectReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathInitializeUpdateProject,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: UpdateProjectReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -651,18 +699,26 @@ export class InitializeBrowserClientToC {
 	//don't set Content-Type in header
 	list_project(header: { [k: string]: string },req: ListProjectReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListProjectResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=ListProjectReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathInitializeListProject,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: ListProjectReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)
@@ -695,18 +751,26 @@ export class InitializeBrowserClientToC {
 	//don't set Content-Type in header
 	delete_project(header: { [k: string]: string },req: DeleteProjectReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: DeleteProjectResp)=>void){
 		if(!Number.isInteger(timeout)){
-			throw 'timeout must be integer'
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
 		}
 		if(header==null||header==undefined){
 			header={}
 		}
 		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=DeleteProjectReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
 		let config={
 			url:_WebPathInitializeDeleteProject,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
-			data: DeleteProjectReqToJson(req),
+			data: body,
 			timeout: timeout,
 		}
 		Axios.request(config)

@@ -745,12 +745,12 @@ func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetP
 			log.Error(ctx, "[SetProxy] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid:", nodeid, "format wrong")
 			return nil, ecode.ErrConfigDataBroken
 		}
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
+		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {
 			log.Error(ctx, "[SetProxy] operator:", md["Token-Data"], "nodeid:", nodeid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
-		if !admin {
+		if !canwrite && !admin {
 			return nil, ecode.ErrPermission
 		}
 	}
@@ -782,12 +782,12 @@ func (s *Service) DelProxy(ctx context.Context, req *api.DelProxyReq) (*api.DelP
 			log.Error(ctx, "[DelProxy] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid:", nodeid, "format wrong")
 			return nil, ecode.ErrConfigDataBroken
 		}
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
+		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {
 			log.Error(ctx, "[DelProxy] operator:", md["Token-Data"], "nodeid:", nodeid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
-		if !admin {
+		if !canwrite && !admin {
 			return nil, ecode.ErrPermission
 		}
 	}

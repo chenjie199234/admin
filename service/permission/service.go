@@ -547,8 +547,10 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	for _, node := range nodes {
 		addTreeNode(root, node)
 	}
+	sortTreeNodes(root.Children)
 	return &api.ListUserNodeResp{Nodes: root.Children}, nil
 }
+
 func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*api.ListRoleNodeResp, error) {
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
@@ -696,6 +698,7 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	for _, node := range nodes {
 		addTreeNode(root, node)
 	}
+	sortTreeNodes(root.Children)
 	return &api.ListRoleNodeResp{Nodes: root.Children}, nil
 }
 func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeReq) (*api.ListProjectNodeResp, error) {
@@ -737,6 +740,7 @@ func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeR
 			Children: make([]*api.NodeInfo, 0),
 		})
 	}
+	sortTreeNodes(projectnode.Children)
 	return &api.ListProjectNodeResp{Nodes: projectnode.Children}, nil
 }
 func addTreeNode(root, node *api.NodeInfo) bool {
@@ -763,6 +767,26 @@ func addTreeNode(root, node *api.NodeInfo) bool {
 	}
 	root.Children = append(root.Children, node)
 	return true
+}
+func sortTreeNodes(nodes []*api.NodeInfo) {
+	sort.Slice(nodes, func(i, j int) bool {
+		if len(nodes[i].NodeId) < len(nodes[j].NodeId) {
+			return true
+		} else if len(nodes[i].NodeId) > len(nodes[j].NodeId) {
+			return false
+		}
+		for k := 0; k < len(nodes[i].NodeId); k++ {
+			if nodes[i].NodeId[k] < nodes[j].NodeId[k] {
+				return true
+			}
+		}
+		return false
+	})
+	for _, node := range nodes {
+		if len(node.Children) > 1 {
+			sortTreeNodes(node.Children)
+		}
+	}
 }
 
 // Stop -

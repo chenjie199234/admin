@@ -1,0 +1,11 @@
+*
+!.gitignore
+!index.html
+!package.json
+!tsconfig.json
+!tsconfig.node.json
+!vite.config.ts
+!/src/
+!/src/*
+!/src/**/
+!/src/**/*

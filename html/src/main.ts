@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
-import app from './app.vue'
+import main from './main.vue'
 import { createVuestic } from 'vuestic-ui'
 import 'vuestic-ui/css'
 
-createApp(app).use(createVuestic()).mount('#app')
+createApp(main).use(createVuestic()).mount('#app')

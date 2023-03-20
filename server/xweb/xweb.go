@@ -53,7 +53,7 @@ func StartWebServer() {
 
 	//you just need to register your service here
 	api.RegisterStatusWebServer(s, service.SvcStatus, mids.AllMids())
-	api.RegisterConfigWebServer(s, service.SvcConfig, mids.AllMids())
+	api.RegisterAppWebServer(s, service.SvcApp, mids.AllMids())
 	api.RegisterUserWebServer(s, service.SvcUser, mids.AllMids())
 	api.RegisterPermissionWebServer(s, service.SvcPermission, mids.AllMids())
 	api.RegisterInitializeWebServer(s, service.SvcInitialize, mids.AllMids())

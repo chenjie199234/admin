@@ -231,7 +231,7 @@ function JsonToListProjectNodeResp(jsonobj: { [k:string]:any }): ListProjectNode
 			if(typeof element!='object'){
 				throw 'element in ListProjectNodeResp.nodes must be NodeInfo'
 			}
-			if(obj['nodes']==undefined){
+			if(obj['nodes']==null){
 				obj['nodes']=new Array<NodeInfo>
 			}
 			obj['nodes'].push(JsonToNodeInfo(element))
@@ -296,7 +296,7 @@ function JsonToListRoleNodeResp(jsonobj: { [k:string]:any }): ListRoleNodeResp{
 			if(typeof element!='object'){
 				throw 'element in ListRoleNodeResp.nodes must be NodeInfo'
 			}
-			if(obj['nodes']==undefined){
+			if(obj['nodes']==null){
 				obj['nodes']=new Array<NodeInfo>
 			}
 			obj['nodes'].push(JsonToNodeInfo(element))
@@ -368,7 +368,7 @@ function JsonToListUserNodeResp(jsonobj: { [k:string]:any }): ListUserNodeResp{
 			if(typeof element!='object'){
 				throw 'element in ListUserNodeResp.nodes must be NodeInfo'
 			}
-			if(obj['nodes']==undefined){
+			if(obj['nodes']==null){
 				obj['nodes']=new Array<NodeInfo>
 			}
 			obj['nodes'].push(JsonToNodeInfo(element))
@@ -467,7 +467,7 @@ function JsonToNodeInfo(jsonobj: { [k:string]:any }): NodeInfo{
 			}else if(element>4294967295||element<0){
 				throw 'element in NodeInfo.node_id overflow'
 			}
-			if(obj['node_id']==undefined){
+			if(obj['node_id']==null){
 				obj['node_id']=new Array<number>
 			}
 			obj['node_id'].push(element)
@@ -517,7 +517,7 @@ function JsonToNodeInfo(jsonobj: { [k:string]:any }): NodeInfo{
 			if(typeof element!='object'){
 				throw 'element in NodeInfo.children must be NodeInfo'
 			}
-			if(obj['children']==undefined){
+			if(obj['children']==null){
 				obj['children']=new Array<NodeInfo>
 			}
 			obj['children'].push(JsonToNodeInfo(element))

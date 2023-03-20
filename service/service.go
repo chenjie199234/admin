@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/chenjie199234/admin/dao"
-	"github.com/chenjie199234/admin/service/config"
+	"github.com/chenjie199234/admin/service/app"
 	"github.com/chenjie199234/admin/service/initialize"
 	"github.com/chenjie199234/admin/service/permission"
 	"github.com/chenjie199234/admin/service/status"
@@ -11,7 +11,7 @@ import (
 
 // SvcStatus one specify sub service
 var SvcStatus *status.Service
-var SvcConfig *config.Service
+var SvcApp *app.Service
 var SvcUser *user.Service
 var SvcPermission *permission.Service
 var SvcInitialize *initialize.Service
@@ -23,7 +23,7 @@ func StartService() error {
 	}
 	//start sub service
 	SvcStatus = status.Start()
-	SvcConfig = config.Start()
+	SvcApp = app.Start()
 	SvcUser = user.Start()
 	SvcPermission = permission.Start()
 	SvcInitialize = initialize.Start()
@@ -34,7 +34,7 @@ func StartService() error {
 func StopService() {
 	//stop sub service
 	SvcStatus.Stop()
-	SvcConfig.Stop()
+	SvcApp.Stop()
 	SvcUser.Stop()
 	SvcPermission.Stop()
 	SvcInitialize.Stop()

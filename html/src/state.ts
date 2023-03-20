@@ -69,6 +69,12 @@ export function avatar():string{
 export function logout(){
 	user.token=""
 	user.info=null
+
+	project.all=[]
+	project.cur=""
+	project.nodes=[]
+
+	page.node=null
 }
 
 //-------------------------------------------------------------------------------

@@ -361,7 +361,7 @@ function JsonToRoleInfo(jsonobj: { [k:string]:any }): RoleInfo{
 			}else if(element>4294967295||element<0){
 				throw 'element in RoleInfo.project_id overflow'
 			}
-			if(obj['project_id']==undefined){
+			if(obj['project_id']==null){
 				obj['project_id']=new Array<number>
 			}
 			obj['project_id'].push(element)
@@ -468,7 +468,7 @@ function JsonToSearchRolesResp(jsonobj: { [k:string]:any }): SearchRolesResp{
 			if(typeof element!='object'){
 				throw 'element in SearchRolesResp.roles must be RoleInfo'
 			}
-			if(obj['roles']==undefined){
+			if(obj['roles']==null){
 				obj['roles']=new Array<RoleInfo>
 			}
 			obj['roles'].push(JsonToRoleInfo(element))
@@ -588,7 +588,7 @@ function JsonToSearchUsersResp(jsonobj: { [k:string]:any }): SearchUsersResp{
 			if(typeof element!='object'){
 				throw 'element in SearchUsersResp.users must be UserInfo'
 			}
-			if(obj['users']==undefined){
+			if(obj['users']==null){
 				obj['users']=new Array<UserInfo>
 			}
 			obj['users'].push(JsonToUserInfo(element))
@@ -773,7 +773,7 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 			if(typeof element!='string'){
 				throw 'element in UserInfo.department must be string'
 			}
-			if(obj['department']==undefined){
+			if(obj['department']==null){
 				obj['department']=new Array<string>
 			}
 			obj['department'].push(element)
@@ -797,7 +797,7 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 			if(typeof element!='object'){
 				throw 'element in UserInfo.roles must be UserRoleInfo'
 			}
-			if(obj['roles']==undefined){
+			if(obj['roles']==null){
 				obj['roles']=new Array<UserRoleInfo>
 			}
 			obj['roles'].push(JsonToUserRoleInfo(element))
@@ -866,7 +866,7 @@ function JsonToUserRoleInfo(jsonobj: { [k:string]:any }): UserRoleInfo{
 			if(typeof element!='string'){
 				throw 'element in UserRoleInfo.role_names must be string'
 			}
-			if(obj['role_names']==undefined){
+			if(obj['role_names']==null){
 				obj['role_names']=new Array<string>
 			}
 			obj['role_names'].push(element)

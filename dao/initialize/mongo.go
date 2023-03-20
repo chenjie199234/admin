@@ -87,12 +87,12 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 	})
 	//project admin's config control node
 	docs = append(docs, &model.Node{
-		NodeId:       model.AdminProjectID + model.ConfigControl,
-		NodeName:     "ConfigControl",
+		NodeId:       model.AdminProjectID + model.AppControl,
+		NodeName:     "AppControl",
 		NodeData:     "",
 		CurNodeIndex: 1,
 	})
-	selfConfigNodeID := model.AdminProjectID + model.ConfigControl + ",1"
+	selfConfigNodeID := model.AdminProjectID + model.AppControl + ",1"
 	docs = append(docs, &model.Node{
 		NodeId:       selfConfigNodeID,
 		NodeName:     model.Group + "." + model.Name,
@@ -105,7 +105,7 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		e = ecode.ErrAlreadyInited
 		return
 	}
-	if _, e = d.mongo.Database("service").Collection("config").UpdateOne(sctx, bson.M{"group": model.Group, "app": model.Name, "key": "", "index": 0}, bson.M{"$set": bson.M{"permission_node_id": selfConfigNodeID}}); e != nil {
+	if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, bson.M{"group": model.Group, "app": model.Name, "key": "", "index": 0}, bson.M{"$set": bson.M{"permission_node_id": selfConfigNodeID}}); e != nil {
 		return
 	}
 	if _, e = d.mongo.Database("permission").Collection("usernode").InsertOne(sctx, &model.UserNode{
@@ -221,8 +221,8 @@ func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata s
 		CurNodeIndex: 0,
 	})
 	docs = append(docs, &model.Node{
-		NodeId:       nodeid + model.ConfigControl,
-		NodeName:     "ConfigControl",
+		NodeId:       nodeid + model.AppControl,
+		NodeName:     "AppControl",
 		NodeData:     "",
 		CurNodeIndex: 0,
 	})

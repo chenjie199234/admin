@@ -15,7 +15,7 @@ import (
 )
 
 type Sdk struct {
-	client     api.ConfigWebClient
+	client     api.AppWebClient
 	secret     string
 	wait       chan *struct{}
 	lker       sync.Mutex
@@ -35,7 +35,7 @@ func NewConfigSdk(selfgroup, selfname, servergroup, serverhost, secret string) (
 		return nil, e
 	}
 	instance := &Sdk{
-		client:     api.NewConfigWebClient(tmpclient),
+		client:     api.NewAppWebClient(tmpclient),
 		secret:     secret,
 		wait:       make(chan *struct{}, 1),
 		keys:       make(map[string]*api.WatchData),

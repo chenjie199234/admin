@@ -59,7 +59,7 @@ func NewDirectSdk(gname, aname, mongourl, secret string, AppConfigTemplate, Sour
 	return instance, nil
 }
 func (instance *Sdk) first() error {
-	if e := instance.client.Database("service").Collection("config").FindOne(context.Background(), bson.M{"group": instance.gname, "app": instance.aname, "key": "", "index": 0}).Decode(instance.appsummary); e != nil {
+	if e := instance.client.Database("app").Collection("config").FindOne(context.Background(), bson.M{"group": instance.gname, "app": instance.aname, "key": "", "index": 0}).Decode(instance.appsummary); e != nil {
 		return e
 	}
 	//sign check
@@ -79,7 +79,7 @@ func (instance *Sdk) first() error {
 	return nil
 }
 func (instance *Sdk) watch() {
-	watchfilter := mongo.Pipeline{bson.D{bson.E{Key: "$match", Value: bson.M{"ns.db": "service", "ns.coll": "config"}}}}
+	watchfilter := mongo.Pipeline{bson.D{bson.E{Key: "$match", Value: bson.M{"ns.db": "app", "ns.coll": "config"}}}}
 	var stream *mongo.ChangeStream
 	for {
 		for stream == nil {
@@ -292,7 +292,7 @@ func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigT
 		Value:            util.SignMake(secret, nonce),
 		PermissionNodeID: "",
 	}
-	if _, e = db.Database("service").Collection("config").InsertOne(sctx, appsummary); e != nil {
+	if _, e = db.Database("app").Collection("config").InsertOne(sctx, appsummary); e != nil {
 		return
 	}
 	applog := &model.Log{
@@ -303,7 +303,7 @@ func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigT
 		Value:     appconfig,
 		ValueType: "json",
 	}
-	if _, e = db.Database("service").Collection("config").InsertOne(sctx, applog); e != nil {
+	if _, e = db.Database("app").Collection("config").InsertOne(sctx, applog); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
 			//if appsummary not exist,log shouldn't exist
 			e = errors.New("AppConfig conflict")
@@ -318,7 +318,7 @@ func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigT
 		Value:     sourceconfig,
 		ValueType: "json",
 	}
-	if _, e = db.Database("service").Collection("config").InsertOne(sctx, sourcelog); e != nil {
+	if _, e = db.Database("app").Collection("config").InsertOne(sctx, sourcelog); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
 			//if appsummary not exist,log shouldn't exist
 			e = errors.New("SourceConfig conflict")

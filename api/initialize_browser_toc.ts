@@ -59,7 +59,7 @@ function JsonToCreateProjectResp(jsonobj: { [k:string]:any }): CreateProjectResp
 			}else if(element>4294967295||element<0){
 				throw 'element in CreateProjectResp.project_id overflow'
 			}
-			if(obj['project_id']==undefined){
+			if(obj['project_id']==null){
 				obj['project_id']=new Array<number>
 			}
 			obj['project_id'].push(element)
@@ -186,7 +186,7 @@ function JsonToListProjectResp(jsonobj: { [k:string]:any }): ListProjectResp{
 			if(typeof element!='object'){
 				throw 'element in ListProjectResp.projects must be ProjectInfo'
 			}
-			if(obj['projects']==undefined){
+			if(obj['projects']==null){
 				obj['projects']=new Array<ProjectInfo>
 			}
 			obj['projects'].push(JsonToProjectInfo(element))
@@ -217,7 +217,7 @@ function JsonToProjectInfo(jsonobj: { [k:string]:any }): ProjectInfo{
 			}else if(element>4294967295||element<0){
 				throw 'element in ProjectInfo.project_id overflow'
 			}
-			if(obj['project_id']==undefined){
+			if(obj['project_id']==null){
 				obj['project_id']=new Array<number>
 			}
 			obj['project_id'].push(element)

@@ -43,7 +43,7 @@ SourceConfig.json该文件配置了该服务需要使用的资源配置,不热�
 ### Mongo(ReplicaSet mode)(Version >= 4.4)
 #### config
 ```
-database: service
+database: app
 
 collection: config
 {
@@ -90,7 +90,7 @@ collection: config
 	"value":""
 }//log
 //手动创建数据库
-use service;
+use app;
 db.createCollection("config");
 db.config.createIndex({group:1,app:1,key:1,index:1},{unique:true});
 db.config.createIndex({permission_node_id:1},{sparse:true,unique:true});

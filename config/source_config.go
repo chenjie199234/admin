@@ -46,9 +46,9 @@ type CGrpcServerConfig struct {
 
 // CGrpcClientConfig
 type CGrpcClientConfig struct {
-	ConnectTimeout ctime.Duration `json:"conn_timeout"`   //default 500ms,max time to finish the handshake
-	GlobalTimeout  ctime.Duration `json:"global_timeout"` //max time to handle the request,0 means no default timeout
-	HeartProbe     ctime.Duration `json:"heart_probe"`    //default 1.5s
+	ConnectTimeout ctime.Duration `json:"connect_timeout"` //default 500ms,max time to finish the handshake
+	GlobalTimeout  ctime.Duration `json:"global_timeout"`  //max time to handle the request,0 means no default timeout
+	HeartProbe     ctime.Duration `json:"heart_probe"`     //default 1.5s
 }
 
 // CrpcServerConfig -
@@ -61,9 +61,9 @@ type CrpcServerConfig struct {
 
 // CrpcClientConfig -
 type CrpcClientConfig struct {
-	ConnectTimeout ctime.Duration `json:"conn_timeout"`   //default 500ms,max time to finish the handshake
-	GlobalTimeout  ctime.Duration `json:"global_timeout"` //max time to handle the request,0 means no default timeout
-	HeartProbe     ctime.Duration `json:"heart_probe"`    //default 1.5s
+	ConnectTimeout ctime.Duration `json:"connect_timeout"` //default 500ms,max time to finish the handshake
+	GlobalTimeout  ctime.Duration `json:"global_timeout"`  //max time to handle the request,0 means no default timeout
+	HeartProbe     ctime.Duration `json:"heart_probe"`     //default 1.5s
 }
 
 // WebServerConfig -
@@ -88,10 +88,10 @@ type WebCorsConfig struct {
 
 // WebClientConfig -
 type WebClientConfig struct {
-	ConnectTimeout ctime.Duration `json:"conn_timeout"`   //default 500ms,max time to finish the handshake
-	GlobalTimeout  ctime.Duration `json:"global_timeout"` //max time to handle the request,0 means no default timeout
-	IdleTimeout    ctime.Duration `json:"idle_timeout"`   //default 5s
-	HeartProbe     ctime.Duration `json:"heart_probe"`    //default 1.5s
+	ConnectTimeout ctime.Duration `json:"connect_timeout"` //default 500ms,max time to finish the handshake
+	GlobalTimeout  ctime.Duration `json:"global_timeout"`  //max time to handle the request,0 means no default timeout
+	IdleTimeout    ctime.Duration `json:"idle_timeout"`    //default 5s
+	HeartProbe     ctime.Duration `json:"heart_probe"`     //default 1.5s
 }
 
 // RedisConfig -

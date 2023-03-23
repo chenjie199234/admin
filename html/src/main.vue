@@ -454,17 +454,21 @@ function iframeload(){
 	</div>
 	<div v-else style="display:flex;width:100%">
 		<div style="display:flex;flex-direction:column;width:300px">
-			<div style="display:flex;margin:4px 0">
+			<div style="display:flex;padding:5px 0">
 				<va-select
-					style="margin:0 2px;flex:1"
+					trigger="hover"
+					outline
+					style="flex:1;margin:0 2px"
 					v-model="state.project.cur"
 					:options="state.project.all"
 					text-by="project_name"
 					track-by="project_id"
-					placeholder="Select Project"
-					dropdown-icon=""
+					label="Select Project"
 					@update:model-value="select_project(true)"
-				/>
+				>
+					<template #appendInner>
+					</template>
+				</va-select>
 				<va-dropdown v-if="state.user.root||(is_root_node_project()&&state.project.nodes[0].admin)" trigger="hover" style="width:36px;margin-right:2px">
 					<template #anchor>
 						<va-button>•••</va-button>
@@ -486,13 +490,13 @@ function iframeload(){
 				</va-dropdown>
 			</div>
 			<va-divider style="margin:0" />
-			<div style="flex:1;overflow-x:hidden;overflow-y:auto">
+			<div style="flex:1;overflow-x:hidden;overflow-y:auto;background-color:var(--va-background-element)">
 				<sidemenu :nodes="is_root_node_project()?state.project.nodes[0].children:state.project.nodes" :deep="0" />
 			</div>
 		</div>
 		<va-divider vertical style="margin:0" />
 		<div style="display:flex;flex-direction:column;flex:1">
-			<div style="display:flex;margin:4px">
+			<div style="display:flex;padding:5px;background-color:var(--va-background-element)">
 				<div style="display:flex;flex:1">
 				</div>
 				<va-dropdown trigger="hover" style="width:36px" placement="bottom-end">

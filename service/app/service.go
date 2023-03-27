@@ -31,7 +31,7 @@ import (
 type Service struct {
 	stop *graceful.Graceful
 
-	configDao     *appdao.Dao
+	appDao        *appdao.Dao
 	permissionDao *permissiondao.Dao
 
 	sync.Mutex
@@ -47,7 +47,7 @@ func Start() *Service {
 	s := &Service{
 		stop: graceful.New(),
 
-		configDao:     appdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
+		appDao:        appdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		permissionDao: permissiondao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 
 		apps:          make(map[string]*model.AppSummary),
@@ -55,7 +55,7 @@ func Start() *Service {
 		clients:       make(map[string]*crpc.CrpcClient),
 		clientsActive: make(map[string]int64),
 	}
-	if e := s.configDao.MongoWatchConfig(s.drop, s.update, s.del, s.apps); e != nil {
+	if e := s.appDao.MongoWatchConfig(s.drop, s.update, s.del, s.apps); e != nil {
 		panic("[Config.Start] watch error: " + e.Error())
 	}
 	go s.job()
@@ -178,7 +178,7 @@ func (s *Service) ListGroup(ctx context.Context, req *api.ListGroupReq) (*api.Li
 	}
 
 	//logic
-	groups, e := s.configDao.MongoGetAllGroups(ctx, projectid)
+	groups, e := s.appDao.MongoGetAllGroups(ctx, projectid)
 	if e != nil {
 		log.Error(ctx, "[Groups]", e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -216,7 +216,7 @@ func (s *Service) ListApp(ctx context.Context, req *api.ListAppReq) (*api.ListAp
 	}
 
 	//logic
-	apps, e := s.configDao.MongoGetAllAppsInGroup(ctx, projectid, req.GName)
+	apps, e := s.appDao.MongoGetAllAppsInGroup(ctx, projectid, req.GName)
 	if e != nil {
 		log.Error(ctx, "[Apps] group:", req.GName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -254,7 +254,7 @@ func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.Cr
 	}
 
 	//logic
-	if e := s.configDao.MongoCreateApp(ctx, projectid, req.GName, req.AName, req.Secret); e != nil {
+	if e := s.appDao.MongoCreateApp(ctx, projectid, req.GName, req.AName, req.Secret); e != nil {
 		log.Error(ctx, "[CreateApp] group:", req.GName, "app:", req.AName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -272,7 +272,7 @@ func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppRe
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[DelApp] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -295,7 +295,7 @@ func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppRe
 	}
 
 	//logic
-	if e := s.configDao.MongoDelApp(ctx, req.GName, req.AName, req.Secret); e != nil {
+	if e := s.appDao.MongoDelApp(ctx, req.GName, req.AName, req.Secret); e != nil {
 		log.Error(ctx, "[DelApp] group:", req.GName, "app:", req.AName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -316,7 +316,7 @@ func (s *Service) UpdateAppSecret(ctx context.Context, req *api.UpdateAppSecretR
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[UpdateAppSecret] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -337,7 +337,7 @@ func (s *Service) UpdateAppSecret(ctx context.Context, req *api.UpdateAppSecretR
 	}
 
 	//logic
-	if e := s.configDao.MongoUpdateAppSecret(ctx, req.GName, req.AName, req.OldSecret, req.NewSecret); e != nil {
+	if e := s.appDao.MongoUpdateAppSecret(ctx, req.GName, req.AName, req.OldSecret, req.NewSecret); e != nil {
 		log.Error(ctx, "[UpdateAppSecret] group:", req.GName, "app:", req.AName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -355,7 +355,7 @@ func (s *Service) ListKey(ctx context.Context, req *api.ListKeyReq) (*api.ListKe
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[Keys] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -376,7 +376,7 @@ func (s *Service) ListKey(ctx context.Context, req *api.ListKeyReq) (*api.ListKe
 	}
 
 	//logic
-	keys, e := s.configDao.MongoGetAllKeys(ctx, req.GName, req.AName, req.Secret)
+	keys, e := s.appDao.MongoGetAllKeys(ctx, req.GName, req.AName, req.Secret)
 	if e != nil {
 		log.Error(ctx, "[Keys] group:", req.GName, "app:", req.AName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -397,7 +397,7 @@ func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyRe
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[DelKey] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -417,7 +417,7 @@ func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyRe
 		}
 	}
 
-	if e := s.configDao.MongoDelKey(ctx, req.GName, req.AName, req.Key, req.Secret); e != nil {
+	if e := s.appDao.MongoDelKey(ctx, req.GName, req.AName, req.Key, req.Secret); e != nil {
 		log.Error(ctx, "[DelKey] group:", req.GName, "app:", req.AName, "key:", req.Key, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -438,7 +438,7 @@ func (s *Service) GetKeyConfig(ctx context.Context, req *api.GetKeyConfigReq) (*
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[GetKeyConfig] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -459,7 +459,7 @@ func (s *Service) GetKeyConfig(ctx context.Context, req *api.GetKeyConfigReq) (*
 	}
 
 	//logic
-	keysummary, configlog, e := s.configDao.MongoGetKeyConfig(ctx, req.GName, req.AName, req.Key, req.Index, req.Secret)
+	keysummary, configlog, e := s.appDao.MongoGetKeyConfig(ctx, req.GName, req.AName, req.Key, req.Index, req.Secret)
 	if e != nil {
 		log.Error(ctx, "[GetKeyConfig] group:", req.GName, "app:", req.AName, "key:", req.Key, "index:", req.Index, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -487,7 +487,7 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[SetKeyConfig] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -518,7 +518,7 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 		log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "value empty")
 		return nil, ecode.ErrReq
 	}
-	index, version, e := s.configDao.MongoSetKeyConfig(ctx, req.GName, req.AName, req.Key, req.Secret, req.Value, req.ValueType)
+	index, version, e := s.appDao.MongoSetKeyConfig(ctx, req.GName, req.AName, req.Key, req.Secret, req.Value, req.ValueType)
 	if e != nil {
 		log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "key:", req.Key, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -540,7 +540,7 @@ func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.Roll
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[Rollback] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -561,7 +561,7 @@ func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.Roll
 	}
 
 	//logic
-	if e := s.configDao.MongoRollbackKeyConfig(ctx, req.GName, req.AName, req.Key, req.Secret, req.Index); e != nil {
+	if e := s.appDao.MongoRollbackKeyConfig(ctx, req.GName, req.AName, req.Key, req.Secret, req.Index); e != nil {
 		log.Error(ctx, "[Rollback] group:", req.GName, "app:", req.AName, "key:", req.Key, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -684,7 +684,7 @@ func (s *Service) ListProxy(ctx context.Context, req *api.ListProxyReq) (*api.Li
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[ListProxy] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -705,7 +705,7 @@ func (s *Service) ListProxy(ctx context.Context, req *api.ListProxyReq) (*api.Li
 	}
 
 	//logic
-	paths, e := s.configDao.MongoListProxyPath(ctx, req.GName, req.AName, req.Secret)
+	paths, e := s.appDao.MongoListProxyPath(ctx, req.GName, req.AName, req.Secret)
 	if e != nil {
 		log.Error(ctx, "[ListProxy] group:", req.GName, "app:", req.AName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -736,7 +736,7 @@ func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetP
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[SetProxy] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -757,7 +757,7 @@ func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetP
 	}
 
 	//logic
-	if e := s.configDao.MongoSetProxyPath(ctx, req.GName, req.AName, req.Secret, req.Path, req.Read, req.Write); e != nil {
+	if e := s.appDao.MongoSetProxyPath(ctx, req.GName, req.AName, req.Secret, req.Path, req.Read, req.Write); e != nil {
 		log.Error(ctx, "[SetProxy] group:", req.GName, "app:", req.AName, "path:", req.Path, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -773,7 +773,7 @@ func (s *Service) DelProxy(ctx context.Context, req *api.DelProxyReq) (*api.DelP
 	}
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.configDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, req.GName, req.AName)
 		if e != nil {
 			log.Error(ctx, "[DelProxy] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -794,7 +794,7 @@ func (s *Service) DelProxy(ctx context.Context, req *api.DelProxyReq) (*api.DelP
 	}
 
 	//logic
-	if e := s.configDao.MongoDelProxyPath(ctx, req.GName, req.AName, req.Secret, req.Path); e != nil {
+	if e := s.appDao.MongoDelProxyPath(ctx, req.GName, req.AName, req.Secret, req.Path); e != nil {
 		log.Error(ctx, "[DelProxy] group:", req.GName, "app:", req.AName, "path:", req.Path, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}

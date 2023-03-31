@@ -3,19 +3,13 @@ import { ref } from 'vue'
 import * as initializeAPI from '../../api/initialize_browser_toc'
 import * as permissionAPI from '../../api/permission_browser_toc'
 import * as userAPI from '../../api/user_browser_toc'
-import * as appAPI from '../../api/app_browser_toc'
+import * as state from './state'
+import * as client from './client'
 
 import sidemenu from './sidemenu.vue'
 import apppage from './apppage.vue'
 import userpage from './userpage.vue'
 import rolepage from './rolepage.vue'
-import * as state from './state'
-
-const host: string = "http://10.1.134.245:8000"
-const initializeClient: initializeAPI.InitializeBrowserClientToC = new initializeAPI.InitializeBrowserClientToC(host)
-const permissionClient: permissionAPI.PermissionBrowserClientToC = new permissionAPI.PermissionBrowserClientToC(host)
-const userClient: userAPI.UserBrowserClientToC = new userAPI.UserBrowserClientToC(host)
-const appClient: appAPI.AppBrowserClientToC = new appAPI.AppBrowserClientToC(host)
 
 const inited = ref(false)
 get_init_status()
@@ -39,7 +33,7 @@ function do_init(){
 	if(!state.set_load()){
 		return
 	}
-	initializeClient.init({"Access-Key":init_access_key.value},{password:init_password.value},1000,(e: initializeAPI.Error)=>{
+	client.initializeClient.init({"Access-Key":init_access_key.value},{password:init_password.value},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
 		state.set_error("error",e.code,e.msg)
 	},(resp: initializeAPI.InitResp)=>{
@@ -53,7 +47,7 @@ function get_init_status(){
 	if(!state.set_load()){
 		return
 	}
-	initializeClient.init_status({},{},1000,(e: initializeAPI.Error)=>{
+	client.initializeClient.init_status({},{},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
 		state.set_error("error",e.code,e.msg)
 	},(resp: initializeAPI.InitStatusResp)=>{
@@ -75,7 +69,7 @@ function do_login_root(){
 	if(!state.set_load()){
 		return
 	}
-	initializeClient.root_login({},{password:password.value},1000,(e: initializeAPI.Error)=>{
+	client.initializeClient.root_login({},{password:password.value},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
 		state.set_error("error",e.code,e.msg)
 	},(resp: initializeAPI.RootLoginResp)=>{
@@ -105,7 +99,7 @@ function do_change_root_password(){
 	if(!state.set_load()){
 		return
 	}
-	initializeClient.root_password({"Token":state.user.token},{old_password:oldpassword.value,new_password:newpassword.value},1000,(e: initializeAPI.Error)=>{
+	client.initializeClient.root_password({"Token":state.user.token},{old_password:oldpassword.value,new_password:newpassword.value},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
 		state.set_error("error",e.code,e.msg)
 	},(resp: initializeAPI.RootPasswordResp)=>{
@@ -132,7 +126,7 @@ function get_projects(need_set_load: boolean){
 			return
 		}
 	}
-	initializeClient.list_project({"Token":state.user.token},{},1000,(e: initializeAPI.Error)=>{
+	client.initializeClient.list_project({"Token":state.user.token},{},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
 		state.set_error("error",e.code,e.msg)
 	},(resp: initializeAPI.ListProjectResp)=>{
@@ -157,6 +151,7 @@ function get_projects(need_set_load: boolean){
 }
 function select_project(need_set_load: boolean){
 	if(!state.project.cur){
+		//this is impossible
 		state.project.nodes=[]
 		return
 	}
@@ -165,7 +160,7 @@ function select_project(need_set_load: boolean){
 			return
 		}
 	}
-	permissionClient.list_user_node({"Token":state.user.token},{project_id:state.project.cur.project_id,user_id:"",need_user_role_node:true},1000,(e: permissionAPI.Error)=>{
+	client.permissionClient.list_user_node({"Token":state.user.token},{project_id:state.project.cur.project_id,user_id:"",need_user_role_node:true},client.timeout,(e: permissionAPI.Error)=>{
 		state.clear_load()
 		state.clear_page()
 		state.project.nodes=[]
@@ -211,7 +206,7 @@ function project_op(){
 				project_name: state.project.new_project_name,
 				project_data: "",
 			}
-			initializeClient.create_project({"Token":state.user.token},req,1000,(e: initializeAPI.Error)=>{
+			client.initializeClient.create_project({"Token":state.user.token},req,client.timeout,(e: initializeAPI.Error)=>{
 				state.clear_load()
 				state.set_error("error",e.code,e.msg)
 			},(resp: initializeAPI.CreateProjectResp)=>{
@@ -227,7 +222,7 @@ function project_op(){
 				new_project_name: state.project.new_project_name,
 				new_project_data: state.project.cur.project_data,
 			}
-			initializeClient.update_project({"Token":state.user.token},req,1000,(e: initializeAPI.Error)=>{
+			client.initializeClient.update_project({"Token":state.user.token},req,client.timeout,(e: initializeAPI.Error)=>{
 				state.clear_load()
 				state.set_error("error",e.code,e.msg)
 			},(resp: initializeAPI.CreateProjectResp)=>{
@@ -241,7 +236,7 @@ function project_op(){
 			let req = {
 				project_id: state.project.cur.project_id,
 			}
-			initializeClient.delete_project({"Token":state.user.token},req,1000,(e :initializeAPI.Error)=>{
+			client.initializeClient.delete_project({"Token":state.user.token},req,client.timeout,(e :initializeAPI.Error)=>{
 				state.clear_load()
 				state.set_error("error",e.code,e.msg)
 			},(resp :initializeAPI.DeleteProjectResp)=>{
@@ -252,6 +247,7 @@ function project_op(){
 			break
 		}
 		default:{
+			state.clear_load()
 			state.set_error("error",-2,"unknown operation")
 		}
 	}
@@ -271,7 +267,7 @@ function node_op(){
 				node_name:state.node.new_node_name,
 				node_data:state.node.new_node_url,
 			}
-			permissionClient.add_node({"Token":state.user.token},req,1000,(e :permissionAPI.Error)=>{
+			client.permissionClient.add_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
 				state.clear_load()
 				state.set_error("error",e.code,e.msg)
 			},(resp :permissionAPI.AddNodeResp)=>{
@@ -287,7 +283,7 @@ function node_op(){
 				new_node_name:state.node.new_node_name,
 				new_node_data:state.node.new_node_url,
 			}
-			permissionClient.update_node({"Token":state.user.token},req,1000,(e :permissionAPI.Error)=>{
+			client.permissionClient.update_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
 				state.clear_load()
 				state.set_error("error",e.code,e.msg)
 			},(resp :permissionAPI.AddNodeResp)=>{
@@ -301,7 +297,7 @@ function node_op(){
 			let req = {
 				node_id:state.node.target.node_id,
 			}
-			permissionClient.del_node({"Token":state.user.token},req,1000,(e :permissionAPI.Error)=>{
+			client.permissionClient.del_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
 				state.clear_load()
 				state.set_error("error",e.code,e.msg)
 			},(resp :permissionAPI.AddNodeResp)=>{
@@ -312,6 +308,7 @@ function node_op(){
 			break
 		}
 		default:{
+			state.clear_load()
 			state.set_error("error",-2,"unknown operation")
 		}
 	}
@@ -333,12 +330,12 @@ function iframeload(){
 			<div style="display:flex;flex-direction:column">
 				<va-input :type="t_oldpassword?'text':'password'" label="Old Root Password*" v-model="oldpassword" style="width:400px;margin:5px 0" @keyup.enter="()=>{if(change_root_password_able()){do_change_root_password()}}">
 					<template #appendInner>
-						<va-icon :name="t_oldpassword?'◎':'◉'" size="small" color="--va-primary" @click="t_oldpassword=!t_oldpassword" />
+						<va-icon :name="t_oldpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_oldpassword=!t_oldpassword" />
 					</template>
 				</va-input>
 				<va-input :type="t_newpassword?'text':'password'" label="New Root Password*" v-model="newpassword" style="width:400px;margin:5px 0" @keyup.enter="()=>{if(change_root_password_able()){do_change_root_password()}}">
 					<template #appendInner>
-						<va-icon :name="t_newpassword?'◎':'◉'" size="small" color="--va-primary" @click="t_newpassword=!t_newpassword" />
+						<va-icon :name="t_newpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_newpassword=!t_newpassword" />
 					</template>
 				</va-input>
 				<div>
@@ -423,12 +420,12 @@ function iframeload(){
 		<div style="display:flex;flex-direction:column">
 			<va-input :type="t_init_access_key?'text':'password'" label="Access Key*" v-model="init_access_key" style="width:400px;margin:5px 0" @keyup.enter="()=>{if(init_able()){do_init()}}">
 				<template #appendInner>
-					<va-icon :name="t_init_access_key?'◎':'◉'" size="small" color="--va-primary" @click="t_init_access_key=!t_init_access_key" />
+					<va-icon :name="t_init_access_key?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_init_access_key=!t_init_access_key" />
 				</template>
 			</va-input>
 			<va-input :type="t_init_password?'text':'password'" label="Root Password*" v-model="init_password" style="width:400px;margin:5px 0" @keyup.enter="()=>{if(init_able()){do_init()}}">
 				<template #appendInner>
-					<va-icon :name="t_init_password?'◎':'◉'" size="small" color="--va-primary" @click="t_init_password=!t_init_password" />
+					<va-icon :name="t_init_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_init_password=!t_init_password" />
 				</template>
 			</va-input>
 			<va-button style="width:100px;margin:5px 0 0 300px" :disabled="!init_able()" @click="do_init" gradient>Init</va-button>
@@ -444,7 +441,7 @@ function iframeload(){
 			<div>
 				<va-input :type="t_password?'text':'password'" style="width:300px" label="Root Password*" v-model="password" @keyup.enter="()=>{if(login_root_able()){do_login_root()}}">
 					<template #appendInner>
-						<va-icon :name="t_password?'◎':'◉'" size="small" color="--va-primary" @click="t_password=!t_password" />
+						<va-icon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
 					</template>
 				</va-input>
 				<va-button style="width:90px;margin:0 0 0 10px" :disabled="!login_root_able()" @click="do_login_root">Login</va-button>
@@ -453,9 +450,10 @@ function iframeload(){
 		</div>
 	</div>
 	<div v-else style="display:flex;width:100%">
-		<div style="display:flex;flex-direction:column;width:300px">
-			<div style="display:flex;padding:5px 0">
+		<div style="display:flex;flex-direction:column;width:250px">
+			<div style="display:flex;padding:5px 0;background-color:var(--va-background-element)">
 				<va-select
+					dropdown-icon=""
 					trigger="hover"
 					outline
 					style="flex:1;margin:0 2px"
@@ -466,8 +464,8 @@ function iframeload(){
 					label="Select Project"
 					@update:model-value="select_project(true)"
 				>
-					<template #appendInner>
-					</template>
+					<!-- <template #appendInner> -->
+					<!-- </template> -->
 				</va-select>
 				<va-dropdown v-if="state.user.root||(is_root_node_project()&&state.project.nodes[0].admin)" trigger="hover" style="width:36px;margin-right:2px">
 					<template #anchor>
@@ -475,7 +473,7 @@ function iframeload(){
 					</template>
 					<va-dropdown-content>
 						<va-popover message="Create New Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
-							<va-button v-if="state.user.root" style="width:36px;margin-right:2px" @click="state.set_project('add')">+</va-button>
+							<va-button v-if="state.user.root" style="width:36px;margin:0 3px" @click="state.set_project('add')">+</va-button>
 						</va-popover>
 						<va-popover message="Rename Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
 							<va-button v-if="state.user.root&&!is_project_admin()" style="width:36px;margin:0 3px" @click="state.set_project('update')">◉</va-button>
@@ -489,12 +487,10 @@ function iframeload(){
 					</va-dropdown-content>
 				</va-dropdown>
 			</div>
-			<va-divider style="margin:0" />
 			<div style="flex:1;overflow-x:hidden;overflow-y:auto;background-color:var(--va-background-element)">
 				<sidemenu :nodes="is_root_node_project()?state.project.nodes[0].children:state.project.nodes" :deep="0" />
 			</div>
 		</div>
-		<va-divider vertical style="margin:0" />
 		<div style="display:flex;flex-direction:column;flex:1">
 			<div style="display:flex;padding:5px;background-color:var(--va-background-element)">
 				<div style="display:flex;flex:1">
@@ -512,19 +508,12 @@ function iframeload(){
 					</va-dropdown-content>
 				</va-dropdown>
 			</div>
-			<va-divider style="margin:0" />
-			<div v-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==1">
 			<!-- User -->
-				<userpage></userpage>
-			</div>
-			<div v-else-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==2">
+			<userpage v-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==1"></userpage>
 			<!-- Role -->
-				<rolepage></rolepage>
-			</div>
-			<div v-else-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==3">
+			<rolepage v-else-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==2"></rolepage>
 			<!-- App -->
-				<apppage></apppage>
-			</div>
+			<apppage v-else-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==3"></apppage>
 			<iframe v-else-if="state.page.node&&state.page.node.node_data!=''" width="100%" height="100%" frameborder="0" :src="state.page.node.node_data" @load="iframeload"></iframe>
 		</div>
 	</div>

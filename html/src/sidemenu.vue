@@ -28,8 +28,8 @@ function jumpable(node: permissionAPI.NodeInfo):boolean{
 	<div v-for="node of nodes" style="display:flex;flex-direction:column">
 		<div v-if="!system_node_child(node)" style="display:flex;align-items:center">
 			<div
-			style="height:38px;padding-left:10px;display:flex;align-items:center;flex:1;border-radius:5px"
-			:style="{'padding-left':30*deep+5+'px',cursor:jumpable(node)?'pointer':'default','background-color':node.labelhover?'var(--va-shadow)':''}"
+			style="height:38px;padding-left:10px;display:flex;align-items:center;flex:1"
+			:style="{'padding-left':30*deep+5+'px',cursor:jumpable(node)?'pointer':'default','background-color':node.labelhover&&jumpable(node)?'var(--va-shadow)':''}"
 			@mouseover="node.labelhover=true"
 			@mouseout="node.labelhover=false"
 			@click="()=>{if(jumpable(node)){state.set_page(node)}}">
@@ -37,7 +37,7 @@ function jumpable(node: permissionAPI.NodeInfo):boolean{
 			</div>
 			<div
 			v-if="node_has_children(node)"
-			style="width:30px;height:30px;margin:4px 0;cursor:pointer;display:flex;justify-content:center;align-items:center;border-radius:3px"
+			style="width:30px;height:30px;margin:4px 0px;cursor:pointer;display:flex;justify-content:center;align-items:center;border-radius:3px"
 			:style="{'background-color':node.iconhover?'var(--va-shadow)':''}"
 			@mouseover="node.iconhover=true"
 			@mouseout="node.iconhover=false"

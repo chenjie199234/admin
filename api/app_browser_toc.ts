@@ -229,6 +229,99 @@ function JsonToDelProxyResp(jsonobj: { [k:string]:any }): DelProxyResp{
 	}
 	return obj
 }
+export interface GetAppReq{
+	g_name: string;
+	a_name: string;
+	secret: string;
+}
+function GetAppReqToJson(msg: GetAppReq): string{
+	let s: string="{"
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'GetAppReq.g_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
+	}
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'GetAppReq.a_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'GetAppReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface GetAppResp{
+	keys: Map<string,KeyConfigInfo|null|undefined>|null|undefined;
+	paths: Map<string,ProxyPathInfo|null|undefined>|null|undefined;
+}
+function JsonToGetAppResp(jsonobj: { [k:string]:any }): GetAppResp{
+	let obj: GetAppResp={
+		keys:null,
+		paths:null,
+	}
+	//keys
+	if(jsonobj['keys']!=null&&jsonobj['keys']!=undefined){
+		if(typeof jsonobj['keys']!='object'){
+			throw 'GetAppResp.keys must be Map<string,KeyConfigInfo|null|undefined>|null|undefined'
+		}
+		for(let key of Object.keys(jsonobj['keys'])){
+			let value=jsonobj['keys'][key]
+			let k: string=key
+			let v: KeyConfigInfo|null|undefined=null
+			if(typeof value==null||typeof value==undefined){
+				v=null
+			}else if(typeof value!='object'){
+				throw 'value in GetAppResp.keys must be KeyConfigInfo|null|undefined'
+			}else{
+				v=JsonToKeyConfigInfo(value)
+			}
+			if(obj['keys']==undefined){
+				obj['keys']=new Map<string,KeyConfigInfo|null|undefined>
+			}
+			obj['keys'].set(k,v)
+		}
+	}
+	//paths
+	if(jsonobj['paths']!=null&&jsonobj['paths']!=undefined){
+		if(typeof jsonobj['paths']!='object'){
+			throw 'GetAppResp.paths must be Map<string,ProxyPathInfo|null|undefined>|null|undefined'
+		}
+		for(let key of Object.keys(jsonobj['paths'])){
+			let value=jsonobj['paths'][key]
+			let k: string=key
+			let v: ProxyPathInfo|null|undefined=null
+			if(typeof value==null||typeof value==undefined){
+				v=null
+			}else if(typeof value!='object'){
+				throw 'value in GetAppResp.paths must be ProxyPathInfo|null|undefined'
+			}else{
+				v=JsonToProxyPathInfo(value)
+			}
+			if(obj['paths']==undefined){
+				obj['paths']=new Map<string,ProxyPathInfo|null|undefined>
+			}
+			obj['paths'].set(k,v)
+		}
+	}
+	return obj
+}
 export interface GetKeyConfigReq{
 	g_name: string;
 	a_name: string;
@@ -359,253 +452,64 @@ function JsonToGetKeyConfigResp(jsonobj: { [k:string]:any }): GetKeyConfigResp{
 	}
 	return obj
 }
-export interface ListAppReq{
-	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
-	project_id: Array<number>|null|undefined;
-	g_name: string;
+export interface KeyConfigInfo{
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	cur_index: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	max_index: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	cur_version: number;
+	cur_value: string;
+	cur_value_type: string;
 }
-function ListAppReqToJson(msg: ListAppReq): string{
-	let s: string="{"
-	//project_id
-	if(msg.project_id==null||msg.project_id==undefined){
-		s+='"project_id":null,'
-	}else if(msg.project_id.length==0){
-		s+='"project_id":[],'
-	}else{
-		s+='"project_id":['
-		for(let element of msg.project_id){
-			if(element==null||element==undefined||!Number.isInteger(element)){
-				throw 'element in ListAppReq.project_id must be integer'
-			}
-			if(element>4294967295||element<0){
-				throw 'element in ListAppReq.project_id overflow'
-			}
-			s+=element+','
+function JsonToKeyConfigInfo(jsonobj: { [k:string]:any }): KeyConfigInfo{
+	let obj: KeyConfigInfo={
+		cur_index:0,
+		max_index:0,
+		cur_version:0,
+		cur_value:'',
+		cur_value_type:'',
+	}
+	//cur_index
+	if(jsonobj['cur_index']!=null&&jsonobj['cur_index']!=undefined){
+		if(typeof jsonobj['cur_index']!='number'||!Number.isInteger(jsonobj['cur_index'])){
+			throw 'KeyConfigInfo.cur_index must be integer'
+		}else if(jsonobj['cur_index']>4294967295||jsonobj['cur_index']<0){
+			throw 'KeyConfigInfo.cur_index overflow'
 		}
-		s=s.substr(0,s.length-1)+'],'
+		obj['cur_index']=jsonobj['cur_index']
 	}
-	//g_name
-	if(msg.g_name==null||msg.g_name==undefined){
-		throw 'ListAppReq.g_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.g_name)
-		s+='"g_name":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface ListAppResp{
-	apps: Array<string>|null|undefined;
-}
-function JsonToListAppResp(jsonobj: { [k:string]:any }): ListAppResp{
-	let obj: ListAppResp={
-		apps:null,
-	}
-	//apps
-	if(jsonobj['apps']!=null&&jsonobj['apps']!=undefined){
-		if(!(jsonobj['apps'] instanceof Array)){
-			throw 'ListAppResp.apps must be Array<string>|null|undefined'
+	//max_index
+	if(jsonobj['max_index']!=null&&jsonobj['max_index']!=undefined){
+		if(typeof jsonobj['max_index']!='number'||!Number.isInteger(jsonobj['max_index'])){
+			throw 'KeyConfigInfo.max_index must be integer'
+		}else if(jsonobj['max_index']>4294967295||jsonobj['max_index']<0){
+			throw 'KeyConfigInfo.max_index overflow'
 		}
-		for(let element of jsonobj['apps']){
-			if(typeof element!='string'){
-				throw 'element in ListAppResp.apps must be string'
-			}
-			if(obj['apps']==null){
-				obj['apps']=new Array<string>
-			}
-			obj['apps'].push(element)
+		obj['max_index']=jsonobj['max_index']
+	}
+	//cur_version
+	if(jsonobj['cur_version']!=null&&jsonobj['cur_version']!=undefined){
+		if(typeof jsonobj['cur_version']!='number'||!Number.isInteger(jsonobj['cur_version'])){
+			throw 'KeyConfigInfo.cur_version must be integer'
+		}else if(jsonobj['cur_version']>4294967295||jsonobj['cur_version']<0){
+			throw 'KeyConfigInfo.cur_version overflow'
 		}
+		obj['cur_version']=jsonobj['cur_version']
 	}
-	return obj
-}
-export interface ListGroupReq{
-	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
-	project_id: Array<number>|null|undefined;
-}
-function ListGroupReqToJson(msg: ListGroupReq): string{
-	let s: string="{"
-	//project_id
-	if(msg.project_id==null||msg.project_id==undefined){
-		s+='"project_id":null,'
-	}else if(msg.project_id.length==0){
-		s+='"project_id":[],'
-	}else{
-		s+='"project_id":['
-		for(let element of msg.project_id){
-			if(element==null||element==undefined||!Number.isInteger(element)){
-				throw 'element in ListGroupReq.project_id must be integer'
-			}
-			if(element>4294967295||element<0){
-				throw 'element in ListGroupReq.project_id overflow'
-			}
-			s+=element+','
+	//cur_value
+	if(jsonobj['cur_value']!=null&&jsonobj['cur_value']!=undefined){
+		if(typeof jsonobj['cur_value']!='string'){
+			throw 'KeyConfigInfo.cur_value must be string'
 		}
-		s=s.substr(0,s.length-1)+'],'
+		obj['cur_value']=jsonobj['cur_value']
 	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface ListGroupResp{
-	groups: Array<string>|null|undefined;
-}
-function JsonToListGroupResp(jsonobj: { [k:string]:any }): ListGroupResp{
-	let obj: ListGroupResp={
-		groups:null,
-	}
-	//groups
-	if(jsonobj['groups']!=null&&jsonobj['groups']!=undefined){
-		if(!(jsonobj['groups'] instanceof Array)){
-			throw 'ListGroupResp.groups must be Array<string>|null|undefined'
+	//cur_value_type
+	if(jsonobj['cur_value_type']!=null&&jsonobj['cur_value_type']!=undefined){
+		if(typeof jsonobj['cur_value_type']!='string'){
+			throw 'KeyConfigInfo.cur_value_type must be string'
 		}
-		for(let element of jsonobj['groups']){
-			if(typeof element!='string'){
-				throw 'element in ListGroupResp.groups must be string'
-			}
-			if(obj['groups']==null){
-				obj['groups']=new Array<string>
-			}
-			obj['groups'].push(element)
-		}
-	}
-	return obj
-}
-export interface ListKeyReq{
-	g_name: string;
-	a_name: string;
-	secret: string;
-}
-function ListKeyReqToJson(msg: ListKeyReq): string{
-	let s: string="{"
-	//g_name
-	if(msg.g_name==null||msg.g_name==undefined){
-		throw 'ListKeyReq.g_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.g_name)
-		s+='"g_name":'+vv+','
-	}
-	//a_name
-	if(msg.a_name==null||msg.a_name==undefined){
-		throw 'ListKeyReq.a_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.a_name)
-		s+='"a_name":'+vv+','
-	}
-	//secret
-	if(msg.secret==null||msg.secret==undefined){
-		throw 'ListKeyReq.secret must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.secret)
-		s+='"secret":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface ListKeyResp{
-	keys: Array<string>|null|undefined;
-}
-function JsonToListKeyResp(jsonobj: { [k:string]:any }): ListKeyResp{
-	let obj: ListKeyResp={
-		keys:null,
-	}
-	//keys
-	if(jsonobj['keys']!=null&&jsonobj['keys']!=undefined){
-		if(!(jsonobj['keys'] instanceof Array)){
-			throw 'ListKeyResp.keys must be Array<string>|null|undefined'
-		}
-		for(let element of jsonobj['keys']){
-			if(typeof element!='string'){
-				throw 'element in ListKeyResp.keys must be string'
-			}
-			if(obj['keys']==null){
-				obj['keys']=new Array<string>
-			}
-			obj['keys'].push(element)
-		}
-	}
-	return obj
-}
-export interface ListProxyReq{
-	g_name: string;
-	a_name: string;
-	secret: string;
-}
-function ListProxyReqToJson(msg: ListProxyReq): string{
-	let s: string="{"
-	//g_name
-	if(msg.g_name==null||msg.g_name==undefined){
-		throw 'ListProxyReq.g_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.g_name)
-		s+='"g_name":'+vv+','
-	}
-	//a_name
-	if(msg.a_name==null||msg.a_name==undefined){
-		throw 'ListProxyReq.a_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.a_name)
-		s+='"a_name":'+vv+','
-	}
-	//secret
-	if(msg.secret==null||msg.secret==undefined){
-		throw 'ListProxyReq.secret must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.secret)
-		s+='"secret":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface ListProxyResp{
-	paths: Map<string,ProxyPathInfo|null|undefined>|null|undefined;
-}
-function JsonToListProxyResp(jsonobj: { [k:string]:any }): ListProxyResp{
-	let obj: ListProxyResp={
-		paths:null,
-	}
-	//paths
-	if(jsonobj['paths']!=null&&jsonobj['paths']!=undefined){
-		if(typeof jsonobj['paths']!='object'){
-			throw 'ListProxyResp.paths must be Map<string,ProxyPathInfo|null|undefined>|null|undefined'
-		}
-		for(let key of Object.keys(jsonobj['paths'])){
-			let value=jsonobj['paths'][key]
-			let k: string=key
-			let v: ProxyPathInfo|null|undefined=null
-			if(typeof value==null||typeof value==undefined){
-				v=null
-			}else if(typeof value!='object'){
-				throw 'value in ListProxyResp.paths must be ProxyPathInfo|null|undefined'
-			}else{
-				v=JsonToProxyPathInfo(value)
-			}
-			if(obj['paths']==undefined){
-				obj['paths']=new Map<string,ProxyPathInfo|null|undefined>
-			}
-			obj['paths'].set(k,v)
-		}
+		obj['cur_value_type']=jsonobj['cur_value_type']
 	}
 	return obj
 }
@@ -655,8 +559,6 @@ function JsonToProxyPathInfo(jsonobj: { [k:string]:any }): ProxyPathInfo{
 	return obj
 }
 export interface ProxyReq{
-	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
-	project_id: Array<number>|null|undefined;
 	path: string;
 	g_name: string;
 	a_name: string;
@@ -664,24 +566,6 @@ export interface ProxyReq{
 }
 function ProxyReqToJson(msg: ProxyReq): string{
 	let s: string="{"
-	//project_id
-	if(msg.project_id==null||msg.project_id==undefined){
-		s+='"project_id":null,'
-	}else if(msg.project_id.length==0){
-		s+='"project_id":[],'
-	}else{
-		s+='"project_id":['
-		for(let element of msg.project_id){
-			if(element==null||element==undefined||!Number.isInteger(element)){
-				throw 'element in ProxyReq.project_id must be integer'
-			}
-			if(element>4294967295||element<0){
-				throw 'element in ProxyReq.project_id overflow'
-			}
-			s+=element+','
-		}
-		s=s.substr(0,s.length-1)+'],'
-	}
 	//path
 	if(msg.path==null||msg.path==undefined){
 		throw 'ProxyReq.path must be string'
@@ -1130,18 +1014,15 @@ function JsonToWatchResp(jsonobj: { [k:string]:any }): WatchResp{
 	}
 	return obj
 }
-const _WebPathAppListGroup: string ="/admin.app/list_group";
-const _WebPathAppListApp: string ="/admin.app/list_app";
+const _WebPathAppGetApp: string ="/admin.app/get_app";
 const _WebPathAppCreateApp: string ="/admin.app/create_app";
 const _WebPathAppDelApp: string ="/admin.app/del_app";
 const _WebPathAppUpdateAppSecret: string ="/admin.app/update_app_secret";
-const _WebPathAppListKey: string ="/admin.app/list_key";
 const _WebPathAppDelKey: string ="/admin.app/del_key";
 const _WebPathAppGetKeyConfig: string ="/admin.app/get_key_config";
 const _WebPathAppSetKeyConfig: string ="/admin.app/set_key_config";
 const _WebPathAppRollback: string ="/admin.app/rollback";
 const _WebPathAppWatch: string ="/admin.app/watch";
-const _WebPathAppListProxy: string ="/admin.app/list_proxy";
 const _WebPathAppSetProxy: string ="/admin.app/set_proxy";
 const _WebPathAppDelProxy: string ="/admin.app/del_proxy";
 const _WebPathAppProxy: string ="/admin.app/proxy";
@@ -1155,7 +1036,7 @@ export class AppBrowserClientToC {
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
-	list_group(header: { [k: string]: string },req: ListGroupReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListGroupResp)=>void){
+	get_app(header: { [k: string]: string },req: GetAppReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GetAppResp)=>void){
 		if(!Number.isInteger(timeout)){
 			errorf({code:-2,msg:'timeout must be integer'})
 			return
@@ -1166,13 +1047,13 @@ export class AppBrowserClientToC {
 		header["Content-Type"] = "application/json"
 		let body: string=''
 		try{
-			body=ListGroupReqToJson(req)
+			body=GetAppReqToJson(req)
 		}catch(e){
 			errorf({code:-2,msg:e})
 			return
 		}
 		let config={
-			url:_WebPathAppListGroup,
+			url:_WebPathAppGetApp,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
@@ -1182,59 +1063,7 @@ export class AppBrowserClientToC {
 		Axios.request(config)
 		.then(function(response){
 			try{
-				let obj:ListGroupResp=JsonToListGroupResp(response.data)
-				successf(obj)
-			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
-				errorf(err)
-			}
-		})
-		.catch(function(error){
-			if(error.response==undefined){
-				errorf({code:-2,msg:error.message})
-				return
-			}
-			let respdata=error.response.data
-			let err:Error={code:-1,msg:''}
-			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
-				err.msg=respdata
-			}else{
-				err.code=respdata.code
-				err.msg=respdata.msg
-			}
-			errorf(err)
-		})
-	}
-	//timeout must be integer,timeout's unit is millisecond
-	//don't set Content-Type in header
-	list_app(header: { [k: string]: string },req: ListAppReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListAppResp)=>void){
-		if(!Number.isInteger(timeout)){
-			errorf({code:-2,msg:'timeout must be integer'})
-			return
-		}
-		if(header==null||header==undefined){
-			header={}
-		}
-		header["Content-Type"] = "application/json"
-		let body: string=''
-		try{
-			body=ListAppReqToJson(req)
-		}catch(e){
-			errorf({code:-2,msg:e})
-			return
-		}
-		let config={
-			url:_WebPathAppListApp,
-			method: "post",
-			baseURL: this.host,
-			headers: header,
-			data: body,
-			timeout: timeout,
-		}
-		Axios.request(config)
-		.then(function(response){
-			try{
-				let obj:ListAppResp=JsonToListAppResp(response.data)
+				let obj:GetAppResp=JsonToGetAppResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}
@@ -1391,58 +1220,6 @@ export class AppBrowserClientToC {
 		.then(function(response){
 			try{
 				let obj:UpdateAppSecretResp=JsonToUpdateAppSecretResp(response.data)
-				successf(obj)
-			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
-				errorf(err)
-			}
-		})
-		.catch(function(error){
-			if(error.response==undefined){
-				errorf({code:-2,msg:error.message})
-				return
-			}
-			let respdata=error.response.data
-			let err:Error={code:-1,msg:''}
-			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
-				err.msg=respdata
-			}else{
-				err.code=respdata.code
-				err.msg=respdata.msg
-			}
-			errorf(err)
-		})
-	}
-	//timeout must be integer,timeout's unit is millisecond
-	//don't set Content-Type in header
-	list_key(header: { [k: string]: string },req: ListKeyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListKeyResp)=>void){
-		if(!Number.isInteger(timeout)){
-			errorf({code:-2,msg:'timeout must be integer'})
-			return
-		}
-		if(header==null||header==undefined){
-			header={}
-		}
-		header["Content-Type"] = "application/json"
-		let body: string=''
-		try{
-			body=ListKeyReqToJson(req)
-		}catch(e){
-			errorf({code:-2,msg:e})
-			return
-		}
-		let config={
-			url:_WebPathAppListKey,
-			method: "post",
-			baseURL: this.host,
-			headers: header,
-			data: body,
-			timeout: timeout,
-		}
-		Axios.request(config)
-		.then(function(response){
-			try{
-				let obj:ListKeyResp=JsonToListKeyResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}
@@ -1703,58 +1480,6 @@ export class AppBrowserClientToC {
 		.then(function(response){
 			try{
 				let obj:WatchResp=JsonToWatchResp(response.data)
-				successf(obj)
-			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
-				errorf(err)
-			}
-		})
-		.catch(function(error){
-			if(error.response==undefined){
-				errorf({code:-2,msg:error.message})
-				return
-			}
-			let respdata=error.response.data
-			let err:Error={code:-1,msg:''}
-			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
-				err.msg=respdata
-			}else{
-				err.code=respdata.code
-				err.msg=respdata.msg
-			}
-			errorf(err)
-		})
-	}
-	//timeout must be integer,timeout's unit is millisecond
-	//don't set Content-Type in header
-	list_proxy(header: { [k: string]: string },req: ListProxyReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: ListProxyResp)=>void){
-		if(!Number.isInteger(timeout)){
-			errorf({code:-2,msg:'timeout must be integer'})
-			return
-		}
-		if(header==null||header==undefined){
-			header={}
-		}
-		header["Content-Type"] = "application/json"
-		let body: string=''
-		try{
-			body=ListProxyReqToJson(req)
-		}catch(e){
-			errorf({code:-2,msg:e})
-			return
-		}
-		let config={
-			url:_WebPathAppListProxy,
-			method: "post",
-			baseURL: this.host,
-			headers: header,
-			data: body,
-			timeout: timeout,
-		}
-		Axios.request(config)
-		.then(function(response){
-			try{
-				let obj:ListProxyResp=JsonToListProxyResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

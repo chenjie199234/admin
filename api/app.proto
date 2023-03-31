@@ -22,67 +22,47 @@ service app{
 	//	option (pbex.cgrpc_midwares)="a";//this function on grpc protocol has 3 midwares,it's order is b,c,a
 	//}
 
-	//get all groups
-	rpc list_group(list_group_req)returns(list_group_resp){
-		option (pbex.method)="post";
-	 	option (pbex.web_midwares)="token";
-	}
-	//get all apps in one specific group
-	rpc list_app(list_app_req)returns(list_app_resp){
+	rpc get_app(get_app_req)returns(get_app_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//create one specific app
+
+	//app
+
 	rpc create_app(create_app_req)returns(create_app_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//del one specific app in one specific group
 	rpc del_app(del_app_req)returns(del_app_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//update one specific app's secret
 	rpc update_app_secret(update_app_secret_req)returns(update_app_secret_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//get all config's keys in one specific app
-	rpc list_key(list_key_req)returns(list_key_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-	//del one specific key in one specific app
 	rpc del_key(del_key_req)returns(del_key_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//get config
 	rpc get_key_config(get_key_config_req)returns(get_key_config_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//set config
 	rpc set_key_config(set_key_config_req)returns(set_key_config_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//rollback config
 	rpc rollback(rollback_req)returns(rollback_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	//watch config
 	rpc watch(watch_req)returns(watch_resp){
 		option (pbex.method)="post";
 	}
 
 	//proxy
 
-	rpc list_proxy(list_proxy_req)returns(list_proxy_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
 	rpc set_proxy(set_proxy_req)returns(set_proxy_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
@@ -107,19 +87,30 @@ service app{
 	//int64 example_resp=1;
 //}
 
-message list_group_req{
-	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+message get_app_req{
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
+	string secret=3[(pbex.string_bytes_len_lt)=32];
 }
-message list_group_resp{
-	repeated string groups=1;
+message get_app_resp{
+	map<string,key_config_info> keys=1;
+	map<string,proxy_path_info> paths=2;
 }
-message list_app_req{
-	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string g_name=2[(pbex.string_bytes_len_gt)=0];
+message proxy_path_info{
+	repeated uint32 node_id=1;
+	bool read=2;//need read permission on this node
+	bool write=3;//need write permission on this node
 }
-message list_app_resp{
-	repeated string apps=1;
+message key_config_info{
+	uint32 cur_index=1;
+	uint32 max_index=2;
+	uint32 cur_version=3;
+	string cur_value=4;
+	string cur_value_type=5;
 }
+
+//app
+
 message create_app_req {
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
@@ -142,14 +133,6 @@ message update_app_secret_req {
 	string new_secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message update_app_secret_resp{
-}
-message list_key_req {
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string secret=3[(pbex.string_bytes_len_lt)=32];
-}
-message list_key_resp {
-	repeated string keys=1;
 }
 message del_key_req {
 	string g_name=1[(pbex.string_bytes_len_gt)=0];
@@ -215,19 +198,8 @@ message watch_data{
 	uint32 version=4;
 }
 
-message proxy_path_info{
-	repeated uint32 node_id=1;
-	bool read=2;//need read permission on this node
-	bool write=3;//need write permission on this node
-}
-message list_proxy_req{
-	string g_name=1[(pbex.string_bytes_len_not_eq)=0];
-	string a_name=2[(pbex.string_bytes_len_not_eq)=0];
-	string secret=3[(pbex.string_bytes_len_lt)=32];
-}
-message list_proxy_resp{
-	map<string,proxy_path_info> paths=1;
-}
+//proxy
+
 message set_proxy_req{
 	string g_name=1[(pbex.string_bytes_len_not_eq)=0];
 	string a_name=2[(pbex.string_bytes_len_not_eq)=0];
@@ -247,11 +219,10 @@ message del_proxy_req{
 message del_proxy_resp{
 }
 message proxy_req{
-	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string path=2[(pbex.string_bytes_len_not_eq)=0];
-	string g_name=3[(pbex.string_bytes_len_not_eq)=0];
-	string a_name=4[(pbex.string_bytes_len_not_eq)=0];
-	string data=5[(pbex.string_bytes_len_gte)=2];
+	string path=1[(pbex.string_bytes_len_not_eq)=0];
+	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
+	string data=4[(pbex.string_bytes_len_gte)=2];
 }
 message proxy_resp{
 	string data=1;

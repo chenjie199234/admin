@@ -19,46 +19,29 @@ import (
 	strings "strings"
 )
 
-var _WebPathAppListGroup = "/admin.app/list_group"
-var _WebPathAppListApp = "/admin.app/list_app"
+var _WebPathAppGetApp = "/admin.app/get_app"
 var _WebPathAppCreateApp = "/admin.app/create_app"
 var _WebPathAppDelApp = "/admin.app/del_app"
 var _WebPathAppUpdateAppSecret = "/admin.app/update_app_secret"
-var _WebPathAppListKey = "/admin.app/list_key"
 var _WebPathAppDelKey = "/admin.app/del_key"
 var _WebPathAppGetKeyConfig = "/admin.app/get_key_config"
 var _WebPathAppSetKeyConfig = "/admin.app/set_key_config"
 var _WebPathAppRollback = "/admin.app/rollback"
 var _WebPathAppWatch = "/admin.app/watch"
-var _WebPathAppListProxy = "/admin.app/list_proxy"
 var _WebPathAppSetProxy = "/admin.app/set_proxy"
 var _WebPathAppDelProxy = "/admin.app/del_proxy"
 var _WebPathAppProxy = "/admin.app/proxy"
 
 type AppWebClient interface {
-	// get all groups
-	ListGroup(context.Context, *ListGroupReq, http.Header) (*ListGroupResp, error)
-	// get all apps in one specific group
-	ListApp(context.Context, *ListAppReq, http.Header) (*ListAppResp, error)
-	// create one specific app
+	GetApp(context.Context, *GetAppReq, http.Header) (*GetAppResp, error)
 	CreateApp(context.Context, *CreateAppReq, http.Header) (*CreateAppResp, error)
-	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq, http.Header) (*DelAppResp, error)
-	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq, http.Header) (*UpdateAppSecretResp, error)
-	// get all config's keys in one specific app
-	ListKey(context.Context, *ListKeyReq, http.Header) (*ListKeyResp, error)
-	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq, http.Header) (*DelKeyResp, error)
-	// get config
 	GetKeyConfig(context.Context, *GetKeyConfigReq, http.Header) (*GetKeyConfigResp, error)
-	// set config
 	SetKeyConfig(context.Context, *SetKeyConfigReq, http.Header) (*SetKeyConfigResp, error)
-	// rollback config
 	Rollback(context.Context, *RollbackReq, http.Header) (*RollbackResp, error)
-	// watch config
 	Watch(context.Context, *WatchReq, http.Header) (*WatchResp, error)
-	ListProxy(context.Context, *ListProxyReq, http.Header) (*ListProxyResp, error)
 	SetProxy(context.Context, *SetProxyReq, http.Header) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq, http.Header) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq, http.Header) (*ProxyResp, error)
@@ -72,7 +55,7 @@ func NewAppWebClient(c *web.WebClient) AppWebClient {
 	return &appWebClient{cc: c}
 }
 
-func (c *appWebClient) ListGroup(ctx context.Context, req *ListGroupReq, header http.Header) (*ListGroupResp, error) {
+func (c *appWebClient) GetApp(ctx context.Context, req *GetAppReq, header http.Header) (*GetAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -82,7 +65,7 @@ func (c *appWebClient) ListGroup(ctx context.Context, req *ListGroupReq, header 
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppListGroup, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppGetApp, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -91,39 +74,7 @@ func (c *appWebClient) ListGroup(ctx context.Context, req *ListGroupReq, header 
 	if e != nil {
 		return nil, cerror.ConvertStdError(e)
 	}
-	resp := new(ListGroupResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
-		if e := proto.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *appWebClient) ListApp(ctx context.Context, req *ListAppReq, header http.Header) (*ListAppResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppListApp, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	data, e := io.ReadAll(r.Body)
-	r.Body.Close()
-	if e != nil {
-		return nil, cerror.ConvertStdError(e)
-	}
-	resp := new(ListAppResp)
+	resp := new(GetAppResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -220,38 +171,6 @@ func (c *appWebClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecret
 		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(UpdateAppSecretResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
-		if e := proto.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *appWebClient) ListKey(ctx context.Context, req *ListKeyReq, header http.Header) (*ListKeyResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppListKey, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	data, e := io.ReadAll(r.Body)
-	r.Body.Close()
-	if e != nil {
-		return nil, cerror.ConvertStdError(e)
-	}
-	resp := new(ListKeyResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -424,38 +343,6 @@ func (c *appWebClient) Watch(ctx context.Context, req *WatchReq, header http.Hea
 	}
 	return resp, nil
 }
-func (c *appWebClient) ListProxy(ctx context.Context, req *ListProxyReq, header http.Header) (*ListProxyResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppListProxy, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	data, e := io.ReadAll(r.Body)
-	r.Body.Close()
-	if e != nil {
-		return nil, cerror.ConvertStdError(e)
-	}
-	resp := new(ListProxyResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
-		if e := proto.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
 func (c *appWebClient) SetProxy(ctx context.Context, req *SetProxyReq, header http.Header) (*SetProxyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -554,37 +441,23 @@ func (c *appWebClient) Proxy(ctx context.Context, req *ProxyReq, header http.Hea
 }
 
 type AppWebServer interface {
-	// get all groups
-	ListGroup(context.Context, *ListGroupReq) (*ListGroupResp, error)
-	// get all apps in one specific group
-	ListApp(context.Context, *ListAppReq) (*ListAppResp, error)
-	// create one specific app
+	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
-	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
-	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
-	// get all config's keys in one specific app
-	ListKey(context.Context, *ListKeyReq) (*ListKeyResp, error)
-	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	// get config
 	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
-	// set config
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
-	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
-	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
-func _App_ListGroup_WebHandler(handler func(context.Context, *ListGroupReq) (*ListGroupResp, error)) web.OutsideHandler {
+func _App_GetApp_WebHandler(handler func(context.Context, *GetAppReq) (*GetAppResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(ListGroupReq)
+		req := new(GetAppReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
@@ -614,7 +487,7 @@ func _App_ListGroup_WebHandler(handler func(context.Context, *ListGroupReq) (*Li
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_group]", errstr)
+			log.Error(ctx, "[/admin.app/get_app]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -625,61 +498,7 @@ func _App_ListGroup_WebHandler(handler func(context.Context, *ListGroupReq) (*Li
 			return
 		}
 		if resp == nil {
-			resp = new(ListGroupResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
-func _App_ListApp_WebHandler(handler func(context.Context, *ListAppReq) (*ListAppResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(ListAppReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_app]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(ListAppResp)
+			resp = new(GetAppResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -842,60 +661,6 @@ func _App_UpdateAppSecret_WebHandler(handler func(context.Context, *UpdateAppSec
 		}
 		if resp == nil {
 			resp = new(UpdateAppSecretResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
-func _App_ListKey_WebHandler(handler func(context.Context, *ListKeyReq) (*ListKeyResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(ListKeyReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_key]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(ListKeyResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1176,60 +941,6 @@ func _App_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchResp,
 		}
 	}
 }
-func _App_ListProxy_WebHandler(handler func(context.Context, *ListProxyReq) (*ListProxyResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(ListProxyReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_proxy]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(ListProxyResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
 func _App_SetProxy_WebHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
 		req := new(SetProxyReq)
@@ -1405,21 +1116,8 @@ func RegisterAppWebServer(engine *web.WebServer, svc AppWebServer, allmids map[s
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _App_ListGroup_WebHandler(svc.ListGroup))
-		engine.Post(_WebPathAppListGroup, mids...)
-	}
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _App_ListApp_WebHandler(svc.ListApp))
-		engine.Post(_WebPathAppListApp, mids...)
+		mids = append(mids, _App_GetApp_WebHandler(svc.GetApp))
+		engine.Post(_WebPathAppGetApp, mids...)
 	}
 	{
 		requiredMids := []string{"token"}
@@ -1459,19 +1157,6 @@ func RegisterAppWebServer(engine *web.WebServer, svc AppWebServer, allmids map[s
 		}
 		mids = append(mids, _App_UpdateAppSecret_WebHandler(svc.UpdateAppSecret))
 		engine.Post(_WebPathAppUpdateAppSecret, mids...)
-	}
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _App_ListKey_WebHandler(svc.ListKey))
-		engine.Post(_WebPathAppListKey, mids...)
 	}
 	{
 		requiredMids := []string{"token"}
@@ -1526,19 +1211,6 @@ func RegisterAppWebServer(engine *web.WebServer, svc AppWebServer, allmids map[s
 		engine.Post(_WebPathAppRollback, mids...)
 	}
 	engine.Post(_WebPathAppWatch, _App_Watch_WebHandler(svc.Watch))
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _App_ListProxy_WebHandler(svc.ListProxy))
-		engine.Post(_WebPathAppListProxy, mids...)
-	}
 	{
 		requiredMids := []string{"token"}
 		mids := make([]web.OutsideHandler, 0, 2)

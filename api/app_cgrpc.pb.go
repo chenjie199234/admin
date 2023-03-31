@@ -14,46 +14,29 @@ import (
 	metadata "github.com/chenjie199234/Corelib/metadata"
 )
 
-var _CGrpcPathAppListGroup = "/admin.app/list_group"
-var _CGrpcPathAppListApp = "/admin.app/list_app"
+var _CGrpcPathAppGetApp = "/admin.app/get_app"
 var _CGrpcPathAppCreateApp = "/admin.app/create_app"
 var _CGrpcPathAppDelApp = "/admin.app/del_app"
 var _CGrpcPathAppUpdateAppSecret = "/admin.app/update_app_secret"
-var _CGrpcPathAppListKey = "/admin.app/list_key"
 var _CGrpcPathAppDelKey = "/admin.app/del_key"
 var _CGrpcPathAppGetKeyConfig = "/admin.app/get_key_config"
 var _CGrpcPathAppSetKeyConfig = "/admin.app/set_key_config"
 var _CGrpcPathAppRollback = "/admin.app/rollback"
 var _CGrpcPathAppWatch = "/admin.app/watch"
-var _CGrpcPathAppListProxy = "/admin.app/list_proxy"
 var _CGrpcPathAppSetProxy = "/admin.app/set_proxy"
 var _CGrpcPathAppDelProxy = "/admin.app/del_proxy"
 var _CGrpcPathAppProxy = "/admin.app/proxy"
 
 type AppCGrpcClient interface {
-	// get all groups
-	ListGroup(context.Context, *ListGroupReq) (*ListGroupResp, error)
-	// get all apps in one specific group
-	ListApp(context.Context, *ListAppReq) (*ListAppResp, error)
-	// create one specific app
+	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
-	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
-	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
-	// get all config's keys in one specific app
-	ListKey(context.Context, *ListKeyReq) (*ListKeyResp, error)
-	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	// get config
 	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
-	// set config
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
-	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
-	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
@@ -67,22 +50,12 @@ func NewAppCGrpcClient(c *cgrpc.CGrpcClient) AppCGrpcClient {
 	return &appCGrpcClient{cc: c}
 }
 
-func (c *appCGrpcClient) ListGroup(ctx context.Context, req *ListGroupReq) (*ListGroupResp, error) {
+func (c *appCGrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
-	resp := new(ListGroupResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppListGroup, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
-func (c *appCGrpcClient) ListApp(ctx context.Context, req *ListAppReq) (*ListAppResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	resp := new(ListAppResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppListApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	resp := new(GetAppResp)
+	if e := c.cc.Call(ctx, _CGrpcPathAppGetApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -113,16 +86,6 @@ func (c *appCGrpcClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecr
 	}
 	resp := new(UpdateAppSecretResp)
 	if e := c.cc.Call(ctx, _CGrpcPathAppUpdateAppSecret, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
-func (c *appCGrpcClient) ListKey(ctx context.Context, req *ListKeyReq) (*ListKeyResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	resp := new(ListKeyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppListKey, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -177,16 +140,6 @@ func (c *appCGrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp, 
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) ListProxy(ctx context.Context, req *ListProxyReq) (*ListProxyResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	resp := new(ListProxyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppListProxy, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
 func (c *appCGrpcClient) SetProxy(ctx context.Context, req *SetProxyReq) (*SetProxyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -219,43 +172,29 @@ func (c *appCGrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, 
 }
 
 type AppCGrpcServer interface {
-	// get all groups
-	ListGroup(context.Context, *ListGroupReq) (*ListGroupResp, error)
-	// get all apps in one specific group
-	ListApp(context.Context, *ListAppReq) (*ListAppResp, error)
-	// create one specific app
+	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
-	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
-	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
-	// get all config's keys in one specific app
-	ListKey(context.Context, *ListKeyReq) (*ListKeyResp, error)
-	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	// get config
 	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
-	// set config
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
-	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
-	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
-func _App_ListGroup_CGrpcHandler(handler func(context.Context, *ListGroupReq) (*ListGroupResp, error)) cgrpc.OutsideHandler {
+func _App_GetApp_CGrpcHandler(handler func(context.Context, *GetAppReq) (*GetAppResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
-		req := new(ListGroupReq)
+		req := new(GetAppReq)
 		if ctx.DecodeReq(req) != nil {
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_group]", errstr)
+			log.Error(ctx, "[/admin.app/get_app]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -265,30 +204,7 @@ func _App_ListGroup_CGrpcHandler(handler func(context.Context, *ListGroupReq) (*
 			return
 		}
 		if resp == nil {
-			resp = new(ListGroupResp)
-		}
-		ctx.Write(resp)
-	}
-}
-func _App_ListApp_CGrpcHandler(handler func(context.Context, *ListAppReq) (*ListAppResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(ListAppReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_app]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(ListAppResp)
+			resp = new(GetAppResp)
 		}
 		ctx.Write(resp)
 	}
@@ -358,29 +274,6 @@ func _App_UpdateAppSecret_CGrpcHandler(handler func(context.Context, *UpdateAppS
 		}
 		if resp == nil {
 			resp = new(UpdateAppSecretResp)
-		}
-		ctx.Write(resp)
-	}
-}
-func _App_ListKey_CGrpcHandler(handler func(context.Context, *ListKeyReq) (*ListKeyResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(ListKeyReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_key]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(ListKeyResp)
 		}
 		ctx.Write(resp)
 	}
@@ -500,29 +393,6 @@ func _App_Watch_CGrpcHandler(handler func(context.Context, *WatchReq) (*WatchRes
 		ctx.Write(resp)
 	}
 }
-func _App_ListProxy_CGrpcHandler(handler func(context.Context, *ListProxyReq) (*ListProxyResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(ListProxyReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_proxy]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(ListProxyResp)
-		}
-		ctx.Write(resp)
-	}
-}
 func _App_SetProxy_CGrpcHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(SetProxyReq)
@@ -595,18 +465,15 @@ func _App_Proxy_CGrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyRes
 func RegisterAppCGrpcServer(engine *cgrpc.CGrpcServer, svc AppCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	engine.RegisterHandler("admin.app", "list_group", _App_ListGroup_CGrpcHandler(svc.ListGroup))
-	engine.RegisterHandler("admin.app", "list_app", _App_ListApp_CGrpcHandler(svc.ListApp))
+	engine.RegisterHandler("admin.app", "get_app", _App_GetApp_CGrpcHandler(svc.GetApp))
 	engine.RegisterHandler("admin.app", "create_app", _App_CreateApp_CGrpcHandler(svc.CreateApp))
 	engine.RegisterHandler("admin.app", "del_app", _App_DelApp_CGrpcHandler(svc.DelApp))
 	engine.RegisterHandler("admin.app", "update_app_secret", _App_UpdateAppSecret_CGrpcHandler(svc.UpdateAppSecret))
-	engine.RegisterHandler("admin.app", "list_key", _App_ListKey_CGrpcHandler(svc.ListKey))
 	engine.RegisterHandler("admin.app", "del_key", _App_DelKey_CGrpcHandler(svc.DelKey))
 	engine.RegisterHandler("admin.app", "get_key_config", _App_GetKeyConfig_CGrpcHandler(svc.GetKeyConfig))
 	engine.RegisterHandler("admin.app", "set_key_config", _App_SetKeyConfig_CGrpcHandler(svc.SetKeyConfig))
 	engine.RegisterHandler("admin.app", "rollback", _App_Rollback_CGrpcHandler(svc.Rollback))
 	engine.RegisterHandler("admin.app", "watch", _App_Watch_CGrpcHandler(svc.Watch))
-	engine.RegisterHandler("admin.app", "list_proxy", _App_ListProxy_CGrpcHandler(svc.ListProxy))
 	engine.RegisterHandler("admin.app", "set_proxy", _App_SetProxy_CGrpcHandler(svc.SetProxy))
 	engine.RegisterHandler("admin.app", "del_proxy", _App_DelProxy_CGrpcHandler(svc.DelProxy))
 	engine.RegisterHandler("admin.app", "proxy", _App_Proxy_CGrpcHandler(svc.Proxy))

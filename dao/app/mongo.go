@@ -22,35 +22,29 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func (d *Dao) MongoGetAllGroups(ctx context.Context, projectid string) ([]string, error) {
-	tmp, e := d.mongo.Database("app").Collection("config").Distinct(ctx, "group", bson.M{"permission_node_id": bson.M{"$regex": "^" + projectid}})
+func (d *Dao) MongoGetApp(ctx context.Context, gname, aname, secret string) (*model.AppSummary, error) {
+	appsummary := &model.AppSummary{}
+	e := d.mongo.Database("app").Collection("config").FindOne(ctx, bson.M{"group": gname, "app": aname, "key": "", "index": 0}).Decode(appsummary)
 	if e != nil {
 		return nil, e
 	}
-	result := make([]string, 0, len(tmp))
-	for _, v := range tmp {
-		if r, ok := v.(string); ok {
-			result = append(result, r)
-		}
-	}
-	return result, nil
-}
-func (d *Dao) MongoGetAllAppsInGroup(ctx context.Context, projectid, gname string) ([]string, error) {
-	filter := bson.M{
-		"permission_node_id": bson.M{"$regex": "^" + projectid},
-		"group":              gname,
-	}
-	tmp, e := d.mongo.Database("app").Collection("config").Distinct(ctx, "app", filter)
-	if e != nil {
+	// check sign
+	if e := util.SignCheck(secret, appsummary.Value); e != nil {
 		return nil, e
 	}
-	result := make([]string, 0, len(tmp))
-	for _, v := range tmp {
-		if r, ok := v.(string); ok {
-			result = append(result, r)
+	if secret != "" {
+		for _, keysummary := range appsummary.Keys {
+			plaintext, e := util.Decrypt(secret, keysummary.CurValue)
+			if e != nil {
+				return nil, e
+			}
+			keysummary.CurValue = common.Byte2str(plaintext)
 		}
 	}
-	return result, nil
+	if e := decodeProxyPath(appsummary); e != nil {
+		return nil, e
+	}
+	return appsummary, nil
 }
 func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, gname, aname string) (string, error) {
 	appsummary := &model.AppSummary{}
@@ -253,26 +247,6 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, gname, aname, oldsecret,
 	}
 	e = cursor.Err()
 	return
-}
-func (d *Dao) MongoGetAllKeys(ctx context.Context, gname, aname, secret string) ([]string, error) {
-	appsummary := &model.AppSummary{}
-	filterSummary := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
-	opts := options.FindOne().SetProjection(bson.M{"keys": 1, "value": 1})
-	if e := d.mongo.Database("app").Collection("config").FindOne(ctx, filterSummary, opts).Decode(appsummary); e != nil {
-		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrAppNotExist
-		}
-		return nil, e
-	}
-	// check sign
-	if e := util.SignCheck(secret, appsummary.Value); e != nil {
-		return nil, e
-	}
-	keys := make([]string, 0, len(appsummary.Keys))
-	for k := range appsummary.Keys {
-		keys = append(keys, k)
-	}
-	return keys, nil
 }
 
 // index == 0 get the current index's config
@@ -533,24 +507,6 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, gname, aname, key, sec
 	_, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterSummary, updaterSummary)
 	return
 }
-func (d *Dao) MongoListProxyPath(ctx context.Context, gname, aname, secret string) (map[string]*model.ProxyPath, error) {
-	appsummary := &model.AppSummary{}
-	filterSummary := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
-	opts := options.FindOne().SetProjection(bson.M{"value": 1, "paths": 1})
-	if e := d.mongo.Database("app").Collection("config").FindOne(ctx, filterSummary, opts).Decode(appsummary); e != nil {
-		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrAppNotExist
-		}
-		return nil, e
-	}
-	if e := util.SignCheck(secret, appsummary.Value); e != nil {
-		return nil, e
-	}
-	if e := decodeProxyPath(appsummary); e != nil {
-		return nil, e
-	}
-	return appsummary.Paths, nil
-}
 func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path string, read, write bool) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
@@ -569,7 +525,7 @@ func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path 
 			s.AbortTransaction(sctx)
 		}
 	}()
-	b64path := base64.StdEncoding.EncodeToString(common.Str2byte(path))
+	b64path := encodeProxyPath(path)
 	appsummary := &model.AppSummary{}
 	filter := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
 	updater1 := bson.M{"$set": bson.M{"paths." + b64path + ".permission_read": read, "paths." + b64path + ".permission_write": write}}
@@ -781,6 +737,9 @@ func (d *Dao) MongoGetAppConfig(ctx context.Context, gname, aname string) (*mode
 		return nil, e
 	}
 	return app, nil
+}
+func encodeProxyPath(path string) string {
+	return base64.StdEncoding.EncodeToString(common.Str2byte(path))
 }
 func decodeProxyPath(app *model.AppSummary) error {
 	tmp := make(map[string]*model.ProxyPath)

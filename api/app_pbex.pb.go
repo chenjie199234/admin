@@ -7,20 +7,15 @@
 package api
 
 // return empty means pass
-func (m *ListGroupReq) Validate() (errstr string) {
-	if len(m.GetProjectId()) != 2 {
-		return "field: project_id in object: list_group_req check len eq failed"
-	}
-	return ""
-}
-
-// return empty means pass
-func (m *ListAppReq) Validate() (errstr string) {
-	if len(m.GetProjectId()) != 2 {
-		return "field: project_id in object: list_app_req check len eq failed"
-	}
+func (m *GetAppReq) Validate() (errstr string) {
 	if len(m.GetGName()) <= 0 {
-		return "field: g_name in object: list_app_req check value str len gt failed"
+		return "field: g_name in object: get_app_req check value str len gt failed"
+	}
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: get_app_req check value str len gt failed"
+	}
+	if len(m.GetSecret()) >= 32 {
+		return "field: secret in object: get_app_req check value str len lt failed"
 	}
 	return ""
 }
@@ -69,20 +64,6 @@ func (m *UpdateAppSecretReq) Validate() (errstr string) {
 	}
 	if len(m.GetNewSecret()) >= 32 {
 		return "field: new_secret in object: update_app_secret_req check value str len lt failed"
-	}
-	return ""
-}
-
-// return empty means pass
-func (m *ListKeyReq) Validate() (errstr string) {
-	if len(m.GetGName()) <= 0 {
-		return "field: g_name in object: list_key_req check value str len gt failed"
-	}
-	if len(m.GetAName()) <= 0 {
-		return "field: a_name in object: list_key_req check value str len gt failed"
-	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: list_key_req check value str len lt failed"
 	}
 	return ""
 }
@@ -179,20 +160,6 @@ func (m *WatchReq) Validate() (errstr string) {
 }
 
 // return empty means pass
-func (m *ListProxyReq) Validate() (errstr string) {
-	if len(m.GetGName()) == 0 {
-		return "field: g_name in object: list_proxy_req check value str len not eq failed"
-	}
-	if len(m.GetAName()) == 0 {
-		return "field: a_name in object: list_proxy_req check value str len not eq failed"
-	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: list_proxy_req check value str len lt failed"
-	}
-	return ""
-}
-
-// return empty means pass
 func (m *SetProxyReq) Validate() (errstr string) {
 	if len(m.GetGName()) == 0 {
 		return "field: g_name in object: set_proxy_req check value str len not eq failed"
@@ -228,9 +195,6 @@ func (m *DelProxyReq) Validate() (errstr string) {
 
 // return empty means pass
 func (m *ProxyReq) Validate() (errstr string) {
-	if len(m.GetProjectId()) != 2 {
-		return "field: project_id in object: proxy_req check len eq failed"
-	}
 	if len(m.GetPath()) == 0 {
 		return "field: path in object: proxy_req check value str len not eq failed"
 	}

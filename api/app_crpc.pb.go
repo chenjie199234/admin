@@ -16,46 +16,29 @@ import (
 	proto "google.golang.org/protobuf/proto"
 )
 
-var _CrpcPathAppListGroup = "/admin.app/list_group"
-var _CrpcPathAppListApp = "/admin.app/list_app"
+var _CrpcPathAppGetApp = "/admin.app/get_app"
 var _CrpcPathAppCreateApp = "/admin.app/create_app"
 var _CrpcPathAppDelApp = "/admin.app/del_app"
 var _CrpcPathAppUpdateAppSecret = "/admin.app/update_app_secret"
-var _CrpcPathAppListKey = "/admin.app/list_key"
 var _CrpcPathAppDelKey = "/admin.app/del_key"
 var _CrpcPathAppGetKeyConfig = "/admin.app/get_key_config"
 var _CrpcPathAppSetKeyConfig = "/admin.app/set_key_config"
 var _CrpcPathAppRollback = "/admin.app/rollback"
 var _CrpcPathAppWatch = "/admin.app/watch"
-var _CrpcPathAppListProxy = "/admin.app/list_proxy"
 var _CrpcPathAppSetProxy = "/admin.app/set_proxy"
 var _CrpcPathAppDelProxy = "/admin.app/del_proxy"
 var _CrpcPathAppProxy = "/admin.app/proxy"
 
 type AppCrpcClient interface {
-	// get all groups
-	ListGroup(context.Context, *ListGroupReq) (*ListGroupResp, error)
-	// get all apps in one specific group
-	ListApp(context.Context, *ListAppReq) (*ListAppResp, error)
-	// create one specific app
+	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
-	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
-	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
-	// get all config's keys in one specific app
-	ListKey(context.Context, *ListKeyReq) (*ListKeyResp, error)
-	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	// get config
 	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
-	// set config
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
-	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
-	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
@@ -69,38 +52,16 @@ func NewAppCrpcClient(c *crpc.CrpcClient) AppCrpcClient {
 	return &appCrpcClient{cc: c}
 }
 
-func (c *appCrpcClient) ListGroup(ctx context.Context, req *ListGroupReq) (*ListGroupResp, error) {
+func (c *appCrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppListGroup, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetApp, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(ListGroupResp)
-	if len(respd) == 0 {
-		return resp, nil
-	}
-	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
-		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *appCrpcClient) ListApp(ctx context.Context, req *ListAppReq) (*ListAppResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppListApp, reqd, metadata.GetMetadata(ctx))
-	if e != nil {
-		return nil, e
-	}
-	resp := new(ListAppResp)
+	resp := new(GetAppResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -167,28 +128,6 @@ func (c *appCrpcClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecre
 		return nil, e
 	}
 	resp := new(UpdateAppSecretResp)
-	if len(respd) == 0 {
-		return resp, nil
-	}
-	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
-		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *appCrpcClient) ListKey(ctx context.Context, req *ListKeyReq) (*ListKeyResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppListKey, reqd, metadata.GetMetadata(ctx))
-	if e != nil {
-		return nil, e
-	}
-	resp := new(ListKeyResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -311,28 +250,6 @@ func (c *appCrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp, e
 	}
 	return resp, nil
 }
-func (c *appCrpcClient) ListProxy(ctx context.Context, req *ListProxyReq) (*ListProxyResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppListProxy, reqd, metadata.GetMetadata(ctx))
-	if e != nil {
-		return nil, e
-	}
-	resp := new(ListProxyResp)
-	if len(respd) == 0 {
-		return resp, nil
-	}
-	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
-		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
 func (c *appCrpcClient) SetProxy(ctx context.Context, req *SetProxyReq) (*SetProxyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -401,44 +318,30 @@ func (c *appCrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, e
 }
 
 type AppCrpcServer interface {
-	// get all groups
-	ListGroup(context.Context, *ListGroupReq) (*ListGroupResp, error)
-	// get all apps in one specific group
-	ListApp(context.Context, *ListAppReq) (*ListAppResp, error)
-	// create one specific app
+	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
-	// del one specific app in one specific group
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
-	// update one specific app's secret
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
-	// get all config's keys in one specific app
-	ListKey(context.Context, *ListKeyReq) (*ListKeyResp, error)
-	// del one specific key in one specific app
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	// get config
 	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
-	// set config
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
-	// rollback config
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	// watch config
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
-	ListProxy(context.Context, *ListProxyReq) (*ListProxyResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
 }
 
-func _App_ListGroup_CrpcHandler(handler func(context.Context, *ListGroupReq) (*ListGroupResp, error)) crpc.OutsideHandler {
+func _App_GetApp_CrpcHandler(handler func(context.Context, *GetAppReq) (*GetAppResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
-		req := new(ListGroupReq)
+		req := new(GetAppReq)
 		reqbody := ctx.GetBody()
 		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/list_group] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.app/get_app] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -448,7 +351,7 @@ func _App_ListGroup_CrpcHandler(handler func(context.Context, *ListGroupReq) (*L
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/list_group] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.app/get_app] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -456,7 +359,7 @@ func _App_ListGroup_CrpcHandler(handler func(context.Context, *ListGroupReq) (*L
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_group]", errstr)
+			log.Error(ctx, "[/admin.app/get_app]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -466,55 +369,7 @@ func _App_ListGroup_CrpcHandler(handler func(context.Context, *ListGroupReq) (*L
 			return
 		}
 		if resp == nil {
-			resp = new(ListGroupResp)
-		}
-		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
-			ctx.Write(respd)
-		} else {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write(respd)
-		}
-	}
-}
-func _App_ListApp_CrpcHandler(handler func(context.Context, *ListAppReq) (*ListAppResp, error)) crpc.OutsideHandler {
-	return func(ctx *crpc.Context) {
-		var preferJSON bool
-		req := new(ListAppReq)
-		reqbody := ctx.GetBody()
-		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				req.Reset()
-				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/list_app] json and proto format decode both failed")
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			} else {
-				preferJSON = true
-			}
-		} else if e := proto.Unmarshal(reqbody, req); e != nil {
-			req.Reset()
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/list_app] json and proto format decode both failed")
-				ctx.Abort(cerror.ErrReq)
-				return
-			} else {
-				preferJSON = true
-			}
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_app]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(ListAppResp)
+			resp = new(GetAppResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -659,54 +514,6 @@ func _App_UpdateAppSecret_CrpcHandler(handler func(context.Context, *UpdateAppSe
 		}
 		if resp == nil {
 			resp = new(UpdateAppSecretResp)
-		}
-		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
-			ctx.Write(respd)
-		} else {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write(respd)
-		}
-	}
-}
-func _App_ListKey_CrpcHandler(handler func(context.Context, *ListKeyReq) (*ListKeyResp, error)) crpc.OutsideHandler {
-	return func(ctx *crpc.Context) {
-		var preferJSON bool
-		req := new(ListKeyReq)
-		reqbody := ctx.GetBody()
-		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				req.Reset()
-				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/list_key] json and proto format decode both failed")
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			} else {
-				preferJSON = true
-			}
-		} else if e := proto.Unmarshal(reqbody, req); e != nil {
-			req.Reset()
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/list_key] json and proto format decode both failed")
-				ctx.Abort(cerror.ErrReq)
-				return
-			} else {
-				preferJSON = true
-			}
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_key]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(ListKeyResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -957,54 +764,6 @@ func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp
 		}
 	}
 }
-func _App_ListProxy_CrpcHandler(handler func(context.Context, *ListProxyReq) (*ListProxyResp, error)) crpc.OutsideHandler {
-	return func(ctx *crpc.Context) {
-		var preferJSON bool
-		req := new(ListProxyReq)
-		reqbody := ctx.GetBody()
-		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				req.Reset()
-				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/list_proxy] json and proto format decode both failed")
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			} else {
-				preferJSON = true
-			}
-		} else if e := proto.Unmarshal(reqbody, req); e != nil {
-			req.Reset()
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/list_proxy] json and proto format decode both failed")
-				ctx.Abort(cerror.ErrReq)
-				return
-			} else {
-				preferJSON = true
-			}
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/list_proxy]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(ListProxyResp)
-		}
-		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
-			ctx.Write(respd)
-		} else {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write(respd)
-		}
-	}
-}
 func _App_SetProxy_CrpcHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
@@ -1152,18 +911,15 @@ func _App_Proxy_CrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyResp
 func RegisterAppCrpcServer(engine *crpc.CrpcServer, svc AppCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	engine.RegisterHandler(_CrpcPathAppListGroup, _App_ListGroup_CrpcHandler(svc.ListGroup))
-	engine.RegisterHandler(_CrpcPathAppListApp, _App_ListApp_CrpcHandler(svc.ListApp))
+	engine.RegisterHandler(_CrpcPathAppGetApp, _App_GetApp_CrpcHandler(svc.GetApp))
 	engine.RegisterHandler(_CrpcPathAppCreateApp, _App_CreateApp_CrpcHandler(svc.CreateApp))
 	engine.RegisterHandler(_CrpcPathAppDelApp, _App_DelApp_CrpcHandler(svc.DelApp))
 	engine.RegisterHandler(_CrpcPathAppUpdateAppSecret, _App_UpdateAppSecret_CrpcHandler(svc.UpdateAppSecret))
-	engine.RegisterHandler(_CrpcPathAppListKey, _App_ListKey_CrpcHandler(svc.ListKey))
 	engine.RegisterHandler(_CrpcPathAppDelKey, _App_DelKey_CrpcHandler(svc.DelKey))
 	engine.RegisterHandler(_CrpcPathAppGetKeyConfig, _App_GetKeyConfig_CrpcHandler(svc.GetKeyConfig))
 	engine.RegisterHandler(_CrpcPathAppSetKeyConfig, _App_SetKeyConfig_CrpcHandler(svc.SetKeyConfig))
 	engine.RegisterHandler(_CrpcPathAppRollback, _App_Rollback_CrpcHandler(svc.Rollback))
 	engine.RegisterHandler(_CrpcPathAppWatch, _App_Watch_CrpcHandler(svc.Watch))
-	engine.RegisterHandler(_CrpcPathAppListProxy, _App_ListProxy_CrpcHandler(svc.ListProxy))
 	engine.RegisterHandler(_CrpcPathAppSetProxy, _App_SetProxy_CrpcHandler(svc.SetProxy))
 	engine.RegisterHandler(_CrpcPathAppDelProxy, _App_DelProxy_CrpcHandler(svc.DelProxy))
 	engine.RegisterHandler(_CrpcPathAppProxy, _App_Proxy_CrpcHandler(svc.Proxy))

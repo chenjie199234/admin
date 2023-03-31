@@ -170,7 +170,7 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 		//0,x,2 -> RoleControl
 		//0,x,3 -> ConfigControl
 		//these are default,already exist
-		return nil, ecode.ErrReq
+		return nil, ecode.ErrPermission
 	}
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
@@ -226,21 +226,21 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 	if req.NodeId[1] == 1 || req.PnodeId[1] == 1 {
 		//0,1 -> admin project
 		//can't modify
-		return nil, ecode.ErrReq
+		return nil, ecode.ErrPermission
 	}
 	if req.NodeId[2] == 1 || req.NodeId[2] == 2 || req.NodeId[2] == 3 {
 		//0,x,1 -> UserControl
 		//0,x,2 -> RoleControl
 		//0,x,3 -> ConfigControl
 		//these are default,can't modify
-		return nil, ecode.ErrReq
+		return nil, ecode.ErrPermission
 	}
 	if len(req.PnodeId) >= 3 && (req.PnodeId[2] == 1 || req.PnodeId[2] == 2 || req.PnodeId[2] == 3) {
 		//0,x,1 -> UserControl
 		//0,x,2 -> RoleControl
 		//0,x,3 -> ConfigControl
 		//these are default,can't modify
-		return nil, ecode.ErrReq
+		return nil, ecode.ErrPermission
 	}
 	if len(req.PnodeId)+1 == len(req.NodeId) {
 		//0,x,y,z move to 0,x,y is equal to not move
@@ -292,14 +292,14 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 	if req.NodeId[1] == 1 {
 		//0,1 -> admin project
 		//can't delete
-		return nil, ecode.ErrReq
+		return nil, ecode.ErrPermission
 	}
 	if req.NodeId[2] == 1 || req.NodeId[2] == 2 || req.NodeId[2] == 3 {
 		//0,x,1 -> project's UserControl node
 		//0,x,2 -> project's RoleControl node
 		//0,x,3 -> project's ConfigControl node
 		//these are default,can't modify
-		return nil, ecode.ErrReq
+		return nil, ecode.ErrPermission
 	}
 	buf1 := pool.GetBuffer()
 	defer pool.PutBuffer(buf1)

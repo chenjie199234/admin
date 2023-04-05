@@ -372,14 +372,14 @@ function app_op(){
 				g_name:curg.value,
 				a_name:cura.value,
 				path:cur_proxy.value,
-				data:proxys.get(cur_proxy.value).req,
+				data:proxys.value.get(cur_proxy.value).req,
 			}
 			client.appClient.proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_error("error",e.code,e.msg)
 			},(resp: appAPI.ProxyResp)=>{
 				state.clear_load()
-				proxys.get(cur_proxy.value).resp=resp.data
+				proxys.value.get(cur_proxy.value).resp=resp.data
 			})
 			break
 		}
@@ -468,7 +468,7 @@ function ttt(e){
 				</div>
 				<va-input type="textarea" label="Content" style="margin:1px;width:800px" :min-rows="15" :max-rows="15" v-model="config_value" />
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient :disabled="!config_key" >Add</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient :disabled="!Boolean(config_key)" >Add</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="config_key='';config_value='{\n}';config_value_type='json';ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -501,7 +501,7 @@ function ttt(e){
 					<va-switch v-model="new_proxy_permission_admin" true-inner-label="Admin" false-inner-label="Admin" @update:model-value="new_proxy_permission_update('admin')" />
 				</div>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" gradient :disabled="!new_proxy_path" @click="app_op">Add</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" gradient :disabled="!Boolean(new_proxy_path)" @click="app_op">Add</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="new_proxy_path='';new_proxy_permission_read=false;new_proxy_permission_write=false;new_proxy_permission_admin=false;ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -536,7 +536,7 @@ function ttt(e){
 				<va-card color="primary" gradient style="margin:0 0 5px 0">
 					<va-card-title>Warning</va-card-title>
 					<va-card-content>
-						<p>You are call path: {{ cur_proxy }}.</p>
+						<p>You are requesting path: {{ cur_proxy }}.</p>
 						<p>This request may cause changes in server data.</p>
 						<p>Please confirm!</p>
 					</va-card-content>
@@ -610,7 +610,7 @@ function ttt(e){
 			@mouseout="t_keys_hover=false"
 		>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Configs</span>
-			<va-button style="height:30px" size="small" :disabled="!curg||!cura" @mouseover.stop="" @mouseout.stop="" @click.stop="optype='add_key';ing=true">ADD</va-button>
+			<va-button style="height:30px" size="small" :disabled="curg==''||cura==''" @mouseover.stop="" @mouseout.stop="" @click.stop="optype='add_key';ing=true">ADD</va-button>
 			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ t_keys?'▲':'▼' }}</span>
 		</div>
 		<!-- keys -->
@@ -662,7 +662,7 @@ function ttt(e){
 						<va-button
 							v-if="keys.get(key).open"
 							style="margin:2px"
-							:disabled="keys.get(key).new_cur_value"
+							:disabled="Boolean(keys.get(key).new_cur_value)"
 							@click="()=>{
 								if(keys.get(key).cur_value){
 									keys.get(key).new_cur_value=JSON.stringify(JSON.parse(keys.get(key).cur_value),null,4)
@@ -690,7 +690,7 @@ function ttt(e){
 							<va-radio v-for="(option,index) in config_value_types" :key="index" :option="option" v-model="keys.get(key).new_cur_value_type" style="margin:4px" disabled />
 							<span style="flex:1"></span>
 							<va-button style="margin-right:2px" @click="cur_key=key;optype='update_key';ing=true">Update</va-button>
-							<va-button style="margin-left:2px" @click="keys.get(key).new_cur_value=undefined;keys.get(key).new_cur_value_type=undefined">Cancel</va-button>
+							<va-button style="margin-left:2px" @click="keys.get(key).new_cur_value='';keys.get(key).new_cur_value_type=''">Cancel</va-button>
 						</div>
 					</div>
 				</div>
@@ -708,7 +708,7 @@ function ttt(e){
 			@mouseout="t_proxys_hover=false"
 		>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Proxys</span>
-			<va-button style="height:30px" size="small" :disabled="!curg||!cura" @mouseover.stop="" @mouseout.stop="" @click.stop="cur_proxy=proxy;optype='add_proxy';ing=true">ADD</va-button>
+			<va-button style="height:30px" size="small" :disabled="curg==''||cura==''" @mouseover.stop="" @mouseout.stop="" @click.stop="cur_proxy=proxy;optype='add_proxy';ing=true">ADD</va-button>
 			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ t_proxys?'▲':'▼' }}</span>
 		</div>
 		<!-- paths -->
@@ -773,13 +773,13 @@ function ttt(e){
 				</div>
 				<div v-if="proxys.get(proxy).open" style="display:flex;margin:2px 20px">
 					<div style="flex:1;display:flex;flex-direction:column;align-items:center">
-						<va-input type="textarea" outline label="Req" :min-rows="15" :max-rows="15" style="width:100%" v-model="proxys.get(proxy).req" :readonly="proxys.get(proxy).resp" />
-						<va-button style="margin:2px" @click="cur_proxy=proxy;optype='proxy';ing=true" :disabled="proxys.get(proxy).resp">Proxy</va-button>
+						<va-input type="textarea" outline label="Request" :min-rows="15" :max-rows="15" style="width:100%" v-model="proxys.get(proxy).req" :readonly="Boolean(proxys.get(proxy).resp)" />
+						<va-button style="margin:2px" @click="cur_proxy=proxy;optype='proxy';ing=true" :disabled="Boolean(proxys.get(proxy).resp)">Proxy</va-button>
 					</div>
 					<va-divider v-if="proxys.get(proxy).resp" vertical />
 					<div v-if="proxys.get(proxy).resp" style="flex:1;display:flex;flex-direction:column;align-items:center">
-						<va-input type="textarea" outline label="Resp" :min-rows="15" :max-rows="15" style="width:100%" v-model="proxys.get(proxy).resp" readonly />
-						<va-button style="margin:2px" @click="proxys.get(proxy).resp=undefined">OK</va-button>
+						<va-input type="textarea" outline label="Response" :min-rows="15" :max-rows="15" style="width:100%" v-model="proxys.get(proxy).resp" readonly />
+						<va-button style="margin:2px" @click="proxys.get(proxy).resp=''">OK</va-button>
 					</div>
 				</div>
 			</div>

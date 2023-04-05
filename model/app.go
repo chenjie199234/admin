@@ -29,6 +29,7 @@ type ProxyPath struct {
 	PermissionNodeID string `bson:"permission_node_id"`
 	PermissionRead   bool   `bson:"permission_read"`
 	PermissionWrite  bool   `bson:"permission_write"`
+	PermissionAdmin  bool   `bson:"permission_admin"`
 }
 type Log struct {
 	Group     string `bson:"group"`

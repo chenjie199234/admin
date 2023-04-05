@@ -518,12 +518,14 @@ export interface ProxyPathInfo{
 	node_id: Array<number>|null|undefined;
 	read: boolean;//need read permission on this node
 	write: boolean;//need write permission on this node
+	admin: boolean;//need admin permission on this node
 }
 function JsonToProxyPathInfo(jsonobj: { [k:string]:any }): ProxyPathInfo{
 	let obj: ProxyPathInfo={
 		node_id:null,
 		read:false,
 		write:false,
+		admin:false,
 	}
 	//node_id
 	if(jsonobj['node_id']!=null&&jsonobj['node_id']!=undefined){
@@ -555,6 +557,13 @@ function JsonToProxyPathInfo(jsonobj: { [k:string]:any }): ProxyPathInfo{
 			throw 'ProxyPathInfo.write must be boolean'
 		}
 		obj['write']=jsonobj['write']
+	}
+	//admin
+	if(jsonobj['admin']!=null&&jsonobj['admin']!=undefined){
+		if(typeof jsonobj['admin']!='boolean'){
+			throw 'ProxyPathInfo.admin must be boolean'
+		}
+		obj['admin']=jsonobj['admin']
 	}
 	return obj
 }
@@ -763,6 +772,7 @@ export interface SetProxyReq{
 	path: string;
 	read: boolean;//need read permission on this node
 	write: boolean;//need write permission on this node
+	admin: boolean;//need admin permission on this node
 	secret: string;
 }
 function SetProxyReqToJson(msg: SetProxyReq): string{
@@ -802,6 +812,12 @@ function SetProxyReqToJson(msg: SetProxyReq): string{
 		throw 'SetProxyReq.write must be boolean'
 	}else{
 		s+='"write":'+msg.write+','
+	}
+	//admin
+	if(msg.admin==null||msg.admin==undefined){
+		throw 'SetProxyReq.admin must be boolean'
+	}else{
+		s+='"admin":'+msg.admin+','
 	}
 	//secret
 	if(msg.secret==null||msg.secret==undefined){

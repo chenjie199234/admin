@@ -55,7 +55,9 @@ proxy_path_info: {
 	//need read permission on this node
 	"read":true,
 	//need write permission on this node
-	"write":true
+	"write":true,
+	//need admin permission on this node
+	"admin":true
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -375,6 +377,8 @@ Content-Type: application/json
 	"read":true,
 	//need write permission on this node
 	"write":true,
+	//need admin permission on this node
+	"admin":true,
 	//value length must < 32
 	"secret":"str"
 }

@@ -206,6 +206,7 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 			NodeId: nodeid,
 			Read:   v.PermissionRead,
 			Write:  v.PermissionWrite,
+			Admin:  v.PermissionAdmin,
 		}
 	}
 	return resp, nil
@@ -646,7 +647,10 @@ func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetP
 	}
 
 	//logic
-	if e := s.appDao.MongoSetProxyPath(ctx, req.GName, req.AName, req.Secret, req.Path, req.Read, req.Write); e != nil {
+	if req.Path[0] != '/' {
+		req.Path = "/" + req.Path
+	}
+	if e := s.appDao.MongoSetProxyPath(ctx, req.GName, req.AName, req.Secret, req.Path, req.Read, req.Write, req.Admin); e != nil {
 		log.Error(ctx, "[SetProxy] group:", req.GName, "app:", req.AName, "path:", req.Path, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -721,17 +725,18 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 	}
 	s.clientsActive[req.GName+"."+req.AName] = time.Now().UnixNano()
 	s.Unlock()
-	if !operator.IsZero() && (pathinfo.PermissionRead || pathinfo.PermissionWrite) {
+	if !operator.IsZero() && (pathinfo.PermissionRead || pathinfo.PermissionWrite || pathinfo.PermissionAdmin) {
 		//permission check
 		canread, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, pathinfo.PermissionNodeID, true)
 		if e != nil {
 			log.Error(ctx, "[Proxy] operator:", md["Token-Data"], "nodeid:", pathinfo.PermissionNodeID, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
-		if pathinfo.PermissionRead && !canread && !admin {
+		if pathinfo.PermissionAdmin && !admin {
 			return nil, ecode.ErrPermission
-		}
-		if pathinfo.PermissionWrite && !canwrite && !admin {
+		} else if pathinfo.PermissionWrite && !canwrite && !admin {
+			return nil, ecode.ErrPermission
+		} else if pathinfo.PermissionRead && !canread && !admin {
 			return nil, ecode.ErrPermission
 		}
 	}

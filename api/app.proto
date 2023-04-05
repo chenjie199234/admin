@@ -100,6 +100,7 @@ message proxy_path_info{
 	repeated uint32 node_id=1;
 	bool read=2;//need read permission on this node
 	bool write=3;//need write permission on this node
+	bool admin=4;//need admin permission on this node
 }
 message key_config_info{
 	uint32 cur_index=1;
@@ -206,7 +207,8 @@ message set_proxy_req{
 	string path=3[(pbex.string_bytes_len_not_eq)=0];
 	bool read=4;//need read permission on this node
 	bool write=5;//need write permission on this node
-	string secret=6[(pbex.string_bytes_len_lt)=32];
+	bool admin=6;//need admin permission on this node
+	string secret=7[(pbex.string_bytes_len_lt)=32];
 }
 message set_proxy_resp{
 }

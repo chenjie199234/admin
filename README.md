@@ -56,12 +56,14 @@ collection: config
 		"base64(/path1)":{
 			"permission_node_id":"",
 			"permission_read":true,
-			"permission_write":true
+			"permission_write":true,
+			"permission_admin":true
 		},
 		"base64(/path2)":{
 			"permission_node_id":"",
 			"permission_read":true,
-			"permission_write":true
+			"permission_write":true,
+			"permission_admin":true
 		}
 	},
 	"keys":{

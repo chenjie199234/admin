@@ -507,7 +507,7 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, gname, aname, key, sec
 	_, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterSummary, updaterSummary)
 	return
 }
-func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path string, read, write bool) (e error) {
+func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path string, read, write, admin bool) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -528,7 +528,7 @@ func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path 
 	b64path := encodeProxyPath(path)
 	appsummary := &model.AppSummary{}
 	filter := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
-	updater1 := bson.M{"$set": bson.M{"paths." + b64path + ".permission_read": read, "paths." + b64path + ".permission_write": write}}
+	updater1 := bson.M{"$set": bson.M{"paths." + b64path + ".permission_read": read, "paths." + b64path + ".permission_write": write, "paths." + b64path + ".permission_admin": admin}}
 	opts := options.FindOneAndUpdate().SetProjection(bson.M{"value": 1, "paths." + b64path: 1, "permission_node_id": 1})
 	if e = d.mongo.Database("app").Collection("config").FindOneAndUpdate(sctx, filter, updater1, opts).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {

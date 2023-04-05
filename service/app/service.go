@@ -425,6 +425,32 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 	if strings.Contains(req.Key, ".") {
 		return nil, ecode.ErrReq
 	}
+	req.Key = strings.TrimSpace(req.Key)
+	if req.Key == "" {
+		log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "key empty")
+		return nil, ecode.ErrReq
+	}
+	req.Value = strings.TrimSpace(req.Value)
+	if req.Value == "" {
+		log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "value empty")
+		return nil, ecode.ErrReq
+	}
+	switch req.ValueType {
+	case "json":
+		buf := bytes.NewBuffer(nil)
+		if e := json.Compact(buf, common.Str2byte(req.Value)); e != nil {
+			log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "json value format check failed:", e)
+			return nil, ecode.ErrReq
+		}
+		req.Value = common.Byte2str(buf.Bytes())
+	case "toml":
+		//TODO
+	case "yaml":
+		//TODO
+	case "raw":
+		//TODO
+	}
+
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
 	if e != nil {
@@ -454,31 +480,6 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 	}
 
 	//logic
-	req.Key = strings.TrimSpace(req.Key)
-	if req.Key == "" {
-		log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "key empty")
-		return nil, ecode.ErrReq
-	}
-	req.Value = strings.TrimSpace(req.Value)
-	if req.Value == "" {
-		log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "value empty")
-		return nil, ecode.ErrReq
-	}
-	switch req.ValueType {
-	case "json":
-		buf := bytes.NewBuffer(nil)
-		if e := json.Compact(buf, common.Str2byte(req.Value)); e != nil {
-			log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "json value format check failed:", e)
-			return nil, ecode.ErrReq
-		}
-		req.Value = common.Byte2str(buf.Bytes())
-	case "toml":
-		//TODO
-	case "yaml":
-		//TODO
-	case "raw":
-		//TODO
-	}
 	index, version, e := s.appDao.MongoSetKeyConfig(ctx, req.GName, req.AName, req.Key, req.Secret, req.Value, req.ValueType)
 	if e != nil {
 		log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "key:", req.Key, e)

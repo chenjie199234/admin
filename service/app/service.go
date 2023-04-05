@@ -1,7 +1,9 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"strings"
 	"sync"
 	"time"
@@ -461,6 +463,21 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 	if req.Value == "" {
 		log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "value empty")
 		return nil, ecode.ErrReq
+	}
+	switch req.ValueType {
+	case "json":
+		buf := bytes.NewBuffer(nil)
+		if e := json.Compact(buf, common.Str2byte(req.Value)); e != nil {
+			log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "json value format check failed:", e)
+			return nil, ecode.ErrReq
+		}
+		req.Value = common.Byte2str(buf.Bytes())
+	case "toml":
+		//TODO
+	case "yaml":
+		//TODO
+	case "raw":
+		//TODO
 	}
 	index, version, e := s.appDao.MongoSetKeyConfig(ctx, req.GName, req.AName, req.Key, req.Secret, req.Value, req.ValueType)
 	if e != nil {

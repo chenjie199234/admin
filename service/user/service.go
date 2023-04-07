@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"sort"
 	"strings"
 
 	"github.com/chenjie199234/admin/api"
@@ -176,10 +177,18 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	var users map[primitive.ObjectID]*model.User
 	var totalsize int64
 	if req.Page == 0 {
-		users, totalsize, e = s.userDao.MongoSearchUsers(ctx, projectid, req.UserName, 0, 0)
+		if req.OnlyProject {
+			users, totalsize, e = s.userDao.MongoSearchUsers(ctx, projectid, req.UserName, 0, 0)
+		} else {
+			users, totalsize, e = s.userDao.MongoSearchUsers(ctx, "", req.UserName, 0, 0)
+		}
 	} else {
 		skip := int64(req.Page-1) * 20
-		users, totalsize, e = s.userDao.MongoSearchUsers(ctx, projectid, req.UserName, 20, skip)
+		if req.OnlyProject {
+			users, totalsize, e = s.userDao.MongoSearchUsers(ctx, projectid, req.UserName, 20, skip)
+		} else {
+			users, totalsize, e = s.userDao.MongoSearchUsers(ctx, "", req.UserName, 20, skip)
+		}
 	}
 	if e != nil {
 		log.Error(ctx, "[SearchUsers] operator:", md["Token-Data"], "project:", projectid, "username:", req.UserName, e)
@@ -196,33 +205,42 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	}
 	//if search user only in the required project,the role should be only in the project too
 	for _, user := range users {
-		undup := make(map[string]*api.UserRoleInfo, len(user.Roles))
-		for _, role := range user.Roles {
-			index := strings.Index(role, ":")
-			roleproject := role[:index]
-			rolename := role[index+1:]
-			if !req.OnlyProject || roleproject == projectid {
-				if _, ok := undup[roleproject]; !ok {
-					undup[roleproject] = &api.UserRoleInfo{
-						ProjectId: roleproject,
-						RoleNames: make([]string, 0, 10),
-					}
-				}
-				undup[roleproject].RoleNames = append(undup[roleproject].RoleNames, rolename)
-			}
+		if user.ID.IsZero() {
+			//jump the superadmin
+			continue
 		}
-		roles := make([]*api.UserRoleInfo, 0, len(undup))
-		for _, v := range undup {
-			roles = append(roles, v)
-		}
-		resp.Users = append(resp.Users, &api.UserInfo{
+		tmp := &api.UserInfo{
 			UserId:     user.ID.Hex(),
 			UserName:   user.UserName,
 			Department: user.Department,
 			Ctime:      user.Ctime,
-			Roles:      roles,
-		})
+			Roles:      make([]string, 0, len(user.Roles)),
+			Invited:    req.OnlyProject,
+		}
+		if !req.OnlyProject {
+			for _, project := range user.Projects {
+				if project == projectid {
+					tmp.Invited = true
+					break
+				}
+			}
+		}
+		for _, role := range user.Roles {
+			index := strings.Index(role, ":")
+			roleproject := role[:index]
+			rolename := role[index+1:]
+			if roleproject == projectid {
+				tmp.Roles = append(tmp.Roles, rolename)
+			}
+		}
+		resp.Users = append(resp.Users, tmp)
 	}
+	sort.Slice(resp.Users, func(i, j int) bool {
+		if resp.Users[i].Ctime == resp.Users[j].Ctime {
+			return resp.Users[i].UserId > resp.Users[j].UserId
+		}
+		return resp.Users[i].Ctime > resp.Users[j].Ctime
+	})
 	return resp, nil
 }
 func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.UpdateUserResp, error) {

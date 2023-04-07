@@ -55,7 +55,7 @@ service user{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	
+
 	rpc update_role(update_role_req)returns(update_role_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
@@ -89,12 +89,9 @@ message user_info {
 	string user_id=1;
 	string user_name=2;
 	repeated string department=3;
-	uint32 ctime=4;
-	repeated user_role_info roles=5;
-}
-message user_role_info{
-	string project_id=1;
-	repeated string role_names=2;
+	uint32 ctime=4;//timestamp,uint:second
+	repeated string roles=5;
+	bool invited=6;
 }
 message user_login_req {
 }

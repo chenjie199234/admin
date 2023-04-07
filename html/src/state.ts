@@ -61,7 +61,7 @@ export function avatar():string{
 	if(user.root){
 		return "R"
 	}
-	if(user.info!=null && user.info!=undefined){
+	if(user.info){
 		return user.info.user_name.substr(0,1)
 	}
 	return ""

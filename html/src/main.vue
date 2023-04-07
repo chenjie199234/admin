@@ -464,8 +464,6 @@ function iframeload(){
 					label="Select Project"
 					@update:model-value="select_project(true)"
 				>
-					<!-- <template #appendInner> -->
-					<!-- </template> -->
 				</va-select>
 				<va-dropdown v-if="state.user.root||(is_root_node_project()&&state.project.nodes[0].admin)" trigger="hover" style="width:36px;margin-right:2px">
 					<template #anchor>
@@ -508,11 +506,8 @@ function iframeload(){
 					</va-dropdown-content>
 				</va-dropdown>
 			</div>
-			<!-- User -->
 			<userpage v-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==1"></userpage>
-			<!-- Role -->
 			<rolepage v-else-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==2"></rolepage>
-			<!-- App -->
 			<apppage v-else-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==3"></apppage>
 			<iframe v-else-if="state.page.node&&state.page.node.node_data!=''" width="100%" height="100%" frameborder="0" :src="state.page.node.node_data" @load="iframeload"></iframe>
 		</div>

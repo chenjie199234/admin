@@ -5,7 +5,7 @@ import * as appAPI from '../../api/app_browser_toc'
 
 const host: string = "http://10.1.134.245:8000"
 // const host: string = "http://0.0.0.0:8000"
-export const timeout: number = 1000
+export const timeout: number = 3000
 export const initializeClient: initializeAPI.InitializeBrowserClientToC = new initializeAPI.InitializeBrowserClientToC(host)
 export const permissionClient: permissionAPI.PermissionBrowserClientToC = new permissionAPI.PermissionBrowserClientToC(host)
 export const userClient: userAPI.UserBrowserClientToC = new userAPI.UserBrowserClientToC(host)

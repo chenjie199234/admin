@@ -35,15 +35,11 @@ user_info: {
 	"user_id":"str",
 	"user_name":"str",
 	"department":["str","str"],
+	//timestamp,uint:second
 	//uint32
 	"ctime":0,
-	//object user_role_info
-	"roles":[{},{}]
-}
-------------------------------------------------------------------------------------------------------------
-user_role_info: {
-	"project_id":"str",
-	"role_names":["str","str"]
+	"roles":["str","str"],
+	"invited":true
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -155,15 +151,11 @@ user_info: {
 	"user_id":"str",
 	"user_name":"str",
 	"department":["str","str"],
+	//timestamp,uint:second
 	//uint32
 	"ctime":0,
-	//object user_role_info
-	"roles":[{},{}]
-}
-------------------------------------------------------------------------------------------------------------
-user_role_info: {
-	"project_id":"str",
-	"role_names":["str","str"]
+	"roles":["str","str"],
+	"invited":true
 }
 ------------------------------------------------------------------------------------------------------------
 ```

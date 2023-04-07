@@ -166,7 +166,7 @@ function app_op(){
 			client.appClient.del_app({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,secret:secret.value},client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_error("error",e.code,e.msg)
-			},(resp: appAPI.GetAppResp)=>{
+			},(resp: appAPI.DelAppResp)=>{
 				state.clear_load()
 				let index=all.value[curg.value].indexOf(cura.value)
 				if(index!=-1){
@@ -291,7 +291,7 @@ function app_op(){
 			client.appClient.rollback({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_error("error",e.code,e.msg)
-			},(resp: appAPI.SetKeyConfigResp)=>{
+			},(resp: appAPI.RollbackResp)=>{
 				ing.value=false
 				get_app(false)
 			})
@@ -389,10 +389,6 @@ function app_op(){
 		}
 	}
 }
-
-function ttt(e){
-	console.log(e)
-}
 </script>
 <template>
 	<va-modal v-model="ing" attach-element="#app" max-width="1000px" max-height="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
@@ -407,7 +403,7 @@ function ttt(e){
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op" gradient>Del</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op()" gradient>Del</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -421,25 +417,71 @@ function ttt(e){
 				</div>
 			</div>
 			<div v-else-if="optype=='update_secret'" style="display:flex;flex-direction:column">
-				<va-select 
+				<div>
+					<va-select 
 					trigger="hover"
 					dropdown-icon=""
 					label="Group*"
 					:options="Object.keys(all)"
-					style="width:400px;margin:2px"
+					style="width:198px;margin:2px"
 					v-model="update_g"
 					no-options-text="No Groups"
-					@update:model-value="update_a=''"
-				/>
-				<va-select
+					>
+						<template #option='{option,index,selectOption}'>
+							<va-hover
+							stateful
+							@click="()=>{
+								if(option!=update_g){
+									selectOption(option)
+									update_a=''
+									update_old_secret=''
+									update_new_secret=''
+								}
+							}"
+							>
+								<template #default="{hover}">
+									<div
+									style="padding:10px;cursor:pointer"
+									:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||update_g==option?'var(--va-primary)':'black'}"
+									>
+										{{option}}
+									</div>
+								</template>
+							</va-hover>
+						</template>
+					</va-select>
+					<va-select
 					trigger="hover"
 					dropdown-icon=""
 					label="App*"
 					:options="all[update_g]"
-					style="width:400px;margin:2px"
+					style="width:198px;margin:2px"
 					v-model="update_a"
 					no-options-text="No Apps"
-				/>
+					>
+						<template #option='{option,index,selectOption}'>
+							<va-hover
+							stateful
+							@click="()=>{
+								if(option!=update_a){
+									selectOption(option)
+									update_old_secret=''
+									update_new_secret=''
+								}
+							}"
+							>
+								<template #default="{hover}">
+									<div
+									style="padding:10px;cursor:pointer"
+									:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||update_a==option?'var(--va-primary)':'black'}"
+									>
+										{{option}}
+									</div>
+								</template>
+							</va-hover>
+						</template>
+					</va-select>
+				</div>
 				<va-input type="text" label="Old Secret" style="width:400px;margin:2px" v-model="update_old_secret" />
 				<va-input type="text" label="New Secret" style="width:400px;margin:2px" v-model="update_new_secret" />
 				<div style="display:flex;justify-content:center">
@@ -528,7 +570,7 @@ function ttt(e){
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op()" gradient>Update</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op()" gradient>Del</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -551,31 +593,70 @@ function ttt(e){
 	<div style="display:flex;flex:1;flex-direction:column;margin:1px;width:100%;overflow-y:auto">
 		<div style="width:100%;display:flex;margin:1px 0">
 			<va-select
-				dropdown-icon=""
-				outline
-				trigger="hover"
-				label="Group*"
-				no-options-text="No Groups"
-				:options="Object.keys(all)"
-				v-model="curg"
-				style="width:250px;margin-right:1px"
-				@update:model-value="cura='';secret='';keys=new Map();proxys=new Map()"
+			dropdown-icon=""
+			outline
+			trigger="hover"
+			label="Group*"
+			no-options-text="No Groups"
+			:options="Object.keys(all)"
+			v-model="curg"
+			style="width:250px;margin-right:1px"
 			>
-				<template #appendInner>
+				<template #option='{option,index,selectOption}'>
+					<va-hover
+					stateful
+					@click="()=>{
+						if(curg!=option){
+							selectOption(option)
+							cura=''
+							secret=''
+							keys=new Map()
+							proxys=new Map()
+						}
+					}"
+					>
+						<template #default='{hover}'>
+							<div
+							style="padding:10px;cursor:pointer"
+							:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||curg==option?'var(--va-primary)':'black'}"
+							>
+								{{option}}
+							</div>
+						</template>
+					</va-hover>
 				</template>
 			</va-select>
 			<va-select
-				dropdown-icon=""
-				outline
-				trigger="hover"
-				label="App*"
-				no-options-text="No Apps"
-				:options="all[curg]"
-				v-model="cura"
-				style="width:250px;margin:0 1px"
-				@update:model-value="secret='';keys=new Map();proxys=new Map()"
+			dropdown-icon=""
+			outline
+			trigger="hover"
+			label="App*"
+			no-options-text="No Apps"
+			:options="all[curg]"
+			v-model="cura"
+			style="width:250px;margin:0 1px"
 			>
-				<template #appendInner>
+				<template #option='{option,index,selectOption}'>
+					<va-hover
+					stateful
+					@click="()=>{
+						if(cura!=option){
+							selectOption(option)
+							secret=''
+							keys=new Map()
+							proxys=new Map()
+						}
+					}"
+					>
+						<template #default='{hover}'>
+							<div
+							style="padding:10px;cursor:pointer"
+							:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||cura==option?'var(--va-primary)':'black'}"
+							>
+								{{option}}
+							</div>
+						</template>
+					</va-hover>
 				</template>
 			</va-select>
 			<va-input :type="t_secret?'text':'password'" v-model="secret" outline label="Secret" :max-length="31" style="min-width:250px;max-width:250px;margin:0 1px" @keyup.enter="get_app(true)">
@@ -596,7 +677,7 @@ function ttt(e){
 						<va-button style="width:36px;margin:0 3px" @click="ing=true;optype='update_secret'">◉</va-button>
 					</va-popover>
 					<va-popover message="Delete App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
-						<va-button style="width:36px;margin:0 3px" :disabled="curg==''||cura==''" @click="ing=true;optype='del_app'">x</va-button>
+						<va-button style="width:36px;margin:0 3px" :disabled="curg==''||cura==''" @click="optype='del_app';ing=true">x</va-button>
 					</va-popover>
 				</va-dropdown-content>
 			</va-dropdown>

@@ -739,8 +739,9 @@ export interface UserInfo{
 	user_name: string;
 	department: Array<string>|null|undefined;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	ctime: number;
-	roles: Array<UserRoleInfo|null|undefined>|null|undefined;
+	ctime: number;//timestamp,uint:second
+	roles: Array<string>|null|undefined;
+	invited: boolean;
 }
 function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 	let obj: UserInfo={
@@ -749,6 +750,7 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 		department:null,
 		ctime:0,
 		roles:null,
+		invited:false,
 	}
 	//user_id
 	if(jsonobj['user_id']!=null&&jsonobj['user_id']!=undefined){
@@ -791,17 +793,24 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 	//roles
 	if(jsonobj['roles']!=null&&jsonobj['roles']!=undefined){
 		if(!(jsonobj['roles'] instanceof Array)){
-			throw 'UserInfo.roles must be Array<UserRoleInfo>|null|undefined'
+			throw 'UserInfo.roles must be Array<string>|null|undefined'
 		}
 		for(let element of jsonobj['roles']){
-			if(typeof element!='object'){
-				throw 'element in UserInfo.roles must be UserRoleInfo'
+			if(typeof element!='string'){
+				throw 'element in UserInfo.roles must be string'
 			}
 			if(obj['roles']==null){
-				obj['roles']=new Array<UserRoleInfo>
+				obj['roles']=new Array<string>
 			}
-			obj['roles'].push(JsonToUserRoleInfo(element))
+			obj['roles'].push(element)
 		}
+	}
+	//invited
+	if(jsonobj['invited']!=null&&jsonobj['invited']!=undefined){
+		if(typeof jsonobj['invited']!='boolean'){
+			throw 'UserInfo.invited must be boolean'
+		}
+		obj['invited']=jsonobj['invited']
 	}
 	return obj
 }
@@ -838,39 +847,6 @@ function JsonToUserLoginResp(jsonobj: { [k:string]:any }): UserLoginResp{
 			throw 'UserLoginResp.user must be UserInfo'
 		}
 		obj['user']=JsonToUserInfo(jsonobj['user'])
-	}
-	return obj
-}
-export interface UserRoleInfo{
-	project_id: string;
-	role_names: Array<string>|null|undefined;
-}
-function JsonToUserRoleInfo(jsonobj: { [k:string]:any }): UserRoleInfo{
-	let obj: UserRoleInfo={
-		project_id:'',
-		role_names:null,
-	}
-	//project_id
-	if(jsonobj['project_id']!=null&&jsonobj['project_id']!=undefined){
-		if(typeof jsonobj['project_id']!='string'){
-			throw 'UserRoleInfo.project_id must be string'
-		}
-		obj['project_id']=jsonobj['project_id']
-	}
-	//role_names
-	if(jsonobj['role_names']!=null&&jsonobj['role_names']!=undefined){
-		if(!(jsonobj['role_names'] instanceof Array)){
-			throw 'UserRoleInfo.role_names must be Array<string>|null|undefined'
-		}
-		for(let element of jsonobj['role_names']){
-			if(typeof element!='string'){
-				throw 'element in UserRoleInfo.role_names must be string'
-			}
-			if(obj['role_names']==null){
-				obj['role_names']=new Array<string>
-			}
-			obj['role_names'].push(element)
-		}
 	}
 	return obj
 }

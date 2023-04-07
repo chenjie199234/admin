@@ -3,11 +3,11 @@ module github.com/chenjie199234/admin
 go 1.18
 
 require (
-	github.com/chenjie199234/Corelib v0.0.76-0.20230323023350-25a62bc71c01
+	github.com/chenjie199234/Corelib v0.0.76-0.20230406030456-dcecd0cbf126
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/segmentio/kafka-go v0.4.39
-	go.mongodb.org/mongo-driver v1.11.2
+	go.mongodb.org/mongo-driver v1.11.4
 	google.golang.org/protobuf v1.30.0
 )
 

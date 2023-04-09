@@ -66,9 +66,9 @@ func (s *Service) InviteProject(ctx context.Context, req *api.InviteProjectReq) 
 		log.Error(ctx, "[InviteProject] target:", req.UserId, "format wrong:", e)
 		return nil, ecode.ErrReq
 	}
-	//user control permission check
 	if !operator.IsZero() {
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserControl, true)
+		//permission check
+		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[InviteProject] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -109,8 +109,8 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 		log.Error(ctx, "[KickProject] target:", req.UserId, "format wrong:", e)
 		return nil, ecode.ErrReq
 	}
-	//user control permission check
 	if !operator.IsZero() {
+		//permission check
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, target, projectid, true)
 		if e != nil {
 			log.Error(ctx, "[KickProject] target:", req.UserId, "project:", projectid, "get permission failed:", e)
@@ -121,7 +121,7 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 			return nil, ecode.ErrPermission
 		}
 		//target is not admin in this project
-		_, _, admin, e = s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserControl, true)
+		_, _, admin, e = s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[KickProject] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -159,7 +159,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	}
 	if !operator.IsZero() {
 		//permission check
-		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserControl, true)
+		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[SearchUsers] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -257,7 +257,7 @@ func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.
 	}
 	if !operator.IsZero() {
 		//permission check
-		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.AdminProjectID+model.UserControl, true)
+		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.AdminProjectID+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[UpdateUser] operator:", md["Token-Data"], "project:", model.AdminProjectID, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -295,7 +295,7 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 	}
 	if !operator.IsZero() {
 		//permission check
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.RoleControl, true)
+		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[CreateRole] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -333,7 +333,7 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 	}
 	if !operator.IsZero() {
 		//permission check
-		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.RoleControl, true)
+		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[SearchRoles] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -396,7 +396,7 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 	}
 	if !operator.IsZero() {
 		//permission check
-		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.RoleControl, true)
+		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[UpdateRole] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -434,7 +434,7 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 		return nil, ecode.ErrToken
 	}
 	if !operator.IsZero() {
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.RoleControl, true)
+		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[DelRoles] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -477,15 +477,7 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 		return nil, ecode.ErrReq
 	}
 	if !operator.IsZero() {
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserControl, true)
-		if e != nil {
-			log.Error(ctx, "[AddUserRole] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-		}
-		if !admin {
-			return nil, ecode.ErrPermission
-		}
-		_, _, admin, e = s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.RoleControl, true)
+		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[AddUserRole] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -528,7 +520,7 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 		return nil, ecode.ErrReq
 	}
 	if !operator.IsZero() {
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserControl, true)
+		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[DelUserRole] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)

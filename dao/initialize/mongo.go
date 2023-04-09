@@ -71,17 +71,10 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		NodeData:     "",
 		CurNodeIndex: 100,
 	})
-	//project admin's user control node
+	//project admin's user and role control node
 	docs = append(docs, &model.Node{
-		NodeId:       model.AdminProjectID + model.UserControl,
-		NodeName:     "UserControl",
-		NodeData:     "",
-		CurNodeIndex: 0,
-	})
-	//project admin's role control node
-	docs = append(docs, &model.Node{
-		NodeId:       model.AdminProjectID + model.RoleControl,
-		NodeName:     "RoleControl",
+		NodeId:       model.AdminProjectID + model.UserAndRoleControl,
+		NodeName:     "UserAndRoleControl",
 		NodeData:     "",
 		CurNodeIndex: 0,
 	})
@@ -209,14 +202,8 @@ func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata s
 		CurNodeIndex: 100,
 	})
 	docs = append(docs, &model.Node{
-		NodeId:       nodeid + model.UserControl,
+		NodeId:       nodeid + model.UserAndRoleControl,
 		NodeName:     "UserControl",
-		NodeData:     "",
-		CurNodeIndex: 0,
-	})
-	docs = append(docs, &model.Node{
-		NodeId:       nodeid + model.RoleControl,
-		NodeName:     "RoleControl",
 		NodeData:     "",
 		CurNodeIndex: 0,
 	})

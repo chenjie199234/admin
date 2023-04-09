@@ -95,8 +95,8 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 		return nil, ecode.ErrReq
 	}
 	if !operator.IsZero() {
-		//user control permission check
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserControl, true)
+		//permission check
+		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[UpdateUserPermission] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -145,7 +145,7 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	}
 	if !operator.IsZero() {
 		//role control permission check
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.RoleControl, true)
+		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[UpdateRolePermission] operator:", md["Token-Data"], "project:", projectid, "get permission failed:", e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -355,7 +355,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		}
 		if !operator.IsZero() {
 			//user control permission check
-			canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.UserControl, true)
+			canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.UserAndRoleControl, true)
 			if e != nil {
 				log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "get permission failed:", e)
 				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -570,14 +570,16 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 		log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrToken
 	}
-	//role control permission check
-	canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.RoleControl, true)
-	if e != nil {
-		log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "get permission failed:", e)
-		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-	}
-	if !canread && !admin {
-		return nil, ecode.ErrPermission
+	if !operator.IsZero() {
+		//permission check
+		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.UserAndRoleControl, true)
+		if e != nil {
+			log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "get permission failed:", e)
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		if !canread && !admin {
+			return nil, ecode.ErrPermission
+		}
 	}
 	//logic
 	rolenodes, e := s.permissionDao.MongoGetRoleNodes(ctx, project, req.RoleName, nil)

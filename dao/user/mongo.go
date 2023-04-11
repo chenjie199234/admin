@@ -92,7 +92,10 @@ func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (
 
 // if limit is 0 means all
 func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, limit, skip int64) (map[primitive.ObjectID]*model.User, int64, error) {
-	filter := bson.M{"user_name": bson.M{"$regex": name}}
+	filter := bson.M{}
+	if name != "" {
+		filter["user_name"] = bson.M{"$regex": name}
+	}
 	if projectid != "" {
 		filter["projects"] = projectid
 	}
@@ -170,7 +173,11 @@ func (d *Dao) MongoCreateRole(ctx context.Context, projectid, name, comment stri
 
 // if limit is 0 means all
 func (d *Dao) MongoSearchRoles(ctx context.Context, projectid, name string, limit, skip int64) (map[string]*model.Role, int64, error) {
-	totalsize, e := d.mongo.Database("user").Collection("role").CountDocuments(ctx, bson.M{"project": projectid, "role_name": bson.M{"$regex": name}})
+	filter := bson.M{"project": projectid}
+	if name != "" {
+		filter["role_name"] = bson.M{"$regex": name}
+	}
+	totalsize, e := d.mongo.Database("user").Collection("role").CountDocuments(ctx, filter)
 	if e != nil {
 		return nil, 0, e
 	}

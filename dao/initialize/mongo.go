@@ -203,7 +203,7 @@ func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata s
 	})
 	docs = append(docs, &model.Node{
 		NodeId:       nodeid + model.UserAndRoleControl,
-		NodeName:     "UserControl",
+		NodeName:     "UserAndRoleControl",
 		NodeData:     "",
 		CurNodeIndex: 0,
 	})

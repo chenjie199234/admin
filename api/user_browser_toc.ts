@@ -507,7 +507,7 @@ export interface SearchUsersReq{
 	//first element must be 0
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
-	user_name: string;
+	user_name: string;//fuzzy search
 	//true - search users in the project,this require operator has read permission on this project's user control node
 	//false - search all users(include users not in this project),this require operator has admin permission on this project's user control node
 	only_project: boolean;

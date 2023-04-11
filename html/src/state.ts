@@ -33,14 +33,20 @@ export const alert = reactive<{
 	code:0,
 	msg:"",
 })
-export function set_error(title: string,code: number,msg: string){
+export function set_alert(title: string,code: number,msg: string){
 	alert.ing = true
 	alert.title = title
 	alert.code = code
 	alert.msg = msg
 }
-export function clear_error(){
+export function clear_alert(){
 	alert.ing = false
+}
+export function get_alert_title():string{
+	if(alert.code==0){
+		return alert.title
+	}
+	return alert.title+":"+alert.code
 }
 
 //-------------------------------------------------------------------------------
@@ -71,7 +77,8 @@ export function logout(){
 	user.info=null
 
 	project.all=[]
-	project.cur=""
+	project.cur_id=[]
+	project.cur_name=""
 	project.nodes=[]
 
 	page.node=null
@@ -80,14 +87,16 @@ export function logout(){
 //-------------------------------------------------------------------------------
 export const project = reactive<{
 	all:initializeAPI.projectInfo[]
-	cur:initializeAPI.ProjectInfo|string
+	cur_id:number[]
+	cur_name:string
 	nodes:permissionAPI.NodeInfo[]
 	ing:boolean
 	optype:string// 'add' or 'del' or 'update'
 	new_project_name:string
 }>({
 	all:[],
-	cur:"",
+	cur_id:[],
+	cur_name:"",
 	nodes:[],
 	ing:false,
 	optype:"",

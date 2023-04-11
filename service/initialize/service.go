@@ -44,7 +44,8 @@ func (s *Service) InitStatus(ctx context.Context, req *api.InitStatusReq) (*api.
 	if e == ecode.ErrNotInited {
 		return &api.InitStatusResp{Status: false}, nil
 	}
-	return nil, e
+	log.Error(ctx, "[InitStatus]", e)
+	return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 }
 
 // Init 初始化项目

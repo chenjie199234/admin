@@ -7,9 +7,8 @@ import * as state from './state'
 import * as client from './client'
 
 import sidemenu from './sidemenu.vue'
-import apppage from './apppage.vue'
-import userpage from './userpage.vue'
-import rolepage from './rolepage.vue'
+import app from './app.vue'
+import userrole from './userrole.vue'
 
 const inited = ref(false)
 get_init_status()
@@ -24,9 +23,9 @@ function init_able():boolean{
 function do_init(){
 	if(!init_able()){
 		if(init_access_key.value){
-			state.set_error("error",-2,"Root Password length must in [10,32)!")
+			state.set_alert("error",-2,"Root Password length must in [10,32)!")
 		}else{
-			state.set_error("error",-2,"Missing Access Key!")
+			state.set_alert("error",-2,"Missing Access Key!")
 		}
 		return
 	}
@@ -35,7 +34,7 @@ function do_init(){
 	}
 	client.initializeClient.init({"Access-Key":init_access_key.value},{password:init_password.value},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
-		state.set_error("error",e.code,e.msg)
+		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.InitResp)=>{
 		state.clear_load()
 		init_access_key.value=""
@@ -49,7 +48,7 @@ function get_init_status(){
 	}
 	client.initializeClient.init_status({},{},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
-		state.set_error("error",e.code,e.msg)
+		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.InitStatusResp)=>{
 		state.clear_load()
 		inited.value=resp.status
@@ -63,7 +62,7 @@ function login_root_able():boolean{
 }
 function do_login_root(){
 	if(!login_root_able()){
-		state.set_error("error",-2,"Root Password length must in [10,32)!")
+		state.set_alert("error",-2,"Root Password length must in [10,32)!")
 		return
 	}
 	if(!state.set_load()){
@@ -71,7 +70,7 @@ function do_login_root(){
 	}
 	client.initializeClient.root_login({},{password:password.value},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
-		state.set_error("error",e.code,e.msg)
+		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.RootLoginResp)=>{
 		//clear loading in get_projects function
 		password.value=""
@@ -93,7 +92,7 @@ function do_change_root_password(){
 		return
 	}
 	if(!change_root_password_able()){
-		state.set_error("error",-2,"Root Password length must in [10,32)!")
+		state.set_alert("error",-2,"Root Password length must in [10,32)!")
 		return
 	}
 	if(!state.set_load()){
@@ -101,7 +100,7 @@ function do_change_root_password(){
 	}
 	client.initializeClient.root_password({"Token":state.user.token},{old_password:oldpassword.value,new_password:newpassword.value},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
-		state.set_error("error",e.code,e.msg)
+		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.RootPasswordResp)=>{
 		state.clear_load()
 		oldpassword.value=""
@@ -113,9 +112,6 @@ function do_change_root_password(){
 const oauth2 = ref("")
 const oauth2s = ref(["Oauth2 Service Name 1","Oauth2 Service Name 2"])
 const oauth2img = ref("")
-function update_oauth2(){
-
-}
 function do_login_user(){
 
 }
@@ -128,29 +124,29 @@ function get_projects(need_set_load: boolean){
 	}
 	client.initializeClient.list_project({"Token":state.user.token},{},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
-		state.set_error("error",e.code,e.msg)
+		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.ListProjectResp)=>{
 		state.clear_load()
 		state.project.all=resp.projects
 		//if the project doesn't exist,selector need to be reset
-		if(state.project.cur){
+		if(state.project.cur_id.length!=0){
 			let find: boolean=false
 			for(let p of state.project.all){
-				if(state.project.cur.project_id[0]==p.project_id[0]&&state.project.cur.project_id[1]==p.project_id[1]){
+				if(same_node_id(p.project_id,state.project.cur_id)){
 					find=true
-					state.project.cur=p
 					break
 				}
 			}
 			if(!find){
-				state.project.cur=""
+				state.project.cur_id=[]
+				state.project.cur_name=""
 				state.project.nodes=[]
 			}
 		}
 	})
 }
 function select_project(need_set_load: boolean){
-	if(!state.project.cur){
+	if(state.project.cur_id.length==0){
 		//this is impossible
 		state.project.nodes=[]
 		return
@@ -160,41 +156,20 @@ function select_project(need_set_load: boolean){
 			return
 		}
 	}
-	client.permissionClient.list_user_node({"Token":state.user.token},{project_id:state.project.cur.project_id,user_id:"",need_user_role_node:true},client.timeout,(e: permissionAPI.Error)=>{
+	client.permissionClient.list_user_node({"Token":state.user.token},{project_id:state.project.cur_id,user_id:"",need_user_role_node:true},client.timeout,(e: permissionAPI.Error)=>{
 		state.clear_load()
 		state.clear_page()
 		state.project.nodes=[]
-		state.set_error("error",e.code,e.msg)
+		state.set_alert("error",e.code,e.msg)
 	},(resp: permissionAPI.ListUserNodeResp)=>{
 		state.clear_load()
 		state.clear_page()
 		state.project.nodes=resp.nodes
 	})
 }
-function is_root_node_project(): boolean{
-	if(state.project.cur){
-		if(state.project.nodes.length!=1){
-			return false
-		}
-		if(state.project.nodes[0].node_id.length!=2){
-			return false
-		}
-		if(state.project.nodes[0].node_id[0]!=state.project.cur.project_id[0]){
-			return false
-		}
-		if(state.project.nodes[0].node_id[1]!=state.project.cur.project_id[1]){
-			return false
-		}
-		return true
-	}
-	return false
-}
-function is_project_admin(): boolean{
-	return state.project.cur&&state.project.cur.project_id[0]==0&&state.project.cur.project_id[1]==1
-}
 
 function project_op(){
-	if(!state.project.cur){
+	if(state.project.cur_id.length==0){
 		return
 	}
 	if(!state.set_load()){
@@ -208,7 +183,7 @@ function project_op(){
 			}
 			client.initializeClient.create_project({"Token":state.user.token},req,client.timeout,(e: initializeAPI.Error)=>{
 				state.clear_load()
-				state.set_error("error",e.code,e.msg)
+				state.set_alert("error",e.code,e.msg)
 			},(resp: initializeAPI.CreateProjectResp)=>{
 				//clear loading in get_projects function
 				get_projects(false)
@@ -218,13 +193,13 @@ function project_op(){
 		}
 		case 'update':{
 			let req = {
-				project_id: state.project.cur.project_id,
+				project_id: state.project.cur_id,
 				new_project_name: state.project.new_project_name,
-				new_project_data: state.project.cur.project_data,
+				new_project_data: "",
 			}
 			client.initializeClient.update_project({"Token":state.user.token},req,client.timeout,(e: initializeAPI.Error)=>{
 				state.clear_load()
-				state.set_error("error",e.code,e.msg)
+				state.set_alert("error",e.code,e.msg)
 			},(resp: initializeAPI.CreateProjectResp)=>{
 				//clear loading in get_projects function
 				get_projects(false)
@@ -234,11 +209,11 @@ function project_op(){
 		}
 		case 'del':{
 			let req = {
-				project_id: state.project.cur.project_id,
+				project_id: state.project.cur_id,
 			}
 			client.initializeClient.delete_project({"Token":state.user.token},req,client.timeout,(e :initializeAPI.Error)=>{
 				state.clear_load()
-				state.set_error("error",e.code,e.msg)
+				state.set_alert("error",e.code,e.msg)
 			},(resp :initializeAPI.DeleteProjectResp)=>{
 				//clear loading in get_projects function
 				get_projects(false)
@@ -248,13 +223,13 @@ function project_op(){
 		}
 		default:{
 			state.clear_load()
-			state.set_error("error",-2,"unknown operation")
+			state.set_alert("error",-2,"unknown operation")
 		}
 	}
 }
 
 function node_op(){
-	if(!state.project.cur){
+	if(state.project.cur_id.length==0){
 		return
 	}
 	if(!state.set_load()){
@@ -269,7 +244,7 @@ function node_op(){
 			}
 			client.permissionClient.add_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
 				state.clear_load()
-				state.set_error("error",e.code,e.msg)
+				state.set_alert("error",e.code,e.msg)
 			},(resp :permissionAPI.AddNodeResp)=>{
 				//clear loading in select_project
 				select_project(false)
@@ -285,7 +260,7 @@ function node_op(){
 			}
 			client.permissionClient.update_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
 				state.clear_load()
-				state.set_error("error",e.code,e.msg)
+				state.set_alert("error",e.code,e.msg)
 			},(resp :permissionAPI.AddNodeResp)=>{
 				//clear loading in select_project
 				select_project(false)
@@ -299,7 +274,7 @@ function node_op(){
 			}
 			client.permissionClient.del_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
 				state.clear_load()
-				state.set_error("error",e.code,e.msg)
+				state.set_alert("error",e.code,e.msg)
 			},(resp :permissionAPI.AddNodeResp)=>{
 				//clear loading in select_project
 				select_project(false)
@@ -309,12 +284,30 @@ function node_op(){
 		}
 		default:{
 			state.clear_load()
-			state.set_error("error",-2,"unknown operation")
+			state.set_alert("error",-2,"unknown operation")
 		}
 	}
 }
 function iframeload(){
 	console.log("iframe")
+}
+function same_node_id(a:number[],b:number[]):boolean{
+	if(!Boolean(a)&&!Boolean(b)){
+		return true
+	}else if(Boolean(a)&&!Boolean(b)&&a.length==0){
+		return true
+	}else if(!Boolean(a)&&Boolean(b)&&b.length==0){
+		return true
+	}
+	if(a.length!=b.length){
+		return false
+	}
+	for(let i=0;i<a.length;i++){
+		if(a[i]!=b[i]){
+			return false
+		}
+	}
+	return true
 }
 </script>
 
@@ -324,7 +317,7 @@ function iframeload(){
 			<va-inner-loading icon="❃" loading :size="55"></va-inner-loading>
 		</template>
 	</va-modal>
-	<va-modal v-model="state.alert.ing" max-width="600px" max-height="400px" fixed-layout :title="state.alert.title+':'+state.alert.code" :message="state.alert.msg" hide-default-actions :overlay="false" blur z-index="1000" />
+	<va-modal v-model="state.alert.ing" max-width="600px" max-height="400px" fixed-layout :title="state.get_alert_title()" :message="state.alert.msg" hide-default-actions :overlay="false" blur z-index="1000" />
 	<va-modal v-model="password_changing" attach-element="#app" max-width="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
 		<template #default>
 			<div style="display:flex;flex-direction:column">
@@ -351,7 +344,7 @@ function iframeload(){
 				<va-card color="primary" gradient style="margin:0 0 5px 0">
 					<va-card-title>Warning</va-card-title>
 					<va-card-content>
-						<p>You are deleting project: {{ state.project.cur.project_name }}.</p>
+						<p>You are deleting project: {{ state.project.cur_name}}.</p>
 						<p>All data in this project will be deleted.</p>
 						<p>Please confirm!</p>
 					</va-card-content>
@@ -412,7 +405,7 @@ function iframeload(){
 		</template>
 	</va-modal>
 
-	<div v-if="!inited" style="display:flex;flex-direction:column;width:100%;justify-content:center;align-items:center">
+	<div v-if="!inited" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center">
 		<va-card style="width:400px;margin:10px" color="primary" gradient>
 			<va-card-title>Warning</va-card-title>
 			<va-card-content>System not initialized.</va-card-content>
@@ -431,9 +424,28 @@ function iframeload(){
 			<va-button style="width:100px;margin:5px 0 0 300px" :disabled="!init_able()" @click="do_init" gradient>Init</va-button>
 		</div>
 	</div>
-	<div v-else-if="state.user.token.length==0" style="display:flex;width:100%;justify-content:center;align-items:center">
+	<div v-else-if="state.user.token.length==0" style="width:100%;height:100%;display:flex;justify-content:center;align-items:center">
 		<div v-if="!state.user.root">
-			<va-select v-model="oauth2" :options="oauth2s" no-options-text="NO Oauth2 Login" placeholder="Select Oauth2 Login" dropdown-icon="" style="width:400px" @update:model-value="update_oauth2"></va-select>
+			<va-select v-model="oauth2" :options="oauth2s" no-options-text="NO Oauth2 Login" label="Select Oauth2 Login" dropdown-icon="" style="width:400px" trigger="hover">
+				<template #option='{option,index,selectOption}'>
+					<va-hover
+					stateful
+					@click="()=>{
+						if(oauth2!=option){
+							selectOption(option)
+						}
+					}">
+						<template #default="{hover}">
+							<div
+							style="padding:10px;cursor:pointer"
+							:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||oauth2==option?'var(--va-primary)':'black'}"
+							>
+								{{option}}
+							</div>
+						</template>
+					</va-hover>
+				</template>
+			</va-select>
 			<va-image style="width:400px;height:400px;margin:5px 0" :src="oauth2img" />
 			<va-button style="width:400px;margin:0" @click="state.user.root=true">Switch To Root User Login</va-button>
 		</div>
@@ -449,23 +461,36 @@ function iframeload(){
 			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=false">Switch To Normal User Login</va-button>
 		</div>
 	</div>
-	<div v-else style="display:flex;width:100%">
-		<div style="display:flex;flex-direction:column;width:250px">
+	<div v-else style="width:100%;height:100%;display:flex">
+		<div style="width:200px;display:flex;flex-direction:column;overflow-x:auto">
 			<div style="display:flex;padding:5px 0;background-color:var(--va-background-element)">
 				<va-select
-					dropdown-icon=""
-					trigger="hover"
-					outline
-					style="flex:1;margin:0 2px"
-					v-model="state.project.cur"
-					:options="state.project.all"
-					text-by="project_name"
-					track-by="project_id"
-					label="Select Project"
-					@update:model-value="select_project(true)"
+				dropdown-icon=""
+				trigger="hover"
+				outline
+				style="flex:1;margin:0 2px"
+				:model-value="state.project.cur_name"
+				:options="state.project.all"
+				label="Select Project"
+				no-options-text="NO Projects"
 				>
+					<template #option='{option,index,selectOption}'>
+						<va-hover
+						stateful
+						@click="state.project.cur_id=option.project_id;state.project.cur_name=option.project_name;select_project(true)"
+						>
+							<template #default="{hover}">
+								<div
+								style="padding:10px;cursor:pointer"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||same_node_id(state.project.cur_id,option.project_id)?'var(--va-primary)':'black'}"
+								>
+									{{option.project_name}}
+								</div>
+							</template>
+						</va-hover>
+					</template>
 				</va-select>
-				<va-dropdown v-if="state.user.root||(is_root_node_project()&&state.project.nodes[0].admin)" trigger="hover" style="width:36px;margin-right:2px">
+				<va-dropdown v-if="state.user.root||(same_node_id(state.project.cur_id,state.project.nodes[0].node_id)&&state.project.nodes[0].admin)" trigger="hover" style="width:36px;margin-right:2px">
 					<template #anchor>
 						<va-button>•••</va-button>
 					</template>
@@ -474,25 +499,30 @@ function iframeload(){
 							<va-button v-if="state.user.root" style="width:36px;margin:0 3px" @click="state.set_project('add')">+</va-button>
 						</va-popover>
 						<va-popover message="Rename Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
-							<va-button v-if="state.user.root&&!is_project_admin()" style="width:36px;margin:0 3px" @click="state.set_project('update')">◉</va-button>
+							<va-button v-if="state.user.root&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="state.set_project('update')">◉</va-button>
 						</va-popover>
 						<va-popover message="Delete Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
-							<va-button v-if="state.user.root&&!is_project_admin()" style="width:36px;margin:0 3px" @click="state.set_project('del')">x</va-button>
+							<va-button v-if="state.user.root&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="state.set_project('del')">x</va-button>
 						</va-popover>
 						<va-popover message="Add Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
-							<va-button v-if="!is_project_admin()&&is_root_node_project()&&state.project.nodes[0].admin" style="width:36px;margin:0 3px" @click="state.set_node(state.project.nodes[0],'add')">✿</va-button>
+							<va-button
+							v-if="!same_node_id(state.project.cur_id,[0,1])&&same_node_id(state.project.cur_id,state.project.nodes[0].node_id)&&state.project.nodes[0].admin"
+							style="width:36px;margin:0 3px"
+							@click="state.set_node(state.project.nodes[0],'add')"
+							>
+								✿
+							</va-button>
 						</va-popover>
 					</va-dropdown-content>
 				</va-dropdown>
 			</div>
 			<div style="flex:1;overflow-x:hidden;overflow-y:auto;background-color:var(--va-background-element)">
-				<sidemenu :nodes="is_root_node_project()?state.project.nodes[0].children:state.project.nodes" :deep="0" />
+				<sidemenu v-if="state.project.nodes.length>0" :nodes="same_node_id(state.project.cur_id,state.project.nodes[0].node_id)?state.project.nodes[0].children:state.project.nodes" :deep="0" />
 			</div>
 		</div>
-		<div style="display:flex;flex-direction:column;flex:1">
+		<div style="flex:1;display:flex;flex-direction:column;overflow-x:auto">
 			<div style="display:flex;padding:5px;background-color:var(--va-background-element)">
-				<div style="display:flex;flex:1">
-				</div>
+				<div style="display:flex;flex:1"></div>
 				<va-dropdown trigger="hover" style="width:36px" placement="bottom-end">
 					<template #anchor>
 						<va-button round>{{ state.avatar() }}</va-button>
@@ -506,9 +536,8 @@ function iframeload(){
 					</va-dropdown-content>
 				</va-dropdown>
 			</div>
-			<userpage v-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==1"></userpage>
-			<rolepage v-else-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==2"></rolepage>
-			<apppage v-else-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==3"></apppage>
+			<userrole v-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==1"></userrole>
+			<app v-else-if="state.page.node&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==2"></app>
 			<iframe v-else-if="state.page.node&&state.page.node.node_data!=''" width="100%" height="100%" frameborder="0" :src="state.page.node.node_data" @load="iframeload"></iframe>
 		</div>
 	</div>

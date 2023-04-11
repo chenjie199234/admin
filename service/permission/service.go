@@ -165,10 +165,9 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 	if req.PnodeId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	if len(req.PnodeId) >= 3 && (req.PnodeId[2] == 1 || req.PnodeId[2] == 2 || req.PnodeId[2] == 3) {
-		//0,x,1 -> UserControl
-		//0,x,2 -> RoleControl
-		//0,x,3 -> ConfigControl
+	if len(req.PnodeId) >= 3 && (req.PnodeId[2] == 1 || req.PnodeId[2] == 2) {
+		//0,x,1 -> UserAndRoleControl
+		//0,x,2 -> AppControl
 		//these are default,already exist
 		return nil, ecode.ErrPermission
 	}
@@ -228,17 +227,15 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 		//can't modify
 		return nil, ecode.ErrPermission
 	}
-	if req.NodeId[2] == 1 || req.NodeId[2] == 2 || req.NodeId[2] == 3 {
-		//0,x,1 -> UserControl
-		//0,x,2 -> RoleControl
-		//0,x,3 -> ConfigControl
+	if req.NodeId[2] == 1 || req.NodeId[2] == 2 {
+		//0,x,1 -> UserAndRoleControl
+		//0,x,2 -> AppControl
 		//these are default,can't modify
 		return nil, ecode.ErrPermission
 	}
-	if len(req.PnodeId) >= 3 && (req.PnodeId[2] == 1 || req.PnodeId[2] == 2 || req.PnodeId[2] == 3) {
-		//0,x,1 -> UserControl
-		//0,x,2 -> RoleControl
-		//0,x,3 -> ConfigControl
+	if len(req.PnodeId) >= 3 && (req.PnodeId[2] == 1 || req.PnodeId[2] == 2) {
+		//0,x,1 -> UserAndRoleControl
+		//0,x,2 -> AppControl
 		//these are default,can't modify
 		return nil, ecode.ErrPermission
 	}
@@ -295,9 +292,8 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 		return nil, ecode.ErrPermission
 	}
 	if req.NodeId[2] == 1 || req.NodeId[2] == 2 || req.NodeId[2] == 3 {
-		//0,x,1 -> project's UserControl node
-		//0,x,2 -> project's RoleControl node
-		//0,x,3 -> project's ConfigControl node
+		//0,x,1 -> UserAndRoleControl node
+		//0,x,2 -> AppControl node
 		//these are default,can't modify
 		return nil, ecode.ErrPermission
 	}
@@ -353,16 +349,16 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 			log.Error(ctx, "[ListUserNode] target:", req.UserId, "format wrong:", e)
 			return nil, ecode.ErrReq
 		}
-		if !operator.IsZero() {
-			//user control permission check
-			canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.UserAndRoleControl, true)
-			if e != nil {
-				log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "get permission failed:", e)
-				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-			}
-			if !canread && !admin {
-				return nil, ecode.ErrPermission
-			}
+	}
+	if !operator.IsZero() {
+		//permission check
+		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, project+model.UserAndRoleControl, true)
+		if e != nil {
+			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "get permission failed:", e)
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		if !canread && !admin {
+			return nil, ecode.ErrPermission
 		}
 	}
 	//logic

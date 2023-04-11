@@ -278,6 +278,10 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
+	req.RoleName = strings.TrimSpace(req.RoleName)
+	if req.RoleName == "" {
+		return nil, ecode.ErrReq
+	}
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
 	for i, v := range req.ProjectId {
@@ -373,6 +377,12 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 			Ctime:     role.Ctime,
 		})
 	}
+	sort.Slice(resp.Roles, func(i, j int) bool {
+		if resp.Roles[i].Ctime == resp.Roles[j].Ctime {
+			return resp.Roles[i].RoleName > resp.Roles[j].RoleName
+		}
+		return resp.Roles[i].Ctime > resp.Roles[j].Ctime
+	})
 	return resp, nil
 }
 func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.UpdateRoleResp, error) {

@@ -108,10 +108,15 @@ message update_project_req{
 }
 message update_project_resp{
 }
+message department{
+	string name=1;
+	repeated department children=2;
+}
 message project_info{
 	repeated uint32 project_id=1;
 	string project_name=2;
 	string project_data=3;
+	repeated department departments=4;
 }
 message list_project_req{
 }

@@ -105,6 +105,39 @@ function JsonToDeleteProjectResp(jsonobj: { [k:string]:any }): DeleteProjectResp
 	}
 	return obj
 }
+export interface Department{
+	name: string;
+	children: Array<Department|null|undefined>|null|undefined;
+}
+function JsonToDepartment(jsonobj: { [k:string]:any }): Department{
+	let obj: Department={
+		name:'',
+		children:null,
+	}
+	//name
+	if(jsonobj['name']!=null&&jsonobj['name']!=undefined){
+		if(typeof jsonobj['name']!='string'){
+			throw 'Department.name must be string'
+		}
+		obj['name']=jsonobj['name']
+	}
+	//children
+	if(jsonobj['children']!=null&&jsonobj['children']!=undefined){
+		if(!(jsonobj['children'] instanceof Array)){
+			throw 'Department.children must be Array<Department>|null|undefined'
+		}
+		for(let element of jsonobj['children']){
+			if(typeof element!='object'){
+				throw 'element in Department.children must be Department'
+			}
+			if(obj['children']==null){
+				obj['children']=new Array<Department>
+			}
+			obj['children'].push(JsonToDepartment(element))
+		}
+	}
+	return obj
+}
 export interface InitReq{
 	password: string;
 }
@@ -199,12 +232,14 @@ export interface ProjectInfo{
 	project_id: Array<number>|null|undefined;
 	project_name: string;
 	project_data: string;
+	departments: Array<Department|null|undefined>|null|undefined;
 }
 function JsonToProjectInfo(jsonobj: { [k:string]:any }): ProjectInfo{
 	let obj: ProjectInfo={
 		project_id:null,
 		project_name:'',
 		project_data:'',
+		departments:null,
 	}
 	//project_id
 	if(jsonobj['project_id']!=null&&jsonobj['project_id']!=undefined){
@@ -236,6 +271,21 @@ function JsonToProjectInfo(jsonobj: { [k:string]:any }): ProjectInfo{
 			throw 'ProjectInfo.project_data must be string'
 		}
 		obj['project_data']=jsonobj['project_data']
+	}
+	//departments
+	if(jsonobj['departments']!=null&&jsonobj['departments']!=undefined){
+		if(!(jsonobj['departments'] instanceof Array)){
+			throw 'ProjectInfo.departments must be Array<Department>|null|undefined'
+		}
+		for(let element of jsonobj['departments']){
+			if(typeof element!='object'){
+				throw 'element in ProjectInfo.departments must be Department'
+			}
+			if(obj['departments']==null){
+				obj['departments']=new Array<Department>
+			}
+			obj['departments'].push(JsonToDepartment(element))
+		}
 	}
 	return obj
 }

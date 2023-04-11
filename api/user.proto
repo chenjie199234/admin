@@ -118,7 +118,7 @@ message kick_project_resp{
 message search_users_req {
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string user_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string user_name=2;//fuzzy search
 	//true - search users in the project,this require operator has read permission on this project's user control node
 	//false - search all users(include users not in this project),this require operator has admin permission on this project's user control node
 	bool only_project=3;
@@ -155,7 +155,7 @@ message role_info {
 message search_roles_req {
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string role_name=2[(pbex.string_bytes_len_not_eq)=0];//fuzzy search
+	string role_name=2;//fuzzy search
 	uint32 page=3;//page starts from 1,if page is 0,means return all result
 }
 message search_roles_resp {

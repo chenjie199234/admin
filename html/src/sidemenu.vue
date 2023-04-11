@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {computed} from 'vue'
 import * as permissionAPI from '../../api/permission_browser_toc'
 import * as state from './state'
 
@@ -7,26 +8,40 @@ defineProps<{
 	deep:number
 }>()
 
-function node_need_button(node: permissionAPI.NodeInfo):boolean{
-	return node.admin&&node.node_id.length>=3&&node.node_id[2]!=1&&node.node_id[2]!=2&&node.node_id[2]!=3
+function need_button(node: permissionAPI.NodeInfo):boolean{
+	if(node.node_id.length>=3&&(node.node_id[2]==1||node.node_id[2]==2)){
+		//system node don't need button
+		return false
+	}
+	//only admin permission node need button
+	return node.admin
 }
-function node_has_children(node: permissionAPI.NodeInfo):boolean{
-	if(node.node_id.length>=3&&(node.node_id[2]==1||node.node_id[2]==2||node.node_id[2]==3)){
+function has_children(node: permissionAPI.NodeInfo):boolean{
+	if(node.node_id.length>=3&&(node.node_id[2]==1||node.node_id[2]==2)){
 		//system node hide children
 		return false
 	}
-	return node.children&&node.children.length>0
-}
-function system_node_child(node: permissionAPI.NodeInfo):boolean{
-	return node.node_id.length>3&&(node.node_id[2]==1||node.node_id[2]==2||node.node_id[2]==3)
+	return Boolean(node.children)&&node.children.length>0
 }
 function jumpable(node: permissionAPI.NodeInfo):boolean{
-	return (node.node_id.length==3&&(node.node_id[2]==1||node.node_id[2]==2||node.node_id[2]==3))||node.node_data!=''
+	if(node.node_id.length==3&&(node.node_id[2]==1||node.node_id[2]==2)){
+		//system node can jump
+		return true
+	}
+	return node.node_data!=''
+}
+function showable(node: permissionAPI.NodeInfo):boolean{
+	if(node.node_id.length>3&&(node.node_id[2]==1||node.node_id[2]==2)){
+		//system node's child need to be hide
+		//but system node self need to be show
+		return false
+	}
+	return true
 }
 </script>
 <template>
 	<div v-for="node of nodes" style="display:flex;flex-direction:column">
-		<div v-if="!system_node_child(node)" style="display:flex;align-items:center">
+		<div v-if="showable(node)" style="display:flex;align-items:center">
 			<div
 			style="height:38px;padding-left:10px;display:flex;align-items:center;flex:1"
 			:style="{'padding-left':30*deep+5+'px',cursor:jumpable(node)?'pointer':'default','background-color':node.labelhover&&jumpable(node)?'var(--va-shadow)':''}"
@@ -36,7 +51,7 @@ function jumpable(node: permissionAPI.NodeInfo):boolean{
 				{{ node.node_name }}
 			</div>
 			<div
-			v-if="node_has_children(node)"
+			v-if="has_children(node)"
 			style="width:30px;height:30px;margin:4px 0px;cursor:pointer;display:flex;justify-content:center;align-items:center;border-radius:3px"
 			:style="{'background-color':node.iconhover?'var(--va-shadow)':''}"
 			@mouseover="node.iconhover=true"
@@ -44,7 +59,7 @@ function jumpable(node: permissionAPI.NodeInfo):boolean{
 			@click="node.open=!node.open">
 				{{ node.open?'▲':'▼' }}
 			</div>
-			<va-dropdown v-if="node_need_button(node)" trigger="hover" style="width:36px;height:36px;margin:2px" prevent-overflow>
+			<va-dropdown v-if="need_button(node)" trigger="hover" style="width:36px;height:36px;margin:2px" prevent-overflow>
 				<template #anchor>
 					<va-button>•••</va-button>
 				</template>
@@ -61,6 +76,6 @@ function jumpable(node: permissionAPI.NodeInfo):boolean{
 				</va-dropdown-content>
 			</va-dropdown>
 		</div>
-		<sidemenu v-if="!system_node_child(node)&&node.open&&node_has_children(node)" :nodes="node.children" :deep="deep+1"></sidemenu>
+		<sidemenu v-if="showable(node)&&node.open&&has_children(node)" :nodes="node.children" :deep="deep+1"></sidemenu>
 	</div>
 </template>

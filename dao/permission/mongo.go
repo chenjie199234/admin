@@ -351,6 +351,13 @@ func (d *Dao) MongoGetRoleNodes(ctx context.Context, projectid, rolename string,
 		"project":   projectid,
 		"role_name": rolename,
 	}
+	exist, e := d.mongo.Database("user").Collection("role").CountDocuments(ctx, filter)
+	if e != nil {
+		return nil, e
+	}
+	if exist == 0 {
+		return nil, ecode.ErrRoleNotExist
+	}
 	if len(nodeids) > 0 {
 		filter["node_id"] = bson.M{"$in": nodeids}
 	}

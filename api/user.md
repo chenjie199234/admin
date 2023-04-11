@@ -116,7 +116,7 @@ Content-Type: application/json
 	//uint32
 	//element num must == 2
 	"project_id":[1,2],
-	//value length must != 0
+	//fuzzy search
 	"user_name":"str",
 	//true - search users in the project,this require operator has read permission on this project's user control node
 	//false - search all users(include users not in this project),this require operator has admin permission on this project's user control node
@@ -237,7 +237,6 @@ Content-Type: application/json
 	//element num must == 2
 	"project_id":[1,2],
 	//fuzzy search
-	//value length must != 0
 	"role_name":"str",
 	//page starts from 1,if page is 0,means return all result
 	//uint32

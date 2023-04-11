@@ -33,9 +33,6 @@ func (m *SearchUsersReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
 		return "field: project_id in object: search_users_req check len eq failed"
 	}
-	if len(m.GetUserName()) == 0 {
-		return "field: user_name in object: search_users_req check value str len not eq failed"
-	}
 	return ""
 }
 
@@ -73,9 +70,6 @@ func (m *CreateRoleReq) Validate() (errstr string) {
 func (m *SearchRolesReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
 		return "field: project_id in object: search_roles_req check len eq failed"
-	}
-	if len(m.GetRoleName()) == 0 {
-		return "field: role_name in object: search_roles_req check value str len not eq failed"
 	}
 	return ""
 }

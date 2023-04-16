@@ -130,6 +130,7 @@ message add_node_req {
 	string node_data=3;
 }
 message add_node_resp {
+	repeated uint32 node_id=1;
 }
 message update_node_req {
 	//first element must be 0

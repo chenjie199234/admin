@@ -17,6 +17,7 @@ import (
 )
 
 var _CrpcPathUserUserLogin = "/admin.user/user_login"
+var _CrpcPathUserLoginInfo = "/admin.user/login_info"
 var _CrpcPathUserInviteProject = "/admin.user/invite_project"
 var _CrpcPathUserKickProject = "/admin.user/kick_project"
 var _CrpcPathUserSearchUsers = "/admin.user/search_users"
@@ -30,6 +31,7 @@ var _CrpcPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserCrpcClient interface {
 	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
+	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
@@ -60,6 +62,28 @@ func (c *userCrpcClient) UserLogin(ctx context.Context, req *UserLoginReq) (*Use
 		return nil, e
 	}
 	resp := new(UserLoginResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *userCrpcClient) LoginInfo(ctx context.Context, req *LoginInfoReq) (*LoginInfoResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserLoginInfo, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(LoginInfoResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -295,6 +319,7 @@ func (c *userCrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) (
 
 type UserCrpcServer interface {
 	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
+	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
@@ -340,6 +365,49 @@ func _User_UserLogin_CrpcHandler(handler func(context.Context, *UserLoginReq) (*
 		}
 		if resp == nil {
 			resp = new(UserLoginResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
+func _User_LoginInfo_CrpcHandler(handler func(context.Context, *LoginInfoReq) (*LoginInfoResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(LoginInfoReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.user/login_info] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.user/login_info] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(LoginInfoResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -834,6 +902,7 @@ func RegisterUserCrpcServer(engine *crpc.CrpcServer, svc UserCrpcServer, allmids
 	// avoid lint
 	_ = allmids
 	engine.RegisterHandler(_CrpcPathUserUserLogin, _User_UserLogin_CrpcHandler(svc.UserLogin))
+	engine.RegisterHandler(_CrpcPathUserLoginInfo, _User_LoginInfo_CrpcHandler(svc.LoginInfo))
 	engine.RegisterHandler(_CrpcPathUserInviteProject, _User_InviteProject_CrpcHandler(svc.InviteProject))
 	engine.RegisterHandler(_CrpcPathUserKickProject, _User_KickProject_CrpcHandler(svc.KickProject))
 	engine.RegisterHandler(_CrpcPathUserSearchUsers, _User_SearchUsers_CrpcHandler(svc.SearchUsers))

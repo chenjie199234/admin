@@ -26,6 +26,11 @@ service user{
 		option (pbex.method)="post";
 	}
 
+	rpc login_info(login_info_req)returns(login_info_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
 	rpc invite_project(invite_project_req)returns(invite_project_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
@@ -90,14 +95,28 @@ message user_info {
 	string user_name=2;
 	repeated string department=3;
 	uint32 ctime=4;//timestamp,uint:second
-	repeated string roles=5;
-	bool invited=6;
+	repeated project_roles project_roles=5;
 }
+message project_roles{
+	repeated uint32 project_id=1;
+	repeated string roles=2;
+}
+message role_info {
+	repeated uint32 project_id=1;
+	string role_name=2;
+	string comment=3;
+	uint32 ctime=4;
+}
+
 message user_login_req {
 }
 message user_login_resp {
 	string token=1;
-	user_info user=2;
+}
+message login_info_req{
+}
+message login_info_resp{
+	user_info user=1;
 }
 message invite_project_req{
 	//first element must be 0
@@ -145,12 +164,6 @@ message create_role_req {
 }
 message create_role_resp {
 
-}
-message role_info {
-	repeated uint32 project_id=1;
-	string role_name=2;
-	string comment=3;
-	uint32 ctime=4;
 }
 message search_roles_req {
 	//first element must be 0

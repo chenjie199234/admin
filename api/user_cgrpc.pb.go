@@ -15,6 +15,7 @@ import (
 )
 
 var _CGrpcPathUserUserLogin = "/admin.user/user_login"
+var _CGrpcPathUserLoginInfo = "/admin.user/login_info"
 var _CGrpcPathUserInviteProject = "/admin.user/invite_project"
 var _CGrpcPathUserKickProject = "/admin.user/kick_project"
 var _CGrpcPathUserSearchUsers = "/admin.user/search_users"
@@ -28,6 +29,7 @@ var _CGrpcPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserCGrpcClient interface {
 	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
+	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
@@ -54,6 +56,16 @@ func (c *userCGrpcClient) UserLogin(ctx context.Context, req *UserLoginReq) (*Us
 	}
 	resp := new(UserLoginResp)
 	if e := c.cc.Call(ctx, _CGrpcPathUserUserLogin, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *userCGrpcClient) LoginInfo(ctx context.Context, req *LoginInfoReq) (*LoginInfoResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(LoginInfoResp)
+	if e := c.cc.Call(ctx, _CGrpcPathUserLoginInfo, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -161,6 +173,7 @@ func (c *userCGrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) 
 
 type UserCGrpcServer interface {
 	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
+	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
@@ -187,6 +200,24 @@ func _User_UserLogin_CGrpcHandler(handler func(context.Context, *UserLoginReq) (
 		}
 		if resp == nil {
 			resp = new(UserLoginResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _User_LoginInfo_CGrpcHandler(handler func(context.Context, *LoginInfoReq) (*LoginInfoResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(LoginInfoReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(LoginInfoResp)
 		}
 		ctx.Write(resp)
 	}
@@ -425,6 +456,7 @@ func RegisterUserCGrpcServer(engine *cgrpc.CGrpcServer, svc UserCGrpcServer, all
 	// avoid lint
 	_ = allmids
 	engine.RegisterHandler("admin.user", "user_login", _User_UserLogin_CGrpcHandler(svc.UserLogin))
+	engine.RegisterHandler("admin.user", "login_info", _User_LoginInfo_CGrpcHandler(svc.LoginInfo))
 	engine.RegisterHandler("admin.user", "invite_project", _User_InviteProject_CGrpcHandler(svc.InviteProject))
 	engine.RegisterHandler("admin.user", "kick_project", _User_KickProject_CGrpcHandler(svc.KickProject))
 	engine.RegisterHandler("admin.user", "search_users", _User_SearchUsers_CGrpcHandler(svc.SearchUsers))

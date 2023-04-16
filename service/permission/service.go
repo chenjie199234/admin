@@ -186,11 +186,13 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 		log.Error(ctx, "[AddNode] operator:", md["Token-Data"], "format wrong:", e)
 		return nil, ecode.ErrToken
 	}
-	if e = s.permissionDao.MongoAddNode(ctx, operator, pnodeid, req.NodeName, req.NodeData); e != nil {
+	var nodeidstr string
+	if nodeidstr, e = s.permissionDao.MongoAddNode(ctx, operator, pnodeid, req.NodeName, req.NodeData); e != nil {
 		log.Error(ctx, "[AddNode] operator:", md["Token-Data"], "nodename:", req.NodeName, "nodedata:", req.NodeData, "parent nodeid:", pnodeid, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	return &api.AddNodeResp{}, nil
+	nodeid, _ := util.ParseNodeIDstr(nodeidstr)
+	return &api.AddNodeResp{NodeId: nodeid}, nil
 }
 func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.UpdateNodeResp, error) {
 	if req.NodeId[0] != 0 {

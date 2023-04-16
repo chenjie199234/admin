@@ -335,6 +335,77 @@ function JsonToKickProjectResp(jsonobj: { [k:string]:any }): KickProjectResp{
 	}
 	return obj
 }
+export interface LoginInfoReq{
+}
+function LoginInfoReqToJson(msg: LoginInfoReq): string{
+	let s: string="{"
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface LoginInfoResp{
+	user: UserInfo|null|undefined;
+}
+function JsonToLoginInfoResp(jsonobj: { [k:string]:any }): LoginInfoResp{
+	let obj: LoginInfoResp={
+		user:null,
+	}
+	//user
+	if(jsonobj['user']!=null&&jsonobj['user']!=undefined){
+		if(typeof jsonobj['user']!='object'){
+			throw 'LoginInfoResp.user must be UserInfo'
+		}
+		obj['user']=JsonToUserInfo(jsonobj['user'])
+	}
+	return obj
+}
+export interface ProjectRoles{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
+	roles: Array<string>|null|undefined;
+}
+function JsonToProjectRoles(jsonobj: { [k:string]:any }): ProjectRoles{
+	let obj: ProjectRoles={
+		project_id:null,
+		roles:null,
+	}
+	//project_id
+	if(jsonobj['project_id']!=null&&jsonobj['project_id']!=undefined){
+		if(!(jsonobj['project_id'] instanceof Array)){
+			throw 'ProjectRoles.project_id must be Array<number>|null|undefined'
+		}
+		for(let element of jsonobj['project_id']){
+			if(typeof element!='number'||!Number.isInteger(element)){
+				throw 'element in ProjectRoles.project_id must be integer'
+			}else if(element>4294967295||element<0){
+				throw 'element in ProjectRoles.project_id overflow'
+			}
+			if(obj['project_id']==null){
+				obj['project_id']=new Array<number>
+			}
+			obj['project_id'].push(element)
+		}
+	}
+	//roles
+	if(jsonobj['roles']!=null&&jsonobj['roles']!=undefined){
+		if(!(jsonobj['roles'] instanceof Array)){
+			throw 'ProjectRoles.roles must be Array<string>|null|undefined'
+		}
+		for(let element of jsonobj['roles']){
+			if(typeof element!='string'){
+				throw 'element in ProjectRoles.roles must be string'
+			}
+			if(obj['roles']==null){
+				obj['roles']=new Array<string>
+			}
+			obj['roles'].push(element)
+		}
+	}
+	return obj
+}
 export interface RoleInfo{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
@@ -740,8 +811,7 @@ export interface UserInfo{
 	department: Array<string>|null|undefined;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	ctime: number;//timestamp,uint:second
-	roles: Array<string>|null|undefined;
-	invited: boolean;
+	project_roles: Array<ProjectRoles|null|undefined>|null|undefined;
 }
 function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 	let obj: UserInfo={
@@ -749,8 +819,7 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 		user_name:'',
 		department:null,
 		ctime:0,
-		roles:null,
-		invited:false,
+		project_roles:null,
 	}
 	//user_id
 	if(jsonobj['user_id']!=null&&jsonobj['user_id']!=undefined){
@@ -790,27 +859,20 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 		}
 		obj['ctime']=jsonobj['ctime']
 	}
-	//roles
-	if(jsonobj['roles']!=null&&jsonobj['roles']!=undefined){
-		if(!(jsonobj['roles'] instanceof Array)){
-			throw 'UserInfo.roles must be Array<string>|null|undefined'
+	//project_roles
+	if(jsonobj['project_roles']!=null&&jsonobj['project_roles']!=undefined){
+		if(!(jsonobj['project_roles'] instanceof Array)){
+			throw 'UserInfo.project_roles must be Array<ProjectRoles>|null|undefined'
 		}
-		for(let element of jsonobj['roles']){
-			if(typeof element!='string'){
-				throw 'element in UserInfo.roles must be string'
+		for(let element of jsonobj['project_roles']){
+			if(typeof element!='object'){
+				throw 'element in UserInfo.project_roles must be ProjectRoles'
 			}
-			if(obj['roles']==null){
-				obj['roles']=new Array<string>
+			if(obj['project_roles']==null){
+				obj['project_roles']=new Array<ProjectRoles>
 			}
-			obj['roles'].push(element)
+			obj['project_roles'].push(JsonToProjectRoles(element))
 		}
-	}
-	//invited
-	if(jsonobj['invited']!=null&&jsonobj['invited']!=undefined){
-		if(typeof jsonobj['invited']!='boolean'){
-			throw 'UserInfo.invited must be boolean'
-		}
-		obj['invited']=jsonobj['invited']
 	}
 	return obj
 }
@@ -827,12 +889,10 @@ function UserLoginReqToJson(msg: UserLoginReq): string{
 }
 export interface UserLoginResp{
 	token: string;
-	user: UserInfo|null|undefined;
 }
 function JsonToUserLoginResp(jsonobj: { [k:string]:any }): UserLoginResp{
 	let obj: UserLoginResp={
 		token:'',
-		user:null,
 	}
 	//token
 	if(jsonobj['token']!=null&&jsonobj['token']!=undefined){
@@ -841,16 +901,10 @@ function JsonToUserLoginResp(jsonobj: { [k:string]:any }): UserLoginResp{
 		}
 		obj['token']=jsonobj['token']
 	}
-	//user
-	if(jsonobj['user']!=null&&jsonobj['user']!=undefined){
-		if(typeof jsonobj['user']!='object'){
-			throw 'UserLoginResp.user must be UserInfo'
-		}
-		obj['user']=JsonToUserInfo(jsonobj['user'])
-	}
 	return obj
 }
 const _WebPathUserUserLogin: string ="/admin.user/user_login";
+const _WebPathUserLoginInfo: string ="/admin.user/login_info";
 const _WebPathUserInviteProject: string ="/admin.user/invite_project";
 const _WebPathUserKickProject: string ="/admin.user/kick_project";
 const _WebPathUserSearchUsers: string ="/admin.user/search_users";
@@ -899,6 +953,58 @@ export class UserBrowserClientToC {
 		.then(function(response){
 			try{
 				let obj:UserLoginResp=JsonToUserLoginResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	login_info(header: { [k: string]: string },req: LoginInfoReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: LoginInfoResp)=>void){
+		if(!Number.isInteger(timeout)){
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=LoginInfoReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
+		let config={
+			url:_WebPathUserLoginInfo,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: body,
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:LoginInfoResp=JsonToLoginInfoResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

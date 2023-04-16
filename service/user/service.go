@@ -11,6 +11,7 @@ import (
 	userdao "github.com/chenjie199234/admin/dao/user"
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
+	"github.com/chenjie199234/admin/util"
 
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
@@ -41,6 +42,75 @@ func (s *Service) UserLogin(ctx context.Context, req *api.UserLoginReq) (*api.Us
 	//TODO login and get userid
 	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, userid)
 	return &api.UserLoginResp{Token: tokenstr}, nil
+}
+func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.LoginInfoResp, error) {
+	md := metadata.GetMetadata(ctx)
+	//get other's info,need check permission
+	operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
+	if e != nil {
+		log.Error(ctx, "[LoginInfo] operator:", md["Token-Data"], "format wrong:", e)
+		return nil, ecode.ErrToken
+	}
+	if operator.IsZero() {
+		log.Error(ctx, "[LoginInfo] operator:", md["Token-Data"], "is the superadmin,shouldn't send this request")
+		return &api.LoginInfoResp{User: nil}, nil
+	}
+	users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
+	if e != nil {
+		log.Error(ctx, "[LoginInfo] operator:", md["Token-Data"], e)
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	user, ok := users[operator]
+	if !ok {
+		log.Error(ctx, "[LoginInfo] operator:", md["Token-Data"], "missing")
+		return nil, ecode.ErrSystem
+	}
+	tmp := make(map[string]*api.ProjectRoles)
+	for _, role := range user.Roles {
+		index := strings.Index(role, ":")
+		roleproject := role[:index]
+		roleprojectid, e := util.ParseNodeIDstr(roleproject)
+		if e != nil {
+			log.Error(ctx, "[LoginInfo] operator:", md["Token-Data"], "role:", role, "projectid format wrong:", e)
+			return nil, ecode.ErrSystem
+		}
+		rolename := role[index+1:]
+		tmp[roleproject] = &api.ProjectRoles{
+			ProjectId: roleprojectid,
+		}
+		tmp[roleproject].Roles = append(tmp[roleproject].Roles, rolename)
+	}
+	for _, project := range user.Projects {
+		if _, ok := tmp[project]; ok {
+			continue
+		}
+		id, e := util.ParseNodeIDstr(project)
+		if e != nil {
+			log.Error(ctx, "[LoginInfo] operator:", md["Token-Data"], "projectid:", project, "format wrong:", e)
+			return nil, ecode.ErrSystem
+		}
+		tmp[project] = &api.ProjectRoles{
+			ProjectId: id,
+			Roles:     make([]string, 0),
+		}
+	}
+	respuser := &api.UserInfo{
+		UserId:       user.ID.Hex(),
+		UserName:     user.UserName,
+		Department:   user.Department,
+		Ctime:        user.Ctime,
+		ProjectRoles: make([]*api.ProjectRoles, 0, len(user.Projects)),
+	}
+	for _, v := range tmp {
+		respuser.ProjectRoles = append(respuser.ProjectRoles, v)
+	}
+	sort.Slice(respuser.ProjectRoles, func(i, j int) bool {
+		return respuser.ProjectRoles[i].ProjectId[1] < respuser.ProjectRoles[j].ProjectId[1]
+	})
+	for _, v := range respuser.ProjectRoles {
+		sort.Strings(v.Roles)
+	}
+	return &api.LoginInfoResp{User: respuser}, nil
 }
 func (s *Service) InviteProject(ctx context.Context, req *api.InviteProjectReq) (*api.InviteProjectResp, error) {
 	if req.ProjectId[0] != 0 {
@@ -209,31 +279,58 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 			//jump the superadmin
 			continue
 		}
-		tmp := &api.UserInfo{
-			UserId:     user.ID.Hex(),
-			UserName:   user.UserName,
-			Department: user.Department,
-			Ctime:      user.Ctime,
-			Roles:      make([]string, 0, len(user.Roles)),
-			Invited:    req.OnlyProject,
-		}
-		if !req.OnlyProject {
-			for _, project := range user.Projects {
-				if project == projectid {
-					tmp.Invited = true
-					break
-				}
-			}
-		}
+		tmp := make(map[string]*api.ProjectRoles)
 		for _, role := range user.Roles {
 			index := strings.Index(role, ":")
 			roleproject := role[:index]
+			if req.OnlyProject && projectid != roleproject {
+				continue
+			}
+			id, e := util.ParseNodeIDstr(roleproject)
+			if e != nil {
+				log.Error(ctx, "[SearchUsers] operator:", md["Token-Data"], "role:", role, "projectid format wrong:", e)
+				return nil, ecode.ErrSystem
+			}
 			rolename := role[index+1:]
-			if roleproject == projectid {
-				tmp.Roles = append(tmp.Roles, rolename)
+			tmp[roleproject] = &api.ProjectRoles{
+				ProjectId: id,
+			}
+			tmp[roleproject].Roles = append(tmp[roleproject].Roles, rolename)
+		}
+		for _, project := range user.Projects {
+			if _, ok := tmp[project]; ok {
+				continue
+			}
+			if req.OnlyProject && projectid != project {
+				continue
+			}
+			id, e := util.ParseNodeIDstr(project)
+			if e != nil {
+				log.Error(ctx, "[SearchUsers] operator:", md["Token-Data"], "projectid:", project, "format wrong:", e)
+				return nil, ecode.ErrSystem
+			}
+			tmp[project] = &api.ProjectRoles{
+				ProjectId: id,
+				Roles:     make([]string, 0),
 			}
 		}
-		resp.Users = append(resp.Users, tmp)
+		respuser := &api.UserInfo{
+			UserId:       user.ID.Hex(),
+			UserName:     user.UserName,
+			Department:   user.Department,
+			Ctime:        user.Ctime,
+			ProjectRoles: make([]*api.ProjectRoles, 0, len(user.Projects)),
+		}
+		for _, v := range tmp {
+			respuser.ProjectRoles = append(respuser.ProjectRoles, v)
+		}
+		sort.Slice(respuser.ProjectRoles, func(i, j int) bool {
+			return respuser.ProjectRoles[i].ProjectId[1] < respuser.ProjectRoles[j].ProjectId[1]
+		})
+		for _, v := range respuser.ProjectRoles {
+			sort.Strings(v.Roles)
+		}
+		resp.Users = append(resp.Users, respuser)
 	}
 	sort.Slice(resp.Users, func(i, j int) bool {
 		if resp.Users[i].Ctime == resp.Users[j].Ctime {

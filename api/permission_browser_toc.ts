@@ -62,9 +62,29 @@ function AddNodeReqToJson(msg: AddNodeReq): string{
 	return s
 }
 export interface AddNodeResp{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	node_id: Array<number>|null|undefined;
 }
 function JsonToAddNodeResp(jsonobj: { [k:string]:any }): AddNodeResp{
 	let obj: AddNodeResp={
+		node_id:null,
+	}
+	//node_id
+	if(jsonobj['node_id']!=null&&jsonobj['node_id']!=undefined){
+		if(!(jsonobj['node_id'] instanceof Array)){
+			throw 'AddNodeResp.node_id must be Array<number>|null|undefined'
+		}
+		for(let element of jsonobj['node_id']){
+			if(typeof element!='number'||!Number.isInteger(element)){
+				throw 'element in AddNodeResp.node_id must be integer'
+			}else if(element>4294967295||element<0){
+				throw 'element in AddNodeResp.node_id overflow'
+			}
+			if(obj['node_id']==null){
+				obj['node_id']=new Array<number>
+			}
+			obj['node_id'].push(element)
+		}
 	}
 	return obj
 }

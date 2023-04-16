@@ -670,13 +670,13 @@ function app_op(){
 					<va-button>•••</va-button>
 				</template>
 				<va-dropdown-content>
-					<va-popover message="Create New App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
+					<va-popover message="Create New App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
 						<va-button style="width:36px;margin:0 3px" @click="ing=true;optype='add_app'">+</va-button>
 					</va-popover>
-					<va-popover message="Update Add Secret" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
+					<va-popover message="Update Add Secret" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
 						<va-button style="width:36px;margin:0 3px" @click="ing=true;optype='update_secret'">◉</va-button>
 					</va-popover>
-					<va-popover message="Delete App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
+					<va-popover message="Delete App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
 						<va-button style="width:36px;margin:0 3px" :disabled="curg==''||cura==''" @click="optype='del_app';ing=true">x</va-button>
 					</va-popover>
 				</va-dropdown-content>

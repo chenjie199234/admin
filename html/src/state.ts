@@ -1,7 +1,14 @@
 import { reactive,ref } from 'vue'
 import * as userAPI from '../../api/user_browser_toc'
-import * as initializeAPI from '../../api/initialize_browser_toc'
+// import * as initializeAPI from '../../api/initialize_browser_toc'
 import * as permissionAPI from '../../api/permission_browser_toc'
+
+var obj = JSON.parse(localStorage.getItem(key))
+user.root=obj.root
+user.token=obj.token
+
+//-------------------------------------------------------------------------------
+export const inited = ref<boolean>(false)
 
 //-------------------------------------------------------------------------------
 export const load = reactive<{
@@ -38,6 +45,9 @@ export function set_alert(title: string,code: number,msg: string){
 	alert.title = title
 	alert.code = code
 	alert.msg = msg
+	if(code==10004&&msg=="token wrong"){
+		logout()
+	}
 }
 export function clear_alert(){
 	alert.ing = false
@@ -59,9 +69,9 @@ export const user = reactive<{
 	token:"",
 	info:null,
 })
-export function login(token:string,info:userAPI.UserInfo){
+export function login(token:string){
 	user.token=token
-	user.info=info
+	localStorage.setItem("token",JSON.stringify({root:user.root,token:token}))
 }
 export function avatar():string{
 	if(user.root){
@@ -76,69 +86,28 @@ export function logout(){
 	user.token=""
 	user.info=null
 
-	project.all=[]
-	project.cur_id=[]
-	project.cur_name=""
-	project.nodes=[]
+	localStorage.removeItem("token")
 
-	page.node=null
+	clear_project()
+	clear_page()
 }
 
 //-------------------------------------------------------------------------------
 export const project = reactive<{
-	all:initializeAPI.projectInfo[]
 	cur_id:number[]
 	cur_name:string
-	nodes:permissionAPI.NodeInfo[]
-	ing:boolean
-	optype:string// 'add' or 'del' or 'update'
-	new_project_name:string
 }>({
-	all:[],
 	cur_id:[],
 	cur_name:"",
-	nodes:[],
-	ing:false,
-	optype:"",
-	new_project_name:"",
 })
-export function set_project(optype: string){
-	project.ing=true
-	project.optype=optype
+
+export function set_project(id:number[],name:string){
+	project.cur_id=id
+	project.cur_name=name
 }
 export function clear_project(){
-	project.ing=false
-	project.optype=""
-	project.new_project_name=""
-}
-
-//-------------------------------------------------------------------------------
-export const node = reactive<{
-	ing:boolean
-	target:permissionAPI.NodeInfo
-	new_node_name:string
-	new_node_url:string
-	optype:string// 'add' or 'del' or 'update'
-}>({
-	ing:false,
-	target:null,
-	new_node_name:"",
-	new_node_url:"",
-	optype:"",
-})
-//optype: 'add' or 'del' or 'update'
-export function set_node(target:permissionAPI.NodeInfo,optype:string){
-	node.ing = true
-	node.target = target
-	node.optype = optype
-}
-export function clear_node(){
-	node.ing=false
-	node.node_id=[]
-	node.node_name=""
-	node.new_node_name=""
-	node.new_node_url=""
-	node.optype=""
+	project.cur_id=[]
+	project.cur_name=""
 }
 
 //-------------------------------------------------------------------------------

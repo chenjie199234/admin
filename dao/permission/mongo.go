@@ -481,7 +481,7 @@ func (d *Dao) MongoListNodes(ctx context.Context, pnodeid string, all bool) ([]*
 	e = cursor.All(ctx, &nodes)
 	return nodes, e
 }
-func (d *Dao) MongoAddNode(ctx context.Context, operator primitive.ObjectID, pnodeid string, name, data string) (e error) {
+func (d *Dao) MongoAddNode(ctx context.Context, operator primitive.ObjectID, pnodeid string, name, data string) (nodeid string, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -516,8 +516,9 @@ func (d *Dao) MongoAddNode(ctx context.Context, operator primitive.ObjectID, pno
 		return
 	}
 	//all check success,modify database
+	nodeid = pnodeid + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10)
 	_, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
-		NodeId:       pnodeid + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10),
+		NodeId:       nodeid,
 		NodeName:     name,
 		NodeData:     data,
 		CurNodeIndex: 0,

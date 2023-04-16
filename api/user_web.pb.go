@@ -20,6 +20,7 @@ import (
 )
 
 var _WebPathUserUserLogin = "/admin.user/user_login"
+var _WebPathUserLoginInfo = "/admin.user/login_info"
 var _WebPathUserInviteProject = "/admin.user/invite_project"
 var _WebPathUserKickProject = "/admin.user/kick_project"
 var _WebPathUserSearchUsers = "/admin.user/search_users"
@@ -33,6 +34,7 @@ var _WebPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserWebClient interface {
 	UserLogin(context.Context, *UserLoginReq, http.Header) (*UserLoginResp, error)
+	LoginInfo(context.Context, *LoginInfoReq, http.Header) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq, http.Header) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq, http.Header) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq, http.Header) (*SearchUsersResp, error)
@@ -73,6 +75,38 @@ func (c *userWebClient) UserLogin(ctx context.Context, req *UserLoginReq, header
 		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(UserLoginResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *userWebClient) LoginInfo(ctx context.Context, req *LoginInfoReq, header http.Header) (*LoginInfoResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathUserLoginInfo, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(LoginInfoResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -408,6 +442,7 @@ func (c *userWebClient) DelUserRole(ctx context.Context, req *DelUserRoleReq, he
 
 type UserWebServer interface {
 	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
+	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
@@ -459,6 +494,55 @@ func _User_UserLogin_WebHandler(handler func(context.Context, *UserLoginReq) (*U
 		}
 		if resp == nil {
 			resp = new(UserLoginResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
+func _User_LoginInfo_WebHandler(handler func(context.Context, *LoginInfoReq) (*LoginInfoResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(LoginInfoReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(LoginInfoResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1013,6 +1097,19 @@ func RegisterUserWebServer(engine *web.WebServer, svc UserWebServer, allmids map
 	// avoid lint
 	_ = allmids
 	engine.Post(_WebPathUserUserLogin, _User_UserLogin_WebHandler(svc.UserLogin))
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _User_LoginInfo_WebHandler(svc.LoginInfo))
+		engine.Post(_WebPathUserLoginInfo, mids...)
+	}
 	{
 		requiredMids := []string{"token"}
 		mids := make([]web.OutsideHandler, 0, 2)

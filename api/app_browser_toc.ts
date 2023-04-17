@@ -701,6 +701,7 @@ export interface SetKeyConfigReq{
 	value: string;
 	value_type: string;
 	secret: string;
+	new_key: boolean;
 }
 function SetKeyConfigReqToJson(msg: SetKeyConfigReq): string{
 	let s: string="{"
@@ -752,6 +753,12 @@ function SetKeyConfigReqToJson(msg: SetKeyConfigReq): string{
 		let vv=JSON.stringify(msg.secret)
 		s+='"secret":'+vv+','
 	}
+	//new_key
+	if(msg.new_key==null||msg.new_key==undefined){
+		throw 'SetKeyConfigReq.new_key must be boolean'
+	}else{
+		s+='"new_key":'+msg.new_key+','
+	}
 	if(s.length==1){
 		s+="}"
 	}else{
@@ -774,6 +781,7 @@ export interface SetProxyReq{
 	write: boolean;//need write permission on this node
 	admin: boolean;//need admin permission on this node
 	secret: string;
+	new_path: boolean;
 }
 function SetProxyReqToJson(msg: SetProxyReq): string{
 	let s: string="{"
@@ -827,6 +835,12 @@ function SetProxyReqToJson(msg: SetProxyReq): string{
 		let vv=JSON.stringify(msg.secret)
 		s+='"secret":'+vv+','
 	}
+	//new_path
+	if(msg.new_path==null||msg.new_path==undefined){
+		throw 'SetProxyReq.new_path must be boolean'
+	}else{
+		s+='"new_path":'+msg.new_path+','
+	}
 	if(s.length==1){
 		s+="}"
 	}else{
@@ -835,9 +849,29 @@ function SetProxyReqToJson(msg: SetProxyReq): string{
 	return s
 }
 export interface SetProxyResp{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	node_id: Array<number>|null|undefined;
 }
 function JsonToSetProxyResp(jsonobj: { [k:string]:any }): SetProxyResp{
 	let obj: SetProxyResp={
+		node_id:null,
+	}
+	//node_id
+	if(jsonobj['node_id']!=null&&jsonobj['node_id']!=undefined){
+		if(!(jsonobj['node_id'] instanceof Array)){
+			throw 'SetProxyResp.node_id must be Array<number>|null|undefined'
+		}
+		for(let element of jsonobj['node_id']){
+			if(typeof element!='number'||!Number.isInteger(element)){
+				throw 'element in SetProxyResp.node_id must be integer'
+			}else if(element>4294967295||element<0){
+				throw 'element in SetProxyResp.node_id overflow'
+			}
+			if(obj['node_id']==null){
+				obj['node_id']=new Array<number>
+			}
+			obj['node_id'].push(element)
+		}
 	}
 	return obj
 }

@@ -1,11 +1,6 @@
 import { reactive,ref } from 'vue'
 import * as userAPI from '../../api/user_browser_toc'
-// import * as initializeAPI from '../../api/initialize_browser_toc'
 import * as permissionAPI from '../../api/permission_browser_toc'
-
-var obj = JSON.parse(localStorage.getItem(key))
-user.root=obj.root
-user.token=obj.token
 
 //-------------------------------------------------------------------------------
 export const inited = ref<boolean>(false)

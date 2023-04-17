@@ -31,23 +31,24 @@ const proxys=ref<Map<string,ProxyPathInfo>>(new Map())
 const t_proxys=ref<boolean>(false)
 const t_proxys_hover=ref<boolean>(false)
 
-function get_app(need_set_load: boolean){
+const get_app_status=ref<boolean>(false)
+
+function get_app(){
 	if(curg.value==""||cura.value==""){
 		keys.value=null
+		t_keys.value=false
 		proxys.value=null
+		t_proxys.value=false
 		state.set_alert("error",-2,"Group and App must be selected!")
 		return
 	}
-	if(need_set_load){
-		if(!state.set_load()){
-			return
-		}
+	if(!state.set_load()){
+		return
 	}
 	client.appClient.get_app({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,secret:secret.value},client.timeout,(e: appAPI.Error)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetAppResp)=>{
-		state.clear_load()
 		if(resp.keys){
 			keys.value = new Map([...resp.keys.entries()].sort())
 		}else{
@@ -60,6 +61,8 @@ function get_app(need_set_load: boolean){
 			proxys.value = new Map()
 		}
 		t_proxys.value=true
+		get_app_status.value=true
+		state.clear_load()
 	})
 }
 
@@ -167,7 +170,6 @@ function app_op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.DelAppResp)=>{
-				state.clear_load()
 				let index=all.value[curg.value].indexOf(cura.value)
 				if(index!=-1){
 					all.value[curg.value].splice(index,1)
@@ -179,8 +181,11 @@ function app_op(){
 				cura.value=""
 				secret.value=""
 				keys.value=new Map()
+				t_keys.value=false
 				proxys.value=new Map()
+				t_proxys.value=false
 				ing.value=false
+				state.clear_load()
 			})
 			break
 		}
@@ -189,7 +194,6 @@ function app_op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.CreateAppResp)=>{
-				state.clear_load()
 				if(all.value[new_g.value]){
 					all.value[new_g.value].push(new_a.value)
 				}else{
@@ -199,6 +203,7 @@ function app_op(){
 				new_a.value=""
 				new_secret.value=""
 				ing.value=false
+				state.clear_load()
 			})
 			break
 		}
@@ -213,12 +218,12 @@ function app_op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.UpdateAppSecretResp)=>{
-				state.clear_load()
 				update_g.value=""
 				update_a.value=""
 				update_old_secret.value=""
 				update_new_secret.value=""
 				ing.value=false
+				state.clear_load()
 			})
 			break
 		}
@@ -234,14 +239,19 @@ function app_op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.GetKeyConfigResp)=>{
-				state.clear_load()
 				cur_key_index_value.value=resp.value
 				cur_key_index_value_type.value=resp.value_type
 				ing.value=true
+				state.clear_load()
 			})
 			break
 		}
 		case 'add_key':{
+			if(keys.value.has(config_key.value)){
+				state.clear_load()
+				state.set_alert("error",-2,"key already exist")
+				break
+			}
 			let req = {
 				g_name:curg.value,
 				a_name:cura.value,
@@ -249,16 +259,24 @@ function app_op(){
 				key:config_key.value,
 				value:config_value.value,
 				value_type:config_value_type.value,
+				new_key:true,
 			}
 			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.SetKeyConfigResp)=>{
+				keys.value.set(config_key.value,{
+					cur_index:1,
+					max_index:1,
+					cur_version:1,
+					cur_value:config_value.value,
+					cur_value_type:config_value_type.value,
+				})
 				config_key.value = ''
 				config_value.value = '{}'
 				config_value_type.value = 'json'
 				ing.value=false
-				get_app(false)
+				state.clear_load()
 			})
 			break
 		}
@@ -270,13 +288,16 @@ function app_op(){
 				key:cur_key.value,
 				value:keys.value.get(cur_key.value).new_cur_value,
 				value_type:keys.value.get(cur_key.value).new_cur_value_type,
+				new_key:false,
 			}
 			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.SetKeyConfigResp)=>{
+				cur_key.value=''
 				ing.value=false
-				get_app(false)
+				state.clear_load()
+				get_app()
 			})
 			break
 		}
@@ -292,8 +313,16 @@ function app_op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.RollbackResp)=>{
+				keys.value.get(cur_key.value).cur_index = cur_key_index.value
+				keys.value.get(cur_key.value).cur_version += 1
+				keys.value.get(cur_key.value).cur_value = cur_key_index_value.value
+				keys.value.get(cur_key.value).cur_value_type = cur_key_index_value_type.value
+				cur_key.value=''
+				cur_key_index.value=0
+				cur_key_index_value.value=''
+				cur_key_index_value_type.value='json'
 				ing.value=false
-				get_app(false)
+				state.clear_load()
 			})
 			break
 		}
@@ -308,12 +337,19 @@ function app_op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.DelKeyResp)=>{
+				keys.value.delete(cur_key.value)
+				cur_key.value=""
 				ing.value=false
-				get_app(false)
+				state.clear_load()
 			})
 			break
 		}
 		case 'add_proxy':{
+			if(proxys.value.has(new_proxy_path.value)){
+				state.clear_load()
+				state.set_alert("error",-2,"proxy path already exist")
+				break
+			}
 			let req = {
 				g_name:curg.value,
 				a_name:cura.value,
@@ -322,13 +358,24 @@ function app_op(){
 				read:new_proxy_permission_read.value,
 				write:new_proxy_permission_write.value,
 				admin:new_proxy_permission_admin.value,
+				new_path:true,
 			}
 			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.SetProxyResp)=>{
+				proxys.value.set(new_proxy_path.value,{
+					node_id:resp.node_id,
+					read:new_proxy_permission_read.value,
+					write:new_proxy_permission_write.value,
+					admin:new_proxy_permission_admin.value,
+				})
+				new_proxy_path.value=''
+				new_proxy_permission_read.value=false
+				new_proxy_permission_write.value=false
+				new_proxy_permission_admin.value=false
 				ing.value=false
-				get_app(false)
+				state.clear_load()
 			})
 			break
 		}
@@ -341,13 +388,17 @@ function app_op(){
 				read:proxys.value.get(cur_proxy.value).new_read,
 				write:proxys.value.get(cur_proxy.value).new_write,
 				admin:proxys.value.get(cur_proxy.value).new_admin,
+				new_path:false,
 			}
 			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.SetProxyResp)=>{
+				proxys.value.get(cur_proxy.value).read=proxys.value.get(cur_proxy.value).new_read
+				proxys.value.get(cur_proxy.value).write=proxys.value.get(cur_proxy.value).new_write
+				proxys.value.get(cur_proxy.value).admin=proxys.value.get(cur_proxy.value).new_admin
 				ing.value=false
-				get_app(false)
+				state.clear_load()
 			})
 			break
 		}
@@ -362,8 +413,10 @@ function app_op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.DelProxyResp)=>{
+				proxys.value.delete(cur_proxy.value)
+				cur_proxy.value=''
 				ing.value=false
-				get_app(false)
+				state.clear_load()
 			})
 			break
 		}
@@ -378,8 +431,9 @@ function app_op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.ProxyResp)=>{
-				state.clear_load()
 				proxys.value.get(cur_proxy.value).resp=resp.data
+				cur_proxy.value=''
+				state.clear_load()
 			})
 			break
 		}
@@ -403,7 +457,7 @@ function app_op(){
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op()" gradient>Del</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient>Del</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -499,8 +553,8 @@ function app_op(){
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op()" gradient>Del</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient>Del</va-button>
+					<va-button style="width:80px;margin:5px 0 0 10px" @click="cur_key='';ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='add_key'" style="display:flex;flex-direction:column">
@@ -510,7 +564,7 @@ function app_op(){
 				</div>
 				<va-input type="textarea" label="Content" style="margin:1px;width:800px" :min-rows="15" :max-rows="15" v-model.trim="config_value" />
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient :disabled="config_key==''" >Add</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient :disabled="config_key==''||keys.has(config_key)">Add</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="config_key='';config_value='{\n}';config_value_type='json';ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -524,15 +578,15 @@ function app_op(){
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op()" gradient>Update</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient>Update</va-button>
+					<va-button style="width:80px;margin:5px 0 0 10px" @click="cur_key='';ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='get_key'">
 				<va-input type="textarea" :label="'Content Type:'+cur_key_index_value_type" style="margin:1px;width:800px" :model-value="JSON.stringify(JSON.parse(cur_key_index_value),null,4)" readonly :min-rows="15" :max-rows="15" />
 				<div style="display:flex;justify-content:center">
 					<va-button style="width:80px;margin:5px 10px 0 0" @click="optype='rollback_key';app_op()" gradient>Rollback</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:5px 0 0 10px" @click="cur_key='';cur_key_index=0;ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='add_proxy'">
@@ -543,7 +597,7 @@ function app_op(){
 					<va-switch v-model="new_proxy_permission_admin" true-inner-label="Admin" false-inner-label="Admin" @update:model-value="new_proxy_permission_update('admin')" />
 				</div>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" gradient :disabled="new_proxy_path==''" @click="app_op">Add</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient :disabled="new_proxy_path==''||proxys.has(new_proxy_path)">Add</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="new_proxy_path='';new_proxy_permission_read=false;new_proxy_permission_write=false;new_proxy_permission_admin=false;ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -557,8 +611,8 @@ function app_op(){
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op()" gradient>Update</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient>Update</va-button>
+					<va-button style="width:80px;margin:5px 0 0 10px" @click="cur_proxy='';ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='del_proxy'">
@@ -570,11 +624,11 @@ function app_op(){
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op()" gradient>Del</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient>Del</va-button>
+					<va-button style="width:80px;margin:5px 0 0 10px" @click="cur_proxy='';ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
-			<div v-else-if="optype='proxy'">
+			<div v-else-if="optype=='proxy'">
 				<va-card color="primary" gradient style="margin:0 0 5px 0">
 					<va-card-title>Warning</va-card-title>
 					<va-card-content>
@@ -584,14 +638,14 @@ function app_op(){
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;app_op()" gradient>Proxy</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient>Proxy</va-button>
+					<va-button style="width:80px;margin:5px 0 0 10px" @click="cur_proxy='';ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 		</template>
 	</va-modal>
-	<div style="flex:1;display:flex;flex-direction:column;margin:1px;width:100%;overflow-y:auto">
-		<div style="width:100%;display:flex;margin:1px 0">
+	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
+		<div style="display:flex;margin:1px 0;align-self:center">
 			<va-select
 			dropdown-icon=""
 			outline
@@ -611,7 +665,10 @@ function app_op(){
 							cura=''
 							secret=''
 							keys=new Map()
+							t_keys=false
 							proxys=new Map()
+							t_proxys=false
+							get_app_status=false
 						}
 					}"
 					>
@@ -644,7 +701,10 @@ function app_op(){
 							selectOption(option)
 							secret=''
 							keys=new Map()
+							t_keys=false
 							proxys=new Map()
+							t_proxys=false
+							get_app_status=false
 						}
 					}"
 					>
@@ -659,22 +719,22 @@ function app_op(){
 					</va-hover>
 				</template>
 			</va-select>
-			<va-input :type="t_secret?'text':'password'" v-model.trim="secret" outline label="Secret" :max-length="31" style="min-width:250px;max-width:250px;margin:0 1px" @keyup.enter="()=>{if(curg!=''&&cura!=''){get_app(true)}}">
+			<va-input :type="t_secret?'text':'password'" v-model.trim="secret" outline label="Secret" :max-length="31" style="min-width:250px;max-width:250px;margin:0 1px" @keyup.enter="()=>{if(curg!=''&&cura!=''){get_app()}}">
 				<template #appendInner>
 					<va-icon :name="t_secret?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_secret=!t_secret" />
 				</template>
 			</va-input>
-			<va-button style="margin:0 2px" :disabled="curg==''||cura==''" @click="get_app(true)">Search</va-button>
+			<va-button style="margin:0 2px" :disabled="curg==''||cura==''" @click="get_app">Search</va-button>
 			<va-dropdown  v-if="state.page.node.admin" trigger="hover" style="width:36px;margin-right:4px">
 				<template #anchor>
 					<va-button>•••</va-button>
 				</template>
 				<va-dropdown-content>
 					<va-popover message="Create New App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button style="width:36px;margin:0 3px" @click="ing=true;optype='add_app'">+</va-button>
+						<va-button style="width:36px;margin:0 3px" @click="optype='add_app';ing=true">+</va-button>
 					</va-popover>
 					<va-popover message="Update Add Secret" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button style="width:36px;margin:0 3px" @click="ing=true;optype='update_secret'">◉</va-button>
+						<va-button style="width:36px;margin:0 3px" @click="optype='update_secret';ing=true">◉</va-button>
 					</va-popover>
 					<va-popover message="Delete App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
 						<va-button style="width:36px;margin:0 3px" :disabled="curg==''||cura==''" @click="optype='del_app';ing=true">x</va-button>
@@ -684,18 +744,18 @@ function app_op(){
 		</div>
 		<!-- configs -->
 		<div
-			style="width:100%;display:flex;align-items:center;margin:1px 0;cursor:pointer"
+			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_keys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="t_keys=!t_keys"
 			@mouseover="t_keys_hover=true"
 			@mouseout="t_keys_hover=false"
 		>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Configs</span>
-			<va-button style="height:30px" size="small" :disabled="curg==''||cura==''" @mouseover.stop="" @mouseout.stop="" @click.stop="optype='add_key';ing=true">ADD</va-button>
+			<va-button v-if="get_app_status" style="height:30px" size="small" @mouseover.stop="" @mouseout.stop="" @click.stop="optype='add_key';ing=true">ADD</va-button>
 			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ t_keys?'▲':'▼' }}</span>
 		</div>
 		<!-- keys -->
-		 <div v-if="t_keys&&keys.size" style="overflow-y:auto;height:auto;max-height:100%">
+		<div v-if="t_keys&&keys.size>0" style="overflow-y:auto;height:auto;max-height:100%">
 			<div v-for="key of keys.keys()" style="margin:1px 20px;display:flex;flex-direction:column">
 				<div
 					style="cursor:pointer;display:flex;align-items:center"
@@ -757,7 +817,7 @@ function app_op(){
 							Edit
 						</va-button>
 					</div>
-					<va-divider v-if="keys.get(key).new_cur_value" vertical />
+					<va-divider v-if="keys.get(key).new_cur_value" vertical style="margin:0 4px" />
 					<div v-if="keys.get(key).new_cur_value" style="flex:1;display:flex;flex-direction:column;align-items:center">
 						<va-input
 							v-model.trim="keys.get(key).new_cur_value"
@@ -777,23 +837,23 @@ function app_op(){
 				</div>
 			</div>
 		</div>
-		<div v-if="t_keys&&!keys.size">
+		<div v-if="t_keys&&keys.size==0">
 			<div style="margin:1px 20px;padding:12px;display:flex;flex-direction:column;background-color:var(--va-background-element);color:var(--va-primary)">No Config Keys</div>
 		</div>
 		<!-- proxys -->
 		<div
-			style="width:100%;display:flex;align-items:center;margin:1px 0;cursor:pointer"
+			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_proxys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="t_proxys=!t_proxys"
 			@mouseover="t_proxys_hover=true"
 			@mouseout="t_proxys_hover=false"
 		>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Proxys</span>
-			<va-button style="height:30px" size="small" :disabled="curg==''||cura==''" @mouseover.stop="" @mouseout.stop="" @click.stop="cur_proxy=proxy;optype='add_proxy';ing=true">ADD</va-button>
+			<va-button v-if="get_app_status" style="height:30px" size="small" @mouseover.stop="" @mouseout.stop="" @click.stop="cur_proxy=proxy;optype='add_proxy';ing=true">ADD</va-button>
 			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ t_proxys?'▲':'▼' }}</span>
 		</div>
 		<!-- paths -->
-		<div v-if="t_proxys&&proxys.size" style="overflow-y:auto;height:auto;max-height:100%">
+		<div v-if="t_proxys&&proxys.size>0" style="overflow-y:auto;height:auto;max-height:100%">
 			<div v-for="proxy of proxys.keys()" style="margin:1px 20px;display:flex;flex-direction:column">
 				<div
 					style="cursor:pointer;display:flex;align-items:center"
@@ -857,7 +917,7 @@ function app_op(){
 						<va-input type="textarea" outline label="Request" :min-rows="15" :max-rows="15" style="width:100%" v-model.trim="proxys.get(proxy).req" :readonly="Boolean(proxys.get(proxy).resp)" />
 						<va-button style="margin:2px" @click="cur_proxy=proxy;optype='proxy';ing=true" :disabled="Boolean(proxys.get(proxy).resp)">Proxy</va-button>
 					</div>
-					<va-divider v-if="proxys.get(proxy).resp" vertical />
+					<va-divider v-if="proxys.get(proxy).resp" vertical style="margin:0 4px" />
 					<div v-if="proxys.get(proxy).resp" style="flex:1;display:flex;flex-direction:column;align-items:center">
 						<va-input type="textarea" outline label="Response" :min-rows="15" :max-rows="15" style="width:100%" v-model.trim="proxys.get(proxy).resp" readonly />
 						<va-button style="margin:2px" @click="proxys.get(proxy).resp=''">OK</va-button>
@@ -865,7 +925,7 @@ function app_op(){
 				</div>
 			</div>
 		</div>
-		<div v-if="t_proxys&&!proxys.size">
+		<div v-if="t_proxys&&proxys.size==0">
 			<div style="margin:1px 20px;padding:12px;display:flex;flex-direction:column;background-color:var(--va-background-element);color:var(--va-primary)">No Proxy Paths</div>
 		</div>
 	</div>

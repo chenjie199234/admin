@@ -264,7 +264,7 @@ func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppRe
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	nodeids := strings.Split(nodeid, ",")
-	if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "3" {
+	if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "2" {
 		log.Error(ctx, "[DelApp] operator:", md["Token-Data"], "get group:", req.GName, "app:", req.AName, "permission nodeid:", nodeid, "format wrong")
 		return nil, ecode.ErrConfigDataBroken
 	}
@@ -480,7 +480,7 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 	}
 
 	//logic
-	index, version, e := s.appDao.MongoSetKeyConfig(ctx, req.GName, req.AName, req.Key, req.Secret, req.Value, req.ValueType)
+	index, version, e := s.appDao.MongoSetKeyConfig(ctx, req.GName, req.AName, req.Key, req.Secret, req.Value, req.ValueType, req.NewKey)
 	if e != nil {
 		log.Error(ctx, "[SetKeyConfig] group:", req.GName, "app:", req.AName, "key:", req.Key, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -668,12 +668,14 @@ func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetP
 	if req.Path[0] != '/' {
 		req.Path = "/" + req.Path
 	}
-	if e := s.appDao.MongoSetProxyPath(ctx, req.GName, req.AName, req.Secret, req.Path, req.Read, req.Write, req.Admin); e != nil {
+	nodeidstr, e := s.appDao.MongoSetProxyPath(ctx, req.GName, req.AName, req.Secret, req.Path, req.Read, req.Write, req.Admin, req.NewPath)
+	if e != nil {
 		log.Error(ctx, "[SetProxy] group:", req.GName, "app:", req.AName, "path:", req.Path, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	nodeid, _ := util.ParseNodeIDstr(nodeidstr)
 	log.Info(ctx, "[SetProxy] group:", req.GName, "app:", req.AName, "path:", req.Path, "read:", req.Read, "write:", req.Write, "success")
-	return &api.SetProxyResp{}, nil
+	return &api.SetProxyResp{NodeId: nodeid}, nil
 }
 func (s *Service) DelProxy(ctx context.Context, req *api.DelProxyReq) (*api.DelProxyResp, error) {
 	md := metadata.GetMetadata(ctx)
@@ -724,6 +726,9 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 	if !ok {
 		s.Unlock()
 		return nil, ecode.ErrAppNotExist
+	}
+	if req.Path[0] != '/' {
+		req.Path = "/" + req.Path
 	}
 	pathinfo, ok := app.Paths[req.Path]
 	if !ok {

@@ -349,7 +349,7 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, gname, aname, key string, i
 	}
 	return keysummary, log, nil
 }
-func (d *Dao) MongoSetKeyConfig(ctx context.Context, gname, aname, key, secret, value, valuetype string) (newindex, newversion uint32, e error) {
+func (d *Dao) MongoSetKeyConfig(ctx context.Context, gname, aname, key, secret, value, valuetype string, newkey bool) (newindex, newversion uint32, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -393,6 +393,9 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, gname, aname, key, secret, 
 			CurVersion: 0,
 			CurValue:   "",
 		}
+	} else if newkey {
+		e = ecode.ErrKeyAlreadyExist
+		return
 	}
 	keysummary.MaxIndex += 1
 	keysummary.CurIndex = keysummary.MaxIndex
@@ -507,7 +510,7 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, gname, aname, key, sec
 	_, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterSummary, updaterSummary)
 	return
 }
-func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path string, read, write, admin bool) (e error) {
+func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path string, read, write, admin, newpath bool) (nodeid string, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -542,10 +545,15 @@ func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path 
 	addpermission := false
 	if len(appsummary.Paths) == 0 {
 		addpermission = true
-	} else if _, ok := appsummary.Paths[b64path]; !ok {
+	} else if path, ok := appsummary.Paths[b64path]; !ok {
 		addpermission = true
+	} else {
+		nodeid = path.PermissionNodeID
 	}
 	if !addpermission {
+		if newpath {
+			e = ecode.ErrProxyPathAlreadyExist
+		}
 		return
 	}
 	parent := &model.Node{}
@@ -555,18 +563,18 @@ func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path 
 		}
 		return
 	}
-	newnodeid := parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10)
+	nodeid = parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10)
 	if _, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
-		NodeId:       newnodeid,
+		NodeId:       nodeid,
 		NodeName:     path,
 		NodeData:     "",
 		CurNodeIndex: 0,
 	}); e != nil {
 		return
 	}
-	updater2 := bson.M{"$set": bson.M{"paths." + b64path + ".permission_node_id": newnodeid}}
+	updater2 := bson.M{"$set": bson.M{"paths." + b64path + ".permission_node_id": nodeid}}
 	_, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filter, updater2)
-	return e
+	return
 }
 func (d *Dao) MongoDelProxyPath(ctx context.Context, gname, aname, secret, path string) (e error) {
 	var s mongo.Session

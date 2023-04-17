@@ -168,6 +168,7 @@ message set_key_config_req {
 		(pbex.string_bytes_in)="yaml",
 		(pbex.string_bytes_in)="toml"];
 	string secret=6[(pbex.string_bytes_len_lt)=32];
+	bool new_key=7;
 }
 message set_key_config_resp {
 }
@@ -209,8 +210,10 @@ message set_proxy_req{
 	bool write=5;//need write permission on this node
 	bool admin=6;//need admin permission on this node
 	string secret=7[(pbex.string_bytes_len_lt)=32];
+	bool new_path=8;
 }
 message set_proxy_resp{
+	repeated uint32 node_id=1;
 }
 message del_proxy_req{
 	string g_name=1[(pbex.string_bytes_len_not_eq)=0];

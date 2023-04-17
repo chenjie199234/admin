@@ -86,6 +86,7 @@ function op(){
 					pagesize.value=resp.pagesize
 					totalsize.value=resp.totalsize
 					cur_user.value=null
+					cur_role.value=null
 					state.clear_load()
 				})
 			}else{
@@ -104,6 +105,7 @@ function op(){
 					pagesize.value=resp.pagesize
 					totalsize.value=resp.totalsize
 					cur_role.value=null
+					cur_user.value=null
 					state.clear_load()
 				})
 			}
@@ -119,6 +121,7 @@ function op(){
 				state.set_alert("error",e.code,e.msg)
 			},(resp: userAPI.InviteProjectResp)=>{
 				invite_kick_user.value.project_roles=[{project_id:state.project.cur_id,roles:[]}]
+				ing.value=false
 				state.clear_load()
 			})
 			break
@@ -150,6 +153,7 @@ function op(){
 						}
 					}
 				}
+				ing.value=false
 				state.clear_load()
 			})
 			break
@@ -164,8 +168,9 @@ function op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: userAPI.UpdateUserResp)=>{
-				update_user.user_name = new_user_name.value
-				update_user.department = update_user_new_department.value
+				update_user.value.user_name = update_user_new_name.value
+				update_user.value.department = update_user_new_department.value
+				ing.value=false
 				state.clear_load()
 			})
 			break
@@ -182,6 +187,7 @@ function op(){
 			},(resp: userAPI.CreateRoleResp)=>{
 				create_role_name.value=""
 				create_role_comment.value=""
+				ing.value=false
 				state.clear_load()
 			})
 			break
@@ -221,6 +227,7 @@ function op(){
 					cur_role.value=null
 				}
 				del_role.value=null
+				ing.value=false
 				state.clear_load()
 			})
 			break
@@ -241,6 +248,7 @@ function op(){
 						break
 					}
 				}
+				ing.value=false
 				state.clear_load()
 			})
 			break
@@ -271,6 +279,7 @@ function op(){
 						cur_user.value.roles = [add_user_role_rolename.value]
 					}
 				}
+				ing.value=false
 				state.clear_load()
 			})
 			break
@@ -408,7 +417,7 @@ function parsetime(timestamp :number):string{
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;op()" gradient>Invite</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Invite</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -421,25 +430,25 @@ function parsetime(timestamp :number):string{
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;op()" gradient>Kick</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Kick</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='update_user'">
-				<va-input v-model.trim="update_user_new_name" label="New User Name" style="width:300px;margin:1px 0"></va-input>
+				<va-input v-model.trim="update_user_new_name" label="New User Name" style="width:300px;margin:1px 0" @keyup.enter="()=>{if(update_user_new_name!=update_user.user_name){op()}}"></va-input>
 				<div style="width:300px;display:flex;margin:1px 0">
 				<!-- TODO: department -->
 				</div>
 				<div style="display:flex;justify-content:center;flex:margin:1px 0">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;op()" gradient :disabled="update_user_new_name==update_user.user_name">Update</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient :disabled="update_user_new_name==update_user.user_name">Update</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='create_role'" style="display:flex;flex-direction:column">
-				<va-input v-model.trim="create_role_name" label="New Role Name" style="margin:1px 0;width:300px" @keyup.enter="()=>{if(create_role_name!=''){ing=false;op()}}" />
-				<va-input v-model.trim="create_role_comment" label="New Role Comment" style="margin:1px 0;width:300px" @keyup.enter="()=>{if(create_role_name!=''){ing=false;op()}}" />
+				<va-input v-model.trim="create_role_name" label="New Role Name" style="margin:1px 0;width:300px" @keyup.enter="()=>{if(create_role_name!=''){op()}}" />
+				<va-input v-model.trim="create_role_comment" label="New Role Comment" style="margin:1px 0;width:300px" @keyup.enter="()=>{if(create_role_name!=''){op()}}" />
 				<div style="display:flex;justify-content:center;flex:margin:1px 0">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;op()" gradient :disabled="create_role_name==''">Create</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient :disabled="create_role_name==''">Create</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="create_role_name='';create_role_comment='';ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -452,7 +461,7 @@ function parsetime(timestamp :number):string{
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center;flex:margin:1px 0">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;op()" gradient>Del</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Del</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="del_role=null;ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -466,7 +475,7 @@ function parsetime(timestamp :number):string{
 					<div style="margin-right:2px">
 						<va-input label="Role Name" style="width:170px" v-model="add_user_role_rolename" @update:model-value="assign_search" />
 						<div style="display:flex;justify-content:center;flex:margin:1px 0">
-							<va-button style="width:80px;margin:5px 5px 0 0" @click="ing=false;optype='add_user_role';op()" gradient>Assign</va-button>
+							<va-button style="width:80px;margin:5px 5px 0 0" @click="optype='add_user_role';op()" gradient>Assign</va-button>
 							<va-button style="width:80px;margin:5px 0 0 5px" @click="clear_assign_search();ing=false" gradient>Cancel</va-button>
 						</div>
 					</div>
@@ -494,7 +503,7 @@ function parsetime(timestamp :number):string{
 					<div style="margin-right:2px">
 						<va-input label="User Name" style="width:170px" v-model="add_user_role_username" @update:model-value="assign_search" />
 						<div style="display:flex;justify-content:center;flex:margin:1px 0">
-							<va-button style="width:80px;margin:5px 5px 0 0" @click="ing=false;optype='add_user_role';op()" gradient>Assign</va-button>
+							<va-button style="width:80px;margin:5px 5px 0 0" @click="optype='add_user_role';op()" gradient>Assign</va-button>
 							<va-button style="width:80px;margin:5px 0 0 5px" @click="clear_assign_search();ing=false" gradient>Cancel</va-button>
 						</div>
 					</div>
@@ -521,7 +530,7 @@ function parsetime(timestamp :number):string{
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center;flex:margin:1px 0">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="ing=false;op()" gradient>Del</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Del</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
@@ -590,11 +599,11 @@ function parsetime(timestamp :number):string{
 			<template v-for="user of users">
 				<div
 					v-if="!Boolean(cur_user)||cur_user==user"
-					style="display:flex;margin:1px 0;align-items:center"
-					:style="{'background-color':user.hover?'var(--va-shadow)':'var(--va-background-element)',cursor:invited(user)?'pointer':'default'}"
+					style="display:flex;margin:1px 0;align-items:center;cursor:pointer"
+					:style="{'background-color':user.hover?'var(--va-shadow)':'var(--va-background-element)'}"
 					@click="()=>{
+						user.open=!user.open
 						if(invited(user)){
-							user.open=!user.open
 							if(user.open){
 								cur_user=user
 							}else{
@@ -604,8 +613,8 @@ function parsetime(timestamp :number):string{
 							}
 						}
 					}"
-					@mouseover="()=>{if(invited(user)){user.hover=true}}"
-					@mouseout="()=>{if(invited(user)){user.hover=false}}"
+					@mouseover="user.hover=true"
+					@mouseout="user.hover=false"
 				>
 					<span style="flex:1;padding:12px;color:var(--va-primary)">{{user.user_name}}</span>
 					<span style="padding:12px 0;color:var(--va-primary)">Create Time: {{parsetime(user.ctime)}}</span>
@@ -613,7 +622,7 @@ function parsetime(timestamp :number):string{
 					<va-button
 					v-if="state.page.node.canwrite||state.page.node.admin"
 					size="small"
-					style="width:50px;height:30px;margin-right:4px"
+					style="width:50px;height:30px;margin-right:10px"
 					@mouseover.stop=""
 					@mouseout.stop=""
 					@click.stop="()=>{
@@ -643,7 +652,7 @@ function parsetime(timestamp :number):string{
 						{{invited(user)?'Kick':'Invite'}}
 					</va-button>
 				</div>
-				<div v-if="user.open" style="margin:1px 20px;display:flex;justify-content:space-around;background-color:var(--va-background-element);color:var(--va-primary)">
+				<div v-if="(!Boolean(cur_user)||cur_user==user)&&user.open" style="margin:1px 20px;display:flex;justify-content:space-around;background-color:var(--va-background-element);color:var(--va-primary)">
 					<div style="width:400px;margin:1px;padding:12px 10px;display:flex">
 						<span><b>UserID:</b></span>
 						<span style="flex:1;text-align:center">{{ user.user_id }}</span>
@@ -653,7 +662,7 @@ function parsetime(timestamp :number):string{
 						<span style="flex:1;text-align:center">{{ Boolean(user.department)?user.department.join('/'):'' }}</span>
 					</div>
 				</div>
-				<div v-if="user.open" style="margin:0 20px;display:flex;flex:1;overflow-y:auto;color:var(--va-primary)">
+				<div v-if="(!Boolean(cur_user)||cur_user==user)&&user.open&&invited(user)" style="margin:0 20px;display:flex;flex:1;overflow-y:auto;color:var(--va-primary)">
 					<div style="width:200px;margin:0 1px 1px 0;display:flex;flex-direction:column;overflow-y:auto">
 						<va-hover stateful @click="get_user_permission">
 							<template #default="{hover}">
@@ -678,9 +687,9 @@ function parsetime(timestamp :number):string{
 								+
 							</va-button>
 						</div>
-						<div v-if="!Boolean(user.roles)||user.roles.length==0" style="padding:12px 10px;margin:1px 0;color:var(--va-shadow);background-color:var(--va-background-element)">No Roles</div>
+						<div v-if="!Boolean(user.project_roles[0].roles)||user.project_roles[0].roles.length==0" style="padding:12px 10px;margin:1px 0;color:var(--va-shadow);background-color:var(--va-background-element)">No Roles</div>
 						<div
-						v-for="role of user.roles"
+						v-for="role of user.project_roles[0].roles"
 						style="display:flex;margin:1px 0;align-items:center;cursor:pointer"
 						:style="{'background-color':user.cur_hover==role?'var(--va-shadow)':user.cur_role==role?'white':'var(--va-background-element)'}"
 						@mouseover="user.cur_hover=role"
@@ -732,7 +741,7 @@ function parsetime(timestamp :number):string{
 					<va-button
 					v-if="state.page.node.admin"
 					size="small"
-					style="width:50px;height:30px;margin-right:4px"
+					style="width:50px;height:30px;margin-right:10px"
 					@mouseover.stop=""
 					@mouseout.stop=""
 					@click.stop="add_user_role_rolename=role.role_name;add_user_role_userid='';add_user_role_username='';users=[];optype='add_user_role_missinguser';ing=true"

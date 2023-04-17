@@ -75,8 +75,10 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 			return nil, ecode.ErrSystem
 		}
 		rolename := role[index+1:]
-		tmp[roleproject] = &api.ProjectRoles{
-			ProjectId: roleprojectid,
+		if _, ok := tmp[roleproject]; !ok {
+			tmp[roleproject] = &api.ProjectRoles{
+				ProjectId: roleprojectid,
+			}
 		}
 		tmp[roleproject].Roles = append(tmp[roleproject].Roles, rolename)
 	}
@@ -273,7 +275,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	if resp.Page == 0 {
 		resp.Pagesize = resp.Totalsize
 	}
-	//if search user only in the required project,the role should be only in the project too
+	//only return the role in the project
 	for _, user := range users {
 		if user.ID.IsZero() {
 			//jump the superadmin
@@ -283,34 +285,26 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 		for _, role := range user.Roles {
 			index := strings.Index(role, ":")
 			roleproject := role[:index]
-			if req.OnlyProject && projectid != roleproject {
+			if projectid != roleproject {
 				continue
 			}
-			id, e := util.ParseNodeIDstr(roleproject)
-			if e != nil {
-				log.Error(ctx, "[SearchUsers] operator:", md["Token-Data"], "role:", role, "projectid format wrong:", e)
-				return nil, ecode.ErrSystem
-			}
 			rolename := role[index+1:]
-			tmp[roleproject] = &api.ProjectRoles{
-				ProjectId: id,
+			if _, ok := tmp[roleproject]; !ok {
+				tmp[roleproject] = &api.ProjectRoles{
+					ProjectId: req.ProjectId,
+				}
 			}
 			tmp[roleproject].Roles = append(tmp[roleproject].Roles, rolename)
 		}
 		for _, project := range user.Projects {
+			if projectid != project {
+				continue
+			}
 			if _, ok := tmp[project]; ok {
 				continue
 			}
-			if req.OnlyProject && projectid != project {
-				continue
-			}
-			id, e := util.ParseNodeIDstr(project)
-			if e != nil {
-				log.Error(ctx, "[SearchUsers] operator:", md["Token-Data"], "projectid:", project, "format wrong:", e)
-				return nil, ecode.ErrSystem
-			}
 			tmp[project] = &api.ProjectRoles{
-				ProjectId: id,
+				ProjectId: req.ProjectId,
 				Roles:     make([]string, 0),
 			}
 		}

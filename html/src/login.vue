@@ -1,7 +1,32 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {ref,onMounted} from 'vue'
+
+import * as userAPI from '../../api/user_browser_toc'
 import * as state from './state'
 import * as client from './client'
+
+onMounted(()=>{
+	let localtoken=localStorage.getItem("token")
+	if(localtoken){
+		var obj = JSON.parse(localtoken)
+		if(!obj.root){
+			if(state.set_load()){
+				return
+			}
+			client.userClient.login_info({"Token":obj.token},{},client.timeout,(e :userAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(resp :userAPI.LoginInfoResp)=>{
+				state.user.token=obj.token
+				state.user.info=resp.user
+				state.clear_load()
+			})
+		}else{
+			state.user.root=obj.root
+			state.user.token=obj.token
+		}
+	}
+})
 
 const password = ref<string>("")
 const t_password = ref<boolean>(false)

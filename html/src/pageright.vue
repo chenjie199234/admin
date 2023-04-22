@@ -58,13 +58,13 @@ function iframeload(){
 					</template>
 				</va-input>
 				<div>
-					<va-button style="width:100px;margin:5px 5px 0 190px" @click="oldpassword='';newpassword='';t_oldpassword=false;t_newpassword=false;password_changing=false">Cancel</va-button>
-					<va-button style="width:100px;margin:5px 0 0 5px" :disabled="!change_root_password_able()" @click="do_change_root_password">Change</va-button>
+					<va-button style="width:100px;margin:5px 5px 0 190px" :disabled="!change_root_password_able()" @click="do_change_root_password">Change</va-button>
+					<va-button style="width:100px;margin:5px 0 0 5px" @click="oldpassword='';newpassword='';t_oldpassword=false;t_newpassword=false;password_changing=false">Cancel</va-button>
 				</div>
 			</div>
 		</template>
 	</va-modal>
-	<div style="flex:1;display:flex;flex-direction:column;overflow-x:auto">
+	<div style="height:100%;flex:1;display:flex;flex-direction:column;overflow:auto">
 		<div style="display:flex;padding:5px;background-color:var(--va-background-element)">
 			<div style="display:flex;flex:1"></div>
 			<va-dropdown trigger="hover" style="width:36px" placement="bottom-end" prevent-overflow>

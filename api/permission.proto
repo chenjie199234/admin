@@ -172,7 +172,7 @@ message list_user_node_req {
 	bool need_user_role_node=3;//false - only return user's base node,true - return user's base node and user's roles' node
 }
 message list_user_node_resp {
-	repeated node_info nodes=1;
+	node_info node=1;
 }
 message list_role_node_req {
 	//first element must be 0
@@ -180,13 +180,14 @@ message list_role_node_req {
 	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message list_role_node_resp {
-	repeated node_info nodes=1;
+	node_info node=1;
 }
 message list_project_node_req{
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 }
 message list_project_node_resp{
-	//this will only return the node name and node data,other node's info will not return
-	repeated node_info nodes=1;
+	//this will only return the node name,node data and children
+	//other node's info will not return
+	node_info node=1;
 }

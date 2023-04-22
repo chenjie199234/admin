@@ -8,7 +8,7 @@ import * as userAPI from '../../api/user_browser_toc'
 import * as state from './state'
 import * as client from './client'
 
-import sidemenu from './sidemenu.vue'
+import menutree from './menutree.vue'
 
 onMounted(()=>{
 	get_projects()
@@ -37,37 +37,40 @@ function get_projects(){
 			}
 			if(!find){
 				state.clear_project()
-				allnodes=[]
+				projectnodes.value=null
 			}
 		}
 		state.clear_load()
 	})
 }
 
-const allnodes=ref<permissionAPI.NodeInfo[]>([])
+const projectnodes=ref<permissionAPI.NodeInfo>(null)
 
-function select_project(need_set_load: boolean){
+function select_project(){
 	if(!state.set_load()){
 		return
 	}
 	client.permissionClient.list_user_node({"Token":state.user.token},{project_id:state.project.cur_id,user_id:"",need_user_role_node:true},client.timeout,(e: permissionAPI.Error)=>{
-		allnodes.value=[]
+		projectnodes.value=null
+		state.project.cur_id=[]
+		state.project.cur_name=''
 		state.clear_page()
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: permissionAPI.ListUserNodeResp)=>{
-		allnodes.value=resp.nodes
+		projectnodes.value=resp.node
 		state.clear_page()
 		state.clear_load()
 	})
 }
 
-const ing=ref<boolean>(false)
+const node_ing=ref<boolean>(false)
+const project_ing=ref<boolean>(false)
 const optype=ref<string>("")
 
 const project_name=ref<string>("")
 
-function op(){
+function project_op(){
 	if(!state.set_load()){
 		return
 	}
@@ -82,7 +85,7 @@ function op(){
 				state.set_alert("error",e.code,e.msg)
 			},(resp: initializeAPI.CreateProjectResp)=>{
 				project_name.value=''
-				ing.value=false
+				project_ing.value=false
 				state.clear_load()
 				get_projects()
 			})
@@ -99,7 +102,7 @@ function op(){
 				state.set_alert("error",e.code,e.msg)
 			},(resp: initializeAPI.CreateProjectResp)=>{
 				project_name.value=''
-				ing.value=false
+				project_ing.value=false
 				state.clear_load()
 				get_projects()
 			})
@@ -113,9 +116,9 @@ function op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp :initializeAPI.DeleteProjectResp)=>{
-				ing.value=false
+				project_ing.value=false
 				state.clear_project()
-				allnodes.value=[]
+				projectnodes.value=null
 				state.clear_load()
 				get_projects()
 			})
@@ -126,6 +129,117 @@ function op(){
 			state.set_alert("error",-2,"unknown operation")
 		}
 	}
+}
+
+const ptarget=ref<permissionAPI.NodeInfo>(null)
+const target=ref<permissionAPI.NodeInfo>(null)
+const node_name=ref<string>("")
+const node_url=ref<string>("")
+
+function node_op(){
+	if(state.project.cur_id.length==0){
+		return
+	}
+	if(!state.set_load()){
+		return
+	}
+	switch(optype.value){
+		case 'add':{
+			let req:permissionAPI.AddNodeReq = {
+				pnode_id:target.value.node_id,
+				node_name:node_name.value,
+				node_data:node_url.value,
+			}
+			client.permissionClient.add_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(resp :permissionAPI.AddNodeResp)=>{
+				node_ing.value=false
+				if(target.value.children){
+					target.value.children.push({
+						node_id:resp.node_id,
+						node_name:node_name.value,
+						node_data:node_url.value,
+						canread:true,
+						canwrite:true,
+						admin:true,
+						children:[],
+					})
+				}else{
+					target.value.children=[{
+						node_id:resp.node_id,
+						node_name:node_name.value,
+						node_data:node_url.value,
+						canread:true,
+						canwrite:true,
+						admin:true,
+						children:[],
+					}]
+				}
+				target.value=null
+				node_name.value=""
+				node_url.value=""
+				state.clear_load()
+			})
+			break
+		}
+		case 'update':{
+			let req:permissionAPI.UpdateNodeReq = {
+				node_id:target.value.node_id,
+				new_node_name:node_name.value,
+				new_node_data:node_url.value,
+			}
+			client.permissionClient.update_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(resp :permissionAPI.UpdateNodeResp)=>{
+				node_ing.value=false
+				target.value.node_name=node_name.value
+				target.value.node_data=node_url.value
+				target.value=null
+				node_name.value=""
+				node_url.value=""
+				state.clear_load()
+			})
+			break
+		}
+		case 'del':{
+			let req:permissionAPI.DelNodeReq = {
+				node_id:target.value.node_id,
+			}
+			client.permissionClient.del_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(resp :permissionAPI.DelNodeResp)=>{
+				node_ing.value=false
+				for(let i=0;i<ptarget.value.children.length;i++){
+					if (ptarget.value.children[i]==target.value){
+						ptarget.value.children.splice(i,1)
+						break
+					}
+				}
+				ptarget.value=null
+				target.value=null
+				state.clear_load()
+			})
+			break
+		}
+		default:{
+			state.clear_load()
+			state.set_alert("error",-2,"unknown operation")
+		}
+	}
+}
+function need_create_main_menu_button():boolean{
+	if(state.project.cur_id.length==0){
+		return false
+	}
+	if(state.project.cur_id[1]==1){
+		//admin project don't need this
+		return false
+	}
+	//need this button when have admin permission on this project
+	return projectnodes.value.admin
 }
 function same_node_id(a:number[],b:number[]):boolean{
 	if(!Boolean(a)&&!Boolean(b)){
@@ -147,17 +261,17 @@ function same_node_id(a:number[],b:number[]):boolean{
 }
 </script>
 <template>
-	<va-modal v-model="ing" attach-element="#app" max-width="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
+	<va-modal v-model="project_ing" attach-element="#app" max-width="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
 		<template #default>
 			<div v-if="optype=='add'">
-				<va-input type="text" style="width:250px" label="New Project Name*" v-model="project_name" @keyup.enter="()=>{if(project_name!=''){op()}}"></va-input>
-				<va-button style="width:80px;margin:0 0 0 5px" :disabled="project_name==''" @click="op">Add</va-button>
-				<va-button style="width:80px;margin:0 0 0 5px" @click="project_name='';ing=false">Cancel</va-button>
+				<va-input type="text" style="width:250px" label="New Project Name*" v-model="project_name" @keyup.enter="()=>{if(project_name!=''){project_op()}}"></va-input>
+				<va-button style="width:80px;margin:0 0 0 5px" :disabled="project_name==''" @click="project_op">Add</va-button>
+				<va-button style="width:80px;margin:0 0 0 5px" @click="project_name='';project_ing=false">Cancel</va-button>
 			</div>
 			<div v-else-if="optype=='update'">
-				<va-input type="text" style="width:250px" label="New Project Name*" v-model="project_name" @keyup.enter="()=>{if(project_name!=''){op()}}"></va-input>
-				<va-button style="width:80px;margin:0 0 0 5px" :disabled="project_name==''" @click="op">Update</va-button>
-				<va-button style="width:80px;margin:0 0 0 5px" @click="project_name='';ing=false">Cancel</va-button>
+				<va-input type="text" style="width:250px" label="New Project Name*" v-model="project_name" @keyup.enter="()=>{if(project_name!=''){project_op()}}"></va-input>
+				<va-button style="width:80px;margin:0 0 0 5px" :disabled="project_name==''" @click="project_op">Update</va-button>
+				<va-button style="width:80px;margin:0 0 0 5px" @click="project_name='';project_ing=false">Cancel</va-button>
 			</div>
 			<div v-else-if="optype=='del'" style="display:flex;flex-direction:column">
 				<va-card color="primary" gradient style="margin:0 0 5px 0">
@@ -169,13 +283,47 @@ function same_node_id(a:number[],b:number[]):boolean{
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Del</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="project_op" gradient>Del</va-button>
+					<va-button style="width:80px;margin:5px 0 0 10px" @click="project_ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 		</template>
 	</va-modal>
-	<div style="width:200px;display:flex;flex-direction:column">
+	<va-modal v-model="node_ing" attach-element="#app" max-width="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
+		<template #default>
+			<div v-if="optype=='del'" style="display:flex;flex-direction:column">
+				<va-card color="primary" gradient style="margin:0 0 5px 0">
+					<va-card-title>Warning</va-card-title>
+					<va-card-content>
+						<p>You are deleting node: {{ target.node_name }}.</p>
+						<p>All data in this node will be deleted.</p>
+						<p>Please confirm!</p>
+					</va-card-content>
+				</va-card>
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:5px 10px 0 0" @click="node_op" gradient>Del</va-button>
+					<va-button style="width:80px;margin:5px 0 0 10px" @click="node_ing=false" gradient>Cancel</va-button>
+				</div>
+			</div>
+			<div v-else-if="optype=='add'" style="display:flex;flex-direction:column">
+				<va-input style="width:400px;margin:3px 0" label="New Node Name*" v-model="node_name" @keyup.enter="()=>{if(node_name!=''){node_op()}}"></va-input>
+				<va-input style="width:400px;margin:3px 0" label="New Node Url?" v-model="node_url" @keyup.enter="()=>{if(node_name!=''){node_op()}}"></va-input>
+				<div>
+					<va-button style="width:80px;margin:3px 3px 0 234px" :disabled="node_name==''" @click="node_op">Add</va-button>
+					<va-button style="width:80px;margin:3px 0 0 3px" @click="node_ing=false">Cancel</va-button>
+				</div>
+			</div>
+			<div v-else-if="optype=='update'" style="display:flex;flex-direction:column">
+				<va-input style="width:400px;margin:3px 0" label="New Node Name*" v-model="node_name" @keyup.enter="()=>{if(node_name!=''){node_op()}}"></va-input>
+				<va-input style="width:400px;margin:3px 0" label="New Node Url?" v-model="node_url" @keyup.enter="()=>{if(node_name!=''){node_op()}}"></va-input>
+				<div>
+					<va-button style="width:80px;margin:3px 3px 0 234px" :disabled="node_name==''" @click="node_op">Update</va-button>
+					<va-button style="width:80px;margin:3px 0 0 3px" @click="node_ing=false">Cancel</va-button>
+				</div>
+			</div>
+		</template>
+	</va-modal>
+	<div style="height:100%;flex:1;display:flex;flex-direction:column">
 		<div style="display:flex;padding:5px 0;background-color:var(--va-background-element)">
 			<va-select
 			dropdown-icon=""
@@ -210,19 +358,46 @@ function same_node_id(a:number[],b:number[]):boolean{
 				</template>
 				<va-dropdown-content>
 					<va-popover message="Create New Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root" style="width:36px;margin:0 3px" @click="optype='add';project_name='';ing=true">+</va-button>
+						<va-button v-if="state.user.root" style="width:36px;margin:0 3px" @click="optype='add';project_name='';project_ing=true">+</va-button>
 					</va-popover>
 					<va-popover message="Rename Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='update';project_name='';ing=true">◉</va-button>
+						<va-button v-if="state.user.root&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='update';project_name='';project_ing=true">◉</va-button>
 					</va-popover>
 					<va-popover message="Delete Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='del';ing=true">x</va-button>
+						<va-button v-if="state.user.root&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='del';project_ing=true">x</va-button>
 					</va-popover>
 				</va-dropdown-content>
 			</va-dropdown>
 		</div>
+		<div v-if="need_create_main_menu_button()" style="text-align:center;background-color:var(--va-background-element)">
+			<va-popover message="Create Main Menu" color="primary" :hover-over-timeout="0" :hover-out-timeout="0" placement="right" prevent-overflow>
+				<va-hover>
+					<template #default="{hover}">
+						<div
+						style="padding:10px 15px;cursor:pointer"
+						:style="{'background-color':hover?'var(--va-shadow)':undefined}"
+						@click="node_name='';node_url='';optype='add';ptarget=null;target=projectnodes;node_ing=true"
+						>
+							<b>+</b>
+						</div>
+					</template>
+				</va-hover>
+			</va-popover>
+		</div>
 		<div style="flex:1;overflow-x:hidden;overflow-y:auto;background-color:var(--va-background-element)">
-			<sidemenu v-if="allnodes.length>0" :nodes="allnodes" :deep="0" />
+			<menutree
+			v-if="Boolean(projectnodes)&&Boolean(projectnodes.children)&&projectnodes.children.length>0"
+			:pnode="projectnodes"
+			:deep="0"
+			@nodeevent="(pnode,node,type)=>{
+				node_name='';
+				node_url='';
+				ptarget=pnode;
+				target=node;
+				optype=type;
+				node_ing=true
+			}"
+			/>
 		</div>
 	</div>
 

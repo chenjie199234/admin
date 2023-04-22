@@ -17,7 +17,7 @@ import (
 )
 
 func (d *Dao) MongoGetUserPermission(ctx context.Context, userid primitive.ObjectID, nodeid string, withrole bool) (canread, canwrite, admin bool, e error) {
-	if userid == primitive.NilObjectID {
+	if userid.IsZero() {
 		return true, true, true, nil
 	}
 	if !strings.HasPrefix(nodeid, "0,") {
@@ -460,7 +460,7 @@ func (d *Dao) MongoGetNodes(ctx context.Context, nodeids []string) ([]*model.Nod
 // all
 //   - true,get all children(include children's children)
 //   - false,get the direct children
-func (d *Dao) MongoListNodes(ctx context.Context, pnodeid string, all bool) ([]*model.Node, error) {
+func (d *Dao) MongoListChildrenNodes(ctx context.Context, pnodeid string, all bool) ([]*model.Node, error) {
 	filter := bson.M{}
 	regex := ""
 	if pnodeid != "" {

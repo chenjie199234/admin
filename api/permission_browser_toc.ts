@@ -235,27 +235,20 @@ function ListProjectNodeReqToJson(msg: ListProjectNodeReq): string{
 	return s
 }
 export interface ListProjectNodeResp{
-	//this will only return the node name and node data,other node's info will not return
-	nodes: Array<NodeInfo|null|undefined>|null|undefined;
+	//this will only return the node name,node data and children
+	//other node's info will not return
+	node: NodeInfo|null|undefined;
 }
 function JsonToListProjectNodeResp(jsonobj: { [k:string]:any }): ListProjectNodeResp{
 	let obj: ListProjectNodeResp={
-		nodes:null,
+		node:null,
 	}
-	//nodes
-	if(jsonobj['nodes']!=null&&jsonobj['nodes']!=undefined){
-		if(!(jsonobj['nodes'] instanceof Array)){
-			throw 'ListProjectNodeResp.nodes must be Array<NodeInfo>|null|undefined'
+	//node
+	if(jsonobj['node']!=null&&jsonobj['node']!=undefined){
+		if(typeof jsonobj['node']!='object'){
+			throw 'ListProjectNodeResp.node must be NodeInfo'
 		}
-		for(let element of jsonobj['nodes']){
-			if(typeof element!='object'){
-				throw 'element in ListProjectNodeResp.nodes must be NodeInfo'
-			}
-			if(obj['nodes']==null){
-				obj['nodes']=new Array<NodeInfo>
-			}
-			obj['nodes'].push(JsonToNodeInfo(element))
-		}
+		obj['node']=JsonToNodeInfo(jsonobj['node'])
 	}
 	return obj
 }
@@ -301,26 +294,18 @@ function ListRoleNodeReqToJson(msg: ListRoleNodeReq): string{
 	return s
 }
 export interface ListRoleNodeResp{
-	nodes: Array<NodeInfo|null|undefined>|null|undefined;
+	node: NodeInfo|null|undefined;
 }
 function JsonToListRoleNodeResp(jsonobj: { [k:string]:any }): ListRoleNodeResp{
 	let obj: ListRoleNodeResp={
-		nodes:null,
+		node:null,
 	}
-	//nodes
-	if(jsonobj['nodes']!=null&&jsonobj['nodes']!=undefined){
-		if(!(jsonobj['nodes'] instanceof Array)){
-			throw 'ListRoleNodeResp.nodes must be Array<NodeInfo>|null|undefined'
+	//node
+	if(jsonobj['node']!=null&&jsonobj['node']!=undefined){
+		if(typeof jsonobj['node']!='object'){
+			throw 'ListRoleNodeResp.node must be NodeInfo'
 		}
-		for(let element of jsonobj['nodes']){
-			if(typeof element!='object'){
-				throw 'element in ListRoleNodeResp.nodes must be NodeInfo'
-			}
-			if(obj['nodes']==null){
-				obj['nodes']=new Array<NodeInfo>
-			}
-			obj['nodes'].push(JsonToNodeInfo(element))
-		}
+		obj['node']=JsonToNodeInfo(jsonobj['node'])
 	}
 	return obj
 }
@@ -373,26 +358,18 @@ function ListUserNodeReqToJson(msg: ListUserNodeReq): string{
 	return s
 }
 export interface ListUserNodeResp{
-	nodes: Array<NodeInfo|null|undefined>|null|undefined;
+	node: NodeInfo|null|undefined;
 }
 function JsonToListUserNodeResp(jsonobj: { [k:string]:any }): ListUserNodeResp{
 	let obj: ListUserNodeResp={
-		nodes:null,
+		node:null,
 	}
-	//nodes
-	if(jsonobj['nodes']!=null&&jsonobj['nodes']!=undefined){
-		if(!(jsonobj['nodes'] instanceof Array)){
-			throw 'ListUserNodeResp.nodes must be Array<NodeInfo>|null|undefined'
+	//node
+	if(jsonobj['node']!=null&&jsonobj['node']!=undefined){
+		if(typeof jsonobj['node']!='object'){
+			throw 'ListUserNodeResp.node must be NodeInfo'
 		}
-		for(let element of jsonobj['nodes']){
-			if(typeof element!='object'){
-				throw 'element in ListUserNodeResp.nodes must be NodeInfo'
-			}
-			if(obj['nodes']==null){
-				obj['nodes']=new Array<NodeInfo>
-			}
-			obj['nodes'].push(JsonToNodeInfo(element))
-		}
+		obj['node']=JsonToNodeInfo(jsonobj['node'])
 	}
 	return obj
 }

@@ -70,9 +70,29 @@ function CreateAppReqToJson(msg: CreateAppReq): string{
 	return s
 }
 export interface CreateAppResp{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	node_id: Array<number>|null|undefined;
 }
 function JsonToCreateAppResp(jsonobj: { [k:string]:any }): CreateAppResp{
 	let obj: CreateAppResp={
+		node_id:null,
+	}
+	//node_id
+	if(jsonobj['node_id']!=null&&jsonobj['node_id']!=undefined){
+		if(!(jsonobj['node_id'] instanceof Array)){
+			throw 'CreateAppResp.node_id must be Array<number>|null|undefined'
+		}
+		for(let element of jsonobj['node_id']){
+			if(typeof element!='number'||!Number.isInteger(element)){
+				throw 'element in CreateAppResp.node_id must be integer'
+			}else if(element>4294967295||element<0){
+				throw 'element in CreateAppResp.node_id overflow'
+			}
+			if(obj['node_id']==null){
+				obj['node_id']=new Array<number>
+			}
+			obj['node_id'].push(element)
+		}
 	}
 	return obj
 }

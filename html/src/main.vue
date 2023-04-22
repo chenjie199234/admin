@@ -16,8 +16,12 @@ import pageright from './pageright.vue'
 	<va-modal v-model="state.alert.ing" max-width="600px" max-height="400px" fixed-layout :title="state.get_alert_title()" :message="state.alert.msg" hide-default-actions :overlay="false" blur z-index="1000" />
 	<init v-if="!state.inited.value" />
 	<login v-else-if="state.user.token.length==0" />
-	<div v-else style="width:100%;height:100%;display:flex">
-		<pageleft />
-		<pageright />
-	</div>
+	<va-split v-else style="width:100%;height:100%;display:flex" stateful :model-value='0' :limits="['200px',50]">
+		<template #start="{containerSize}">
+			<pageleft />
+		</template>
+		<template #end="{containerSize}">
+			<pageright />
+		</template>
+	</va-split>
 </template>

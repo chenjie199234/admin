@@ -119,6 +119,7 @@ message create_app_req {
 	string secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message create_app_resp {
+	repeated uint32 node_id=1;
 }
 message del_app_req {
 	string g_name=1[(pbex.string_bytes_len_gt)=0];

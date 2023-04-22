@@ -243,12 +243,14 @@ func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.Cr
 	}
 
 	//logic
-	if e := s.appDao.MongoCreateApp(ctx, projectid, req.GName, req.AName, req.Secret); e != nil {
+	nodeidstr, e := s.appDao.MongoCreateApp(ctx, projectid, req.GName, req.AName, req.Secret)
+	if e != nil {
 		log.Error(ctx, "[CreateApp] group:", req.GName, "app:", req.AName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	nodeid, _ := util.ParseNodeIDstr(nodeidstr)
 	log.Info(ctx, "[CreateApp] group:", req.GName, "app:", req.AName, "success")
-	return &api.CreateAppResp{}, nil
+	return &api.CreateAppResp{NodeId: nodeid}, nil
 }
 
 func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppResp, error) {

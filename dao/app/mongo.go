@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -61,9 +60,9 @@ func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, gname, aname string)
 	}
 	return appsummary.PermissionNodeID, nil
 }
-func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secret string) (e error) {
+func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secret string) (nodeid string, e error) {
 	if len(secret) >= 32 {
-		return ecode.ErrSecretLength
+		return "", ecode.ErrSecretLength
 	}
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
@@ -89,8 +88,9 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 		}
 		return
 	}
+	nodeid = parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10)
 	if _, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
-		NodeId:       parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10),
+		NodeId:       nodeid,
 		NodeName:     gname + "." + aname,
 		NodeData:     "",
 		CurNodeIndex: 0,
@@ -107,9 +107,8 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 		Paths:            map[string]*model.ProxyPath{},
 		Keys:             map[string]*model.KeySummary{},
 		Value:            util.SignMake(secret, nonce),
-		PermissionNodeID: parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10),
+		PermissionNodeID: nodeid,
 	}); e != nil && mongo.IsDuplicateKeyError(e) {
-		fmt.Println(e)
 		e = ecode.ErrAppAlreadyExist
 	}
 	return

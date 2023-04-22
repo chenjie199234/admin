@@ -16,7 +16,6 @@ import (
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	"github.com/chenjie199234/Corelib/pool"
-	"github.com/chenjie199234/Corelib/util/egroup"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
@@ -165,6 +164,11 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 	if req.PnodeId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
+	if req.PnodeId[1] == 1 {
+		//0,1 -> admin project
+		//can't add
+		return nil, ecode.ErrPermission
+	}
 	if len(req.PnodeId) >= 3 && (req.PnodeId[2] == 1 || req.PnodeId[2] == 2) {
 		//0,x,1 -> UserAndRoleControl
 		//0,x,2 -> AppControl
@@ -197,6 +201,17 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.UpdateNodeResp, error) {
 	if req.NodeId[0] != 0 {
 		return nil, ecode.ErrReq
+	}
+	if req.NodeId[1] == 1 {
+		//0,1 -> admin project
+		//can't update
+		return nil, ecode.ErrPermission
+	}
+	if len(req.NodeId) >= 3 && (req.NodeId[2] == 1 || req.NodeId[2] == 2) {
+		//0,x,1 -> UserAndRoleControl
+		//0,x,2 -> AppControl
+		//these are default,can't update
+		return nil, ecode.ErrPermission
 	}
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
@@ -293,7 +308,7 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 		//can't delete
 		return nil, ecode.ErrPermission
 	}
-	if req.NodeId[2] == 1 || req.NodeId[2] == 2 || req.NodeId[2] == 3 {
+	if req.NodeId[2] == 1 || req.NodeId[2] == 2 {
 		//0,x,1 -> UserAndRoleControl node
 		//0,x,2 -> AppControl node
 		//these are default,can't modify
@@ -364,191 +379,103 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		}
 	}
 	//logic
-	undup := make(map[string]*api.NodeInfo)
-	if req.UserId == md["Token-Data"] && operator.IsZero() {
-		projectnode, e := s.permissionDao.MongoGetNode(ctx, project)
-		if e != nil {
-			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-		}
-		if projectnode == nil {
-			return nil, ecode.ErrProjectNotExist
-		}
-		nodeid, e := util.ParseNodeIDstr(projectnode.NodeId)
-		if e != nil {
-			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", projectnode.NodeId, "format wrong:", e)
-		}
-		undup[projectnode.NodeId] = &api.NodeInfo{
-			NodeId:   nodeid,
-			NodeName: projectnode.NodeName,
-			NodeData: projectnode.NodeData,
-			Canread:  true,
-			Canwrite: true,
-			Admin:    true,
-			Children: make([]*api.NodeInfo, 0, 10),
-		}
-	} else {
-		usernodes, e := s.permissionDao.MongoGetUserNodes(ctx, target, project, nil)
-		if e != nil {
-			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-		}
-		for _, usernode := range usernodes {
-			if exist, ok := undup[usernode.NodeId]; ok {
-				if usernode.R {
-					exist.Canread = usernode.R
-				}
-				if usernode.W {
-					exist.Canwrite = usernode.W
-				}
-				if usernode.X {
-					exist.Admin = usernode.X
-				}
-			} else {
-				nodeid, e := util.ParseNodeIDstr(usernode.NodeId)
-				if e != nil {
-					log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", usernode.NodeId, "format wrong:", e)
-					return nil, ecode.ErrSystem
-				}
-				undup[usernode.NodeId] = &api.NodeInfo{
-					NodeId:   nodeid,
-					NodeName: "",
-					NodeData: "",
-					Canread:  usernode.R,
-					Canwrite: usernode.W,
-					Admin:    usernode.X,
-					Children: make([]*api.NodeInfo, 0, 10),
-				}
-			}
-		}
-		if req.NeedUserRoleNode {
-			userrolenodes, e := s.permissionDao.MongoGetUserRoleNodes(ctx, target, project, nil)
-			if e != nil {
-				log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
-				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-			}
-			for _, v := range userrolenodes {
-				for _, userrolenode := range v {
-					if exist, ok := undup[userrolenode.NodeId]; ok {
-						if userrolenode.R {
-							exist.Canread = userrolenode.R
-						}
-						if userrolenode.W {
-							exist.Canwrite = userrolenode.W
-						}
-						if userrolenode.X {
-							exist.Admin = userrolenode.X
-						}
-					} else {
-						nodeid, e := util.ParseNodeIDstr(userrolenode.NodeId)
-						if e != nil {
-							log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", userrolenode.NodeId, "format wrong:", e)
-							return nil, ecode.ErrSystem
-						}
-						undup[userrolenode.NodeId] = &api.NodeInfo{
-							NodeId:   nodeid,
-							NodeName: "",
-							NodeData: "",
-							Canread:  userrolenode.R,
-							Canwrite: userrolenode.W,
-							Admin:    userrolenode.X,
-							Children: make([]*api.NodeInfo, 0, 10),
-						}
-					}
-				}
-			}
-		}
-	}
-	nodes := make([]*api.NodeInfo, 0, len(undup))
-	index := make(map[*api.NodeInfo]string, len(undup))
-	for nodeidstr, v := range undup {
-		nodes = append(nodes, v)
-		index[v] = nodeidstr
-	}
-	sort.Slice(nodes, func(i, j int) bool {
-		return len(nodes[i].NodeId) < len(nodes[j].NodeId)
-	})
-	adminnodeids := make([]string, 0, len(nodes))
-	nodeids := make([]string, 0, len(nodes))
-	for _, node := range nodes {
-		//if this node is below another admin node,this node can be jumped
-		nodeid := index[node]
-		jump := false
-		for _, adminnodeid := range adminnodeids {
-			if strings.HasPrefix(adminnodeid, nodeid) {
-				jump = true
-				break
-			}
-		}
-		if jump {
-			continue
-		}
-		if node.Admin {
-			adminnodeids = append(adminnodeids, nodeid)
-		}
-		nodeids = append(nodeids, nodeid)
-	}
-	nodeinfos, e := s.permissionDao.MongoGetNodes(ctx, nodeids)
+	root, e := s.permissionDao.MongoGetNode(ctx, project)
 	if e != nil {
 		log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	for _, nodeinfo := range nodeinfos {
-		exist, _ := undup[nodeinfo.NodeId]
-		exist.NodeName = nodeinfo.NodeName
-		exist.NodeData = nodeinfo.NodeData
+	if root == nil {
+		return nil, ecode.ErrProjectNotExist
 	}
-	nodes = nodes[:0]
-	for _, nodeid := range nodeids {
-		nodes = append(nodes, undup[nodeid])
-	}
-	g := egroup.GetGroup(ctx)
-	for _, v := range nodes {
-		if !v.Admin {
-			continue
-		}
-		node := v
-		nodeid := index[v]
-		g.Go(func(gctx context.Context) error {
-			tmpnodes, e := s.permissionDao.MongoListNodes(ctx, nodeid, true)
-			if e != nil {
-				log.Error(gctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "admin nodeid:", nodeid, e)
-				return e
-			}
-			sort.Slice(tmpnodes, func(i, j int) bool {
-				return strings.Count(tmpnodes[i].NodeId, ",") < strings.Count(tmpnodes[j].NodeId, ",")
-			})
-			for _, tmpnode := range tmpnodes {
-				tmpnodeid, e := util.ParseNodeIDstr(tmpnode.NodeId)
-				if e != nil {
-					log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", tmpnode.NodeId, "format wrong:", e)
-					return ecode.ErrSystem
-				}
-				addTreeNode(node, &api.NodeInfo{
-					NodeId:   tmpnodeid,
-					NodeName: tmpnode.NodeName,
-					NodeData: tmpnode.NodeData,
-					Canread:  true,
-					Canwrite: true,
-					Admin:    true,
-				})
-			}
-			return nil
-		})
-	}
-	if e := egroup.PutGroup(g); e != nil {
+	children, e := s.permissionDao.MongoListChildrenNodes(ctx, project, true)
+	if e != nil {
+		log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	root := &api.NodeInfo{
-		NodeId: []uint32{0},
+	var usernodes model.UserNodes
+	if !target.IsZero() {
+		if usernodes, e = s.permissionDao.MongoGetUserNodes(ctx, target, project, nil); e != nil {
+			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
 	}
-	for _, node := range nodes {
-		addTreeNode(root, node)
+	var userrolenodes map[string]model.RoleNodes
+	if !target.IsZero() && req.NeedUserRoleNode {
+		if userrolenodes, e = s.permissionDao.MongoGetUserRoleNodes(ctx, target, project, nil); e != nil {
+			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, e)
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
 	}
-	sortTreeNodes(root.Children)
-	return &api.ListUserNodeResp{Nodes: root.Children}, nil
+	projectnode := &api.NodeInfo{
+		NodeId:   req.ProjectId,
+		NodeName: root.NodeName,
+		NodeData: root.NodeData,
+		Children: make([]*api.NodeInfo, 0, 10),
+	}
+	if target.IsZero() {
+		projectnode.Canread = true
+		projectnode.Canwrite = true
+		projectnode.Admin = true
+	} else {
+		projectnode.Canread, projectnode.Canwrite, projectnode.Admin = usernodes.CheckNode(project)
+		for _, rolenodes := range userrolenodes {
+			if projectnode.Admin {
+				break
+			}
+			tmpr, tmpw, tmpa := rolenodes.CheckNode(project)
+			if tmpr {
+				projectnode.Canread = true
+			}
+			if tmpw {
+				projectnode.Canwrite = true
+			}
+			if tmpa {
+				projectnode.Admin = true
+			}
+		}
+	}
+	sort.Slice(children, func(i, j int) bool {
+		return strings.Count(children[i].NodeId, ",") < strings.Count(children[j].NodeId, ",")
+	})
+	for _, node := range children {
+		nodeid, e := util.ParseNodeIDstr(node.NodeId)
+		if e != nil {
+			log.Error(ctx, "[ListUserNode] operator:", md["Token-Data"], "project:", project, "target:", req.UserId, "nodeid:", node.NodeId, "format wrong:", e)
+			return nil, ecode.ErrSystem
+		}
+		tmp := &api.NodeInfo{
+			NodeId:   nodeid,
+			NodeName: node.NodeName,
+			NodeData: node.NodeData,
+			Children: make([]*api.NodeInfo, 0, 10),
+		}
+		if target.IsZero() {
+			tmp.Canread = true
+			tmp.Canwrite = true
+			tmp.Admin = true
+		} else {
+			tmp.Canread, tmp.Canwrite, tmp.Admin = usernodes.CheckNode(node.NodeId)
+			for _, rolenodes := range userrolenodes {
+				if tmp.Admin {
+					break
+				}
+				tmpr, tmpw, tmpa := rolenodes.CheckNode(node.NodeId)
+				if tmpr {
+					tmp.Canread = tmpr
+				}
+				if tmpw {
+					tmp.Canwrite = tmpw
+				}
+				if tmpa {
+					tmp.Admin = tmpa
+				}
+			}
+		}
+		addTreeNode(projectnode, tmp)
+	}
+	sortTreeNodes(projectnode.Children)
+	return &api.ListUserNodeResp{Node: projectnode}, nil
 }
-
 func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*api.ListRoleNodeResp, error) {
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
@@ -579,127 +506,53 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 			return nil, ecode.ErrPermission
 		}
 	}
+
 	//logic
+	root, e := s.permissionDao.MongoGetNode(ctx, project)
+	if e != nil {
+		log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "rolename:", req.RoleName, e)
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	if root == nil {
+		return nil, ecode.ErrProjectNotExist
+	}
+	children, e := s.permissionDao.MongoListChildrenNodes(ctx, project, true)
+	if e != nil {
+		log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "rolename:", req.RoleName, e)
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
 	rolenodes, e := s.permissionDao.MongoGetRoleNodes(ctx, project, req.RoleName, nil)
 	if e != nil {
 		log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "rolename:", req.RoleName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	nodes := make([]*api.NodeInfo, 0, len(rolenodes))
-	undup := make(map[string]*api.NodeInfo, len(rolenodes))
-	index := make(map[*api.NodeInfo]string)
-	for _, rolenode := range rolenodes {
-		if exist, ok := undup[rolenode.NodeId]; ok {
-			if rolenode.R {
-				exist.Canread = rolenode.R
-			}
-			if rolenode.W {
-				exist.Canwrite = rolenode.W
-			}
-			if rolenode.X {
-				exist.Admin = rolenode.X
-			}
-		} else {
-			nodeid, e := util.ParseNodeIDstr(rolenode.NodeId)
-			if e != nil {
-				log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "rolename:", req.RoleName, "nodeid:", rolenode.NodeId, "format wrong:", e)
-				return nil, ecode.ErrSystem
-			}
-			tmp := &api.NodeInfo{
-				NodeId:   nodeid,
-				NodeName: "",
-				NodeData: "",
-				Canread:  rolenode.R,
-				Canwrite: rolenode.W,
-				Admin:    rolenode.X,
-			}
-			nodes = append(nodes, tmp)
-			undup[rolenode.NodeId] = tmp
-			index[tmp] = rolenode.NodeId
-		}
+	projectnode := &api.NodeInfo{
+		NodeId:   req.ProjectId,
+		NodeName: root.NodeName,
+		NodeData: root.NodeData,
+		Children: make([]*api.NodeInfo, 0, 10),
 	}
-	sort.Slice(nodes, func(i, j int) bool {
-		return len(nodes[i].NodeId) < len(nodes[j].NodeId)
+	projectnode.Canread, projectnode.Canwrite, projectnode.Admin = rolenodes.CheckNode(project)
+	sort.Slice(children, func(i, j int) bool {
+		return strings.Count(children[i].NodeId, ",") < strings.Count(children[j].NodeId, ",")
 	})
-	adminnodeids := make([]string, 0, len(nodes))
-	nodeids := make([]string, 0, len(nodes))
-	for _, node := range nodes {
-		//if this node is below another admin node,this node can be jumped
-		nodeid := index[node]
-		jump := false
-		for _, adminnodeid := range adminnodeids {
-			if strings.HasPrefix(adminnodeid, nodeid) {
-				jump = true
-				break
-			}
+	for _, node := range children {
+		nodeid, e := util.ParseNodeIDstr(node.NodeId)
+		if e != nil {
+			log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "rolename:", req.RoleName, "nodeid:", node.NodeId, "format wrong:", e)
+			return nil, ecode.ErrSystem
 		}
-		if jump {
-			continue
+		tmp := &api.NodeInfo{
+			NodeId:   nodeid,
+			NodeName: node.NodeName,
+			NodeData: node.NodeData,
+			Children: make([]*api.NodeInfo, 0, 10),
 		}
-		if node.Admin {
-			adminnodeids = append(adminnodeids, nodeid)
-		}
-		nodeids = append(nodeids, nodeid)
+		tmp.Canread, tmp.Canwrite, tmp.Admin = rolenodes.CheckNode(node.NodeId)
+		addTreeNode(projectnode, tmp)
 	}
-	nodeinfos, e := s.permissionDao.MongoGetNodes(ctx, nodeids)
-	if e != nil {
-		log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "rolename:", req.RoleName, e)
-		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-	}
-	for _, nodeinfo := range nodeinfos {
-		exist, _ := undup[nodeinfo.NodeId]
-		exist.NodeName = nodeinfo.NodeName
-		exist.NodeData = nodeinfo.NodeData
-	}
-	nodes = nodes[:0]
-	for _, nodeid := range nodeids {
-		nodes = append(nodes, undup[nodeid])
-	}
-	g := egroup.GetGroup(ctx)
-	for _, v := range nodes {
-		if !v.Admin {
-			continue
-		}
-		node := v
-		nodeid := index[node]
-		g.Go(func(gctx context.Context) error {
-			tmpnodes, e := s.permissionDao.MongoListNodes(ctx, nodeid, true)
-			if e != nil {
-				log.Error(gctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "rolename:", req.RoleName, "admin nodeid:", nodeid, e)
-				return e
-			}
-			sort.Slice(tmpnodes, func(i, j int) bool {
-				return strings.Count(tmpnodes[i].NodeId, ",") < strings.Count(tmpnodes[j].NodeId, ",")
-			})
-			for _, tmpnode := range tmpnodes {
-				tmpnodeid, e := util.ParseNodeIDstr(tmpnode.NodeId)
-				if e != nil {
-					log.Error(ctx, "[ListRoleNode] operator:", md["Token-Data"], "project:", project, "rolename:", req.RoleName, "nodeid:", tmpnode.NodeId, "format wrong:", e)
-					return ecode.ErrSystem
-				}
-				addTreeNode(node, &api.NodeInfo{
-					NodeId:   tmpnodeid,
-					NodeName: tmpnode.NodeName,
-					NodeData: tmpnode.NodeData,
-					Canread:  true,
-					Canwrite: true,
-					Admin:    true,
-				})
-			}
-			return nil
-		})
-	}
-	if e := egroup.PutGroup(g); e != nil {
-		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-	}
-	root := &api.NodeInfo{
-		NodeId: []uint32{0},
-	}
-	for _, node := range nodes {
-		addTreeNode(root, node)
-	}
-	sortTreeNodes(root.Children)
-	return &api.ListRoleNodeResp{Nodes: root.Children}, nil
+	sortTreeNodes(projectnode.Children)
+	return &api.ListRoleNodeResp{Node: projectnode}, nil
 }
 func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeReq) (*api.ListProjectNodeResp, error) {
 	if req.ProjectId[0] != 0 {
@@ -715,22 +568,32 @@ func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeR
 	}
 	project := buf.String()
 	md := metadata.GetMetadata(ctx)
-	nodes, e := s.permissionDao.MongoListNodes(ctx, project, true)
+	root, e := s.permissionDao.MongoGetNode(ctx, project)
 	if e != nil {
-		log.Error(ctx, "[ListAllNode] operator:", md["Token-Data"], "project:", req.ProjectId, e)
+		log.Error(ctx, "[ListProjectNode] operator:", md["Token-Data"], "project:", project, e)
+		return nil, e
+	}
+	if root == nil {
+		return nil, ecode.ErrProjectNotExist
+	}
+	children, e := s.permissionDao.MongoListChildrenNodes(ctx, project, true)
+	if e != nil {
+		log.Error(ctx, "[ListProjectNode] operator:", md["Token-Data"], "project:", project, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectnode := &api.NodeInfo{
 		NodeId:   req.ProjectId,
+		NodeName: root.NodeName,
+		NodeData: root.NodeData,
 		Children: make([]*api.NodeInfo, 0, 10),
 	}
-	sort.Slice(nodes, func(i, j int) bool {
-		return strings.Count(nodes[i].NodeId, ",") < strings.Count(nodes[j].NodeId, ",")
+	sort.Slice(children, func(i, j int) bool {
+		return strings.Count(children[i].NodeId, ",") < strings.Count(children[j].NodeId, ",")
 	})
-	for _, node := range nodes {
+	for _, node := range children {
 		nodeid, e := util.ParseNodeIDstr(node.NodeId)
 		if e != nil {
-			log.Error(ctx, "[ListAllNode] operator:", md["Token-Data"], "project:", project, "nodeid:", node.NodeId, "format wrong:", e)
+			log.Error(ctx, "[ListProjectNode] operator:", md["Token-Data"], "project:", project, "nodeid:", node.NodeId, "format wrong:", e)
 			return nil, ecode.ErrSystem
 		}
 		addTreeNode(projectnode, &api.NodeInfo{
@@ -741,8 +604,9 @@ func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeR
 		})
 	}
 	sortTreeNodes(projectnode.Children)
-	return &api.ListProjectNodeResp{Nodes: projectnode.Children}, nil
+	return &api.ListProjectNodeResp{Node: projectnode}, nil
 }
+
 func addTreeNode(root, node *api.NodeInfo) bool {
 	if len(root.NodeId) > len(node.NodeId) {
 		return false

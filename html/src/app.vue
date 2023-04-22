@@ -116,7 +116,7 @@ const new_proxy_path=ref<string>("")
 const new_proxy_permission_read=ref<boolean>(false)
 const new_proxy_permission_write=ref<boolean>(false)
 const new_proxy_permission_admin=ref<boolean>(false)
-function proxy_permission_update(t :string){
+function new_proxy_permission_update(t :string){
 	switch(t){
 		case "read":{
 			if(!new_proxy_permission_read.value){
@@ -141,6 +141,18 @@ function proxy_permission_update(t :string){
 			break
 		}
 	}
+}
+function new_proxy_permission_same(proxy :string):boolean{
+	if(proxys.value.get(proxy).read!=new_proxy_permission_read.value){
+		return false 
+	}
+	if(proxys.value.get(proxy).write!=new_proxy_permission_write.value){
+		return false
+	}
+	if(proxys.value.get(proxy).admin!=new_proxy_permission_admin.value){
+		return false
+	}
+	return true
 }
 
 const cur_proxy=ref<string>("")
@@ -369,6 +381,9 @@ function app_op(){
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.SetProxyResp)=>{
+				if(new_proxy_path.value[0]!='/'){
+					new_proxy_path.value="/"+new_proxy_path.value
+				}
 				proxys.value.set(new_proxy_path.value,{
 					node_id:resp.node_id,
 					read:new_proxy_permission_read.value,
@@ -604,9 +619,9 @@ function app_op(){
 			<div v-else-if="optype=='add_proxy'">
 				<va-input label="Path" style="width:500px" v-model.trim="new_proxy_path"/>
 				<div style="display:flex;justify-content:space-around;margin:4px">
-					<va-switch v-model="new_proxy_permission_read" true-inner-label="Read" false-inner-label="Read" @update:model-value="proxy_permission_update('read')" />
-					<va-switch v-model="new_proxy_permission_write" true-inner-label="Write" false-inner-label="Write" @update:model-value="proxy_permission_update('write')" />
-					<va-switch v-model="new_proxy_permission_admin" true-inner-label="Admin" false-inner-label="Admin" @update:model-value="proxy_permission_update('admin')" />
+					<va-switch v-model="new_proxy_permission_read" true-inner-label="Read" false-inner-label="Read" @update:model-value="new_proxy_permission_update('read')" />
+					<va-switch v-model="new_proxy_permission_write" true-inner-label="Write" false-inner-label="Write" @update:model-value="new_proxy_permission_update('write')" />
+					<va-switch v-model="new_proxy_permission_admin" true-inner-label="Admin" false-inner-label="Admin" @update:model-value="new_proxy_permission_update('admin')" />
 				</div>
 				<div style="display:flex;justify-content:center">
 					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient :disabled="new_proxy_path==''||proxys.has(new_proxy_path)">Add</va-button>
@@ -659,34 +674,34 @@ function app_op(){
 	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
 		<div style="display:flex;margin:1px 0;align-self:center">
 			<va-select
-			dropdown-icon=""
-			outline
-			trigger="hover"
-			label="Group*"
-			no-options-text="No Groups"
-			:options="Object.keys(all)"
-			v-model="curg"
-			style="width:150px;margin-right:1px"
+				dropdown-icon=""
+				outline
+				trigger="hover"
+				label="Group*"
+				no-options-text="No Groups"
+				:options="Object.keys(all)"
+				v-model="curg"
+				style="width:150px;margin-right:1px"
 			>
 				<template #option='{option,index,selectOption}'>
 					<va-hover
-					stateful
-					@click="()=>{
-						if(curg!=option){
-							selectOption(option)
-							cura=''
-							secret=''
-							keys=new Map()
-							proxys=new Map()
-							get_app_status=false
-							key_or_proxy=''
-						}
-					}"
+						stateful
+						@click="()=>{
+							if(curg!=option){
+								selectOption(option)
+								cura=''
+								secret=''
+								keys=new Map()
+								proxys=new Map()
+								get_app_status=false
+								key_or_proxy=''
+							}
+						}"
 					>
 						<template #default='{hover}'>
 							<div
-							style="padding:10px;cursor:pointer"
-							:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||curg==option?'var(--va-primary)':'black'}"
+								style="padding:10px;cursor:pointer"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||curg==option?'var(--va-primary)':'black'}"
 							>
 								{{option}}
 							</div>
@@ -695,33 +710,33 @@ function app_op(){
 				</template>
 			</va-select>
 			<va-select
-			dropdown-icon=""
-			outline
-			trigger="hover"
-			label="App*"
-			no-options-text="No Apps"
-			:options="curg==''?[]:Object.keys(all[curg])"
-			v-model="cura"
-			style="width:150px;margin:0 1px"
+				dropdown-icon=""
+				outline
+				trigger="hover"
+				label="App*"
+				no-options-text="No Apps"
+				:options="curg==''?[]:Object.keys(all[curg])"
+				v-model="cura"
+				style="width:150px;margin:0 1px"
 			>
 				<template #option='{option,index,selectOption}'>
 					<va-hover
-					stateful
-					@click="()=>{
-						if(cura!=option){
-							selectOption(option)
-							secret=''
-							keys=new Map()
-							proxys=new Map()
-							get_app_status=false
-							key_or_proxy=''
-						}
-					}"
+						stateful
+						@click="()=>{
+							if(cura!=option){
+								selectOption(option)
+								secret=''
+								keys=new Map()
+								proxys=new Map()
+								get_app_status=false
+								key_or_proxy=''
+							}
+						}"
 					>
 						<template #default='{hover}'>
 							<div
-							style="padding:10px;cursor:pointer"
-							:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||cura==option?'var(--va-primary)':'black'}"
+								style="padding:10px;cursor:pointer"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||cura==option?'var(--va-primary)':'black'}"
 							>
 								{{option}}
 							</div>
@@ -729,7 +744,7 @@ function app_op(){
 					</va-hover>
 				</template>
 			</va-select>
-			<va-input :type="t_secret?'text':'password'" v-model.trim="secret" outline label="Secret" :max-length="31" style="min-width:250px;max-width:250px;margin:0 1px" @keyup.enter="()=>{if(curg!=''&&cura!=''){get_app()}}">
+			<va-input :type="t_secret?'text':'password'" v-model.trim="secret" outline label="Secret" :max-length="31" style="width:250px;margin:0 1px" @keyup.enter="()=>{if(curg!=''&&cura!=''){get_app()}}">
 				<template #appendInner>
 					<va-icon :name="t_secret?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_secret=!t_secret" />
 				</template>
@@ -769,7 +784,16 @@ function app_op(){
 			@mouseout="t_keys_hover=false"
 		>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Configs</span>
-			<va-button style="height:30px" size="small" @mouseover.stop="" @mouseout.stop="" @click.stop="optype='add_key';ing=true">ADD</va-button>
+			<va-button
+				v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+				style="height:30px"
+				size="small"
+				@mouseover.stop=""
+				@mouseout.stop=""
+				@click.stop="optype='add_key';ing=true"
+			>
+				ADD
+			</va-button>
 			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ key_or_proxy?'▲':'▼' }}</span>
 		</div>
 		<!-- keys -->
@@ -818,6 +842,7 @@ function app_op(){
 								</va-dropdown-content>
 							</va-dropdown>
 							<va-button
+								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
 								:disabled="Boolean(keys.get(key).new_cur_value)"
@@ -833,7 +858,14 @@ function app_op(){
 							>
 								Edit
 							</va-button>
-							<va-button size="small" style="width:60px;height:30px;margin:2px" @click.stop="optype='del_key';ing=true">Del</va-button>
+							<va-button
+								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+								size="small"
+								style="width:60px;height:30px;margin:2px"
+								@click.stop="optype='del_key';ing=true"
+							>
+								Del
+							</va-button>
 						</div>
 					</div>
 					<va-divider v-if="cur_key_index!=0||new_cur_key_value_type!=''" vertical style="margin:0 4px" />
@@ -841,16 +873,39 @@ function app_op(){
 						<textarea v-if="cur_key_index!=0" style="border:0;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" readonly >{{JSON.stringify(JSON.parse(cur_key_index_value),null,4)}}</textarea>
 						<textarea v-if="new_cur_key_value_type!=''" style="border:0;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" v-model.trim="new_cur_key_value"></textarea>
 						<div style="display:flex;align-items:center">
-							<va-radio v-if="cur_key_index!=0" v-for="(option,index) in config_value_types" :key="index" :option="option" v-model.trim="cur_key_index_value_type" style="margin:4px" disabled />
-							<va-radio v-if="new_cur_key_value_type!=''" v-for="(option,index) in config_value_types" :key="index" :option="option" v-model.trim="new_cur_key_value_type" style="margin:4px" disabled />
+							<va-radio
+								v-if="cur_key_index!=0"
+								v-for="(option,index) in config_value_types"
+								:key="index"
+								:option="option"
+								v-model.trim="cur_key_index_value_type"
+								style="margin:4px"
+								disabled
+							/>
+							<va-radio
+								v-if="new_cur_key_value_type!=''"
+								v-for="(option,index) in config_value_types"
+								:key="index"
+								:option="option"
+								v-model.trim="new_cur_key_value_type"
+								style="margin:4px"
+								disabled
+							/>
 							<span style="flex:1"></span>
-							<va-button v-if="cur_key_index!=0" size="small" style="width:60px;height:30px;margin:2px" @click="optype='rollback_key';ing=true">Rollback</va-button>
 							<va-button
-							v-else
-							:disabled="!is_json_obj(new_cur_key_value)||JSON.stringify(JSON.parse(new_cur_key_value),null,4)==JSON.stringify(JSON.parse(keys.get(key).cur_value),null,4)"
-							size="small"
-							style="width:60px;height:30px;margin:2px"
-							@click="optype='update_key';ing=true"
+								v-if="cur_key_index!=0&&all[curg][cura].canwrite&&all[curg][cura].admin"
+								size="small"
+								style="width:60px;height:30px;margin:2px"
+								@click="optype='rollback_key';ing=true"
+							>
+								Rollback
+							</va-button>
+							<va-button
+								v-if="new_cur_key_value_type!=''"
+								:disabled="!is_json_obj(new_cur_key_value)||JSON.stringify(JSON.parse(new_cur_key_value),null,4)==JSON.stringify(JSON.parse(keys.get(key).cur_value),null,4)"
+								size="small"
+								style="width:60px;height:30px;margin:2px"
+								@click="optype='update_key';ing=true"
 							>
 								Update
 							</va-button>
@@ -880,7 +935,16 @@ function app_op(){
 			@mouseout="t_proxys_hover=false"
 		>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Proxys</span>
-			<va-button style="height:30px" size="small" @mouseover.stop="" @mouseout.stop="" @click.stop="new_proxy_permission_read=false;new_proxy_permission_write=false;new_proxy_permission_admin=false;optype='add_proxy';ing=true">ADD</va-button>
+			<va-button
+				v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+				style="height:30px"
+				size="small"
+				@mouseover.stop=""
+				@mouseout.stop=""
+				@click.stop="new_proxy_permission_read=false;new_proxy_permission_write=false;new_proxy_permission_admin=false;optype='add_proxy';ing=true"
+			>
+				ADD
+			</va-button>
 			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ key_or_proxy?'▲':'▼' }}</span>
 		</div>
 		<!-- paths -->
@@ -914,18 +978,50 @@ function app_op(){
 						<div style="width:100%;display:flex">
 							<va-button style="width:60px;height:30px;margin:2px 0" size="small" @click="optype='proxy';ing=true" :disabled="respstatus||!is_json_obj(req)">Proxy</va-button>
 							<div style="flex:1"></div>
-							<va-switch :disabled="respstatus" style="margin:2px" v-model="new_proxy_permission_read" size="small" true-inner-label="Read" false-inner-label="Read" @update:model-value="proxy_permission_update('read')" />
-							<va-switch :disabled="respstatus" style="margin:2px" v-model="new_proxy_permission_write" size="small" true-inner-label="Write" false-inner-label="Write" @update:model-value="proxy_permission_update('write')" />
-							<va-switch :disabled="respstatus" style="margin:2px" v-model="new_proxy_permission_admin" size="small" true-inner-label="Admin" false-inner-label="Admin" @update:model-value="proxy_permission_update('admin')" />
+							<va-switch
+								:disabled="respstatus||!all[curg][cura].canwrite||!all[curg][cura].admin"
+								style="margin:2px"
+								v-model="new_proxy_permission_read"
+								size="small" true-inner-label="Read"
+								false-inner-label="Read"
+								@update:model-value="new_proxy_permission_update('read')"
+							/>
+							<va-switch
+								:disabled="respstatus||!all[curg][cura].canwrite||!all[curg][cura].admin"
+								style="margin:2px"
+								v-model="new_proxy_permission_write"
+								size="small"
+								true-inner-label="Write"
+								false-inner-label="Write"
+								@update:model-value="new_proxy_permission_update('write')"
+							/>
+							<va-switch
+								:disabled="respstatus||!all[curg][cura].canwrite||!all[curg][cura].admin"
+								style="margin:2px"
+								v-model="new_proxy_permission_admin"
+								size="small"
+								true-inner-label="Admin"
+								false-inner-label="Admin"
+								@update:model-value="new_proxy_permission_update('admin')"
+							/>
 							<va-button
-							style="width:60px;height:30px;margin:2px"
-							size="small"
-							:disabled="respstatus||(new_proxy_permission_read==proxys.get(proxy).read&&new_proxy_permission_write==proxys.get(proxy).write&&new_proxy_permission_admin==proxys.get(proxy).admin)"
-							@click="optype='update_proxy';ing=true"
+								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+								style="width:60px;height:30px;margin:2px"
+								size="small"
+								:disabled="respstatus||new_proxy_permission_same(proxy)"
+								@click="optype='update_proxy';ing=true"
 							>
 								Update
 							</va-button>
-							<va-button :disabled="respstatus" size="small" style="width:60px;height:30px;margin:2px" @mouseover.stop="" @mouseout.stop="" @click.stop="optype='del_proxy';ing=true">DEL</va-button>
+							<va-button
+								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+								:disabled="respstatus"
+								size="small"
+								style="width:60px;height:30px;margin:2px"
+								@click.stop="optype='del_proxy';ing=true"
+							>
+								DEL
+							</va-button>
 						</div>
 					</div>
 					<va-divider v-if="respstatus" vertical style="margin:0 4px" />

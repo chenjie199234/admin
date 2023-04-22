@@ -29,7 +29,7 @@ function jumpable(node: permissionAPI.NodeInfo):boolean{
 		//system node can jump
 		return true
 	}
-	return node.node_data!=''
+	return node.canread&&node.node_data!=''
 }
 function showable(node: permissionAPI.NodeInfo):boolean{
 	if(node.node_id.length>3&&(node.node_id[2]==1||node.node_id[2]==2)){
@@ -47,19 +47,19 @@ function showable(node: permissionAPI.NodeInfo):boolean{
 			<template v-for="node of pnode.children">
 				<div v-if="showable(node)" style="display:flex;align-items:center">
 					<div
-					style="flex:1;display:flex;align-items:center"
-					:style="{'background-color':node.hover?'var(--va-shadow)':state.page.node==node?'white':undefined,cursor:jumpable(node)?'pointer':'default'}"
-					@mouseover="node.hover=true"
-					@mouseout="node.hover=false"
-					@click="()=>{
-						node.open=!node.open
-						if(jumpable(node)){
-							state.set_page(node)
-						}
-					}"
+						style="flex:1;display:flex;align-items:center"
+						:style="{'background-color':node.hover?'var(--va-shadow)':undefined,cursor:jumpable(node)?'pointer':'default'}"
+						@mouseover="node.hover=true"
+						@mouseout="node.hover=false"
+						@click="()=>{
+							node.open=!node.open
+							if(jumpable(node)){
+								state.set_page(node)
+							}
+						}"
 					>
 						<va-divider style="margin:0;width:15px" />
-						<div style="flex:1;padding:10px 0">{{node.node_name}}</div>
+						<div style="flex:1;padding:10px 0">{{node.node_name}}  {{state.page.node==node?'☞':''}}</div>
 						<div v-if="has_children(node)" style="margin-right:5px;padding:5px;border-radius:2px">{{node.open?'▲':'▼'}}</div>
 					</div>
 					<va-dropdown v-if="need_button(node)" trigger="hover" style="width:36px;height:36px;margin:2px" prevent-overflow>

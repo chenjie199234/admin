@@ -816,16 +816,16 @@ function parsetime(timestamp :number):string{
 			</template>
 		</div>
 		<va-pagination
-		v-if="!Boolean(cur_user)&&!Boolean(cur_role)"
-		v-model="page"
-		:pages="totalsize==0||pagesize==0?1:Math.ceil(totalsize/pagesize)"
-		:visible-pages="5"
-		boundary-numbers
-		direction-icon-left="<"
-		direction-icon-right=">"
-		gapped
-		style="margin:1px;align-self:center"
-		@update:model-value="optype='search';op()"
+			v-if="!Boolean(cur_user)&&!Boolean(cur_role)"
+			v-model="page"
+			:pages="totalsize==0||pagesize==0?1:Math.ceil(totalsize/pagesize)"
+			:visible-pages="5"
+			boundary-numbers
+			direction-icon-left="〈"
+			direction-icon-right="〉"
+			gapped
+			style="margin:1px;align-self:center"
+			@update:model-value="optype='search';op()"
 		/>
 	</div>
 </template>

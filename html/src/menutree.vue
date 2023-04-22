@@ -59,7 +59,10 @@ function showable(node: permissionAPI.NodeInfo):boolean{
 						}"
 					>
 						<va-divider style="margin:0;width:15px" />
-						<div style="flex:1;padding:10px 0">{{node.node_name}}  {{state.page.node==node?'☞':''}}</div>
+						<div style="flex:1;padding:10px 0">
+							{{node.node_name}}
+							<span v-if="jumpable(node)" style="padding-left:5px" :style="{color:state.page.node==node?'var(--va-primary)':black}">☞</span>
+						</div>
 						<div v-if="has_children(node)" style="margin-right:5px;padding:5px;border-radius:2px">{{node.open?'▲':'▼'}}</div>
 					</div>
 					<va-dropdown v-if="need_button(node)" trigger="hover" style="width:36px;height:36px;margin:2px" prevent-overflow>

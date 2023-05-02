@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref,reactive,onMounted} from 'vue'
+import {ref,onMounted} from 'vue'
 
 import * as initializeAPI from '../../api/initialize_browser_toc'
 import * as permissionAPI from '../../api/permission_browser_toc'

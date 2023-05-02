@@ -27,6 +27,11 @@ service app{
 		option (pbex.web_midwares)="token";
 	}
 
+	rpc get_app_instances(get_app_instances_req)returns(get_app_instances_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
 	//app
 
 	rpc create_app(create_app_req)returns(create_app_resp){
@@ -95,6 +100,22 @@ message get_app_req{
 message get_app_resp{
 	map<string,key_config_info> keys=1;
 	map<string,proxy_path_info> paths=2;
+}
+message get_app_instances_req{
+	string g_name=1[(pbex.string_bytes_len_gt)=0];
+	string a_name=2[(pbex.string_bytes_len_gt)=0];
+	string secret=3[(pbex.string_bytes_len_lt)=32];
+}
+message instance_info{
+	string host_ip=1;
+	string host_name=2;
+	double cpu_num=3;
+	double cpu_usage=4;
+	uint64 mem_total=5;
+	double mem_usage=6;
+}
+message get_app_instances_resp{
+	repeated instance_info instances=1;
 }
 message proxy_path_info{
 	repeated uint32 node_id=1;

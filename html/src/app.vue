@@ -859,7 +859,7 @@ function app_op(){
 								Edit
 							</va-button>
 							<va-button
-								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+								v-if="(all[curg][cura].canwrite||all[curg][cura].admin)&&((key!='AppConfig'&&key!='SourceConfig')||all[curg][cura].node_id[1]!=1||all[curg][cura].node_id[3]!=1)"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
 								@click.stop="optype='del_key';ing=true"
@@ -920,7 +920,7 @@ function app_op(){
 		</div>
 		<!-- proxys -->
 		<div
-			v-if="get_app_status&&key_or_proxy!='key'" 
+			v-if="get_app_status&&(all[curg][cura].node_id[1]!=1||all[curg][cura].node_id[3]!=1)&&key_or_proxy!='key'" 
 			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_proxys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
@@ -982,7 +982,7 @@ function app_op(){
 								:disabled="respstatus||!all[curg][cura].canwrite||!all[curg][cura].admin"
 								style="margin:2px"
 								v-model="new_proxy_permission_read"
-								size="small" true-inner-label="Read"
+								true-inner-label="Read"
 								false-inner-label="Read"
 								@update:model-value="new_proxy_permission_update('read')"
 							/>
@@ -990,7 +990,6 @@ function app_op(){
 								:disabled="respstatus||!all[curg][cura].canwrite||!all[curg][cura].admin"
 								style="margin:2px"
 								v-model="new_proxy_permission_write"
-								size="small"
 								true-inner-label="Write"
 								false-inner-label="Write"
 								@update:model-value="new_proxy_permission_update('write')"
@@ -999,7 +998,6 @@ function app_op(){
 								:disabled="respstatus||!all[curg][cura].canwrite||!all[curg][cura].admin"
 								style="margin:2px"
 								v-model="new_proxy_permission_admin"
-								size="small"
 								true-inner-label="Admin"
 								false-inner-label="Admin"
 								@update:model-value="new_proxy_permission_update('admin')"

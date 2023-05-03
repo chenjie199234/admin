@@ -508,20 +508,21 @@ function app_op(){
 			break
 		}
 		case 'proxy':{
-			let req = {
-				g_name:curg.value,
-				a_name:cura.value,
-				path:cur_proxy.value,
-				data:req.value,
-			}
-			client.appClient.proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+				resp.value='{"hello":"world"}'
+				respstatus.value=true
+				ing.value=false
+				state.clear_load()
+				/*
+			client.appClient.proxy({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,path:cur_proxy.value,data:req.value,},client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.ProxyResp)=>{
 				resp.value=resp.data
 				respstatus.value=true
+				ing.value=false
 				state.clear_load()
 			})
+			*/
 			break
 		}
 		default:{
@@ -939,7 +940,7 @@ function app_op(){
 					</div>
 					<va-divider v-if="cur_key_index!=0||new_cur_key_value_type!=''" vertical style="margin:0 4px" />
 					<div v-if="cur_key_index!=0||new_cur_key_value_type!=''" style="flex:1;display:flex;flex-direction:column">
-						<textarea v-if="cur_key_index!=0" style="border:0;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" readonly >{{JSON.stringify(JSON.parse(cur_key_index_value),null,4)}}</textarea>
+						<textarea v-if="cur_key_index!=0" style="border:0;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" readonly >{{is_json_obj(cur_key_index_value)?JSON.stringify(JSON.parse(cur_key_index_value),null,4):cur_key_index_value}}</textarea>
 						<textarea v-if="new_cur_key_value_type!=''" style="border:0;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" v-model.trim="new_cur_key_value"></textarea>
 						<div style="display:flex;align-items:center">
 							<va-radio
@@ -989,7 +990,7 @@ function app_op(){
 		</div>
 		<!-- proxys -->
 		<div
-			v-if="get_app_status&&(all[curg][cura].node_id[1]!=1||all[curg][cura].node_id[3]!=1)&&(config_proxy_instance=='proxy'||config_proxy_host=='')" 
+			v-if="get_app_status&&(all[curg][cura].node_id[1]!=1||all[curg][cura].node_id[3]!=1)&&(config_proxy_instance=='proxy'||config_proxy_instance=='')" 
 			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_proxys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{

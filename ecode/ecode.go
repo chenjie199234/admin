@@ -39,6 +39,7 @@ var (
 	ErrConfigDataBroken      = cerror.MakeError(20018, http.StatusBadRequest, "config data broken")
 	ErrProxyPathNotExist     = cerror.MakeError(20019, http.StatusBadRequest, "proxy path doesn't exist")
 	ErrProxyPathAlreadyExist = cerror.MakeError(20019, http.StatusBadRequest, "proxy path already exist")
+	ErrAppInstanceNotExist   = cerror.MakeError(200020, http.StatusBadRequest, "this app's instance doesn't exist")
 
 	ErrNodeNotExist       = cerror.MakeError(20100, http.StatusBadRequest, "node not exist")
 	ErrPNodeNotExist      = cerror.MakeError(20101, http.StatusBadRequest, "parent node not exist")

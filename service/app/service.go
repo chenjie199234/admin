@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -227,13 +228,13 @@ func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesR
 	}
 	s.Unlock()
 	if e := util.SignCheck(req.Secret, app.Value); e != nil {
-		log.Error(nil, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, e)
+		log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	ips, e := dao.GetAppIPsByCoreDNS(req.GName, req.AName)
 	if e != nil {
-		log.Error(nil, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, e)
-		return nil, ecode.ErrSystem
+		log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, e)
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	resp := &api.GetAppInstancesResp{
 		Instances: make([]*api.InstanceInfo, 0, len(ips)),
@@ -246,13 +247,13 @@ func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesR
 		eg.Go(func(gctx context.Context) error {
 			r, e := http.Get("http://" + ip + ":6060/info")
 			if e != nil {
-				log.Error(nil, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", ip, e)
+				log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", ip, e)
 				return e
 			}
 			defer r.Body.Close()
 			body, e := io.ReadAll(r.Body)
 			if e != nil {
-				log.Error(nil, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", ip, e)
+				log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", ip, e)
 				return e
 			}
 			tmp := &struct {
@@ -264,14 +265,14 @@ func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesR
 				MemUsage float64 `json:"mem_usage"`
 			}{}
 			if e = json.Unmarshal(body, tmp); e != nil {
-				log.Error(nil, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", ip, e)
+				log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", ip, e)
 				return e
 			}
-			info.HostIp = tmp.HostIP
+			info.HostIp = ip
 			info.HostName = tmp.HostName
 			info.CpuNum = tmp.CpuNum
 			info.CpuUsage = tmp.CpuUsage
-			info.MemTotal = tmp.MemTotal
+			info.MemTotal = float64(tmp.MemTotal) / 1024.0 / 1024.0
 			info.MemUsage = tmp.MemUsage
 			return nil
 		})
@@ -281,7 +282,52 @@ func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesR
 	}
 	return resp, nil
 }
-
+func (s *Service) GetAppInstanceCmd(ctx context.Context, req *api.GetAppInstanceCmdReq) (*api.GetAppInstanceCmdResp, error) {
+	md := metadata.GetMetadata(ctx)
+	s.Lock()
+	app, ok := s.apps[req.GName+"."+req.AName]
+	if !ok {
+		s.Unlock()
+		return nil, ecode.ErrAppNotExist
+	}
+	s.Unlock()
+	if e := util.SignCheck(req.Secret, app.Value); e != nil {
+		log.Error(ctx, "[GetAppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, "cmd:", req.Cmd, e)
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	ips, e := dao.GetAppIPsByCoreDNS(req.GName, req.AName)
+	if e != nil {
+		log.Error(ctx, "[GetAppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, "cmd:", req.Cmd, e)
+		return nil, ecode.ErrSystem
+	}
+	find := false
+	for _, ip := range ips {
+		if ip == req.HostIp {
+			find = true
+			break
+		}
+	}
+	if !find {
+		return nil, ecode.ErrAppInstanceNotExist
+	}
+	switch req.Cmd {
+	case "pprof":
+		request, _ := http.NewRequestWithContext(ctx, "GET", "http://"+req.HostIp+":6060/debug/pprof/profile", nil)
+		r, e := http.DefaultClient.Do(request)
+		if e != nil {
+			log.Error(ctx, "[GetAppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, e)
+			return nil, ecode.ErrSystem
+		}
+		defer r.Body.Close()
+		body, e := io.ReadAll(r.Body)
+		if e != nil {
+			log.Error(ctx, "[GetAppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, e)
+			return nil, ecode.ErrSystem
+		}
+		return &api.GetAppInstanceCmdResp{Data: hex.EncodeToString(body)}, nil
+	}
+	return &api.GetAppInstanceCmdResp{}, nil
+}
 func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.CreateAppResp, error) {
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-Data"])

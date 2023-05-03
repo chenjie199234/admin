@@ -18,6 +18,7 @@ import (
 
 var _CrpcPathAppGetApp = "/admin.app/get_app"
 var _CrpcPathAppGetAppInstances = "/admin.app/get_app_instances"
+var _CrpcPathAppGetAppInstanceCmd = "/admin.app/get_app_instance_cmd"
 var _CrpcPathAppCreateApp = "/admin.app/create_app"
 var _CrpcPathAppDelApp = "/admin.app/del_app"
 var _CrpcPathAppUpdateAppSecret = "/admin.app/update_app_secret"
@@ -33,6 +34,7 @@ var _CrpcPathAppProxy = "/admin.app/proxy"
 type AppCrpcClient interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	GetAppInstances(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)
+	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -86,6 +88,28 @@ func (c *appCrpcClient) GetAppInstances(ctx context.Context, req *GetAppInstance
 		return nil, e
 	}
 	resp := new(GetAppInstancesResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *appCrpcClient) GetAppInstanceCmd(ctx context.Context, req *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetAppInstanceCmd, reqd, metadata.GetMetadata(ctx))
+	if e != nil {
+		return nil, e
+	}
+	resp := new(GetAppInstanceCmdResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -344,6 +368,7 @@ func (c *appCrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, e
 type AppCrpcServer interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	GetAppInstances(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)
+	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -443,6 +468,54 @@ func _App_GetAppInstances_CrpcHandler(handler func(context.Context, *GetAppInsta
 		}
 		if resp == nil {
 			resp = new(GetAppInstancesResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
+func _App_GetAppInstanceCmd_CrpcHandler(handler func(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(GetAppInstanceCmdReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_app_instance_cmd] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.app/get_app_instance_cmd] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/get_app_instance_cmd]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetAppInstanceCmdResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -986,6 +1059,7 @@ func RegisterAppCrpcServer(engine *crpc.CrpcServer, svc AppCrpcServer, allmids m
 	_ = allmids
 	engine.RegisterHandler(_CrpcPathAppGetApp, _App_GetApp_CrpcHandler(svc.GetApp))
 	engine.RegisterHandler(_CrpcPathAppGetAppInstances, _App_GetAppInstances_CrpcHandler(svc.GetAppInstances))
+	engine.RegisterHandler(_CrpcPathAppGetAppInstanceCmd, _App_GetAppInstanceCmd_CrpcHandler(svc.GetAppInstanceCmd))
 	engine.RegisterHandler(_CrpcPathAppCreateApp, _App_CreateApp_CrpcHandler(svc.CreateApp))
 	engine.RegisterHandler(_CrpcPathAppDelApp, _App_DelApp_CrpcHandler(svc.DelApp))
 	engine.RegisterHandler(_CrpcPathAppUpdateAppSecret, _App_UpdateAppSecret_CrpcHandler(svc.UpdateAppSecret))

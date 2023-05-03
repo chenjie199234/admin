@@ -5,7 +5,6 @@
 // source: api/app.proto<br />
 
 import Axios from "axios";
-import Long from "long";
 
 export interface Error{
 	code: number;
@@ -247,6 +246,87 @@ export interface DelProxyResp{
 }
 function JsonToDelProxyResp(jsonobj: { [k:string]:any }): DelProxyResp{
 	let obj: DelProxyResp={
+	}
+	return obj
+}
+export interface GetAppInstanceCmdReq{
+	g_name: string;
+	a_name: string;
+	secret: string;
+	host_ip: string;
+	cmd: string;
+	cmd_data: string;
+}
+function GetAppInstanceCmdReqToJson(msg: GetAppInstanceCmdReq): string{
+	let s: string="{"
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'GetAppInstanceCmdReq.g_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
+	}
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'GetAppInstanceCmdReq.a_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'GetAppInstanceCmdReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
+	}
+	//host_ip
+	if(msg.host_ip==null||msg.host_ip==undefined){
+		throw 'GetAppInstanceCmdReq.host_ip must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.host_ip)
+		s+='"host_ip":'+vv+','
+	}
+	//cmd
+	if(msg.cmd==null||msg.cmd==undefined){
+		throw 'GetAppInstanceCmdReq.cmd must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.cmd)
+		s+='"cmd":'+vv+','
+	}
+	//cmd_data
+	if(msg.cmd_data==null||msg.cmd_data==undefined){
+		throw 'GetAppInstanceCmdReq.cmd_data must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.cmd_data)
+		s+='"cmd_data":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface GetAppInstanceCmdResp{
+	data: string;
+}
+function JsonToGetAppInstanceCmdResp(jsonobj: { [k:string]:any }): GetAppInstanceCmdResp{
+	let obj: GetAppInstanceCmdResp={
+		data:'',
+	}
+	//data
+	if(jsonobj['data']!=null&&jsonobj['data']!=undefined){
+		if(typeof jsonobj['data']!='string'){
+			throw 'GetAppInstanceCmdResp.data must be string'
+		}
+		obj['data']=jsonobj['data']
 	}
 	return obj
 }
@@ -540,8 +620,7 @@ export interface InstanceInfo{
 	host_name: string;
 	cpu_num: number;
 	cpu_usage: number;
-	//Warning!!!Type is uint64,be careful of sign(+)
-	mem_total: Long;
+	mem_total: number;//unit MB
 	mem_usage: number;
 }
 function JsonToInstanceInfo(jsonobj: { [k:string]:any }): InstanceInfo{
@@ -550,7 +629,7 @@ function JsonToInstanceInfo(jsonobj: { [k:string]:any }): InstanceInfo{
 		host_name:'',
 		cpu_num:0,
 		cpu_usage:0,
-		mem_total:Long.ZERO,
+		mem_total:0,
 		mem_usage:0,
 	}
 	//host_ip
@@ -583,34 +662,10 @@ function JsonToInstanceInfo(jsonobj: { [k:string]:any }): InstanceInfo{
 	}
 	//mem_total
 	if(jsonobj['mem_total']!=null&&jsonobj['mem_total']!=undefined){
-		if(typeof jsonobj['mem_total']=='number'){
-			if(!Number.isInteger(jsonobj['mem_total'])){
-				throw 'InstanceInfo.mem_total must be integer'
-			}
-			if(jsonobj['mem_total']<0){
-				throw 'InstanceInfo.mem_total overflow'
-			}
-			let tmp: Long=Long.ZERO
-			try{
-				tmp=Long.fromNumber(jsonobj['mem_total'],true)
-			}catch(e){
-				throw 'InstanceInfo.mem_total must be integer'
-			}
-			obj['mem_total']=tmp
-		}else if(typeof jsonobj['mem_total']=='string'){
-			let tmp:Long=Long.ZERO
-			try{
-				tmp=Long.fromString(jsonobj['mem_total'],true)
-			}catch(e){
-				throw 'InstanceInfo.mem_total must be integer'
-			}
-			if(tmp.toString()!=jsonobj['mem_total']){
-				throw 'InstanceInfo.mem_total overflow'
-			}
-			obj['mem_total']=tmp
-		}else{
-			throw 'format wrong!InstanceInfo.mem_total must be integer'
+		if(typeof jsonobj['mem_total']!='number'){
+			throw 'InstanceInfo.mem_total must be number'
 		}
+		obj['mem_total']=jsonobj['mem_total']
 	}
 	//mem_usage
 	if(jsonobj['mem_usage']!=null&&jsonobj['mem_usage']!=undefined){
@@ -1235,6 +1290,7 @@ function JsonToWatchResp(jsonobj: { [k:string]:any }): WatchResp{
 }
 const _WebPathAppGetApp: string ="/admin.app/get_app";
 const _WebPathAppGetAppInstances: string ="/admin.app/get_app_instances";
+const _WebPathAppGetAppInstanceCmd: string ="/admin.app/get_app_instance_cmd";
 const _WebPathAppCreateApp: string ="/admin.app/create_app";
 const _WebPathAppDelApp: string ="/admin.app/del_app";
 const _WebPathAppUpdateAppSecret: string ="/admin.app/update_app_secret";
@@ -1336,6 +1392,58 @@ export class AppBrowserClientToC {
 		.then(function(response){
 			try{
 				let obj:GetAppInstancesResp=JsonToGetAppInstancesResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	get_app_instance_cmd(header: { [k: string]: string },req: GetAppInstanceCmdReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GetAppInstanceCmdResp)=>void){
+		if(!Number.isInteger(timeout)){
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=GetAppInstanceCmdReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:e})
+			return
+		}
+		let config={
+			url:_WebPathAppGetAppInstanceCmd,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: body,
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:GetAppInstanceCmdResp=JsonToGetAppInstanceCmdResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

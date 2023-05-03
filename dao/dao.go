@@ -6,6 +6,7 @@ import (
 
 	//"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/config"
+	"github.com/chenjie199234/admin/ecode"
 
 	"github.com/chenjie199234/Corelib/cgrpc"
 	"github.com/chenjie199234/Corelib/crpc"
@@ -122,5 +123,12 @@ func GetWebClientConfig() *web.ClientConfig {
 }
 
 func GetAppIPsByCoreDNS(appgroup, appname string) ([]string, error) {
-	return net.LookupHost(appname + "-headless." + appgroup)
+	ips, e := net.LookupHost(appname + "-headless." + appgroup)
+	if e != nil {
+		if ee, ok := e.(*net.DNSError); ok && ee.IsNotFound {
+			return nil, ecode.ErrAppNotExist
+		}
+		return nil, e
+	}
+	return ips, nil
 }

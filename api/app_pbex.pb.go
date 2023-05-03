@@ -35,6 +35,26 @@ func (m *GetAppInstancesReq) Validate() (errstr string) {
 }
 
 // return empty means pass
+func (m *GetAppInstanceCmdReq) Validate() (errstr string) {
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: get_app_instance_cmd_req check value str len gt failed"
+	}
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: get_app_instance_cmd_req check value str len gt failed"
+	}
+	if len(m.GetSecret()) >= 32 {
+		return "field: secret in object: get_app_instance_cmd_req check value str len lt failed"
+	}
+	if len(m.GetHostIp()) <= 0 {
+		return "field: host_ip in object: get_app_instance_cmd_req check value str len gt failed"
+	}
+	if m.GetCmd() != "pprof" {
+		return "field: cmd in object: get_app_instance_cmd_req check value str in failed"
+	}
+	return ""
+}
+
+// return empty means pass
 func (m *CreateAppReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
 		return "field: project_id in object: create_app_req check len eq failed"

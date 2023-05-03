@@ -16,6 +16,7 @@ import (
 
 var _CGrpcPathAppGetApp = "/admin.app/get_app"
 var _CGrpcPathAppGetAppInstances = "/admin.app/get_app_instances"
+var _CGrpcPathAppGetAppInstanceCmd = "/admin.app/get_app_instance_cmd"
 var _CGrpcPathAppCreateApp = "/admin.app/create_app"
 var _CGrpcPathAppDelApp = "/admin.app/del_app"
 var _CGrpcPathAppUpdateAppSecret = "/admin.app/update_app_secret"
@@ -31,6 +32,7 @@ var _CGrpcPathAppProxy = "/admin.app/proxy"
 type AppCGrpcClient interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	GetAppInstances(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)
+	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -68,6 +70,16 @@ func (c *appCGrpcClient) GetAppInstances(ctx context.Context, req *GetAppInstanc
 	}
 	resp := new(GetAppInstancesResp)
 	if e := c.cc.Call(ctx, _CGrpcPathAppGetAppInstances, req, resp, metadata.GetMetadata(ctx)); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *appCGrpcClient) GetAppInstanceCmd(ctx context.Context, req *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(GetAppInstanceCmdResp)
+	if e := c.cc.Call(ctx, _CGrpcPathAppGetAppInstanceCmd, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -186,6 +198,7 @@ func (c *appCGrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, 
 type AppCGrpcServer interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	GetAppInstances(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)
+	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -241,6 +254,29 @@ func _App_GetAppInstances_CGrpcHandler(handler func(context.Context, *GetAppInst
 		}
 		if resp == nil {
 			resp = new(GetAppInstancesResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _App_GetAppInstanceCmd_CGrpcHandler(handler func(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(GetAppInstanceCmdReq)
+		if ctx.DecodeReq(req) != nil {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/get_app_instance_cmd]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetAppInstanceCmdResp)
 		}
 		ctx.Write(resp)
 	}
@@ -503,6 +539,7 @@ func RegisterAppCGrpcServer(engine *cgrpc.CGrpcServer, svc AppCGrpcServer, allmi
 	_ = allmids
 	engine.RegisterHandler("admin.app", "get_app", _App_GetApp_CGrpcHandler(svc.GetApp))
 	engine.RegisterHandler("admin.app", "get_app_instances", _App_GetAppInstances_CGrpcHandler(svc.GetAppInstances))
+	engine.RegisterHandler("admin.app", "get_app_instance_cmd", _App_GetAppInstanceCmd_CGrpcHandler(svc.GetAppInstanceCmd))
 	engine.RegisterHandler("admin.app", "create_app", _App_CreateApp_CGrpcHandler(svc.CreateApp))
 	engine.RegisterHandler("admin.app", "del_app", _App_DelApp_CGrpcHandler(svc.DelApp))
 	engine.RegisterHandler("admin.app", "update_app_secret", _App_UpdateAppSecret_CGrpcHandler(svc.UpdateAppSecret))

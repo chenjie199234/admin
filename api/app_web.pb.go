@@ -21,6 +21,7 @@ import (
 
 var _WebPathAppGetApp = "/admin.app/get_app"
 var _WebPathAppGetAppInstances = "/admin.app/get_app_instances"
+var _WebPathAppGetAppInstanceCmd = "/admin.app/get_app_instance_cmd"
 var _WebPathAppCreateApp = "/admin.app/create_app"
 var _WebPathAppDelApp = "/admin.app/del_app"
 var _WebPathAppUpdateAppSecret = "/admin.app/update_app_secret"
@@ -36,6 +37,7 @@ var _WebPathAppProxy = "/admin.app/proxy"
 type AppWebClient interface {
 	GetApp(context.Context, *GetAppReq, http.Header) (*GetAppResp, error)
 	GetAppInstances(context.Context, *GetAppInstancesReq, http.Header) (*GetAppInstancesResp, error)
+	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq, http.Header) (*GetAppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq, http.Header) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq, http.Header) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq, http.Header) (*UpdateAppSecretResp, error)
@@ -109,6 +111,38 @@ func (c *appWebClient) GetAppInstances(ctx context.Context, req *GetAppInstances
 		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(GetAppInstancesResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *appWebClient) GetAppInstanceCmd(ctx context.Context, req *GetAppInstanceCmdReq, header http.Header) (*GetAppInstanceCmdResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathAppGetAppInstanceCmd, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(GetAppInstanceCmdResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -477,6 +511,7 @@ func (c *appWebClient) Proxy(ctx context.Context, req *ProxyReq, header http.Hea
 type AppWebServer interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
 	GetAppInstances(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)
+	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -588,6 +623,60 @@ func _App_GetAppInstances_WebHandler(handler func(context.Context, *GetAppInstan
 		}
 		if resp == nil {
 			resp = new(GetAppInstancesResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
+func _App_GetAppInstanceCmd_WebHandler(handler func(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(GetAppInstanceCmdReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/get_app_instance_cmd]", errstr)
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(GetAppInstanceCmdResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1220,6 +1309,19 @@ func RegisterAppWebServer(engine *web.WebServer, svc AppWebServer, allmids map[s
 		}
 		mids = append(mids, _App_GetAppInstances_WebHandler(svc.GetAppInstances))
 		engine.Post(_WebPathAppGetAppInstances, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _App_GetAppInstanceCmd_WebHandler(svc.GetAppInstanceCmd))
+		engine.Post(_WebPathAppGetAppInstanceCmd, mids...)
 	}
 	{
 		requiredMids := []string{"token"}

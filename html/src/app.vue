@@ -40,13 +40,16 @@ const cura=ref<string>("")
 const secret=ref<string>("")
 const t_secret=ref<boolean>(false)
 
-const key_or_proxy=ref<string>("")
+const config_proxy_instance=ref<string>("")
 
-const keys=ref<Map<string,KeyConfigInfo>>(new Map())
+const keys=ref<Map<string,appAPI.KeyConfigInfo>>(new Map())
 const t_keys_hover=ref<boolean>(false)
 
-const proxys=ref<Map<string,ProxyPathInfo>>(new Map())
+const proxys=ref<Map<string,appAPI.ProxyPathInfo>>(new Map())
 const t_proxys_hover=ref<boolean>(false)
+
+const instances=ref<appAPI.InstanceInfo[]>([])
+const t_instances_hover=ref<boolean>(false)
 
 const get_app_status=ref<boolean>(false)
 
@@ -54,7 +57,7 @@ function get_app(){
 	if(curg.value==""||cura.value==""){
 		keys.value=null
 		proxys.value=null
-		key_or_proxy.value=""
+		config_proxy_instance.value=""
 		state.set_alert("error",-2,"Group and App must be selected!")
 		return
 	}
@@ -76,6 +79,70 @@ function get_app(){
 			proxys.value = new Map()
 		}
 		get_app_status.value=true
+		state.clear_load()
+	})
+}
+function get_instances(){
+	if(!get_app_status.value){
+		instances.value=[]
+		return
+	}
+	if(!state.set_load()){
+		return
+	}
+	client.appClient.get_app_instances({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,secret:secret.value},client.timeout,(e: appAPI.Error)=>{
+		state.clear_load()
+		state.set_alert("error",e.code,e.msg)
+	},(resp: appAPI.GetAppInstancesResp)=>{
+		if(resp.instances){
+			instances.value=resp.instances
+		}else{
+			instances.value=[]
+		}
+		state.clear_load()
+	})
+}
+function hex_decode(data:string):Uint8Array{
+	let tmp:string[] = []
+	for(let i=0;i<data.length;i+=2){
+		tmp.push(data.substr(i,2))
+	}
+	let result:number[]=[]
+	for(let i=0;i<tmp.length;i++){
+		result.push(Number("0x"+tmp[i]))
+	}
+	return new Uint8Array(result)
+}
+function get_pprof(host_ip: string){
+	if(curg.value==""||cura.value==""){
+		state.set_alert("error",-2,"Group and App must be selected!")
+		return
+	}
+	if(!state.set_load()){
+		return
+	}
+	let req = {
+		g_name:curg.value,
+		a_name:cura.value,
+		secret:secret.value,
+		host_ip:host_ip,
+		cmd:'pprof',
+		cmd_data:'',
+	}
+	client.appClient.get_app_instance_cmd({"Token":state.user.token},req,0,(e: appAPI.Error)=>{
+		state.clear_load()
+		state.set_alert("error",e.code,e.msg)
+	},(resp: appAPI.GetAppInstanceCmdResp)=>{
+		let data=hex_decode(resp.data)
+		let fileLink = document.createElement('a')
+		let fileURL = window.URL.createObjectURL(new Blob([data],{type:"application/octet-stream"}))
+		fileLink.href = fileURL
+		fileLink.style.display='none'
+		fileLink.setAttribute('download', 'profile')
+		document.body.appendChild(fileLink)
+		fileLink.click()
+		fileLink.parentNode.removeChild(fileLink)
+		window.URL.revokeObjectURL(fileURL)
 		state.clear_load()
 	})
 }
@@ -188,7 +255,7 @@ function app_op(){
 				keys.value=new Map()
 				proxys.value=new Map()
 				get_app_status.value=false
-				key_or_proxy.value=""
+				config_proxy_instance.value=""
 				ing.value=false
 				state.clear_load()
 			})
@@ -693,8 +760,9 @@ function app_op(){
 								secret=''
 								keys=new Map()
 								proxys=new Map()
+								instances=[]
 								get_app_status=false
-								key_or_proxy=''
+								config_proxy_instance=''
 							}
 						}"
 					>
@@ -728,8 +796,9 @@ function app_op(){
 								secret=''
 								keys=new Map()
 								proxys=new Map()
+								instances=[]
 								get_app_status=false
-								key_or_proxy=''
+								config_proxy_instance=''
 							}
 						}"
 					>
@@ -769,15 +838,15 @@ function app_op(){
 		</div>
 		<!-- configs -->
 		<div
-			v-if="get_app_status&&key_or_proxy!='proxy'"
+			v-if="get_app_status&&(config_proxy_instance=='config'||config_proxy_instance=='')"
 			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_keys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
-				if(key_or_proxy==''){
-					key_or_proxy='key'
+				if(config_proxy_instance==''){
+					config_proxy_instance='config'
 					cur_key=''
 				}else{
-					key_or_proxy=''
+					config_proxy_instance=''
 				}
 			}"
 			@mouseover="t_keys_hover=true"
@@ -794,10 +863,10 @@ function app_op(){
 			>
 				ADD
 			</va-button>
-			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ key_or_proxy?'▲':'▼' }}</span>
+			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance?'▲':'▼' }}</span>
 		</div>
 		<!-- keys -->
-		<div v-if="key_or_proxy=='key'&&keys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
+		<div v-if="config_proxy_instance=='config'&&keys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
 			<template v-for="key of keys.keys()">
 				<div
 					v-if="cur_key==''||cur_key==key"
@@ -915,20 +984,20 @@ function app_op(){
 				</div>
 			</template>
 		</div>
-		<div v-if="key_or_proxy=='key'&&keys.size==0">
+		<div v-if="config_proxy_instance=='config'&&keys.size==0">
 			<div style="margin:1px 10px;padding:12px;display:flex;flex-direction:column;background-color:var(--va-background-element);color:var(--va-primary)">No Config Keys</div>
 		</div>
 		<!-- proxys -->
 		<div
-			v-if="get_app_status&&(all[curg][cura].node_id[1]!=1||all[curg][cura].node_id[3]!=1)&&key_or_proxy!='key'" 
+			v-if="get_app_status&&(all[curg][cura].node_id[1]!=1||all[curg][cura].node_id[3]!=1)&&(config_proxy_instance=='proxy'||config_proxy_host=='')" 
 			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_proxys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
-				if(key_or_proxy==''){
-					key_or_proxy='proxy'
+				if(config_proxy_instance==''){
+					config_proxy_instance='proxy'
 					cur_proxy=''
 				}else{
-					key_or_proxy=''
+					config_proxy_instance=''
 				}
 			}"
 			@mouseover="t_proxys_hover=true"
@@ -945,10 +1014,10 @@ function app_op(){
 			>
 				ADD
 			</va-button>
-			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ key_or_proxy?'▲':'▼' }}</span>
+			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance?'▲':'▼' }}</span>
 		</div>
 		<!-- paths -->
-		<div v-if="key_or_proxy=='proxy'&&proxys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
+		<div v-if="config_proxy_instance=='proxy'&&proxys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
 			<template v-for="proxy of proxys.keys()">
 				<div
 					v-if="cur_proxy==''||cur_proxy==proxy"
@@ -1030,8 +1099,77 @@ function app_op(){
 				</div>
 			</template>
 		</div>
-		<div v-if="key_or_proxy=='proxy'&&proxys.size==0">
+		<div v-if="config_proxy_instance=='proxy'&&proxys.size==0">
 			<div style="margin:1px 10px;padding:12px;display:flex;flex-direction:column;background-color:var(--va-background-element);color:var(--va-primary)">No Proxy Paths</div>
+		</div>
+		<!-- instances -->
+		<div
+			v-if="get_app_status&&(config_proxy_instance=='instance'||config_proxy_instance=='')"
+			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
+			:style="{'background-color':t_instances_hover?'var(--va-shadow)':'var(--va-background-element)'}"
+			@click="()=>{
+				if(config_proxy_instance==''){
+					instances=[]
+					config_proxy_instance='instance'
+					get_instances()
+				}else{
+					config_proxy_instance=''
+				}
+			}"
+			@mouseover="t_instances_hover=true"
+			@mouseout="t_instances_hover=false"
+		>
+			<span style="flex:1;padding:12px;color:var(--va-primary)">Instances</span>
+			<va-button
+				v-if="config_proxy_instance=='instance'"
+				style="width:60px;height:30px"
+				size="small"
+				@mouseover.stop=""
+				@mouseout.stop=""
+				@click.stop="get_instances"
+			>
+				refresh
+			</va-button>
+			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance?'▲':'▼' }}</span>
+		</div>
+		<div v-if="config_proxy_instance=='instance'&&instances.length>0" style="display:flex;flex-wrap:wrap">
+			<div v-for="instance of instances" style="border:1px solid var(--va-primary);border-radius:5px;margin:5px;display:flex;flex-direction:column;align-items:center">
+				<div style="margin:1px;display:flex">
+					<span style="width:85px">Host IP</span>
+					<va-divider vertical />
+					<span style="width:200px;word-break:break-all">{{instance.host_ip}}</span>
+				</div>
+				<div style="margin:1px;display:flex">
+					<span style="width:85px">Host Name</span>
+					<va-divider vertical />
+					<span style="width:200px;word-break:break-all">{{instance.host_name}}</span>
+				</div>
+				<div style="margin:1px;display:flex">
+					<span style="width:85px">CPU Num</span>
+					<va-divider vertical />
+					<span style="width:200px">{{instance.cpu_num}}</span>
+				</div>
+				<div style="margin:1px;display:flex">
+					<span style="width:85px">CPU Use</span>
+					<va-divider vertical />
+					<span style="width:200px">{{instance.cpu_usage.toFixed(4)*100}}%</span>
+				</div>
+				<div style="margin:1px;display:flex">
+					<span style="width:85px">Mem Total</span>
+					<va-divider vertical />
+					<span style="width:200px">{{instance.mem_total.toFixed(2)}}MB</span>
+				</div>
+				<div style="margin:1px;display:flex">
+					<span style="width:85px">Mem Use</span>
+					<va-divider vertical />
+					<span style="width:200px">{{instance.mem_usage.toFixed(4)*100}}%</span>
+				</div>
+				<va-divider style="width:100%"/>
+				<va-button style="margin-bottom:3px" @click="get_pprof(instance.host_ip)">PPROF</va-button>
+			</div>
+		</div>
+		<div v-if="config_proxy_instance=='instance'&&instances.length==0">
+			<div style="border:1px solid var(--va-primary);border-radius:5px;margin:5px;width:300px;height:150px;display:flex;justify-content:center;align-items:center">No Instances</div>
 		</div>
 	</div>
 </template>

@@ -10,22 +10,27 @@
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.config/watch":{
+		"/admin.app/watch":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.config/del_app":{
+		"/admin.app/del_app":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.config/update_app_secret":{
+		"/admin.app/update_app_secret":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.config/proxy":{
+		"/admin.app/proxy":{
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
+		},
+		"/admin.app/get_app_instance_cmd":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"

@@ -892,7 +892,7 @@ function app_op(){
 						<textarea readonly style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px">{{JSON.stringify(JSON.parse(keys.get(key).cur_value),null,4)}}</textarea>
 						<div style="align-self:center;display:flex;align-items:center">
 							<b style="color:var(--va-primary);margin-right:10px">Current Config ID:  {{ keys.get(key).cur_index }}</b>
-							<va-dropdown trigger="hover" prevent-overflow placement="top">
+							<va-dropdown trigger="hover" :disabled="cur_key_index!=0||new_cur_key_value_type!=''" prevent-overflow placement="top">
 								<template #anchor>
 									<va-button style="width:60px;height:30px;margin:2px" size="small">History</va-button>
 								</template>
@@ -914,7 +914,7 @@ function app_op(){
 								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
-								:disabled="Boolean(keys.get(key).new_cur_value)"
+								:disabled="cur_key_index!=0||new_cur_key_value_type!=''"
 								@click="()=>{
 									if(keys.get(key).cur_value){
 										new_cur_key_value=JSON.stringify(JSON.parse(keys.get(key).cur_value),null,4)

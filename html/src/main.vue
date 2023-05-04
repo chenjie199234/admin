@@ -17,10 +17,10 @@ import pageright from './pageright.vue'
 	<init v-if="!state.inited.value" />
 	<login v-else-if="state.user.token.length==0" />
 	<va-split v-else style="width:100%;height:100%;display:flex" stateful :model-value='0' :limits="['250px',50]">
-		<template #start="{containerSize}">
+		<template #start>
 			<pageleft />
 		</template>
-		<template #end="{containerSize}">
+		<template #end>
 			<pageright />
 		</template>
 	</va-split>

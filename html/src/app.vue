@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { ref,onMounted,computed } from 'vue'
+import { ref,computed } from 'vue'
 import * as appAPI from '../../api/app_browser_toc'
+import * as permissionAPI from '../../api/permission_browser_toc'
 import * as state from './state'
 import * as client from './client'
 
 const all=computed(()=>{
-	let tmp = {}
-	if(!state.page.node.children){
+	let tmp: {[k:string]: {[k:string]:permissionAPI.NodeInfo}} = {}
+	if(!state.page.node!.children){
 		return tmp
 	}
-	for(let n of state.page.node.children){
+		for(let n of state.page.node!.children){
+		if(!n){
+			continue
+		}
 		let pieces:string[]=n.node_name.split(".")
 		if(tmp[pieces[0]]){
 			tmp[pieces[0]][pieces[1]] = n
@@ -28,7 +32,7 @@ function is_json_obj(str :string):boolean{
 		return false
 	}
 	try{
-		let tmp=JSON.parse(str)
+		JSON.parse(str)
 	}catch(e){
 		return false
 	}
@@ -44,9 +48,11 @@ const config_proxy_instance=ref<string>("")
 
 const keys=ref<Map<string,appAPI.KeyConfigInfo>>(new Map())
 const t_keys_hover=ref<boolean>(false)
+const keyhover=ref<string>("")
 
 const proxys=ref<Map<string,appAPI.ProxyPathInfo>>(new Map())
 const t_proxys_hover=ref<boolean>(false)
+const proxyhover=ref<string>("")
 
 const instances=ref<appAPI.InstanceInfo[]>([])
 const t_instances_hover=ref<boolean>(false)
@@ -55,10 +61,17 @@ const get_app_status=ref<boolean>(false)
 
 function get_app(){
 	if(curg.value==""||cura.value==""){
-		keys.value=null
-		proxys.value=null
+		keys.value=new Map()
+		proxys.value=new Map()
 		config_proxy_instance.value=""
 		state.set_alert("error",-2,"Group and App must be selected!")
+		return
+	}
+	if(!all.value[curg.value][cura.value].node_id||all.value[curg.value][cura.value].node_id!.length!=4){
+		keys.value=new Map()
+		proxys.value=new Map()
+		config_proxy_instance.value=""
+		state.set_alert("error",-2,"Missing node_id on Group:"+curg.value+" App:"+cura.value)
 		return
 	}
 	if(!state.set_load()){
@@ -69,12 +82,24 @@ function get_app(){
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetAppResp)=>{
 		if(resp.keys){
-			keys.value = new Map([...resp.keys.entries()].sort())
+			keys.value=new Map()
+			let tmp = [...resp.keys.entries()].sort()
+			for(let i=0;i<tmp.length;i++){
+				if(tmp[i][1]){
+					keys.value.set(tmp[i][0],tmp[i][1]!)
+				}
+			}
 		}else{
 			keys.value = new Map()
 		}
 		if(resp.paths){
-			proxys.value = new Map([...resp.paths.entries()].sort())
+			proxys.value = new Map()
+			let tmp = [...resp.paths.entries()].sort()
+			for(let i=0;i<tmp.length;i++){
+				if(tmp[i][1]){
+					proxys.value.set(tmp[i][0],tmp[i][1]!)
+				}
+			}
 		}else{
 			proxys.value = new Map()
 		}
@@ -95,7 +120,13 @@ function get_instances(){
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetAppInstancesResp)=>{
 		if(resp.instances){
-			instances.value=resp.instances
+			let tmp:appAPI.InstanceInfo[]=[]
+			for(let i=0;i<resp.instances.length;i++){
+				if(resp.instances[i]){
+					tmp.push(resp.instances[i]!)
+				}
+			}
+			instances.value=tmp
 		}else{
 			instances.value=[]
 		}
@@ -141,7 +172,7 @@ function get_pprof(host_ip: string){
 		fileLink.setAttribute('download', 'profile')
 		document.body.appendChild(fileLink)
 		fileLink.click()
-		fileLink.parentNode.removeChild(fileLink)
+		fileLink.parentNode!.removeChild(fileLink)
 		window.URL.revokeObjectURL(fileURL)
 		state.clear_load()
 	})
@@ -210,13 +241,13 @@ function new_proxy_permission_update(t :string){
 	}
 }
 function new_proxy_permission_same(proxy :string):boolean{
-	if(proxys.value.get(proxy).read!=new_proxy_permission_read.value){
+	if(proxys.value.get(proxy)!.read!=new_proxy_permission_read.value){
 		return false 
 	}
-	if(proxys.value.get(proxy).write!=new_proxy_permission_write.value){
+	if(proxys.value.get(proxy)!.write!=new_proxy_permission_write.value){
 		return false
 	}
-	if(proxys.value.get(proxy).admin!=new_proxy_permission_admin.value){
+	if(proxys.value.get(proxy)!.admin!=new_proxy_permission_admin.value){
 		return false
 	}
 	return true
@@ -241,12 +272,14 @@ function app_op(){
 			client.appClient.del_app({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,secret:secret.value},client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.DelAppResp)=>{
+			},(_resp: appAPI.DelAppResp)=>{
 				let node = all.value[curg.value][cura.value]
-				for(let i=0;i<state.page.node.children.length;i++){
-					if(node == state.page.node.children[i]){
-						state.page.node.children.splice(i,1)
-						break
+				if(state.page.node!.children){
+					for(let i=0;i<state.page.node!.children!.length;i++){
+						if(node == state.page.node!.children![i]){
+							state.page.node!.children!.splice(i,1)
+							break
+						}
 					}
 				}
 				curg.value=""
@@ -269,8 +302,8 @@ function app_op(){
 				if(all.value[new_g.value] && all.value[new_g.value][new_a.value]){
 					return
 				}
-				if(state.page.node.children){
-					state.page.node.children.push({
+				if(state.page.node!.children){
+					state.page.node!.children!.push({
 						node_id:resp.node_id,
 						node_name:new_g.value+"."+new_a.value,
 						node_data:"",
@@ -280,7 +313,7 @@ function app_op(){
 						children:[],
 					})
 				}else{
-					state.page.node.children=[{
+					state.page.node!.children=[{
 						node_id:resp.node_id,
 						node_name:new_g.value+"."+new_a.value,
 						node_data:"",
@@ -308,7 +341,7 @@ function app_op(){
 			client.appClient.update_app_secret({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.UpdateAppSecretResp)=>{
+			},(_resp: appAPI.UpdateAppSecretResp)=>{
 				update_g.value=""
 				update_a.value=""
 				update_old_secret.value=""
@@ -354,7 +387,7 @@ function app_op(){
 			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.SetKeyConfigResp)=>{
+			},(_resp: appAPI.SetKeyConfigResp)=>{
 				keys.value.set(config_key.value,{
 					cur_index:1,
 					max_index:1,
@@ -383,7 +416,7 @@ function app_op(){
 			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.SetKeyConfigResp)=>{
+			},(_resp: appAPI.SetKeyConfigResp)=>{
 				new_cur_key_value_type.value=''
 				ing.value=false
 				state.clear_load()
@@ -402,7 +435,7 @@ function app_op(){
 			client.appClient.rollback({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.RollbackResp)=>{
+			},(_resp: appAPI.RollbackResp)=>{
 				cur_key_index.value=0
 				ing.value=false
 				state.clear_load()
@@ -420,7 +453,7 @@ function app_op(){
 			client.appClient.del_key({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.DelKeyResp)=>{
+			},(_resp: appAPI.DelKeyResp)=>{
 				keys.value.delete(cur_key.value)
 				cur_key.value=""
 				ing.value=false
@@ -480,10 +513,10 @@ function app_op(){
 			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.SetProxyResp)=>{
-				proxys.value.get(cur_proxy.value).read=new_proxy_permission_read.value
-				proxys.value.get(cur_proxy.value).write=new_proxy_permission_write.value
-				proxys.value.get(cur_proxy.value).admin=new_proxy_permission_admin.value
+			},(_resp: appAPI.SetProxyResp)=>{
+				proxys.value.get(cur_proxy.value)!.read=new_proxy_permission_read.value
+				proxys.value.get(cur_proxy.value)!.write=new_proxy_permission_write.value
+				proxys.value.get(cur_proxy.value)!.admin=new_proxy_permission_admin.value
 				ing.value=false
 				state.clear_load()
 			})
@@ -499,7 +532,7 @@ function app_op(){
 			client.appClient.del_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.DelProxyResp)=>{
+			},(_resp: appAPI.DelProxyResp)=>{
 				proxys.value.delete(cur_proxy.value)
 				cur_proxy.value=''
 				ing.value=false
@@ -508,21 +541,15 @@ function app_op(){
 			break
 		}
 		case 'proxy':{
-				resp.value='{"hello":"world"}'
-				respstatus.value=true
-				ing.value=false
-				state.clear_load()
-				/*
 			client.appClient.proxy({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,path:cur_proxy.value,data:req.value,},client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.ProxyResp)=>{
-				resp.value=resp.data
+			},(r: appAPI.ProxyResp)=>{
+				resp.value=r.data
 				respstatus.value=true
 				ing.value=false
 				state.clear_load()
 			})
-			*/
 			break
 		}
 		default:{
@@ -820,7 +847,7 @@ function app_op(){
 				</template>
 			</va-input>
 			<va-button style="margin:0 2px" :disabled="curg==''||cura==''" @click="get_app">Search</va-button>
-			<va-dropdown  v-if="state.page.node.admin" trigger="hover" style="width:36px;margin-right:4px">
+			<va-dropdown  v-if="state.page.node!.admin" trigger="hover" style="width:36px;margin-right:4px">
 				<template #anchor>
 					<va-button>•••</va-button>
 				</template>
@@ -872,7 +899,7 @@ function app_op(){
 				<div
 					v-if="cur_key==''||cur_key==key"
 					style="cursor:pointer;display:flex;align-items:center;margin:1px 10px"
-					:style="{'background-color':keys.get(key).hover?'var(--va-shadow)':'var(--va-background-element)'}"
+					:style="{'background-color':keyhover==key?'var(--va-shadow)':'var(--va-background-element)'}"
 					@click="()=>{
 						if(cur_key==''){
 							cur_key=key
@@ -882,17 +909,17 @@ function app_op(){
 							cur_key=''
 						}
 					}"
-					@mouseover="keys.get(key).hover=true"
-					@mouseout="keys.get(key).hover=false"
+					@mouseover="keyhover=key"
+					@mouseout="keyhover=''"
 				>
 					<span style="width:35px;padding:12px;color:var(--va-primary)"> {{ cur_key!=''&&cur_key==key?'▼':'►' }} </span>
 					<span style="padding:12px;color:var(--va-primary)">{{key}}</span>
 				</div>
 				<div v-if="cur_key==key" style="flex:1;display:flex;margin:1px 20px;overflow-y:auto">
 					<div style="flex:1;display:flex;flex-direction:column;overflow-y:auto">
-						<textarea readonly style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px">{{JSON.stringify(JSON.parse(keys.get(key).cur_value),null,4)}}</textarea>
+						<textarea readonly style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px">{{JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)}}</textarea>
 						<div style="align-self:center;display:flex;align-items:center">
-							<b style="color:var(--va-primary);margin-right:10px">Current Config ID:  {{ keys.get(key).cur_index }}</b>
+							<b style="color:var(--va-primary);margin-right:10px">Current Config ID:  {{ keys.get(key)!.cur_index }}</b>
 							<va-dropdown trigger="hover" :disabled="cur_key_index!=0||new_cur_key_value_type!=''" prevent-overflow placement="top">
 								<template #anchor>
 									<va-button style="width:60px;height:30px;margin:2px" size="small">History</va-button>
@@ -900,13 +927,13 @@ function app_op(){
 								<va-dropdown-content>
 									<div style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column">
 										<va-button
-											v-for="index of keys.get(key).max_index"
+											v-for="index of keys.get(key)!.max_index"
 											size="small"
 											style="height:24px;width:42px;padding:5px 0;margin:1px;cursor:pointer"
-											:disabled="keys.get(key).cur_index==keys.get(key).max_index-index+1"
-											@click="cur_key_index=keys.get(key).max_index-index+1;optype='get_key';app_op()"
+											:disabled="keys.get(key)!.cur_index==keys.get(key)!.max_index-index+1"
+											@click="cur_key_index=keys.get(key)!.max_index-index+1;optype='get_key';app_op()"
 										>
-											{{keys.get(key).max_index-index+1}}
+											{{keys.get(key)!.max_index-index+1}}
 										</va-button>
 									</div>
 								</va-dropdown-content>
@@ -917,9 +944,9 @@ function app_op(){
 								style="width:60px;height:30px;margin:2px"
 								:disabled="cur_key_index!=0||new_cur_key_value_type!=''"
 								@click="()=>{
-									if(keys.get(key).cur_value){
-										new_cur_key_value=JSON.stringify(JSON.parse(keys.get(key).cur_value),null,4)
-										new_cur_key_value_type=keys.get(key).cur_value_type
+									if(keys.get(key)!.cur_value){
+										new_cur_key_value=JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)
+										new_cur_key_value_type=keys.get(key)!.cur_value_type
 									}else{
 										new_cur_key_value='{\n}'
 										new_cur_key_value_type='json'
@@ -929,7 +956,7 @@ function app_op(){
 								Edit
 							</va-button>
 							<va-button
-								v-if="(all[curg][cura].canwrite||all[curg][cura].admin)&&((key!='AppConfig'&&key!='SourceConfig')||all[curg][cura].node_id[1]!=1||all[curg][cura].node_id[3]!=1)"
+								v-if="(all[curg][cura].canwrite||all[curg][cura].admin)&&((key!='AppConfig'&&key!='SourceConfig')||all[curg][cura].node_id![1]!=1||all[curg][cura].node_id![3]!=1)"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
 								@click.stop="optype='del_key';ing=true"
@@ -972,7 +999,7 @@ function app_op(){
 							</va-button>
 							<va-button
 								v-if="new_cur_key_value_type!=''"
-								:disabled="!is_json_obj(new_cur_key_value)||JSON.stringify(JSON.parse(new_cur_key_value),null,4)==JSON.stringify(JSON.parse(keys.get(key).cur_value),null,4)"
+								:disabled="!is_json_obj(new_cur_key_value)||JSON.stringify(JSON.parse(new_cur_key_value),null,4)==JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
 								@click="optype='update_key';ing=true"
@@ -990,7 +1017,7 @@ function app_op(){
 		</div>
 		<!-- proxys -->
 		<div
-			v-if="get_app_status&&(all[curg][cura].node_id[1]!=1||all[curg][cura].node_id[3]!=1)&&(config_proxy_instance=='proxy'||config_proxy_instance=='')" 
+			v-if="get_app_status&&(all[curg][cura].node_id![1]!=1||all[curg][cura].node_id![3]!=1)&&(config_proxy_instance=='proxy'||config_proxy_instance=='')" 
 			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_proxys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
@@ -1023,16 +1050,16 @@ function app_op(){
 				<div
 					v-if="cur_proxy==''||cur_proxy==proxy"
 					style="cursor:pointer;display:flex;align-items:center;margin:1px 10px"
-					:style="{'background-color':proxys.get(proxy).hover?'var(--va-shadow)':'var(--va-background-element)'}"
-					@mouseover="proxys.get(proxy).hover=true"
-					@mouseout="proxys.get(proxy).hover=false"
+					:style="{'background-color':proxyhover==proxy?'var(--va-shadow)':'var(--va-background-element)'}"
+					@mouseover="proxyhover=proxy"
+					@mouseout="proxyhover=''"
 					@click="()=>{
 						if(cur_proxy==''){
 							cur_proxy=proxy
 							req='{\n}'
-							new_proxy_permission_read=proxys.get(proxy).read
-							new_proxy_permission_write=proxys.get(proxy).write
-							new_proxy_permission_admin=proxys.get(proxy).admin
+							new_proxy_permission_read=proxys.get(proxy)!.read
+							new_proxy_permission_write=proxys.get(proxy)!.write
+							new_proxy_permission_admin=proxys.get(proxy)!.admin
 							respstatus=false
 						}else{
 							cur_proxy=''
@@ -1153,7 +1180,7 @@ function app_op(){
 				<div style="margin:1px;display:flex">
 					<span style="width:85px">CPU Use</span>
 					<va-divider vertical />
-					<span style="width:200px">{{instance.cpu_usage.toFixed(4)*100}}%</span>
+					<span style="width:200px">{{(instance.cpu_usage*100).toFixed(2)}}%</span>
 				</div>
 				<div style="margin:1px;display:flex">
 					<span style="width:85px">Mem Total</span>
@@ -1163,7 +1190,7 @@ function app_op(){
 				<div style="margin:1px;display:flex">
 					<span style="width:85px">Mem Use</span>
 					<va-divider vertical />
-					<span style="width:200px">{{instance.mem_usage.toFixed(4)*100}}%</span>
+					<span style="width:200px">{{(instance.mem_usage*100).toFixed(2)}}%</span>
 				</div>
 				<va-divider style="width:100%"/>
 				<va-button style="margin-bottom:3px" @click="get_pprof(instance.host_ip)">PPROF</va-button>

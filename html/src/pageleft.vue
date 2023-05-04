@@ -3,7 +3,6 @@ import {ref,onMounted} from 'vue'
 
 import * as initializeAPI from '../../api/initialize_browser_toc'
 import * as permissionAPI from '../../api/permission_browser_toc'
-import * as userAPI from '../../api/user_browser_toc'
 
 import * as state from './state'
 import * as client from './client'
@@ -14,7 +13,7 @@ onMounted(()=>{
 	get_projects()
 })
 
-const allprojects=ref<initializeAPI.projectInfo[]>([])
+const allprojects=ref<initializeAPI.ProjectInfo[]>([])
 
 function get_projects(){
 	if(!state.set_load()){
@@ -24,12 +23,25 @@ function get_projects(){
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.ListProjectResp)=>{
-		allprojects.value=resp.projects
+		if(resp.projects){
+			let tmp: initializeAPI.ProjectInfo[] = []
+			for(let i=0;i<resp.projects.length;i++){
+				if(resp.projects[i]){
+					tmp.push(resp.projects[i]!)
+				}
+			}
+			allprojects.value = tmp
+		}else{
+			allprojects.value=[]
+		}
 		//if the selected project doesn't exist,sidemenu need to be reset
 		if(state.project.cur_id.length!=0){
 			let find: boolean=false
 			for(let i=0;i<allprojects.value.length;i++){
-				if(same_node_id(allprojects.value[i].project_id,state.project.cur_id)){
+				if(!allprojects.value[i].project_id){
+					continue
+				}
+				if(same_node_id(allprojects.value[i].project_id!,state.project.cur_id)){
 					find=true
 					state.project.cur_name=allprojects.value[i].project_name
 					break
@@ -44,7 +56,7 @@ function get_projects(){
 	})
 }
 
-const projectnodes=ref<permissionAPI.NodeInfo>(null)
+const projectnodes=ref<permissionAPI.NodeInfo|null>(null)
 
 function select_project(){
 	if(!state.set_load()){
@@ -58,7 +70,11 @@ function select_project(){
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: permissionAPI.ListUserNodeResp)=>{
-		projectnodes.value=resp.node
+		if(resp.node){
+			projectnodes.value=resp.node!
+		}else{
+			projectnodes.value=null
+		}
 		state.clear_page()
 		state.clear_load()
 	})
@@ -83,7 +99,7 @@ function project_op(){
 			client.initializeClient.create_project({"Token":state.user.token},req,client.timeout,(e: initializeAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: initializeAPI.CreateProjectResp)=>{
+			},(_resp: initializeAPI.CreateProjectResp)=>{
 				project_name.value=''
 				project_ing.value=false
 				state.clear_load()
@@ -100,7 +116,7 @@ function project_op(){
 			client.initializeClient.update_project({"Token":state.user.token},req,client.timeout,(e: initializeAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: initializeAPI.CreateProjectResp)=>{
+			},(_resp: initializeAPI.UpdateProjectResp)=>{
 				project_name.value=''
 				project_ing.value=false
 				state.clear_load()
@@ -115,7 +131,7 @@ function project_op(){
 			client.initializeClient.delete_project({"Token":state.user.token},req,client.timeout,(e :initializeAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp :initializeAPI.DeleteProjectResp)=>{
+			},(_resp :initializeAPI.DeleteProjectResp)=>{
 				project_ing.value=false
 				state.clear_project()
 				projectnodes.value=null
@@ -131,8 +147,8 @@ function project_op(){
 	}
 }
 
-const ptarget=ref<permissionAPI.NodeInfo>(null)
-const target=ref<permissionAPI.NodeInfo>(null)
+const ptarget=ref<permissionAPI.NodeInfo|null>(null)
+const target=ref<permissionAPI.NodeInfo|null>(null)
 const node_name=ref<string>("")
 const node_url=ref<string>("")
 
@@ -146,7 +162,7 @@ function node_op(){
 	switch(optype.value){
 		case 'add':{
 			let req:permissionAPI.AddNodeReq = {
-				pnode_id:target.value.node_id,
+				pnode_id:target.value!.node_id,
 				node_name:node_name.value,
 				node_data:node_url.value,
 			}
@@ -155,8 +171,8 @@ function node_op(){
 				state.set_alert("error",e.code,e.msg)
 			},(resp :permissionAPI.AddNodeResp)=>{
 				node_ing.value=false
-				if(target.value.children){
-					target.value.children.push({
+				if(target.value!.children){
+					target.value!.children.push({
 						node_id:resp.node_id,
 						node_name:node_name.value,
 						node_data:node_url.value,
@@ -166,7 +182,7 @@ function node_op(){
 						children:[],
 					})
 				}else{
-					target.value.children=[{
+					target.value!.children=[{
 						node_id:resp.node_id,
 						node_name:node_name.value,
 						node_data:node_url.value,
@@ -185,17 +201,17 @@ function node_op(){
 		}
 		case 'update':{
 			let req:permissionAPI.UpdateNodeReq = {
-				node_id:target.value.node_id,
+				node_id:target.value!.node_id,
 				new_node_name:node_name.value,
 				new_node_data:node_url.value,
 			}
 			client.permissionClient.update_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp :permissionAPI.UpdateNodeResp)=>{
+			},(_resp :permissionAPI.UpdateNodeResp)=>{
 				node_ing.value=false
-				target.value.node_name=node_name.value
-				target.value.node_data=node_url.value
+				target.value!.node_name=node_name.value
+				target.value!.node_data=node_url.value
 				target.value=null
 				node_name.value=""
 				node_url.value=""
@@ -205,16 +221,16 @@ function node_op(){
 		}
 		case 'del':{
 			let req:permissionAPI.DelNodeReq = {
-				node_id:target.value.node_id,
+				node_id:target.value!.node_id,
 			}
 			client.permissionClient.del_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp :permissionAPI.DelNodeResp)=>{
+			},(_resp :permissionAPI.DelNodeResp)=>{
 				node_ing.value=false
-				for(let i=0;i<ptarget.value.children.length;i++){
-					if (ptarget.value.children[i]==target.value){
-						ptarget.value.children.splice(i,1)
+				for(let i=0;i<ptarget.value!.children!.length;i++){
+					if (ptarget.value!.children![i]==target.value!){
+						ptarget.value!.children!.splice(i,1)
 						break
 					}
 				}
@@ -239,7 +255,7 @@ function need_create_main_menu_button():boolean{
 		return false
 	}
 	//need this button when have admin permission on this project
-	return projectnodes.value.admin
+	return projectnodes.value!=null&&projectnodes.value.admin
 }
 function same_node_id(a:number[],b:number[]):boolean{
 	if(!Boolean(a)&&!Boolean(b)){
@@ -295,7 +311,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 				<va-card color="primary" gradient style="margin:0 0 5px 0">
 					<va-card-title>Warning</va-card-title>
 					<va-card-content>
-						<p>You are deleting node: {{ target.node_name }}.</p>
+						<p>You are deleting node: {{ target!.node_name }}.</p>
 						<p>All data in this node will be deleted.</p>
 						<p>Please confirm!</p>
 					</va-card-content>
@@ -386,8 +402,8 @@ function same_node_id(a:number[],b:number[]):boolean{
 		</div>
 		<div style="flex:1;overflow-x:hidden;overflow-y:auto;background-color:var(--va-background-element)">
 			<menutree
-			v-if="Boolean(projectnodes)&&Boolean(projectnodes.children)&&projectnodes.children.length>0"
-			:pnode="projectnodes"
+			v-if="Boolean(projectnodes)&&Boolean(projectnodes!.children)&&projectnodes!.children!.length>0"
+			:pnode="projectnodes!"
 			:deep="0"
 			@nodeevent="(pnode,node,type)=>{
 				node_name='';

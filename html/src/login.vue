@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {ref,onMounted} from 'vue'
 
+import * as initializeAPI from '../../api/initialize_browser_toc'
 import * as userAPI from '../../api/user_browser_toc'
 import * as state from './state'
 import * as client from './client'
@@ -18,7 +19,11 @@ onMounted(()=>{
 				state.set_alert("error",e.code,e.msg)
 			},(resp :userAPI.LoginInfoResp)=>{
 				state.user.token=obj.token
-				state.user.info=resp.user
+				if(resp.user){
+					state.user.info=resp.user
+				}else{
+					state.user.info=null
+				}
 				state.clear_load()
 			})
 		}else{
@@ -55,15 +60,17 @@ function do_login_root(){
 const oauth2 = ref("")
 const oauth2s = ref(["Oauth2 Service Name 1","Oauth2 Service Name 2"])
 const oauth2img = ref("")
+/* TODO
 function do_login_user(){
 
 }
+*/
 </script>
 <template>
 	<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center">
 		<div v-if="!state.user.root">
 			<va-select v-model="oauth2" :options="oauth2s" no-options-text="NO Oauth2 Login" label="Select Oauth2 Login" dropdown-icon="" style="width:400px" trigger="hover" prevent-overflow>
-				<template #option='{option,index,selectOption}'>
+				<template #option='{option,_,selectOption}'>
 					<va-hover
 					stateful
 					@click="()=>{

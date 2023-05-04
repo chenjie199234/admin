@@ -1325,7 +1325,7 @@ export class AppBrowserClientToC {
 		try{
 			body=GetAppReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1337,7 +1337,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:GetAppResp=JsonToGetAppResp(response.data)
 				successf(obj)
@@ -1346,7 +1346,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1377,7 +1377,7 @@ export class AppBrowserClientToC {
 		try{
 			body=GetAppInstancesReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1389,7 +1389,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:GetAppInstancesResp=JsonToGetAppInstancesResp(response.data)
 				successf(obj)
@@ -1398,7 +1398,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1429,7 +1429,7 @@ export class AppBrowserClientToC {
 		try{
 			body=GetAppInstanceCmdReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1441,7 +1441,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:GetAppInstanceCmdResp=JsonToGetAppInstanceCmdResp(response.data)
 				successf(obj)
@@ -1450,7 +1450,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1481,7 +1481,7 @@ export class AppBrowserClientToC {
 		try{
 			body=CreateAppReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1493,7 +1493,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:CreateAppResp=JsonToCreateAppResp(response.data)
 				successf(obj)
@@ -1502,7 +1502,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1533,7 +1533,7 @@ export class AppBrowserClientToC {
 		try{
 			body=DelAppReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1545,7 +1545,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:DelAppResp=JsonToDelAppResp(response.data)
 				successf(obj)
@@ -1554,7 +1554,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1585,7 +1585,7 @@ export class AppBrowserClientToC {
 		try{
 			body=UpdateAppSecretReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1597,7 +1597,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:UpdateAppSecretResp=JsonToUpdateAppSecretResp(response.data)
 				successf(obj)
@@ -1606,7 +1606,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1637,7 +1637,7 @@ export class AppBrowserClientToC {
 		try{
 			body=DelKeyReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1649,7 +1649,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:DelKeyResp=JsonToDelKeyResp(response.data)
 				successf(obj)
@@ -1658,7 +1658,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1689,7 +1689,7 @@ export class AppBrowserClientToC {
 		try{
 			body=GetKeyConfigReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1701,7 +1701,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:GetKeyConfigResp=JsonToGetKeyConfigResp(response.data)
 				successf(obj)
@@ -1710,7 +1710,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1741,7 +1741,7 @@ export class AppBrowserClientToC {
 		try{
 			body=SetKeyConfigReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1753,7 +1753,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:SetKeyConfigResp=JsonToSetKeyConfigResp(response.data)
 				successf(obj)
@@ -1762,7 +1762,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1793,7 +1793,7 @@ export class AppBrowserClientToC {
 		try{
 			body=RollbackReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1805,7 +1805,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:RollbackResp=JsonToRollbackResp(response.data)
 				successf(obj)
@@ -1814,7 +1814,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1845,7 +1845,7 @@ export class AppBrowserClientToC {
 		try{
 			body=WatchReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1857,7 +1857,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:WatchResp=JsonToWatchResp(response.data)
 				successf(obj)
@@ -1866,7 +1866,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1897,7 +1897,7 @@ export class AppBrowserClientToC {
 		try{
 			body=SetProxyReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1909,7 +1909,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:SetProxyResp=JsonToSetProxyResp(response.data)
 				successf(obj)
@@ -1918,7 +1918,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1949,7 +1949,7 @@ export class AppBrowserClientToC {
 		try{
 			body=DelProxyReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -1961,7 +1961,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:DelProxyResp=JsonToDelProxyResp(response.data)
 				successf(obj)
@@ -1970,7 +1970,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -2001,7 +2001,7 @@ export class AppBrowserClientToC {
 		try{
 			body=ProxyReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -2013,7 +2013,7 @@ export class AppBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:ProxyResp=JsonToProxyResp(response.data)
 				successf(obj)
@@ -2022,7 +2022,7 @@ export class AppBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return

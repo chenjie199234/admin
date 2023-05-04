@@ -5,41 +5,44 @@ const props=defineProps<{
 	pnode:permissionAPI.NodeInfo
 	deep:number
 }>()
+const new_canread=ref<boolean>(false)
+const new_canwrite=ref<boolean>(false)
+const new_admin=ref<boolean>(false)
 onMounted(()=>{
-	props.pnode.new_canread=props.pnode.canread
-	props.pnode.new_canwrite=props.pnode.canwrite
-	props.pnode.new_admin=props.pnode.admin
+	new_canread.value=props.pnode.canread
+	new_canwrite.value=props.pnode.canwrite
+	new_admin.value=props.pnode.admin
 })
 const open=ref<boolean>(false)
 const hover=ref<boolean>(false)
 function permission_update(t :string){
 	switch(t){
 		case "read":{
-			if(!props.pnode.new_canread){
-				props.pnode.new_canwrite=false
-				props.pnode.new_admin=false
+			if(!new_canread.value){
+				new_canwrite.value=false
+				new_admin.value=false
 			}
 			break
 		}
 		case "write":{
-			if(!props.pnode.new_canwrite){
-				props.pnode.new_admin=false
+			if(!new_canwrite.value){
+				new_admin.value=false
 			}else{
-				props.pnode.new_canread=true
+				new_canread.value=true
 			}
 			break
 		}
 		case "admin":{
-			if(props.pnode.new_admin){
-				props.pnode.new_canread=true
-				props.pnode.new_canwrite=true
+			if(new_admin.value){
+				new_canread.value=true
+				new_canwrite.value=true
 			}
 			break
 		}
 	}
 }
 function permission_same():boolean{
-	return props.pnode.new_canread==props.pnode.canread&&props.pnode.new_canwrite==props.pnode.canwrite&&props.pnode.new_admin==props.pnode.admin
+	return new_canread.value==props.pnode.canread&&new_canwrite.value==props.pnode.canwrite&&new_admin.value==props.pnode.admin
 }
 </script>
 <template>
@@ -50,7 +53,7 @@ function permission_same():boolean{
 			<va-switch
 				off-color="shadow"
 				style="margin:2px"
-				v-model="pnode.new_canread"
+				v-model="new_canread"
 				true-inner-label="Read"
 				false-inner-label="Read"
 				@update:model-value="permission_update('read')"
@@ -58,7 +61,7 @@ function permission_same():boolean{
 			<va-switch
 				off-color="shadow"
 				style="margin:2px"
-				v-model="pnode.new_canwrite"
+				v-model="new_canwrite"
 				true-inner-label="Write"
 				false-inner-label="Write"
 				@update:model-value="permission_update('write')"
@@ -66,7 +69,7 @@ function permission_same():boolean{
 			<va-switch
 				off-color="shadow"
 				style="margin:2px"
-				v-model="pnode.new_admin"
+				v-model="new_admin"
 				true-inner-label="Admin"
 				false-inner-label="Admin"
 				@update:model-value="permission_update('admin')"
@@ -74,12 +77,12 @@ function permission_same():boolean{
 			<va-button
 				:disabled="permission_same()"
 				style="margin:2px"
-				@click="$emit('permissionevent',pnode,pnode.new_canread,pnode.new_canwrite,pnode.new_admin)"
+				@click="$emit('permissionevent',pnode,new_canread,new_canwrite,new_admin)"
 			>
 				Update
 			</va-button>
 			<div
-				v-if="Boolean(pnode.children)&&pnode.children.length>0"
+				v-if="Boolean(pnode.children)&&pnode.children!.length>0"
 				style="padding:5px 10px;border-radius:3px;cursor:pointer"
 				:style="{'background-color':hover?'var(--va-shadow)':''}"
 				@mouseover="hover=true"
@@ -89,8 +92,10 @@ function permission_same():boolean{
 				{{open?'▲':'▼'}}
 			</div>
 		</div>
-		<div v-if="open&&Boolean(pnode.children)&&pnode.children.length>0" style="flex:1;display:flex">
-			<nodetree v-for="child of pnode.children" :pnode="child" :deep="deep+1" @permissionevent="(updatenode,r,w,a)=>{$emit('permissionevent',updatenode,r,w,a)}"/>
+		<div v-if="open&&Boolean(pnode.children)&&pnode.children!.length>0" style="flex:1;display:flex">
+			<template v-for="child of pnode.children">
+				<nodetree v-if="Boolean(child)" :pnode="child!" :deep="deep+1" @permissionevent="(updatenode,r,w,a)=>{$emit('permissionevent',updatenode,r,w,a)}"/>
+			</template>
 		</div>
 	</div>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {ref,onMounted} from  'vue'
+import * as initializeAPI from '../../api/initialize_browser_toc'
 import * as state from './state'
 import * as client from './client'
 
@@ -21,7 +22,7 @@ const t_access_key=ref<boolean>(false)
 const password=ref<string>("")
 const t_password=ref<boolean>(false)
 function init_able():boolean{
-	return access_key.value && password.value.length>=10 && password.value.length<32
+	return access_key.value!="" && password.value.length>=10 && password.value.length<32
 }
 function do_init(){
 	if(!init_able()){
@@ -38,7 +39,7 @@ function do_init(){
 	client.initializeClient.init({"Access-Key":access_key.value},{password:password.value},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
-	},(resp: initializeAPI.InitResp)=>{
+	},(_resp: initializeAPI.InitResp)=>{
 		state.clear_load()
 		access_key.value=""
 		password.value=""

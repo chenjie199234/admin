@@ -448,7 +448,7 @@ export class InitializeBrowserClientToC {
 		try{
 			body=InitStatusReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -460,7 +460,7 @@ export class InitializeBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:InitStatusResp=JsonToInitStatusResp(response.data)
 				successf(obj)
@@ -469,7 +469,7 @@ export class InitializeBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -500,7 +500,7 @@ export class InitializeBrowserClientToC {
 		try{
 			body=InitReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -512,7 +512,7 @@ export class InitializeBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:InitResp=JsonToInitResp(response.data)
 				successf(obj)
@@ -521,7 +521,7 @@ export class InitializeBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -552,7 +552,7 @@ export class InitializeBrowserClientToC {
 		try{
 			body=RootLoginReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -564,7 +564,7 @@ export class InitializeBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:RootLoginResp=JsonToRootLoginResp(response.data)
 				successf(obj)
@@ -573,7 +573,7 @@ export class InitializeBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -604,7 +604,7 @@ export class InitializeBrowserClientToC {
 		try{
 			body=RootPasswordReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -616,7 +616,7 @@ export class InitializeBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:RootPasswordResp=JsonToRootPasswordResp(response.data)
 				successf(obj)
@@ -625,7 +625,7 @@ export class InitializeBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -656,7 +656,7 @@ export class InitializeBrowserClientToC {
 		try{
 			body=CreateProjectReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -668,7 +668,7 @@ export class InitializeBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:CreateProjectResp=JsonToCreateProjectResp(response.data)
 				successf(obj)
@@ -677,7 +677,7 @@ export class InitializeBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -708,7 +708,7 @@ export class InitializeBrowserClientToC {
 		try{
 			body=UpdateProjectReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -720,7 +720,7 @@ export class InitializeBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:UpdateProjectResp=JsonToUpdateProjectResp(response.data)
 				successf(obj)
@@ -729,7 +729,7 @@ export class InitializeBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -760,7 +760,7 @@ export class InitializeBrowserClientToC {
 		try{
 			body=ListProjectReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -772,7 +772,7 @@ export class InitializeBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:ListProjectResp=JsonToListProjectResp(response.data)
 				successf(obj)
@@ -781,7 +781,7 @@ export class InitializeBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -812,7 +812,7 @@ export class InitializeBrowserClientToC {
 		try{
 			body=DeleteProjectReqToJson(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -824,7 +824,7 @@ export class InitializeBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:DeleteProjectResp=JsonToDeleteProjectResp(response.data)
 				successf(obj)
@@ -833,7 +833,7 @@ export class InitializeBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return

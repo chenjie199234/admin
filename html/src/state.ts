@@ -58,7 +58,7 @@ export function get_alert_title():string{
 export const user = reactive<{
 	root:boolean
 	token:string
-	info:userAPI.UserInfo
+	info:userAPI.UserInfo|null
 }>({
 	root:false,
 	token:"",
@@ -107,7 +107,7 @@ export function clear_project(){
 
 //-------------------------------------------------------------------------------
 export const page = reactive<{
-	node:permissionAPI.NodeInfo
+	node:permissionAPI.NodeInfo|null
 }>({
 	node:null,
 })

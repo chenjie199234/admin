@@ -124,7 +124,7 @@ export class StatusBrowserClientToC {
 		try{
 			form=PingreqToForm(req)
 		}catch(e){
-			errorf({code:-2,msg:e})
+			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
@@ -135,7 +135,7 @@ export class StatusBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response){
+		.then(function(response: Axios.AxiosResponse){
 			try{
 				let obj:Pingresp=JsonToPingresp(response.data)
 				successf(obj)
@@ -144,7 +144,7 @@ export class StatusBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error){
+		.catch(function(error: Axios.AxiosError){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return

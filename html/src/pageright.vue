@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 
+import * as initializeAPI from '../../api/initialize_browser_toc'
 import * as state from './state'
 import * as client from './client'
 
@@ -29,7 +30,7 @@ function do_change_root_password(){
 	client.initializeClient.root_password({"Token":state.user.token},{old_password:oldpassword.value,new_password:newpassword.value},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
-	},(resp: initializeAPI.RootPasswordResp)=>{
+	},(_resp: initializeAPI.RootPasswordResp)=>{
 		oldpassword.value=""
 		newpassword.value=""
 		t_oldpassword.value=false
@@ -80,8 +81,8 @@ function iframeload(){
 				</va-dropdown-content>
 			</va-dropdown>
 		</div>
-		<userrole v-if="Boolean(state.page.node)&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==1"></userrole>
-		<app v-else-if="Boolean(state.page.node)&&state.page.node.node_id.length==3&&state.page.node.node_id[2]==2"></app>
-		<iframe v-else-if="Boolean(state.page.node)&&state.page.node.node_data!=''" width="100%" height="100%" frameborder="0" :src="state.page.node.node_data" @load="iframeload"></iframe>
+		<userrole v-if="Boolean(state.page.node)&&Boolean(state.page.node!.node_id)&&state.page.node!.node_id!.length==3&&state.page.node!.node_id![2]==1"></userrole>
+		<app v-else-if="Boolean(state.page.node)&&Boolean(state.page.node!.node_id)&&state.page.node!.node_id!.length==3&&state.page.node!.node_id![2]==2"></app>
+		<iframe v-else-if="Boolean(state.page.node)&&state.page.node!.node_data!=''" width="100%" height="100%" frameborder="0" :src="state.page.node!.node_data" @load="iframeload"></iframe>
 	</div>
 </template>

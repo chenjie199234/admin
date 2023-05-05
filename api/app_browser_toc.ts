@@ -136,7 +136,7 @@ function DelAppReqToJson(msg: DelAppReq): string{
 }
 export interface DelAppResp{
 }
-function JsonToDelAppResp(jsonobj: { [k:string]:any }): DelAppResp{
+function JsonToDelAppResp(_jsonobj: { [k:string]:any }): DelAppResp{
 	let obj: DelAppResp={
 	}
 	return obj
@@ -190,7 +190,7 @@ function DelKeyReqToJson(msg: DelKeyReq): string{
 }
 export interface DelKeyResp{
 }
-function JsonToDelKeyResp(jsonobj: { [k:string]:any }): DelKeyResp{
+function JsonToDelKeyResp(_jsonobj: { [k:string]:any }): DelKeyResp{
 	let obj: DelKeyResp={
 	}
 	return obj
@@ -244,7 +244,7 @@ function DelProxyReqToJson(msg: DelProxyReq): string{
 }
 export interface DelProxyResp{
 }
-function JsonToDelProxyResp(jsonobj: { [k:string]:any }): DelProxyResp{
+function JsonToDelProxyResp(_jsonobj: { [k:string]:any }): DelProxyResp{
 	let obj: DelProxyResp={
 	}
 	return obj
@@ -913,7 +913,7 @@ function RollbackReqToJson(msg: RollbackReq): string{
 }
 export interface RollbackResp{
 }
-function JsonToRollbackResp(jsonobj: { [k:string]:any }): RollbackResp{
+function JsonToRollbackResp(_jsonobj: { [k:string]:any }): RollbackResp{
 	let obj: RollbackResp={
 	}
 	return obj
@@ -992,7 +992,7 @@ function SetKeyConfigReqToJson(msg: SetKeyConfigReq): string{
 }
 export interface SetKeyConfigResp{
 }
-function JsonToSetKeyConfigResp(jsonobj: { [k:string]:any }): SetKeyConfigResp{
+function JsonToSetKeyConfigResp(_jsonobj: { [k:string]:any }): SetKeyConfigResp{
 	let obj: SetKeyConfigResp={
 	}
 	return obj
@@ -1148,7 +1148,7 @@ function UpdateAppSecretReqToJson(msg: UpdateAppSecretReq): string{
 }
 export interface UpdateAppSecretResp{
 }
-function JsonToUpdateAppSecretResp(jsonobj: { [k:string]:any }): UpdateAppSecretResp{
+function JsonToUpdateAppSecretResp(_jsonobj: { [k:string]:any }): UpdateAppSecretResp{
 	let obj: UpdateAppSecretResp={
 	}
 	return obj

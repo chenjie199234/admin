@@ -63,7 +63,7 @@ function AddUserRoleReqToJson(msg: AddUserRoleReq): string{
 }
 export interface AddUserRoleResp{
 }
-function JsonToAddUserRoleResp(jsonobj: { [k:string]:any }): AddUserRoleResp{
+function JsonToAddUserRoleResp(_jsonobj: { [k:string]:any }): AddUserRoleResp{
 	let obj: AddUserRoleResp={
 	}
 	return obj
@@ -120,7 +120,7 @@ function CreateRoleReqToJson(msg: CreateRoleReq): string{
 }
 export interface CreateRoleResp{
 }
-function JsonToCreateRoleResp(jsonobj: { [k:string]:any }): CreateRoleResp{
+function JsonToCreateRoleResp(_jsonobj: { [k:string]:any }): CreateRoleResp{
 	let obj: CreateRoleResp={
 	}
 	return obj
@@ -177,7 +177,7 @@ function DelRolesReqToJson(msg: DelRolesReq): string{
 }
 export interface DelRolesResp{
 }
-function JsonToDelRolesResp(jsonobj: { [k:string]:any }): DelRolesResp{
+function JsonToDelRolesResp(_jsonobj: { [k:string]:any }): DelRolesResp{
 	let obj: DelRolesResp={
 	}
 	return obj
@@ -234,7 +234,7 @@ function DelUserRoleReqToJson(msg: DelUserRoleReq): string{
 }
 export interface DelUserRoleResp{
 }
-function JsonToDelUserRoleResp(jsonobj: { [k:string]:any }): DelUserRoleResp{
+function JsonToDelUserRoleResp(_jsonobj: { [k:string]:any }): DelUserRoleResp{
 	let obj: DelUserRoleResp={
 	}
 	return obj
@@ -282,7 +282,7 @@ function InviteProjectReqToJson(msg: InviteProjectReq): string{
 }
 export interface InviteProjectResp{
 }
-function JsonToInviteProjectResp(jsonobj: { [k:string]:any }): InviteProjectResp{
+function JsonToInviteProjectResp(_jsonobj: { [k:string]:any }): InviteProjectResp{
 	let obj: InviteProjectResp={
 	}
 	return obj
@@ -330,14 +330,14 @@ function KickProjectReqToJson(msg: KickProjectReq): string{
 }
 export interface KickProjectResp{
 }
-function JsonToKickProjectResp(jsonobj: { [k:string]:any }): KickProjectResp{
+function JsonToKickProjectResp(_jsonobj: { [k:string]:any }): KickProjectResp{
 	let obj: KickProjectResp={
 	}
 	return obj
 }
 export interface LoginInfoReq{
 }
-function LoginInfoReqToJson(msg: LoginInfoReq): string{
+function LoginInfoReqToJson(_msg: LoginInfoReq): string{
 	let s: string="{"
 	if(s.length==1){
 		s+="}"
@@ -746,7 +746,7 @@ function UpdateRoleReqToJson(msg: UpdateRoleReq): string{
 }
 export interface UpdateRoleResp{
 }
-function JsonToUpdateRoleResp(jsonobj: { [k:string]:any }): UpdateRoleResp{
+function JsonToUpdateRoleResp(_jsonobj: { [k:string]:any }): UpdateRoleResp{
 	let obj: UpdateRoleResp={
 	}
 	return obj
@@ -800,7 +800,7 @@ function UpdateUserReqToJson(msg: UpdateUserReq): string{
 }
 export interface UpdateUserResp{
 }
-function JsonToUpdateUserResp(jsonobj: { [k:string]:any }): UpdateUserResp{
+function JsonToUpdateUserResp(_jsonobj: { [k:string]:any }): UpdateUserResp{
 	let obj: UpdateUserResp={
 	}
 	return obj
@@ -878,7 +878,7 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 }
 export interface UserLoginReq{
 }
-function UserLoginReqToJson(msg: UserLoginReq): string{
+function UserLoginReqToJson(_msg: UserLoginReq): string{
 	let s: string="{"
 	if(s.length==1){
 		s+="}"

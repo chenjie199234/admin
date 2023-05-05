@@ -122,7 +122,7 @@ function DelNodeReqToJson(msg: DelNodeReq): string{
 }
 export interface DelNodeResp{
 }
-function JsonToDelNodeResp(jsonobj: { [k:string]:any }): DelNodeResp{
+function JsonToDelNodeResp(_jsonobj: { [k:string]:any }): DelNodeResp{
 	let obj: DelNodeResp={
 	}
 	return obj
@@ -428,7 +428,7 @@ function MoveNodeReqToJson(msg: MoveNodeReq): string{
 }
 export interface MoveNodeResp{
 }
-function JsonToMoveNodeResp(jsonobj: { [k:string]:any }): MoveNodeResp{
+function JsonToMoveNodeResp(_jsonobj: { [k:string]:any }): MoveNodeResp{
 	let obj: MoveNodeResp={
 	}
 	return obj
@@ -574,7 +574,7 @@ function UpdateNodeReqToJson(msg: UpdateNodeReq): string{
 }
 export interface UpdateNodeResp{
 }
-function JsonToUpdateNodeResp(jsonobj: { [k:string]:any }): UpdateNodeResp{
+function JsonToUpdateNodeResp(_jsonobj: { [k:string]:any }): UpdateNodeResp{
 	let obj: UpdateNodeResp={
 	}
 	return obj
@@ -668,7 +668,7 @@ function UpdateRolePermissionReqToJson(msg: UpdateRolePermissionReq): string{
 }
 export interface UpdateRolePermissionResp{
 }
-function JsonToUpdateRolePermissionResp(jsonobj: { [k:string]:any }): UpdateRolePermissionResp{
+function JsonToUpdateRolePermissionResp(_jsonobj: { [k:string]:any }): UpdateRolePermissionResp{
 	let obj: UpdateRolePermissionResp={
 	}
 	return obj
@@ -741,7 +741,7 @@ function UpdateUserPermissionReqToJson(msg: UpdateUserPermissionReq): string{
 }
 export interface UpdateUserPermissionResp{
 }
-function JsonToUpdateUserPermissionResp(jsonobj: { [k:string]:any }): UpdateUserPermissionResp{
+function JsonToUpdateUserPermissionResp(_jsonobj: { [k:string]:any }): UpdateUserPermissionResp{
 	let obj: UpdateUserPermissionResp={
 	}
 	return obj

@@ -100,7 +100,7 @@ function DeleteProjectReqToJson(msg: DeleteProjectReq): string{
 }
 export interface DeleteProjectResp{
 }
-function JsonToDeleteProjectResp(jsonobj: { [k:string]:any }): DeleteProjectResp{
+function JsonToDeleteProjectResp(_jsonobj: { [k:string]:any }): DeleteProjectResp{
 	let obj: DeleteProjectResp={
 	}
 	return obj
@@ -160,14 +160,14 @@ function InitReqToJson(msg: InitReq): string{
 }
 export interface InitResp{
 }
-function JsonToInitResp(jsonobj: { [k:string]:any }): InitResp{
+function JsonToInitResp(_jsonobj: { [k:string]:any }): InitResp{
 	let obj: InitResp={
 	}
 	return obj
 }
 export interface InitStatusReq{
 }
-function InitStatusReqToJson(msg: InitStatusReq): string{
+function InitStatusReqToJson(_msg: InitStatusReq): string{
 	let s: string="{"
 	if(s.length==1){
 		s+="}"
@@ -194,7 +194,7 @@ function JsonToInitStatusResp(jsonobj: { [k:string]:any }): InitStatusResp{
 }
 export interface ListProjectReq{
 }
-function ListProjectReqToJson(msg: ListProjectReq): string{
+function ListProjectReqToJson(_msg: ListProjectReq): string{
 	let s: string="{"
 	if(s.length==1){
 		s+="}"
@@ -356,7 +356,7 @@ function RootPasswordReqToJson(msg: RootPasswordReq): string{
 }
 export interface RootPasswordResp{
 }
-function JsonToRootPasswordResp(jsonobj: { [k:string]:any }): RootPasswordResp{
+function JsonToRootPasswordResp(_jsonobj: { [k:string]:any }): RootPasswordResp{
 	let obj: RootPasswordResp={
 	}
 	return obj
@@ -412,7 +412,7 @@ function UpdateProjectReqToJson(msg: UpdateProjectReq): string{
 }
 export interface UpdateProjectResp{
 }
-function JsonToUpdateProjectResp(jsonobj: { [k:string]:any }): UpdateProjectResp{
+function JsonToUpdateProjectResp(_jsonobj: { [k:string]:any }): UpdateProjectResp{
 	let obj: UpdateProjectResp={
 	}
 	return obj

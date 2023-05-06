@@ -676,7 +676,7 @@ function parsetime(timestamp :number):string{
 		<div style="display:flex;margin:1px">
 			<div style="flex:1"></div>
 			<va-select label="Target" dropdown-icon="" outline style="width:100px;margin-right:1px" :options="targets" v-model="target" trigger="hover">
-				<template #option='{option,index,selectOption}'>
+				<template #option='{option,selectOption}'>
 					<va-hover stateful @click="()=>{
 							if(option!=target){
 								page=1
@@ -703,7 +703,7 @@ function parsetime(timestamp :number):string{
 				</template>
 			</va-select>
 			<va-select v-if="target=='User'" label="Search Range" dropdown-icon="" outline style="width:130px;margin:0 1px" :options="ranges" v-model="range" trigger="hover">
-				<template #option="{ option ,index , selectOption }">
+				<template #option="{ option,selectOption }">
 					<va-hover stateful @click="()=>{
 							if(option!=range){
 								page=1

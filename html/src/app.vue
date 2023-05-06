@@ -596,7 +596,7 @@ function app_op(){
 					v-model="update_g"
 					no-options-text="No Groups"
 					>
-						<template #option='{option,index,selectOption}'>
+						<template #option='{option,selectOption}'>
 							<va-hover
 							stateful
 							@click="()=>{
@@ -628,7 +628,7 @@ function app_op(){
 					v-model="update_a"
 					no-options-text="No Apps"
 					>
-						<template #option='{option,index,selectOption}'>
+						<template #option='{option,selectOption}'>
 							<va-hover
 							stateful
 							@click="()=>{
@@ -778,7 +778,7 @@ function app_op(){
 				v-model="curg"
 				style="width:150px;margin-right:1px"
 			>
-				<template #option='{option,index,selectOption}'>
+				<template #option='{option,selectOption}'>
 					<va-hover
 						stateful
 						@click="()=>{
@@ -815,7 +815,7 @@ function app_op(){
 				v-model="cura"
 				style="width:150px;margin:0 1px"
 			>
-				<template #option='{option,index,selectOption}'>
+				<template #option='{option,selectOption}'>
 					<va-hover
 						stateful
 						@click="()=>{

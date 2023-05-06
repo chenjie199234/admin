@@ -352,7 +352,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 			no-options-text="NO Projects"
 			prevent-overflow
 			>
-				<template #option='{option,index,selectOption}'>
+				<template #option='{option}'>
 					<va-hover
 					stateful
 					@click="state.project.cur_id=option.project_id;state.project.cur_name=option.project_name;select_project()"

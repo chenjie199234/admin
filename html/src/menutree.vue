@@ -91,7 +91,7 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 						</div>
 						<div v-if="has_children(node)" style="margin-right:5px;padding:5px;border-radius:2px">{{open[node!.node_id!.toString()]?'▲':'▼'}}</div>
 					</div>
-					<va-dropdown v-if="need_button(node)" trigger="hover" style="width:36px;height:36px;margin:2px" prevent-overflow>
+					<va-dropdown v-if="need_button(node)" trigger="hover" :hover-out-timeout="60000" style="width:36px;height:36px;margin:2px" prevent-overflow>
 						<template #anchor>
 							<va-button>•••</va-button>
 						</template>

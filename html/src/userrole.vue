@@ -675,7 +675,16 @@ function parsetime(timestamp :number):string{
 	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
 		<div style="display:flex;margin:1px">
 			<div style="flex:1"></div>
-			<va-select label="Target" dropdown-icon="" outline style="width:100px;margin-right:1px" :options="targets" v-model="target" trigger="hover">
+			<va-select
+				label="Target"
+				dropdown-icon=""
+				outline
+				style="width:100px;margin-right:1px"
+				:options="targets"
+				v-model="target"
+				trigger="hover"
+				:hover-out-timeout="60000"
+			>
 				<template #option='{option,selectOption}'>
 					<va-hover stateful @click="()=>{
 							if(option!=target){
@@ -702,7 +711,17 @@ function parsetime(timestamp :number):string{
 					</va-hover>
 				</template>
 			</va-select>
-			<va-select v-if="target=='User'" label="Search Range" dropdown-icon="" outline style="width:130px;margin:0 1px" :options="ranges" v-model="range" trigger="hover">
+			<va-select
+				v-if="target=='User'"
+				label="Search Range"
+				dropdown-icon=""
+				outline
+				style="width:130px;margin:0 1px"
+				:options="ranges"
+				v-model="range"
+				trigger="hover"
+				:hover-out-timeout="60000"
+			>
 				<template #option="{ option,selectOption }">
 					<va-hover stateful @click="()=>{
 							if(option!=range){
@@ -749,7 +768,7 @@ function parsetime(timestamp :number):string{
 					@mouseover="userhover=user.user_id"
 					@mouseout="userhover=''"
 				>
-					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{cur_user==user?'▲':'▼' }}</span>
+					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{cur_user==user?'-':'+' }}</span>
 					<span style="flex:1;padding:12px 20px;color:var(--va-primary)">{{user.user_name}}</span>
 					<span style="padding:12px 0;color:var(--va-primary)">Create Time: {{parsetime(user.ctime)}}</span>
 					<va-button
@@ -899,7 +918,7 @@ function parsetime(timestamp :number):string{
 					@mouseover="rolehover=role.role_name"
 					@mouseout="rolehover=''"
 				>
-					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ cur_role==role?'▲':'▼' }}</span>
+					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ cur_role==role?'-':'+' }}</span>
 					<span style="flex:1;padding:12px 20px;color:var(--va-primary)">{{role.role_name}}</span>
 					<span style="padding:12px 0;color:var(--va-primary)">Create Time: {{parsetime(role.ctime)}}</span>
 					<va-button

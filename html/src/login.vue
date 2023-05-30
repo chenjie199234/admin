@@ -69,11 +69,19 @@ function do_login_user(){
 <template>
 	<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center">
 		<div v-if="!state.user.root">
-			<va-select v-model="oauth2" :options="oauth2s" no-options-text="NO Oauth2 Login" label="Select Oauth2 Login" dropdown-icon="" style="width:400px" trigger="hover" prevent-overflow>
+			<va-select
+				v-model="oauth2"
+				:options="oauth2s"
+				no-options-text="NO Oauth2 Login"
+				label="Select Oauth2 Login"
+				dropdown-icon=""
+				style="width:400px"
+				trigger="hover"
+				:hover-out-timeout="60000"
+				prevent-overflow
+			>
 				<template #option='{option,selectOption}'>
-					<va-hover
-					stateful
-					@click="()=>{
+					<va-hover stateful @click="()=>{
 						if(oauth2!=option){
 							selectOption(option)
 						}

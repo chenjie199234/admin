@@ -2,6 +2,7 @@ package permission
 
 import (
 	"context"
+	"crypto/tls"
 	"github.com/chenjie199234/admin/api"
 
 	"github.com/chenjie199234/Corelib/util/egroup"
@@ -12,8 +13,8 @@ type Sdk struct {
 	client api.PermissionWebClient
 }
 
-func NewPermissionSdk(selfgroup, selfname, servergroup, serverhost string) (*Sdk, error) {
-	tmpclient, e := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost)
+func NewPermissionSdk(selfgroup, selfname, servergroup, serverhost string, tlsc *tls.Config) (*Sdk, error) {
+	tmpclient, e := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost, tlsc)
 	if e != nil {
 		return nil, e
 	}

@@ -342,21 +342,23 @@ function same_node_id(a:number[],b:number[]):boolean{
 	<div style="height:100%;flex:1;display:flex;flex-direction:column">
 		<div style="display:flex;padding:5px 0;background-color:var(--va-background-element)">
 			<va-select
-			dropdown-icon=""
-			trigger="hover"
-			outline
-			style="flex:1;margin:0 2px"
-			:model-value="state.project.cur_name"
-			:options="allprojects"
-			label="Select Project"
-			no-options-text="NO Projects"
-			prevent-overflow
+				dropdown-icon=""
+				trigger="hover"
+				outline
+				style="flex:1;margin:0 2px"
+				:model-value="state.project.cur_name"
+				:options="allprojects"
+				label="Select Project"
+				no-options-text="NO Projects"
+				prevent-overflow
+				:hover-out-timeout="60000"
 			>
 				<template #option='{option}'>
-					<va-hover
-					stateful
-					@click="state.project.cur_id=option.project_id;state.project.cur_name=option.project_name;select_project()"
-					>
+					<va-hover stateful @click="
+						  state.project.cur_id=option.project_id;
+						  state.project.cur_name=option.project_name;
+						  select_project();
+					">
 						<template #default="{hover}">
 							<div
 							style="padding:10px;cursor:pointer"
@@ -368,7 +370,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 					</va-hover>
 				</template>
 			</va-select>
-			<va-dropdown v-if="state.user.root" prevent-overflow trigger="hover" style="width:36px;margin-right:2px">
+			<va-dropdown v-if="state.user.root" prevent-overflow trigger="hover" :hover-out-timeout="60000" style="width:36px;margin-right:2px">
 				<template #anchor>
 					<va-button>•••</va-button>
 				</template>
@@ -387,7 +389,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 		</div>
 		<div v-if="need_create_main_menu_button()" style="text-align:center;background-color:var(--va-background-element)">
 			<va-popover message="Create Main Menu" color="primary" :hover-over-timeout="0" :hover-out-timeout="0" placement="right" prevent-overflow>
-				<va-hover>
+				<va-hover stateful>
 					<template #default="{hover}">
 						<div
 						style="padding:10px 15px;cursor:pointer"

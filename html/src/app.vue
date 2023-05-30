@@ -588,18 +588,17 @@ function app_op(){
 			<div v-else-if="optype=='update_secret'" style="display:flex;flex-direction:column">
 				<div>
 					<va-select 
-					trigger="hover"
-					dropdown-icon=""
-					label="Group*"
-					:options="Object.keys(all)"
-					style="width:198px;margin:2px"
-					v-model="update_g"
-					no-options-text="No Groups"
+						trigger="hover"
+						dropdown-icon=""
+						label="Group*"
+						:options="Object.keys(all)"
+						style="width:198px;margin:2px"
+						v-model="update_g"
+						no-options-text="No Groups"
+						:hover-out-timeout="60000"
 					>
 						<template #option='{option,selectOption}'>
-							<va-hover
-							stateful
-							@click="()=>{
+							<va-hover stateful @click="()=>{
 								if(option!=update_g){
 									selectOption(option)
 									update_a=''
@@ -620,18 +619,17 @@ function app_op(){
 						</template>
 					</va-select>
 					<va-select
-					trigger="hover"
-					dropdown-icon=""
-					label="App*"
-					:options="update_g==''?[]:Object.keys(all[update_g])"
-					style="width:198px;margin:2px"
-					v-model="update_a"
-					no-options-text="No Apps"
+						trigger="hover"
+						dropdown-icon=""
+						label="App*"
+						:options="update_g==''?[]:Object.keys(all[update_g])"
+						style="width:198px;margin:2px"
+						v-model="update_a"
+						no-options-text="No Apps"
+						:hover-out-timeout="60000"
 					>
 						<template #option='{option,selectOption}'>
-							<va-hover
-							stateful
-							@click="()=>{
+							<va-hover stateful @click="()=>{
 								if(option!=update_a){
 									selectOption(option)
 									update_old_secret=''
@@ -777,6 +775,7 @@ function app_op(){
 				:options="Object.keys(all)"
 				v-model="curg"
 				style="width:150px;margin-right:1px"
+				:hover-out-timeout="60000"
 			>
 				<template #option='{option,selectOption}'>
 					<va-hover
@@ -814,6 +813,7 @@ function app_op(){
 				:options="curg==''?[]:Object.keys(all[curg])"
 				v-model="cura"
 				style="width:150px;margin:0 1px"
+				:hover-out-timeout="60000"
 			>
 				<template #option='{option,selectOption}'>
 					<va-hover
@@ -847,7 +847,7 @@ function app_op(){
 				</template>
 			</va-input>
 			<va-button style="margin:0 2px" :disabled="curg==''||cura==''" @click="get_app">Search</va-button>
-			<va-dropdown  v-if="state.page.node!.admin" trigger="hover" style="width:36px;margin-right:4px">
+			<va-dropdown  v-if="state.page.node!.admin" trigger="hover" :hover-out-timeout="60000" style="width:36px;margin-right:4px">
 				<template #anchor>
 					<va-button>•••</va-button>
 				</template>
@@ -880,6 +880,7 @@ function app_op(){
 			@mouseover="t_keys_hover=true"
 			@mouseout="t_keys_hover=false"
 		>
+			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='config'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Configs</span>
 			<va-button
 				v-if="all[curg][cura].canwrite||all[curg][cura].admin"
@@ -912,7 +913,7 @@ function app_op(){
 					@mouseover="keyhover=key"
 					@mouseout="keyhover=''"
 				>
-					<span style="width:35px;padding:12px;color:var(--va-primary)"> {{ cur_key!=''&&cur_key==key?'▼':'►' }} </span>
+					<span style="width:35px;padding:12px;color:var(--va-primary)"> {{ cur_key!=''&&cur_key==key?'-':'+' }} </span>
 					<span style="padding:12px;color:var(--va-primary)">{{key}}</span>
 				</div>
 				<div v-if="cur_key==key" style="flex:1;display:flex;margin:1px 20px;overflow-y:auto">
@@ -920,7 +921,7 @@ function app_op(){
 						<textarea readonly style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px">{{JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)}}</textarea>
 						<div style="align-self:center;display:flex;align-items:center">
 							<b style="color:var(--va-primary);margin-right:10px">Current Config ID:  {{ keys.get(key)!.cur_index }}</b>
-							<va-dropdown trigger="hover" :disabled="cur_key_index!=0||new_cur_key_value_type!=''" prevent-overflow placement="top">
+							<va-dropdown trigger="hover" :hover-out-timeout="60000" :disabled="cur_key_index!=0||new_cur_key_value_type!=''" prevent-overflow placement="top">
 								<template #anchor>
 									<va-button style="width:60px;height:30px;margin:2px" size="small">History</va-button>
 								</template>
@@ -1031,6 +1032,7 @@ function app_op(){
 			@mouseover="t_proxys_hover=true"
 			@mouseout="t_proxys_hover=false"
 		>
+			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='proxy'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Proxys</span>
 			<va-button
 				v-if="all[curg][cura].canwrite||all[curg][cura].admin"
@@ -1066,7 +1068,7 @@ function app_op(){
 						}
 					}"
 				>
-					<span style="width:35px;padding:12px;color:var(--va-primary)"> {{ cur_proxy!=''&&cur_proxy==proxy?'▼':'►' }} </span>
+					<span style="width:35px;padding:12px;color:var(--va-primary)"> {{ cur_proxy!=''&&cur_proxy==proxy?'-':'+' }} </span>
 					<span style="padding:12px;color:var(--va-primary)">{{proxy}}</span>
 				</div>
 				<div v-if="cur_proxy==proxy" style="flex:1;display:flex;margin:1px 20px;overflow-y:auto">
@@ -1147,6 +1149,7 @@ function app_op(){
 			@mouseover="t_instances_hover=true"
 			@mouseout="t_instances_hover=false"
 		>
+			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='instance'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Instances</span>
 			<va-button
 				v-if="config_proxy_instance=='instance'"

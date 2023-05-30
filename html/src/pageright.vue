@@ -68,7 +68,7 @@ function iframeload(){
 	<div style="height:100%;flex:1;display:flex;flex-direction:column;overflow:auto">
 		<div style="display:flex;padding:5px;background-color:var(--va-background-element)">
 			<div style="display:flex;flex:1"></div>
-			<va-dropdown trigger="hover" style="width:36px" placement="bottom-end" prevent-overflow>
+			<va-dropdown trigger="hover" :hover-out-timeout="60000" style="width:36px" placement="bottom-end" prevent-overflow>
 				<template #anchor>
 					<va-button round>{{ state.avatar() }}</va-button>
 				</template>

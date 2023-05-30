@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"crypto/tls"
 	"sync"
 	"time"
 
@@ -29,8 +30,8 @@ type Sdk struct {
 // keytype: map's key is the key name,map's value is the type of the key's data
 type NoticeHandler func(key, keyvalue, keytype string)
 
-func NewConfigSdk(selfgroup, selfname, servergroup, serverhost, secret string) (*Sdk, error) {
-	tmpclient, e := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost)
+func NewConfigSdk(selfgroup, selfname, servergroup, serverhost, secret string, tlsc *tls.Config) (*Sdk, error) {
+	tmpclient, e := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost, tlsc)
 	if e != nil {
 		return nil, e
 	}

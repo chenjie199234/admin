@@ -791,7 +791,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:GetUserPermissionResp=JsonToGetUserPermissionResp(response.data)
 				successf(obj)
@@ -800,7 +800,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -843,7 +843,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:UpdateUserPermissionResp=JsonToUpdateUserPermissionResp(response.data)
 				successf(obj)
@@ -852,7 +852,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -895,7 +895,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:UpdateRolePermissionResp=JsonToUpdateRolePermissionResp(response.data)
 				successf(obj)
@@ -904,7 +904,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -947,7 +947,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:AddNodeResp=JsonToAddNodeResp(response.data)
 				successf(obj)
@@ -956,7 +956,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -999,7 +999,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:UpdateNodeResp=JsonToUpdateNodeResp(response.data)
 				successf(obj)
@@ -1008,7 +1008,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1051,7 +1051,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:MoveNodeResp=JsonToMoveNodeResp(response.data)
 				successf(obj)
@@ -1060,7 +1060,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1103,7 +1103,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:DelNodeResp=JsonToDelNodeResp(response.data)
 				successf(obj)
@@ -1112,7 +1112,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1155,7 +1155,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:ListUserNodeResp=JsonToListUserNodeResp(response.data)
 				successf(obj)
@@ -1164,7 +1164,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1207,7 +1207,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:ListRoleNodeResp=JsonToListRoleNodeResp(response.data)
 				successf(obj)
@@ -1216,7 +1216,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1259,7 +1259,7 @@ export class PermissionBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:ListProjectNodeResp=JsonToListProjectNodeResp(response.data)
 				successf(obj)
@@ -1268,7 +1268,7 @@ export class PermissionBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return

@@ -135,7 +135,7 @@ export class StatusBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:Pingresp=JsonToPingresp(response.data)
 				successf(obj)
@@ -144,7 +144,7 @@ export class StatusBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return

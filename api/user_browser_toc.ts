@@ -950,7 +950,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:UserLoginResp=JsonToUserLoginResp(response.data)
 				successf(obj)
@@ -959,7 +959,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1002,7 +1002,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:LoginInfoResp=JsonToLoginInfoResp(response.data)
 				successf(obj)
@@ -1011,7 +1011,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1054,7 +1054,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:InviteProjectResp=JsonToInviteProjectResp(response.data)
 				successf(obj)
@@ -1063,7 +1063,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1106,7 +1106,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:KickProjectResp=JsonToKickProjectResp(response.data)
 				successf(obj)
@@ -1115,7 +1115,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1158,7 +1158,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:SearchUsersResp=JsonToSearchUsersResp(response.data)
 				successf(obj)
@@ -1167,7 +1167,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1210,7 +1210,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:UpdateUserResp=JsonToUpdateUserResp(response.data)
 				successf(obj)
@@ -1219,7 +1219,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1262,7 +1262,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:CreateRoleResp=JsonToCreateRoleResp(response.data)
 				successf(obj)
@@ -1271,7 +1271,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1314,7 +1314,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:SearchRolesResp=JsonToSearchRolesResp(response.data)
 				successf(obj)
@@ -1323,7 +1323,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1366,7 +1366,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:UpdateRoleResp=JsonToUpdateRoleResp(response.data)
 				successf(obj)
@@ -1375,7 +1375,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1418,7 +1418,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:DelRolesResp=JsonToDelRolesResp(response.data)
 				successf(obj)
@@ -1427,7 +1427,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1470,7 +1470,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:AddUserRoleResp=JsonToAddUserRoleResp(response.data)
 				successf(obj)
@@ -1479,7 +1479,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return
@@ -1522,7 +1522,7 @@ export class UserBrowserClientToC {
 			timeout: timeout,
 		}
 		Axios.request(config)
-		.then(function(response: Axios.AxiosResponse){
+		.then(function(response){
 			try{
 				let obj:DelUserRoleResp=JsonToDelUserRoleResp(response.data)
 				successf(obj)
@@ -1531,7 +1531,7 @@ export class UserBrowserClientToC {
 				errorf(err)
 			}
 		})
-		.catch(function(error: Axios.AxiosError){
+		.catch(function(error){
 			if(error.response==undefined){
 				errorf({code:-2,msg:error.message})
 				return

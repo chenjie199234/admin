@@ -1,7 +1,7 @@
-import * as initializeAPI from '../../api/initialize_browser_toc'
-import * as permissionAPI from '../../api/permission_browser_toc'
-import * as userAPI from '../../api/user_browser_toc'
-import * as appAPI from '../../api/app_browser_toc'
+import * as initializeAPI from 'admin/api/initialize_browser_toc'
+import * as permissionAPI from 'admin/api/permission_browser_toc'
+import * as userAPI from 'admin/api/user_browser_toc'
+import * as appAPI from 'admin/api/app_browser_toc'
 
 const host: string = "http://127.0.0.1:8000"
 export const timeout: number = 3000

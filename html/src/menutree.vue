@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-import * as permissionAPI from '../../api/permission_browser_toc'
+import * as permissionAPI from 'admin/api/permission_browser_toc'
 
 import * as state from './state'
 
@@ -68,7 +68,7 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 </script>
 <template>
 	<div style="display:flex">
-		<va-divider vertical style="margin-right:0" :style="{'margin-left':deep==0?'5px':'15px'}" />
+		<va-divider vertical color="shadow" style="margin-right:0" :style="{'margin-left':deep==0?'5px':'15px'}" />
 		<div style="flex:1;display:flex;flex-direction:column">
 			<template v-for="node of pnode.children">
 				<div v-if="showable(node)" style="display:flex;align-items:center">
@@ -84,7 +84,7 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 							}
 						}"
 					>
-						<va-divider style="margin:0;width:15px" />
+						<va-divider color="shadow" style="margin:0;width:15px" />
 						<div style="flex:1;padding:10px 0">
 							{{node!.node_name}}
 							<span v-if="jumpable(node)" style="padding-left:5px" :style="{color:state.page.node==node?'var(--va-primary)':'black'}">☞</span>

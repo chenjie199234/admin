@@ -39,13 +39,13 @@ var watcher *fsnotify.Watcher
 func initlocalapp(notice func(*AppConfig)) {
 	data, e := os.ReadFile("./AppConfig.json")
 	if e != nil {
-		log.Error(nil, "[config.initlocalapp] read config file error:", e)
+		log.Error(nil, "[config.local.app] read config file error:", e)
 		Close()
 		os.Exit(1)
 	}
 	AC = &AppConfig{}
 	if e = json.Unmarshal(data, AC); e != nil {
-		log.Error(nil, "[config.initlocalapp] config file format error:", e)
+		log.Error(nil, "[config.local.app] config file format error:", e)
 		Close()
 		os.Exit(1)
 	}
@@ -55,12 +55,12 @@ func initlocalapp(notice func(*AppConfig)) {
 	}
 	watcher, e = fsnotify.NewWatcher()
 	if e != nil {
-		log.Error(nil, "[config.initlocalapp] create watcher for hot update error:", e)
+		log.Error(nil, "[config.local.app] create watcher for hot update error:", e)
 		Close()
 		os.Exit(1)
 	}
 	if e = watcher.Add("./"); e != nil {
-		log.Error(nil, "[config.initlocalapp] create watcher for hot update error:", e)
+		log.Error(nil, "[config.local.app] create watcher for hot update error:", e)
 		Close()
 		os.Exit(1)
 	}
@@ -76,15 +76,16 @@ func initlocalapp(notice func(*AppConfig)) {
 				}
 				data, e := os.ReadFile("./AppConfig.json")
 				if e != nil {
-					log.Error(nil, "[config.initlocalapp] hot update read config file error:", e)
+					log.Error(nil, "[config.local.app] hot update read config file error:", e)
 					continue
 				}
 				c := &AppConfig{}
 				if e = json.Unmarshal(data, c); e != nil {
-					log.Error(nil, "[config.initlocalapp] hot update config file format error:", e)
+					log.Error(nil, "[config.local.app] hot update config file format error:", e)
 					continue
 				}
 				validateAppConfig(c)
+				log.Info(nil, "[config.local.app] new config:", c)
 				if notice != nil {
 					notice(c)
 				}
@@ -93,7 +94,7 @@ func initlocalapp(notice func(*AppConfig)) {
 				if !ok {
 					return
 				}
-				log.Error(nil, "[config.initlocalapp] hot update watcher error:", err)
+				log.Error(nil, "[config.local.app] hot update watcher error:", err)
 			}
 		}
 	}()
@@ -102,15 +103,16 @@ func initremoteapp(notice func(*AppConfig), wait chan *struct{}) (stopwatch func
 	return RemoteConfigSdk.Watch("AppConfig", func(key, keyvalue, keytype string) {
 		//only support json
 		if keytype != "json" {
-			log.Error(nil, "[config.initremoteapp] config data can only support json format")
+			log.Error(nil, "[config.remote.app] config data can only support json format")
 			return
 		}
 		c := &AppConfig{}
 		if e := json.Unmarshal(common.Str2byte(keyvalue), c); e != nil {
-			log.Error(nil, "[config.initremoteapp] config data format error:", e)
+			log.Error(nil, "[config.remote.app] config data format error:", e)
 			return
 		}
 		validateAppConfig(c)
+		log.Info(nil, "[config.remote.app] new config:", c)
 		if notice != nil {
 			notice(c)
 		}

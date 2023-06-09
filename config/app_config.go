@@ -50,6 +50,7 @@ func initlocalapp(notice func(*AppConfig)) {
 		os.Exit(1)
 	}
 	validateAppConfig(AC)
+	log.Info(nil, "[config.remote.app] new config:", AC)
 	if notice != nil {
 		notice(AC)
 	}

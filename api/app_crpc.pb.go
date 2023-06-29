@@ -17,8 +17,8 @@ import (
 )
 
 var _CrpcPathAppGetApp = "/admin.app/get_app"
-var _CrpcPathAppGetAppInstances = "/admin.app/get_app_instances"
-var _CrpcPathAppGetAppInstanceCmd = "/admin.app/get_app_instance_cmd"
+var _CrpcPathAppAppInstances = "/admin.app/app_instances"
+var _CrpcPathAppAppInstanceCmd = "/admin.app/app_instance_cmd"
 var _CrpcPathAppCreateApp = "/admin.app/create_app"
 var _CrpcPathAppDelApp = "/admin.app/del_app"
 var _CrpcPathAppUpdateAppSecret = "/admin.app/update_app_secret"
@@ -33,8 +33,8 @@ var _CrpcPathAppProxy = "/admin.app/proxy"
 
 type AppCrpcClient interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	GetAppInstances(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)
-	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)
+	AppInstances(context.Context, *AppInstancesReq) (*AppInstancesResp, error)
+	AppInstanceCmd(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -78,16 +78,16 @@ func (c *appCrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppResp
 	}
 	return resp, nil
 }
-func (c *appCrpcClient) GetAppInstances(ctx context.Context, req *GetAppInstancesReq) (*GetAppInstancesResp, error) {
+func (c *appCrpcClient) AppInstances(ctx context.Context, req *AppInstancesReq) (*AppInstancesResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppGetAppInstances, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppAppInstances, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(GetAppInstancesResp)
+	resp := new(AppInstancesResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -100,16 +100,16 @@ func (c *appCrpcClient) GetAppInstances(ctx context.Context, req *GetAppInstance
 	}
 	return resp, nil
 }
-func (c *appCrpcClient) GetAppInstanceCmd(ctx context.Context, req *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error) {
+func (c *appCrpcClient) AppInstanceCmd(ctx context.Context, req *AppInstanceCmdReq) (*AppInstanceCmdResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppGetAppInstanceCmd, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppAppInstanceCmd, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(GetAppInstanceCmdResp)
+	resp := new(AppInstanceCmdResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -367,8 +367,8 @@ func (c *appCrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, e
 
 type AppCrpcServer interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	GetAppInstances(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)
-	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)
+	AppInstances(context.Context, *AppInstancesReq) (*AppInstancesResp, error)
+	AppInstanceCmd(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -430,16 +430,16 @@ func _App_GetApp_CrpcHandler(handler func(context.Context, *GetAppReq) (*GetAppR
 		}
 	}
 }
-func _App_GetAppInstances_CrpcHandler(handler func(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)) crpc.OutsideHandler {
+func _App_AppInstances_CrpcHandler(handler func(context.Context, *AppInstancesReq) (*AppInstancesResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
-		req := new(GetAppInstancesReq)
+		req := new(AppInstancesReq)
 		reqbody := ctx.GetBody()
 		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/get_app_instances] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.app/app_instances] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -449,7 +449,7 @@ func _App_GetAppInstances_CrpcHandler(handler func(context.Context, *GetAppInsta
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/get_app_instances] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.app/app_instances] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -457,7 +457,7 @@ func _App_GetAppInstances_CrpcHandler(handler func(context.Context, *GetAppInsta
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_app_instances]", errstr)
+			log.Error(ctx, "[/admin.app/app_instances]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -467,7 +467,7 @@ func _App_GetAppInstances_CrpcHandler(handler func(context.Context, *GetAppInsta
 			return
 		}
 		if resp == nil {
-			resp = new(GetAppInstancesResp)
+			resp = new(AppInstancesResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -478,16 +478,16 @@ func _App_GetAppInstances_CrpcHandler(handler func(context.Context, *GetAppInsta
 		}
 	}
 }
-func _App_GetAppInstanceCmd_CrpcHandler(handler func(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)) crpc.OutsideHandler {
+func _App_AppInstanceCmd_CrpcHandler(handler func(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
-		req := new(GetAppInstanceCmdReq)
+		req := new(AppInstanceCmdReq)
 		reqbody := ctx.GetBody()
 		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/get_app_instance_cmd] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.app/app_instance_cmd] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -497,7 +497,7 @@ func _App_GetAppInstanceCmd_CrpcHandler(handler func(context.Context, *GetAppIns
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/get_app_instance_cmd] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.app/app_instance_cmd] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -505,7 +505,7 @@ func _App_GetAppInstanceCmd_CrpcHandler(handler func(context.Context, *GetAppIns
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_app_instance_cmd]", errstr)
+			log.Error(ctx, "[/admin.app/app_instance_cmd]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -515,7 +515,7 @@ func _App_GetAppInstanceCmd_CrpcHandler(handler func(context.Context, *GetAppIns
 			return
 		}
 		if resp == nil {
-			resp = new(GetAppInstanceCmdResp)
+			resp = new(AppInstanceCmdResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -1058,8 +1058,8 @@ func RegisterAppCrpcServer(engine *crpc.CrpcServer, svc AppCrpcServer, allmids m
 	// avoid lint
 	_ = allmids
 	engine.RegisterHandler(_CrpcPathAppGetApp, _App_GetApp_CrpcHandler(svc.GetApp))
-	engine.RegisterHandler(_CrpcPathAppGetAppInstances, _App_GetAppInstances_CrpcHandler(svc.GetAppInstances))
-	engine.RegisterHandler(_CrpcPathAppGetAppInstanceCmd, _App_GetAppInstanceCmd_CrpcHandler(svc.GetAppInstanceCmd))
+	engine.RegisterHandler(_CrpcPathAppAppInstances, _App_AppInstances_CrpcHandler(svc.AppInstances))
+	engine.RegisterHandler(_CrpcPathAppAppInstanceCmd, _App_AppInstanceCmd_CrpcHandler(svc.AppInstanceCmd))
 	engine.RegisterHandler(_CrpcPathAppCreateApp, _App_CreateApp_CrpcHandler(svc.CreateApp))
 	engine.RegisterHandler(_CrpcPathAppDelApp, _App_DelApp_CrpcHandler(svc.DelApp))
 	engine.RegisterHandler(_CrpcPathAppUpdateAppSecret, _App_UpdateAppSecret_CrpcHandler(svc.UpdateAppSecret))

@@ -61,11 +61,11 @@ proxy_path_info: {
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### get_app_instances
+### app_instances
 
 #### Req:
 ```
-Path:         /admin.app/get_app_instances
+Path:         /admin.app/app_instances
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -107,11 +107,11 @@ instance_info: {
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### get_app_instance_cmd
+### app_instance_cmd
 
 #### Req:
 ```
-Path:         /admin.app/get_app_instance_cmd
+Path:         /admin.app/app_instance_cmd
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------

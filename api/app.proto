@@ -27,12 +27,12 @@ service app{
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc get_app_instances(get_app_instances_req)returns(get_app_instances_resp){
+	rpc app_instances(app_instances_req)returns(app_instances_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc get_app_instance_cmd(get_app_instance_cmd_req)returns(get_app_instance_cmd_resp){
+	rpc app_instance_cmd(app_instance_cmd_req)returns(app_instance_cmd_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -85,7 +85,6 @@ service app{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-
 }
 
 //req can be set with pbex extentions
@@ -106,7 +105,7 @@ message get_app_resp{
 	map<string,key_config_info> keys=1;
 	map<string,proxy_path_info> paths=2;
 }
-message get_app_instances_req{
+message app_instances_req{
 	string g_name=1[(pbex.string_bytes_len_gt)=0];
 	string a_name=2[(pbex.string_bytes_len_gt)=0];
 	string secret=3[(pbex.string_bytes_len_lt)=32];
@@ -119,10 +118,10 @@ message instance_info{
 	double mem_total=5;//unit MB
 	double mem_usage=6;
 }
-message get_app_instances_resp{
+message app_instances_resp{
 	repeated instance_info instances=1;
 }
-message get_app_instance_cmd_req{
+message app_instance_cmd_req{
 	string g_name=1[(pbex.string_bytes_len_gt)=0];
 	string a_name=2[(pbex.string_bytes_len_gt)=0];
 	string secret=3[(pbex.string_bytes_len_lt)=32];
@@ -130,7 +129,7 @@ message get_app_instance_cmd_req{
 	string cmd=5[(pbex.string_bytes_in)="pprof"];
 	string cmd_data=6;
 }
-message get_app_instance_cmd_resp{
+message app_instance_cmd_resp{
 	string data=1;
 }
 message proxy_path_info{

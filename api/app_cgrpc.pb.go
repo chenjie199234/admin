@@ -15,8 +15,8 @@ import (
 )
 
 var _CGrpcPathAppGetApp = "/admin.app/get_app"
-var _CGrpcPathAppGetAppInstances = "/admin.app/get_app_instances"
-var _CGrpcPathAppGetAppInstanceCmd = "/admin.app/get_app_instance_cmd"
+var _CGrpcPathAppAppInstances = "/admin.app/app_instances"
+var _CGrpcPathAppAppInstanceCmd = "/admin.app/app_instance_cmd"
 var _CGrpcPathAppCreateApp = "/admin.app/create_app"
 var _CGrpcPathAppDelApp = "/admin.app/del_app"
 var _CGrpcPathAppUpdateAppSecret = "/admin.app/update_app_secret"
@@ -31,8 +31,8 @@ var _CGrpcPathAppProxy = "/admin.app/proxy"
 
 type AppCGrpcClient interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	GetAppInstances(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)
-	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)
+	AppInstances(context.Context, *AppInstancesReq) (*AppInstancesResp, error)
+	AppInstanceCmd(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -64,22 +64,22 @@ func (c *appCGrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppRes
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) GetAppInstances(ctx context.Context, req *GetAppInstancesReq) (*GetAppInstancesResp, error) {
+func (c *appCGrpcClient) AppInstances(ctx context.Context, req *AppInstancesReq) (*AppInstancesResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
-	resp := new(GetAppInstancesResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppGetAppInstances, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	resp := new(AppInstancesResp)
+	if e := c.cc.Call(ctx, _CGrpcPathAppAppInstances, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) GetAppInstanceCmd(ctx context.Context, req *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error) {
+func (c *appCGrpcClient) AppInstanceCmd(ctx context.Context, req *AppInstanceCmdReq) (*AppInstanceCmdResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
-	resp := new(GetAppInstanceCmdResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppGetAppInstanceCmd, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	resp := new(AppInstanceCmdResp)
+	if e := c.cc.Call(ctx, _CGrpcPathAppAppInstanceCmd, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -197,8 +197,8 @@ func (c *appCGrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, 
 
 type AppCGrpcServer interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	GetAppInstances(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)
-	GetAppInstanceCmd(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)
+	AppInstances(context.Context, *AppInstancesReq) (*AppInstancesResp, error)
+	AppInstanceCmd(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -235,15 +235,15 @@ func _App_GetApp_CGrpcHandler(handler func(context.Context, *GetAppReq) (*GetApp
 		ctx.Write(resp)
 	}
 }
-func _App_GetAppInstances_CGrpcHandler(handler func(context.Context, *GetAppInstancesReq) (*GetAppInstancesResp, error)) cgrpc.OutsideHandler {
+func _App_AppInstances_CGrpcHandler(handler func(context.Context, *AppInstancesReq) (*AppInstancesResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
-		req := new(GetAppInstancesReq)
+		req := new(AppInstancesReq)
 		if ctx.DecodeReq(req) != nil {
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_app_instances]", errstr)
+			log.Error(ctx, "[/admin.app/app_instances]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -253,20 +253,20 @@ func _App_GetAppInstances_CGrpcHandler(handler func(context.Context, *GetAppInst
 			return
 		}
 		if resp == nil {
-			resp = new(GetAppInstancesResp)
+			resp = new(AppInstancesResp)
 		}
 		ctx.Write(resp)
 	}
 }
-func _App_GetAppInstanceCmd_CGrpcHandler(handler func(context.Context, *GetAppInstanceCmdReq) (*GetAppInstanceCmdResp, error)) cgrpc.OutsideHandler {
+func _App_AppInstanceCmd_CGrpcHandler(handler func(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
-		req := new(GetAppInstanceCmdReq)
+		req := new(AppInstanceCmdReq)
 		if ctx.DecodeReq(req) != nil {
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_app_instance_cmd]", errstr)
+			log.Error(ctx, "[/admin.app/app_instance_cmd]", errstr)
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -276,7 +276,7 @@ func _App_GetAppInstanceCmd_CGrpcHandler(handler func(context.Context, *GetAppIn
 			return
 		}
 		if resp == nil {
-			resp = new(GetAppInstanceCmdResp)
+			resp = new(AppInstanceCmdResp)
 		}
 		ctx.Write(resp)
 	}
@@ -538,8 +538,8 @@ func RegisterAppCGrpcServer(engine *cgrpc.CGrpcServer, svc AppCGrpcServer, allmi
 	// avoid lint
 	_ = allmids
 	engine.RegisterHandler("admin.app", "get_app", _App_GetApp_CGrpcHandler(svc.GetApp))
-	engine.RegisterHandler("admin.app", "get_app_instances", _App_GetAppInstances_CGrpcHandler(svc.GetAppInstances))
-	engine.RegisterHandler("admin.app", "get_app_instance_cmd", _App_GetAppInstanceCmd_CGrpcHandler(svc.GetAppInstanceCmd))
+	engine.RegisterHandler("admin.app", "app_instances", _App_AppInstances_CGrpcHandler(svc.AppInstances))
+	engine.RegisterHandler("admin.app", "app_instance_cmd", _App_AppInstanceCmd_CGrpcHandler(svc.AppInstanceCmd))
 	engine.RegisterHandler("admin.app", "create_app", _App_CreateApp_CGrpcHandler(svc.CreateApp))
 	engine.RegisterHandler("admin.app", "del_app", _App_DelApp_CGrpcHandler(svc.DelApp))
 	engine.RegisterHandler("admin.app", "update_app_secret", _App_UpdateAppSecret_CGrpcHandler(svc.UpdateAppSecret))

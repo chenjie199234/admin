@@ -21,35 +21,35 @@ func (m *GetAppReq) Validate() (errstr string) {
 }
 
 // return empty means pass
-func (m *GetAppInstancesReq) Validate() (errstr string) {
+func (m *AppInstancesReq) Validate() (errstr string) {
 	if len(m.GetGName()) <= 0 {
-		return "field: g_name in object: get_app_instances_req check value str len gt failed"
+		return "field: g_name in object: app_instances_req check value str len gt failed"
 	}
 	if len(m.GetAName()) <= 0 {
-		return "field: a_name in object: get_app_instances_req check value str len gt failed"
+		return "field: a_name in object: app_instances_req check value str len gt failed"
 	}
 	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: get_app_instances_req check value str len lt failed"
+		return "field: secret in object: app_instances_req check value str len lt failed"
 	}
 	return ""
 }
 
 // return empty means pass
-func (m *GetAppInstanceCmdReq) Validate() (errstr string) {
+func (m *AppInstanceCmdReq) Validate() (errstr string) {
 	if len(m.GetGName()) <= 0 {
-		return "field: g_name in object: get_app_instance_cmd_req check value str len gt failed"
+		return "field: g_name in object: app_instance_cmd_req check value str len gt failed"
 	}
 	if len(m.GetAName()) <= 0 {
-		return "field: a_name in object: get_app_instance_cmd_req check value str len gt failed"
+		return "field: a_name in object: app_instance_cmd_req check value str len gt failed"
 	}
 	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: get_app_instance_cmd_req check value str len lt failed"
+		return "field: secret in object: app_instance_cmd_req check value str len lt failed"
 	}
 	if len(m.GetHostIp()) <= 0 {
-		return "field: host_ip in object: get_app_instance_cmd_req check value str len gt failed"
+		return "field: host_ip in object: app_instance_cmd_req check value str len gt failed"
 	}
 	if m.GetCmd() != "pprof" {
-		return "field: cmd in object: get_app_instance_cmd_req check value str in failed"
+		return "field: cmd in object: app_instance_cmd_req check value str in failed"
 	}
 	return ""
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/chenjie199234/admin/util"
 
 	"github.com/chenjie199234/Corelib/cerror"
+	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/web"
@@ -30,8 +31,15 @@ type Sdk struct {
 // keytype: map's key is the key name,map's value is the type of the key's data
 type NoticeHandler func(key, keyvalue, keytype string)
 
-func NewConfigSdk(selfgroup, selfname, servergroup, serverhost, secret string, tlsc *tls.Config) (*Sdk, error) {
-	tmpclient, e := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost, tlsc)
+// if tlsc is not nil,the tls will be actived
+func NewConfigSdk(selfappgroup, selfappname, serverappgroup, serverhost, secret string, tlsc *tls.Config) (*Sdk, error) {
+	di := discover.NewDirectDiscover(serverappgroup, "admin", serverhost, 9000, 10000, 8000)
+	tmpclient, e := web.NewWebClient(&web.ClientConfig{
+		ConnectTimeout: time.Second * 3,
+		GlobalTimeout:  0,
+		HeartProbe:     time.Second * 3,
+		IdleTimeout:    time.Second * 10,
+	}, di, selfappgroup, selfappname, serverappgroup, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}
@@ -42,10 +50,10 @@ func NewConfigSdk(selfgroup, selfname, servergroup, serverhost, secret string, t
 		keys:       make(map[string]*api.WatchData),
 		keysnotice: make(map[string]NoticeHandler),
 	}
-	go instance.watch(selfgroup, selfname)
+	go instance.watch(selfappgroup, selfappname)
 	return instance, nil
 }
-func (instance *Sdk) watch(selfgroup, selfname string) {
+func (instance *Sdk) watch(selfappgroup, selfappname string) {
 	for {
 		instance.lker.Lock()
 		keys := make(map[string]uint32)
@@ -59,7 +67,7 @@ func (instance *Sdk) watch(selfgroup, selfname string) {
 		}
 		instance.ctx, instance.cancel = context.WithCancel(context.Background())
 		instance.lker.Unlock()
-		resp, e := instance.client.Watch(instance.ctx, &api.WatchReq{GName: selfgroup, AName: selfname, Keys: keys}, nil)
+		resp, e := instance.client.Watch(instance.ctx, &api.WatchReq{GName: selfappgroup, AName: selfappname, Keys: keys}, nil)
 		if e != nil {
 			if !cerror.Equal(e, cerror.ErrCanceled) {
 				log.Error(nil, "[config.sdk.watch] keys:", keys, e)

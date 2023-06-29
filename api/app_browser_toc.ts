@@ -11,6 +11,149 @@ export interface Error{
 	msg: string;
 }
 
+export interface AppInstanceCmdReq{
+	g_name: string;
+	a_name: string;
+	secret: string;
+	host_ip: string;
+	cmd: string;
+	cmd_data: string;
+}
+function AppInstanceCmdReqToJson(msg: AppInstanceCmdReq): string{
+	let s: string="{"
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'AppInstanceCmdReq.g_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
+	}
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'AppInstanceCmdReq.a_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'AppInstanceCmdReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
+	}
+	//host_ip
+	if(msg.host_ip==null||msg.host_ip==undefined){
+		throw 'AppInstanceCmdReq.host_ip must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.host_ip)
+		s+='"host_ip":'+vv+','
+	}
+	//cmd
+	if(msg.cmd==null||msg.cmd==undefined){
+		throw 'AppInstanceCmdReq.cmd must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.cmd)
+		s+='"cmd":'+vv+','
+	}
+	//cmd_data
+	if(msg.cmd_data==null||msg.cmd_data==undefined){
+		throw 'AppInstanceCmdReq.cmd_data must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.cmd_data)
+		s+='"cmd_data":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface AppInstanceCmdResp{
+	data: string;
+}
+function JsonToAppInstanceCmdResp(jsonobj: { [k:string]:any }): AppInstanceCmdResp{
+	let obj: AppInstanceCmdResp={
+		data:'',
+	}
+	//data
+	if(jsonobj['data']!=null&&jsonobj['data']!=undefined){
+		if(typeof jsonobj['data']!='string'){
+			throw 'AppInstanceCmdResp.data must be string'
+		}
+		obj['data']=jsonobj['data']
+	}
+	return obj
+}
+export interface AppInstancesReq{
+	g_name: string;
+	a_name: string;
+	secret: string;
+}
+function AppInstancesReqToJson(msg: AppInstancesReq): string{
+	let s: string="{"
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'AppInstancesReq.g_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
+	}
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'AppInstancesReq.a_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'AppInstancesReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface AppInstancesResp{
+	instances: Array<InstanceInfo|null|undefined>|null|undefined;
+}
+function JsonToAppInstancesResp(jsonobj: { [k:string]:any }): AppInstancesResp{
+	let obj: AppInstancesResp={
+		instances:null,
+	}
+	//instances
+	if(jsonobj['instances']!=null&&jsonobj['instances']!=undefined){
+		if(!(jsonobj['instances'] instanceof Array)){
+			throw 'AppInstancesResp.instances must be Array<InstanceInfo>|null|undefined'
+		}
+		for(let element of jsonobj['instances']){
+			if(typeof element!='object'){
+				throw 'element in AppInstancesResp.instances must be InstanceInfo'
+			}
+			if(obj['instances']==null){
+				obj['instances']=new Array<InstanceInfo>
+			}
+			obj['instances'].push(JsonToInstanceInfo(element))
+		}
+	}
+	return obj
+}
 export interface CreateAppReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
@@ -246,149 +389,6 @@ export interface DelProxyResp{
 }
 function JsonToDelProxyResp(_jsonobj: { [k:string]:any }): DelProxyResp{
 	let obj: DelProxyResp={
-	}
-	return obj
-}
-export interface GetAppInstanceCmdReq{
-	g_name: string;
-	a_name: string;
-	secret: string;
-	host_ip: string;
-	cmd: string;
-	cmd_data: string;
-}
-function GetAppInstanceCmdReqToJson(msg: GetAppInstanceCmdReq): string{
-	let s: string="{"
-	//g_name
-	if(msg.g_name==null||msg.g_name==undefined){
-		throw 'GetAppInstanceCmdReq.g_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.g_name)
-		s+='"g_name":'+vv+','
-	}
-	//a_name
-	if(msg.a_name==null||msg.a_name==undefined){
-		throw 'GetAppInstanceCmdReq.a_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.a_name)
-		s+='"a_name":'+vv+','
-	}
-	//secret
-	if(msg.secret==null||msg.secret==undefined){
-		throw 'GetAppInstanceCmdReq.secret must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.secret)
-		s+='"secret":'+vv+','
-	}
-	//host_ip
-	if(msg.host_ip==null||msg.host_ip==undefined){
-		throw 'GetAppInstanceCmdReq.host_ip must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.host_ip)
-		s+='"host_ip":'+vv+','
-	}
-	//cmd
-	if(msg.cmd==null||msg.cmd==undefined){
-		throw 'GetAppInstanceCmdReq.cmd must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.cmd)
-		s+='"cmd":'+vv+','
-	}
-	//cmd_data
-	if(msg.cmd_data==null||msg.cmd_data==undefined){
-		throw 'GetAppInstanceCmdReq.cmd_data must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.cmd_data)
-		s+='"cmd_data":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface GetAppInstanceCmdResp{
-	data: string;
-}
-function JsonToGetAppInstanceCmdResp(jsonobj: { [k:string]:any }): GetAppInstanceCmdResp{
-	let obj: GetAppInstanceCmdResp={
-		data:'',
-	}
-	//data
-	if(jsonobj['data']!=null&&jsonobj['data']!=undefined){
-		if(typeof jsonobj['data']!='string'){
-			throw 'GetAppInstanceCmdResp.data must be string'
-		}
-		obj['data']=jsonobj['data']
-	}
-	return obj
-}
-export interface GetAppInstancesReq{
-	g_name: string;
-	a_name: string;
-	secret: string;
-}
-function GetAppInstancesReqToJson(msg: GetAppInstancesReq): string{
-	let s: string="{"
-	//g_name
-	if(msg.g_name==null||msg.g_name==undefined){
-		throw 'GetAppInstancesReq.g_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.g_name)
-		s+='"g_name":'+vv+','
-	}
-	//a_name
-	if(msg.a_name==null||msg.a_name==undefined){
-		throw 'GetAppInstancesReq.a_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.a_name)
-		s+='"a_name":'+vv+','
-	}
-	//secret
-	if(msg.secret==null||msg.secret==undefined){
-		throw 'GetAppInstancesReq.secret must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.secret)
-		s+='"secret":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface GetAppInstancesResp{
-	instances: Array<InstanceInfo|null|undefined>|null|undefined;
-}
-function JsonToGetAppInstancesResp(jsonobj: { [k:string]:any }): GetAppInstancesResp{
-	let obj: GetAppInstancesResp={
-		instances:null,
-	}
-	//instances
-	if(jsonobj['instances']!=null&&jsonobj['instances']!=undefined){
-		if(!(jsonobj['instances'] instanceof Array)){
-			throw 'GetAppInstancesResp.instances must be Array<InstanceInfo>|null|undefined'
-		}
-		for(let element of jsonobj['instances']){
-			if(typeof element!='object'){
-				throw 'element in GetAppInstancesResp.instances must be InstanceInfo'
-			}
-			if(obj['instances']==null){
-				obj['instances']=new Array<InstanceInfo>
-			}
-			obj['instances'].push(JsonToInstanceInfo(element))
-		}
 	}
 	return obj
 }
@@ -1289,8 +1289,8 @@ function JsonToWatchResp(jsonobj: { [k:string]:any }): WatchResp{
 	return obj
 }
 const _WebPathAppGetApp: string ="/admin.app/get_app";
-const _WebPathAppGetAppInstances: string ="/admin.app/get_app_instances";
-const _WebPathAppGetAppInstanceCmd: string ="/admin.app/get_app_instance_cmd";
+const _WebPathAppAppInstances: string ="/admin.app/app_instances";
+const _WebPathAppAppInstanceCmd: string ="/admin.app/app_instance_cmd";
 const _WebPathAppCreateApp: string ="/admin.app/create_app";
 const _WebPathAppDelApp: string ="/admin.app/del_app";
 const _WebPathAppUpdateAppSecret: string ="/admin.app/update_app_secret";
@@ -1364,7 +1364,7 @@ export class AppBrowserClientToC {
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
-	get_app_instances(header: { [k: string]: string },req: GetAppInstancesReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GetAppInstancesResp)=>void){
+	app_instances(header: { [k: string]: string },req: AppInstancesReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: AppInstancesResp)=>void){
 		if(!Number.isInteger(timeout)){
 			errorf({code:-2,msg:'timeout must be integer'})
 			return
@@ -1375,13 +1375,13 @@ export class AppBrowserClientToC {
 		header["Content-Type"] = "application/json"
 		let body: string=''
 		try{
-			body=GetAppInstancesReqToJson(req)
+			body=AppInstancesReqToJson(req)
 		}catch(e){
 			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
-			url:_WebPathAppGetAppInstances,
+			url:_WebPathAppAppInstances,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
@@ -1391,7 +1391,7 @@ export class AppBrowserClientToC {
 		Axios.request(config)
 		.then(function(response){
 			try{
-				let obj:GetAppInstancesResp=JsonToGetAppInstancesResp(response.data)
+				let obj:AppInstancesResp=JsonToAppInstancesResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}
@@ -1416,7 +1416,7 @@ export class AppBrowserClientToC {
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
-	get_app_instance_cmd(header: { [k: string]: string },req: GetAppInstanceCmdReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GetAppInstanceCmdResp)=>void){
+	app_instance_cmd(header: { [k: string]: string },req: AppInstanceCmdReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: AppInstanceCmdResp)=>void){
 		if(!Number.isInteger(timeout)){
 			errorf({code:-2,msg:'timeout must be integer'})
 			return
@@ -1427,13 +1427,13 @@ export class AppBrowserClientToC {
 		header["Content-Type"] = "application/json"
 		let body: string=''
 		try{
-			body=GetAppInstanceCmdReqToJson(req)
+			body=AppInstanceCmdReqToJson(req)
 		}catch(e){
 			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
-			url:_WebPathAppGetAppInstanceCmd,
+			url:_WebPathAppAppInstanceCmd,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
@@ -1443,7 +1443,7 @@ export class AppBrowserClientToC {
 		Axios.request(config)
 		.then(function(response){
 			try{
-				let obj:GetAppInstanceCmdResp=JsonToGetAppInstanceCmdResp(response.data)
+				let obj:AppInstanceCmdResp=JsonToAppInstanceCmdResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

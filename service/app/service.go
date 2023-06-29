@@ -48,7 +48,7 @@ type Service struct {
 	clientsActive map[string]int64                        //key:appgroup.appname,value:last use timestamp(unixnano)
 }
 type clientinfo struct {
-	d      discover.DI
+	di     discover.DI
 	client *crpc.CrpcClient
 }
 
@@ -88,7 +88,7 @@ func (s *Service) job() {
 			}
 			go func() {
 				c.client.Close(false)
-				c.d.Stop()
+				c.di.Stop()
 			}()
 			delete(s.clients, name)
 		}
@@ -111,7 +111,7 @@ func (s *Service) drop() {
 		c := v
 		go func() {
 			c.client.Close(false)
-			c.d.Stop()
+			c.di.Stop()
 		}()
 	}
 	s.clients = make(map[string]*clientinfo)
@@ -157,7 +157,7 @@ func (s *Service) del(id string) {
 		delete(s.clientsActive, app.Group+"."+app.App)
 		go func() {
 			c.client.Close(false)
-			c.d.Stop()
+			c.di.Stop()
 		}()
 	}
 	for notice := range s.notices[app.Group+"."+app.App] {
@@ -232,7 +232,7 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 	return resp, nil
 }
 
-func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesReq) (*api.GetAppInstancesResp, error) {
+func (s *Service) AppInstances(ctx context.Context, req *api.AppInstancesReq) (*api.AppInstancesResp, error) {
 	md := metadata.GetMetadata(ctx)
 	s.Lock()
 	app, ok := s.apps[req.GName+"."+req.AName]
@@ -242,19 +242,19 @@ func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesR
 	}
 	s.Unlock()
 	if e := util.SignCheck(req.Secret, app.Value); e != nil {
-		log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, e)
+		log.Error(ctx, "[AppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	var ips []string
-	tmpd := discover.NewDSNDiscover(req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000, true)
-	defer tmpd.Stop()
-	notice, cancel := tmpd.GetNotice()
+	tmpdi := discover.NewDSNDiscover(req.GName, req.AName, req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000)
+	defer tmpdi.Stop()
+	notice, cancel := tmpdi.GetNotice()
 	defer cancel()
 	select {
 	case <-notice:
-		addrs, e := tmpd.GetAddrs(discover.NotNeed)
+		addrs, e := tmpdi.GetAddrs(discover.NotNeed)
 		if e != nil {
-			log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, e)
+			log.Error(ctx, "[AppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, e)
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		ips = make([]string, 0, len(addrs))
@@ -264,7 +264,7 @@ func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesR
 	case <-ctx.Done():
 		return nil, cerror.ConvertStdError(ctx.Err())
 	}
-	resp := &api.GetAppInstancesResp{
+	resp := &api.AppInstancesResp{
 		Instances: make([]*api.InstanceInfo, 0, len(ips)),
 	}
 	eg := egroup.GetGroup(ctx)
@@ -273,20 +273,23 @@ func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesR
 		info := &api.InstanceInfo{}
 		resp.Instances = append(resp.Instances, info)
 		eg.Go(func(gctx context.Context) error {
-			webclient, e := web.NewWebClient(dao.GetWebClientConfig(), model.Group, model.Name, req.GName, req.AName, "http://"+ip+":6060", nil)
+			di := discover.NewDirectDiscover(req.GName, req.AName, "http://"+ip+":6060", 9000, 10000, 8000)
+			defer di.Stop()
+			webclient, e := web.NewWebClient(dao.GetWebClientConfig(), di, model.Group, model.Name, req.GName, req.AName, nil)
 			if e != nil {
-				log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", ip, e)
+				log.Error(ctx, "[AppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", ip, e)
 				return e
 			}
+			defer webclient.Close(false)
 			r, e := webclient.Get(gctx, "/info", "", nil, nil)
 			if e != nil {
-				log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", ip, e)
+				log.Error(ctx, "[AppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", ip, e)
 				return e
 			}
 			defer r.Body.Close()
 			body, e := io.ReadAll(r.Body)
 			if e != nil {
-				log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", ip, e)
+				log.Error(ctx, "[AppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", ip, e)
 				return e
 			}
 			tmp := &struct {
@@ -298,7 +301,7 @@ func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesR
 				MemUsage float64 `json:"mem_usage"`
 			}{}
 			if e = json.Unmarshal(body, tmp); e != nil {
-				log.Error(ctx, "[GetAppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", ip, e)
+				log.Error(ctx, "[AppInstances] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", ip, e)
 				return e
 			}
 			info.HostIp = ip
@@ -315,7 +318,7 @@ func (s *Service) GetAppInstances(ctx context.Context, req *api.GetAppInstancesR
 	}
 	return resp, nil
 }
-func (s *Service) GetAppInstanceCmd(ctx context.Context, req *api.GetAppInstanceCmdReq) (*api.GetAppInstanceCmdResp, error) {
+func (s *Service) AppInstanceCmd(ctx context.Context, req *api.AppInstanceCmdReq) (*api.AppInstanceCmdResp, error) {
 	md := metadata.GetMetadata(ctx)
 	s.Lock()
 	app, ok := s.apps[req.GName+"."+req.AName]
@@ -325,17 +328,17 @@ func (s *Service) GetAppInstanceCmd(ctx context.Context, req *api.GetAppInstance
 	}
 	s.Unlock()
 	if e := util.SignCheck(req.Secret, app.Value); e != nil {
-		log.Error(ctx, "[GetAppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, "cmd:", req.Cmd, e)
+		log.Error(ctx, "[AppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, "cmd:", req.Cmd, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	tmpd := discover.NewDSNDiscover(req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000, true)
-	defer tmpd.Stop()
-	notice, cancel := tmpd.GetNotice()
+	tmpdi := discover.NewDSNDiscover(req.GName, req.AName, req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000)
+	defer tmpdi.Stop()
+	notice, cancel := tmpdi.GetNotice()
 	defer cancel()
 	var ips []string
 	select {
 	case <-notice:
-		addrs, e := tmpd.GetAddrs(discover.NotNeed)
+		addrs, e := tmpdi.GetAddrs(discover.NotNeed)
 		if e != nil {
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
@@ -358,25 +361,28 @@ func (s *Service) GetAppInstanceCmd(ctx context.Context, req *api.GetAppInstance
 	}
 	switch req.Cmd {
 	case "pprof":
-		webclient, e := web.NewWebClient(dao.GetWebClientConfig(), model.Group, model.Name, req.GName, req.AName, "http://"+req.HostIp+":6060", nil)
+		di := discover.NewDirectDiscover(req.GName, req.AName, "http://"+req.HostIp+":6060", 9000, 10000, 8000)
+		defer di.Stop()
+		webclient, e := web.NewWebClient(dao.GetWebClientConfig(), di, model.Group, model.Name, req.GName, req.AName, nil)
 		if e != nil {
-			log.Error(ctx, "[GetAppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", req.HostIp, e)
+			log.Error(ctx, "[AppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "ip:", req.HostIp, e)
 			return nil, ecode.ErrSystem
 		}
+		defer webclient.Close(false)
 		r, e := webclient.Get(ctx, "/debug/pprof/profile", "", nil, nil)
 		if e != nil {
-			log.Error(ctx, "[GetAppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, e)
+			log.Error(ctx, "[AppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, e)
 			return nil, ecode.ErrSystem
 		}
 		defer r.Body.Close()
 		body, e := io.ReadAll(r.Body)
 		if e != nil {
-			log.Error(ctx, "[GetAppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, e)
+			log.Error(ctx, "[AppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, e)
 			return nil, ecode.ErrSystem
 		}
-		return &api.GetAppInstanceCmdResp{Data: hex.EncodeToString(body)}, nil
+		return &api.AppInstanceCmdResp{Data: hex.EncodeToString(body)}, nil
 	}
-	return &api.GetAppInstanceCmdResp{}, nil
+	return &api.AppInstanceCmdResp{}, nil
 }
 func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.CreateAppResp, error) {
 	md := metadata.GetMetadata(ctx)
@@ -707,7 +713,7 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 		}
 	}
 	if !s.stop.AddOne() {
-		return nil, cerror.ErrClosing
+		return nil, cerror.ErrServerClosing
 	}
 	defer s.stop.DoneOne()
 
@@ -765,7 +771,7 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 			return nil, ctx.Err()
 		case _, ok := <-ch:
 			if !ok {
-				return nil, cerror.ErrClosing
+				return nil, cerror.ErrServerClosing
 			}
 		}
 		s.Lock()
@@ -915,15 +921,15 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 	}
 	c, ok := s.clients[req.GName+"."+req.AName]
 	if !ok {
-		d := discover.NewDSNDiscover(req.AName+"-headless."+req.GName, time.Second, 9000, 10000, 8000, false)
-		client, e := crpc.NewCrpcClient(dao.GetCrpcClientConfig(), nil, d, model.Group, model.Name, req.GName, req.AName, nil)
+		di := discover.NewDSNDiscover(req.GName, req.AName, req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000)
+		client, e := crpc.NewCrpcClient(dao.GetCrpcClientConfig(), di, model.Group, model.Name, req.GName, req.AName, nil)
 		if e != nil {
 			log.Error(ctx, "[Proxy] new crpc client to group:", req.GName, "app:", req.AName, e)
 			s.Unlock()
 			return nil, ecode.ErrSystem
 		}
 		c = &clientinfo{
-			d:      d,
+			di:     di,
 			client: client,
 		}
 		s.clients[req.GName+"."+req.AName] = c

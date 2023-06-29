@@ -3,8 +3,11 @@ package permission
 import (
 	"context"
 	"crypto/tls"
+	"time"
+
 	"github.com/chenjie199234/admin/api"
 
+	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/util/egroup"
 	"github.com/chenjie199234/Corelib/web"
 )
@@ -13,8 +16,15 @@ type Sdk struct {
 	client api.PermissionWebClient
 }
 
-func NewPermissionSdk(selfgroup, selfname, servergroup, serverhost string, tlsc *tls.Config) (*Sdk, error) {
-	tmpclient, e := web.NewWebClient(&web.ClientConfig{}, selfgroup, selfname, servergroup, "admin", serverhost, tlsc)
+// if tlsc is not nil,the tls will be actived
+func NewPermissionSdk(selfappgroup, selfappname, serverappgroup, serverhost string, tlsc *tls.Config) (*Sdk, error) {
+	di := discover.NewDirectDiscover(serverappgroup, "admin", serverhost, 9000, 10000, 8000)
+	tmpclient, e := web.NewWebClient(&web.ClientConfig{
+		ConnectTimeout: time.Second * 3,
+		GlobalTimeout:  0,
+		HeartProbe:     time.Second * 3,
+		IdleTimeout:    time.Second * 10,
+	}, di, selfappgroup, selfappname, serverappgroup, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}

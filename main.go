@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/chenjie199234/admin/config"
+	"github.com/chenjie199234/admin/dao"
 	"github.com/chenjie199234/admin/server/xcrpc"
 	"github.com/chenjie199234/admin/server/xgrpc"
 	"github.com/chenjie199234/admin/server/xweb"
@@ -33,6 +34,7 @@ func main() {
 		//this is a notice callback every time appconfig changes
 		//this function works in sync mode
 		//don't write block logic inside this
+		dao.UpdateAPI(ac)
 		xcrpc.UpdateHandlerTimeout(ac.HandlerTimeout)
 		xgrpc.UpdateHandlerTimeout(ac.HandlerTimeout)
 		xweb.UpdateHandlerTimeout(ac.HandlerTimeout)

@@ -246,7 +246,7 @@ func (s *Service) AppInstances(ctx context.Context, req *api.AppInstancesReq) (*
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	var ips []string
-	tmpdi := discover.NewDSNDiscover(req.GName, req.AName, req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000)
+	tmpdi := discover.NewDNSDiscover(req.GName, req.AName, req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000)
 	defer tmpdi.Stop()
 	notice, cancel := tmpdi.GetNotice()
 	defer cancel()
@@ -331,7 +331,7 @@ func (s *Service) AppInstanceCmd(ctx context.Context, req *api.AppInstanceCmdReq
 		log.Error(ctx, "[AppInstanceCmd] operator:", md["Token-Data"], "group:", req.GName, "app:", req.AName, "host:", req.HostIp, "cmd:", req.Cmd, e)
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	tmpdi := discover.NewDSNDiscover(req.GName, req.AName, req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000)
+	tmpdi := discover.NewDNSDiscover(req.GName, req.AName, req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000)
 	defer tmpdi.Stop()
 	notice, cancel := tmpdi.GetNotice()
 	defer cancel()
@@ -921,7 +921,7 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 	}
 	c, ok := s.clients[req.GName+"."+req.AName]
 	if !ok {
-		di := discover.NewDSNDiscover(req.GName, req.AName, req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000)
+		di := discover.NewDNSDiscover(req.GName, req.AName, req.AName+"-headless."+req.GName, time.Second*10, 9000, 10000, 8000)
 		client, e := crpc.NewCrpcClient(dao.GetCrpcClientConfig(), di, model.Group, model.Name, req.GName, req.AName, nil)
 		if e != nil {
 			log.Error(ctx, "[Proxy] new crpc client to group:", req.GName, "app:", req.AName, e)

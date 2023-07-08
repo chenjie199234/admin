@@ -78,13 +78,8 @@ func initenv(AppConfigTemplate, SourceConfigTemplate []byte) {
 	}
 	if EC.ConfigType != nil && *EC.ConfigType == 1 {
 		var e error
-		if RemoteConfigSdk, e = internal.NewDirectSdk(model.Group, model.Name); e != nil {
+		if RemoteConfigSdk, e = internal.NewDirectSdk(model.Group, model.Name, AppConfigTemplate, SourceConfigTemplate); e != nil {
 			log.Error(nil, "[config.initenv] new direct config sdk:", e)
-			Close()
-			os.Exit(1)
-		}
-		if e = RemoteConfigSdk.InitSelf(AppConfigTemplate, SourceConfigTemplate); e != nil {
-			log.Error(nil, "[config.initenv] init direct config sdk:", e)
 			Close()
 			os.Exit(1)
 		}

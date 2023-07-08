@@ -3,6 +3,9 @@ package permission
 import (
 	"context"
 	"crypto/tls"
+	"errors"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/chenjie199234/admin/api"
@@ -16,21 +19,54 @@ type Sdk struct {
 	client api.PermissionWebClient
 }
 
+var (
+	ErrMissingEnvGroup = errors.New("missing env PERMISSION_SERVICE_GROUP")
+	ErrMissingEnvHost  = errors.New("missing env PERMISSION_SERVICE_WEB_HOST")
+	ErrWrongEnvPort    = errors.New("env PERMISSION_SERVICE_WEB_PORT must be number <= 65535")
+)
+
 // if tlsc is not nil,the tls will be actived
-func NewPermissionSdk(selfappgroup, selfappname, serverappgroup, serverhost string, tlsc *tls.Config) (*Sdk, error) {
-	di := discover.NewDirectDiscover(serverappgroup, "admin", serverhost, 9000, 10000, 8000)
+// must set below env:
+// PERMISSION_SERVICE_GROUP
+// PERMISSION_SERVICE_WEB_HOST
+// PERMISSION_SERVICE_WEB_PORT
+func NewPermissionSdk(selfappgroup, selfappname string, tlsc *tls.Config) (*Sdk, error) {
+	group, host, port, e := env()
+	if e != nil {
+		return nil, e
+	}
+	di := discover.NewDirectDiscover(group, "admin", host, 0, 0, port)
 	tmpclient, e := web.NewWebClient(&web.ClientConfig{
 		ConnectTimeout: time.Second * 3,
 		GlobalTimeout:  0,
 		HeartProbe:     time.Second * 3,
 		IdleTimeout:    time.Second * 10,
-	}, di, selfappgroup, selfappname, serverappgroup, "admin", tlsc)
+	}, di, selfappgroup, selfappname, group, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}
 	return &Sdk{client: api.NewPermissionWebClient(tmpclient)}, nil
 }
-
+func env() (group string, host string, port int, e error) {
+	if str, ok := os.LookupEnv("PERMISSION_SERVICE_GROUP"); ok && str != "<PERMISSION_SERVICE_GROUP>" && str != "" {
+		group = str
+	} else {
+		return "", "", 0, ErrMissingEnvGroup
+	}
+	if str, ok := os.LookupEnv("PERMISSION_SERVICE_WEB_HOST"); ok && str != "<PERMISSION_SERVICE_WEB_HOST>" && str != "" {
+		host = str
+	} else {
+		return "", "", 0, ErrMissingEnvHost
+	}
+	if str, ok := os.LookupEnv("PERMISSION_SERVICE_WEB_PORT"); ok && str != "<PERMISSION_SERVICE_WEB_PORT>" && str != "" {
+		var e error
+		port, e = strconv.Atoi(str)
+		if e != nil || port < 0 || port > 65535 {
+			return "", "", 0, ErrWrongEnvPort
+		}
+	}
+	return
+}
 func (s *Sdk) CheckMulti(ctx context.Context, userid string, readNodeIDs [][]uint32, writeNodeIDs [][]uint32, adminNodeIDs [][]uint32) (bool, error) {
 	pass := true
 	eg := egroup.GetGroup(ctx)

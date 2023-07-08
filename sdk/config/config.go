@@ -3,6 +3,9 @@ package config
 import (
 	"context"
 	"crypto/tls"
+	"errors"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -31,15 +34,31 @@ type Sdk struct {
 // keytype: map's key is the key name,map's value is the type of the key's data
 type NoticeHandler func(key, keyvalue, keytype string)
 
+var (
+	ErrMissingEnvGroup = errors.New("missing env REMOTE_CONFIG_SERVICE_GROUP")
+	ErrMissingEnvHost  = errors.New("missing env REMOTE_CONFIG_SERVICE_WEB_HOST")
+	ErrWrongEnvPort    = errors.New("env REMOTE_CONFIG_SERVICE_WEB_PORT must be number <= 65535")
+	ErrWrongEnvSecret  = errors.New("env REMOTE_CONFIG_SECRET too long")
+)
+
 // if tlsc is not nil,the tls will be actived
-func NewConfigSdk(selfappgroup, selfappname, serverappgroup, serverhost, secret string, tlsc *tls.Config) (*Sdk, error) {
-	di := discover.NewDirectDiscover(serverappgroup, "admin", serverhost, 9000, 10000, 8000)
+// must set below env:
+// REMOTE_CONFIG_SERVICE_GROUP
+// REMOTE_CONFIG_SERVICE_WEB_HOST
+// REMOTE_CONFIG_SERVICE_WEB_PORT
+// REMOTE_CONFIG_SECRET
+func NewConfigSdk(selfappgroup, selfappname string, tlsc *tls.Config) (*Sdk, error) {
+	group, host, port, secret, e := env()
+	if e != nil {
+		return nil, e
+	}
+	di := discover.NewDirectDiscover(group, "admin", host, 0, 0, port)
 	tmpclient, e := web.NewWebClient(&web.ClientConfig{
 		ConnectTimeout: time.Second * 3,
 		GlobalTimeout:  0,
 		HeartProbe:     time.Second * 3,
 		IdleTimeout:    time.Second * 10,
-	}, di, selfappgroup, selfappname, serverappgroup, "admin", tlsc)
+	}, di, selfappgroup, selfappname, group, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}
@@ -52,6 +71,32 @@ func NewConfigSdk(selfappgroup, selfappname, serverappgroup, serverhost, secret 
 	}
 	go instance.watch(selfappgroup, selfappname)
 	return instance, nil
+}
+func env() (group string, host string, port int, secret string, e error) {
+	if str, ok := os.LookupEnv("REMOTE_CONFIG_SERVICE_GROUP"); ok && str != "<REMOTE_CONFIG_SERVICE_GROUP>" && str != "" {
+		group = str
+	} else {
+		return "", "", 0, "", ErrMissingEnvGroup
+	}
+	if str, ok := os.LookupEnv("REMOTE_CONFIG_SERVICE_WEB_HOST"); ok && str != "<REMOTE_CONFIG_SERVICE_WEB_HOST>" && str != "" {
+		host = str
+	} else {
+		return "", "", 0, "", ErrMissingEnvHost
+	}
+	if str, ok := os.LookupEnv("REMOTE_CONFIG_SERVICE_WEB_PORT"); ok && str != "<REMOTE_CONFIG_SERVICE_WEB_PORT>" && str != "" {
+		var e error
+		port, e = strconv.Atoi(str)
+		if e != nil || port < 0 || port > 65535 {
+			return "", "", 0, "", ErrWrongEnvPort
+		}
+	}
+	if str, ok := os.LookupEnv("REMOTE_CONFIG_SECRET"); ok && str != "<REMOTE_CONFIG_SECRET>" && str != "" {
+		secret = str
+	}
+	if len(secret) >= 32 {
+		return "", "", 0, "", ErrWrongEnvSecret
+	}
+	return
 }
 func (instance *Sdk) watch(selfappgroup, selfappname string) {
 	for {

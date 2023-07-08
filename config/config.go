@@ -77,26 +77,14 @@ func initenv(AppConfigTemplate, SourceConfigTemplate []byte) {
 		log.Warning(nil, "[config.initenv] missing env CONFIG_TYPE")
 	}
 	if EC.ConfigType != nil && *EC.ConfigType == 1 {
-		var mongourl string
-		if str, ok := os.LookupEnv("REMOTE_CONFIG_MONGO_URL"); ok && str != "<REMOTE_CONFIG_MONGO_URL>" && str != "" {
-			mongourl = str
-		} else {
-			log.Error(nil, "[config.initenv] missing env REMOTE_CONFIG_MONGO_URL")
-			Close()
-			os.Exit(1)
-		}
-		var secret string
-		if str, ok := os.LookupEnv("REMOTE_CONFIG_SECRET"); ok && str != "<REMOTE_CONFIG_SECRET>" && str != "" {
-			secret = str
-		}
-		if len(secret) >= 32 {
-			log.Error(nil, "[config.initenv] REMOTE_CONFIG_SECRET length too long")
-			Close()
-			os.Exit(1)
-		}
 		var e error
-		if RemoteConfigSdk, e = internal.NewDirectSdk(model.Group, model.Name, mongourl, secret, AppConfigTemplate, SourceConfigTemplate); e != nil {
-			log.Error(nil, "[config.initenv] new remote config sdk:", e)
+		if RemoteConfigSdk, e = internal.NewDirectSdk(model.Group, model.Name); e != nil {
+			log.Error(nil, "[config.initenv] new direct config sdk:", e)
+			Close()
+			os.Exit(1)
+		}
+		if e = RemoteConfigSdk.InitSelf(AppConfigTemplate, SourceConfigTemplate); e != nil {
+			log.Error(nil, "[config.initenv] init direct config sdk:", e)
 			Close()
 			os.Exit(1)
 		}

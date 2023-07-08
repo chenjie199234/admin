@@ -12,7 +12,7 @@ import (
 	"github.com/chenjie199234/Corelib/redis"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/ctime"
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/segmentio/kafka-go/sasl/scram"
@@ -399,14 +399,11 @@ func initredis() {
 			ConnTimeout: redisc.ConnTimeout.StdDuration(),
 			IOTimeout:   redisc.IOTimeout.StdDuration(),
 		})
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		if e := tempredis.Ping(ctx); e != nil {
-			cancel()
+		if e := tempredis.Ping(context.Background()); e != nil {
 			log.Error(nil, "[config.initredis] ping redis:", k, "error:", e)
 			Close()
 			os.Exit(1)
 		}
-		cancel()
 		rediss[k] = tempredis
 	}
 }
@@ -441,15 +438,12 @@ func initmongo() {
 			Close()
 			os.Exit(1)
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		e = tempdb.Ping(ctx, readpref.Primary())
+		e = tempdb.Ping(context.Background(), readpref.Primary())
 		if e != nil {
-			cancel()
 			log.Error(nil, "[config.initmongo] ping mongodb:", k, "error:", e)
 			Close()
 			os.Exit(1)
 		}
-		cancel()
 		mongos[k] = tempdb
 	}
 }
@@ -473,7 +467,16 @@ func initsql() {
 		if k == "example_sql" {
 			continue
 		}
-		tempdb, e := sql.Open("mysql", sqlc.URL)
+		tmpc, e := mysql.ParseDSN(sqlc.URL)
+		if e != nil {
+			log.Error(nil, "[config.initsql] open mysql:", k, "error:", e)
+			Close()
+			os.Exit(1)
+		}
+		tmpc.Timeout = sqlc.ConnTimeout.StdDuration()
+		tmpc.ReadTimeout = sqlc.IOTimeout.StdDuration()
+		tmpc.WriteTimeout = sqlc.IOTimeout.StdDuration()
+		tempdb, e := sql.Open("mysql", tmpc.FormatDSN())
 		if e != nil {
 			log.Error(nil, "[config.initsql] open mysql:", k, "error:", e)
 			Close()
@@ -482,15 +485,12 @@ func initsql() {
 		tempdb.SetMaxOpenConns(int(sqlc.MaxOpen))
 		tempdb.SetMaxIdleConns(int(sqlc.MaxIdle))
 		tempdb.SetConnMaxIdleTime(sqlc.MaxIdletime.StdDuration())
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		e = tempdb.PingContext(ctx)
+		e = tempdb.PingContext(context.Background())
 		if e != nil {
-			cancel()
 			log.Error(nil, "[config.initsql] ping mysql:", k, "error:", e)
 			Close()
 			os.Exit(1)
 		}
-		cancel()
 		sqls[k] = tempdb
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"errors"
+	"os"
 	"sync"
 	"time"
 
@@ -27,6 +28,7 @@ type Sdk struct {
 	gname      string //self group name
 	aname      string //self app name
 	secret     string
+	mongourl   string
 	lker       sync.Mutex
 	appsummary *model.AppSummary
 	notices    map[string]NoticeHandler
@@ -37,9 +39,20 @@ type Sdk struct {
 // keytype: map's key is the key name,map's value is the type of the key's data
 type NoticeHandler func(key, keyvalue, keytype string)
 
-// url format [mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
-func NewDirectSdk(gname, aname, mongourl, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (*Sdk, error) {
-	client, e := newMongo(mongourl, gname, aname, secret, AppConfigTemplate, SourceConfigTemplate)
+var (
+	ErrMissingEnvMongo = errors.New("env REMOTE_CONFIG_MONGO_URL missing")
+	ErrWrongEnvSecret  = errors.New("env REMOTE_CONFIG_SECRET too long")
+)
+
+// must set below env:
+// REMOTE_CONFIG_MONGO_URL,format [mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
+// REMOTE_CONFIG_SECRET
+func NewDirectSdk(gname, aname string) (*Sdk, error) {
+	mongourl, secret, e := env()
+	if e != nil {
+		return nil, e
+	}
+	client, e := newMongo(mongourl)
 	if e != nil {
 		return nil, e
 	}
@@ -48,15 +61,28 @@ func NewDirectSdk(gname, aname, mongourl, secret string, AppConfigTemplate, Sour
 		gname:      gname,
 		aname:      aname,
 		secret:     secret,
+		mongourl:   mongourl,
 		appsummary: &model.AppSummary{},
 		notices:    make(map[string]NoticeHandler),
 		start:      &primitive.Timestamp{T: uint32(time.Now().Unix() - 1), I: 0},
 	}
-
 	instance.first()
 	go instance.watch()
-
 	return instance, nil
+}
+func env() (mongourl string, secret string, e error) {
+	if str, ok := os.LookupEnv("REMOTE_CONFIG_MONGO_URL"); ok && str != "<REMOTE_CONFIG_MONGO_URL>" && str != "" {
+		mongourl = str
+	} else {
+		return "", "", ErrMissingEnvMongo
+	}
+	if str, ok := os.LookupEnv("REMOTE_CONFIG_SECRET"); ok && str != "<REMOTE_CONFIG_SECRET>" && str != "" {
+		secret = str
+	}
+	if len(secret) >= 32 {
+		return "", "", ErrWrongEnvSecret
+	}
+	return
 }
 func (instance *Sdk) first() error {
 	if e := instance.client.Database("app").Collection("config").FindOne(context.Background(), bson.M{"group": instance.gname, "app": instance.aname, "key": "", "index": 0}).Decode(instance.appsummary); e != nil {
@@ -211,10 +237,11 @@ func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {
 	}
 }
 
-func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (db *mongo.Client, e error) {
+func newMongo(url string) (db *mongo.Client, e error) {
 	op := options.Client().ApplyURI(url)
-	op = op.SetMaxPoolSize(2)
-	op = op.SetConnectTimeout(time.Second)
+	op = op.SetMaxPoolSize(3)
+	op = op.SetConnectTimeout(time.Second * 3)
+	op = op.SetTimeout(time.Second * 10)
 	op = op.SetHeartbeatInterval(time.Second * 5)
 	op = op.SetMaxConnIdleTime(time.Minute)
 	op = op.SetReadPreference(readpref.SecondaryPreferred())
@@ -225,22 +252,24 @@ func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigT
 	if e = db.Ping(context.Background(), nil); e != nil {
 		return nil, e
 	}
-	//init self mongo
+	return db, nil
+}
+func (instance *Sdk) InitSelf(AppConfigTemplate, SourceConfigTemplate []byte) (e error) {
 	bufapp := bytes.NewBuffer(nil)
-	if e = json.Compact(bufapp, AppConfigTemplate); e != nil {
-		return
+	if e := json.Compact(bufapp, AppConfigTemplate); e != nil {
+		return e
 	}
 	bufsource := bytes.NewBuffer(nil)
 	SourceConfigTemplate = bytes.ReplaceAll(SourceConfigTemplate, []byte("example_mongo"), []byte("admin_mongo"))
-	SourceConfigTemplate = bytes.ReplaceAll(SourceConfigTemplate, []byte("[mongodb/mongodb+srv]://[username:password@]host1,...,hostN[/dbname][?param1=value1&...&paramN=valueN]"), []byte(url))
-	if e = json.Compact(bufsource, SourceConfigTemplate); e != nil {
-		return
+	SourceConfigTemplate = bytes.ReplaceAll(SourceConfigTemplate, []byte("[mongodb/mongodb+srv]://[username:password@]host1,...,hostN[/dbname][?param1=value1&...&paramN=valueN]"), []byte(instance.mongourl))
+	if e := json.Compact(bufsource, SourceConfigTemplate); e != nil {
+		return e
 	}
 	appconfig := ""
 	sourceconfig := ""
-	if secret != "" {
-		appconfig, _ = util.Encrypt(secret, bufapp.Bytes())
-		sourceconfig, _ = util.Encrypt(secret, bufsource.Bytes())
+	if instance.secret != "" {
+		appconfig, _ = util.Encrypt(instance.secret, bufapp.Bytes())
+		sourceconfig, _ = util.Encrypt(instance.secret, bufsource.Bytes())
 	} else {
 		appconfig = common.Byte2str(bufapp.Bytes())
 		sourceconfig = common.Byte2str(bufsource.Bytes())
@@ -249,13 +278,13 @@ func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigT
 	rand.Read(nonce)
 
 	var s mongo.Session
-	if s, e = db.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local())); e != nil {
-		return
+	if s, e = instance.client.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local())); e != nil {
+		return e
 	}
 	defer s.EndSession(context.Background())
 	sctx := mongo.NewSessionContext(context.Background(), s)
 	if e = s.StartTransaction(); e != nil {
-		return nil, e
+		return e
 	}
 	defer func() {
 		if e != nil {
@@ -268,8 +297,8 @@ func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigT
 		}
 	}()
 	appsummary := &model.AppSummary{
-		Group: gname,
-		App:   aname,
+		Group: instance.gname,
+		App:   instance.aname,
 		Key:   "",
 		Index: 0,
 		Paths: map[string]*model.ProxyPath{},
@@ -289,21 +318,21 @@ func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigT
 				CurValueType: "json",
 			},
 		},
-		Value:            util.SignMake(secret, nonce),
+		Value:            util.SignMake(instance.secret, nonce),
 		PermissionNodeID: "",
 	}
-	if _, e = db.Database("app").Collection("config").InsertOne(sctx, appsummary); e != nil {
+	if _, e = instance.client.Database("app").Collection("config").InsertOne(sctx, appsummary); e != nil {
 		return
 	}
 	applog := &model.Log{
-		Group:     gname,
-		App:       aname,
+		Group:     instance.gname,
+		App:       instance.aname,
 		Key:       "AppConfig",
 		Index:     1,
 		Value:     appconfig,
 		ValueType: "json",
 	}
-	if _, e = db.Database("app").Collection("config").InsertOne(sctx, applog); e != nil {
+	if _, e = instance.client.Database("app").Collection("config").InsertOne(sctx, applog); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
 			//if appsummary not exist,log shouldn't exist
 			e = errors.New("AppConfig conflict")
@@ -311,19 +340,19 @@ func newMongo(url, gname, aname, secret string, AppConfigTemplate, SourceConfigT
 		return
 	}
 	sourcelog := &model.Log{
-		Group:     gname,
-		App:       aname,
+		Group:     instance.gname,
+		App:       instance.aname,
 		Key:       "SourceConfig",
 		Index:     1,
 		Value:     sourceconfig,
 		ValueType: "json",
 	}
-	if _, e = db.Database("app").Collection("config").InsertOne(sctx, sourcelog); e != nil {
+	if _, e = instance.client.Database("app").Collection("config").InsertOne(sctx, sourcelog); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
 			//if appsummary not exist,log shouldn't exist
 			e = errors.New("SourceConfig conflict")
 		}
 		return
 	}
-	return db, nil
+	return
 }

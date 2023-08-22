@@ -259,13 +259,13 @@ func newMongo(url string) (db *mongo.Client, e error) {
 }
 func initself(db *mongo.Client, mongourl, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (e error) {
 	bufapp := bytes.NewBuffer(nil)
-	if e := json.Compact(bufapp, AppConfigTemplate); e != nil {
-		return e
+	if e = json.Compact(bufapp, AppConfigTemplate); e != nil {
+		return
 	}
 	bufsource := bytes.NewBuffer(nil)
 	SourceConfigTemplate = bytes.ReplaceAll(SourceConfigTemplate, []byte("example_mongo"), []byte("admin_mongo"))
 	SourceConfigTemplate = bytes.ReplaceAll(SourceConfigTemplate, []byte("[mongodb/mongodb+srv]://[username:password@]host1,...,hostN[/dbname][?param1=value1&...&paramN=valueN]"), []byte(mongourl))
-	if e := json.Compact(bufsource, SourceConfigTemplate); e != nil {
+	if e = json.Compact(bufsource, SourceConfigTemplate); e != nil {
 		return e
 	}
 	appconfig := ""
@@ -303,9 +303,7 @@ func initself(db *mongo.Client, mongourl, secret string, AppConfigTemplate, Sour
 	existProjectIndex := &model.ProjectIndex{}
 	if e = db.Database("permission").Collection("projectindex").FindOne(sctx, bson.M{"project_id": model.AdminProjectID}).Decode(existProjectIndex); e != nil && e != mongo.ErrNoDocuments {
 		return
-	} else if e == nil && existProjectIndex.ProjectName == model.Project {
-		return
-	} else if e == nil {
+	} else if e == nil && existProjectIndex.ProjectName != model.Project {
 		e = errors.New("init conflict:already inited with other project name")
 		return
 	}
@@ -315,7 +313,7 @@ func initself(db *mongo.Client, mongourl, secret string, AppConfigTemplate, Sour
 	if existProjectIndex.ProjectName == "" && e != mongo.ErrNoDocuments {
 		//project not exist,the app should not exist too
 		if e == nil {
-			e = errors.New("init conflict: db data dirty")
+			e = errors.New("init conflict:db data dirty")
 		}
 		return
 	}
@@ -332,6 +330,9 @@ func initself(db *mongo.Client, mongourl, secret string, AppConfigTemplate, Sour
 		if e = util.SignCheck(secret, existAppSummary.Value); e != nil {
 			return
 		}
+	}
+	if existProjectIndex.ProjectName != "" {
+		return
 	}
 
 	//init now

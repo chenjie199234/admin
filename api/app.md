@@ -14,6 +14,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must > 0
 	"g_name":"str",
 	//value length must > 0
@@ -61,88 +64,6 @@ proxy_path_info: {
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### app_instances
-
-#### Req:
-```
-Path:         /admin.app/app_instances
-Method:       POST
-Content-Type: application/json
-------------------------------------------------------------------------------------------------------------
-{
-	//value length must > 0
-	"g_name":"str",
-	//value length must > 0
-	"a_name":"str",
-	//value length must < 32
-	"secret":"str"
-}
-------------------------------------------------------------------------------------------------------------
-```
-#### Resp:
-```
-Fail:    httpcode:4xx/5xx
-------------------------------------------------------------------------------------------------------------
-{"code":123,"msg":"error message"}
-------------------------------------------------------------------------------------------------------------
-Success: httpcode:200
-------------------------------------------------------------------------------------------------------------
-{
-	//object instance_info
-	"instances":[{},{}]
-}
-------------------------------------------------------------------------------------------------------------
-instance_info: {
-	"host_ip":"str",
-	"host_name":"str",
-	//float64
-	"cpu_num":0.1,
-	//float64
-	"cpu_usage":0.1,
-	//unit MB
-	//float64
-	"mem_total":0.1,
-	//float64
-	"mem_usage":0.1
-}
-------------------------------------------------------------------------------------------------------------
-```
-### app_instance_cmd
-
-#### Req:
-```
-Path:         /admin.app/app_instance_cmd
-Method:       POST
-Content-Type: application/json
-------------------------------------------------------------------------------------------------------------
-{
-	//value length must > 0
-	"g_name":"str",
-	//value length must > 0
-	"a_name":"str",
-	//value length must < 32
-	"secret":"str",
-	//value length must > 0
-	"host_ip":"str",
-	//value must in ["pprof"]
-	"cmd":"str",
-	"cmd_data":"str"
-}
-------------------------------------------------------------------------------------------------------------
-```
-#### Resp:
-```
-Fail:    httpcode:4xx/5xx
-------------------------------------------------------------------------------------------------------------
-{"code":123,"msg":"error message"}
-------------------------------------------------------------------------------------------------------------
-Success: httpcode:200
-------------------------------------------------------------------------------------------------------------
-{
-	"data":"str"
-}
-------------------------------------------------------------------------------------------------------------
-```
 ### create_app
 
 #### Req:
@@ -187,6 +108,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must > 0
 	"g_name":"str",
 	//value length must > 0
@@ -217,6 +141,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must > 0
 	"g_name":"str",
 	//value length must > 0
@@ -249,6 +176,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must > 0
 	"g_name":"str",
 	//value length must > 0
@@ -282,6 +212,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must > 0
 	"g_name":"str",
 	//value length must > 0
@@ -332,6 +265,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must > 0
 	"g_name":"str",
 	//value length must > 0
@@ -370,6 +306,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must > 0
 	"g_name":"str",
 	//value length must > 0
@@ -406,6 +345,8 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//value length must > 0
+	"project_name":"str",
 	//value length must > 0
 	"g_name":"str",
 	//value length must > 0
@@ -452,6 +393,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must != 0
 	"g_name":"str",
 	//value length must != 0
@@ -493,6 +437,9 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must != 0
 	"g_name":"str",
 	//value length must != 0
@@ -525,12 +472,15 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
-	//value length must != 0
-	"path":"str",
+	//uint32
+	//element num must == 2
+	"project_id":[1,2],
 	//value length must != 0
 	"g_name":"str",
 	//value length must != 0
 	"a_name":"str",
+	//value length must != 0
+	"path":"str",
 	//value length must >= 2
 	"data":"str"
 }

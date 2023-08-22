@@ -22,13 +22,13 @@ func NewApi() error {
 	_ = e //avoid unuse
 
 	//init discover for example server
-	//examplediscover := NewDNSDiscover("examplegroup", "examplename", "examplename-headless.examplegroup", time.Second * 10, 9000, 10000, 8000)
+	//examplediscover := discover.NewDNSDiscover("exampleproject", "examplegroup", "examplename", "exampleproject-examplegroup.examplename-headless", time.Second * 10, 9000, 10000, 8000)
 
 	cgrpcc := GetCGrpcClientConfig()
 	_ = cgrpcc //avoid unuse
 
 	//init cgrpc client below
-	//examplecgrpc, e = cgrpc.NewCGrpcClient(cgrpcc, examplediscover, model.Group, model.Name, "examplegroup", "examplename", nil)
+	//examplecgrpc, e = cgrpc.NewCGrpcClient(cgrpcc, examplediscover, model.Project, model.Group, model.Name, "exampleproject", "examplegroup", "examplename", nil)
 	//if e != nil {
 	//         return e
 	//}
@@ -38,7 +38,7 @@ func NewApi() error {
 	_ = crpcc //avoid unuse
 
 	//init crpc client below
-	//examplecrpc, e = crpc.NewCrpcClient(crpcc, examplediscover, model.Group, model.Name, "examplegroup", "examplename", nil)
+	//examplecrpc, e = crpc.NewCrpcClient(crpcc, examplediscover, model.Project, model.Group, model.Name, "exampleproject", "examplegroup", "examplename", nil)
 	//if e != nil {
 	// 	return e
 	//}
@@ -48,7 +48,7 @@ func NewApi() error {
 	_ = webc //avoid unuse
 
 	//init web client below
-	//exampleweb, e = web.NewWebClient(webc, examplediscover, model.Group, model.Name, "examplegroup", "examplename", nil)
+	//exampleweb, e = web.NewWebClient(webc, examplediscover, model.Project, model.Group, model.Name, "exampleproject", "examplegroup", "examplename", nil)
 	//if e != nil {
 	// 	return e
 	//}

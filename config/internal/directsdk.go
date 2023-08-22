@@ -25,8 +25,6 @@ import (
 
 type Sdk struct {
 	client     *mongo.Client
-	gname      string //self group name
-	aname      string //self app name
 	secret     string
 	lker       sync.Mutex
 	appsummary *model.AppSummary
@@ -46,7 +44,7 @@ var (
 // must set below env:
 // REMOTE_CONFIG_MONGO_URL,format [mongodb/mongodb+srv]://[username:password@]host1,...,hostN/[dbname][?param1=value1&...&paramN=valueN]
 // REMOTE_CONFIG_SECRET
-func NewDirectSdk(gname, aname string, AppConfigTemplate, SourceConfigTemplate []byte) (*Sdk, error) {
+func NewDirectSdk(AppConfigTemplate, SourceConfigTemplate []byte) (*Sdk, error) {
 	mongourl, secret, e := env()
 	if e != nil {
 		return nil, e
@@ -55,13 +53,11 @@ func NewDirectSdk(gname, aname string, AppConfigTemplate, SourceConfigTemplate [
 	if e != nil {
 		return nil, e
 	}
-	if e = initself(client, gname, aname, mongourl, secret, AppConfigTemplate, SourceConfigTemplate); e != nil {
+	if e = initself(client, mongourl, secret, AppConfigTemplate, SourceConfigTemplate); e != nil {
 		return nil, e
 	}
 	instance := &Sdk{
 		client:     client,
-		gname:      gname,
-		aname:      aname,
 		secret:     secret,
 		appsummary: &model.AppSummary{},
 		notices:    make(map[string]NoticeHandler),
@@ -86,7 +82,7 @@ func env() (mongourl string, secret string, e error) {
 	return
 }
 func (instance *Sdk) first() error {
-	if e := instance.client.Database("app").Collection("config").FindOne(context.Background(), bson.M{"group": instance.gname, "app": instance.aname, "key": "", "index": 0}).Decode(instance.appsummary); e != nil {
+	if e := instance.client.Database("app").Collection("config").FindOne(context.Background(), bson.M{"project_id": model.AdminProjectID, "group": model.Group, "app": model.Name, "key": "", "index": 0}).Decode(instance.appsummary); e != nil {
 		return e
 	}
 	//sign check
@@ -113,7 +109,7 @@ func (instance *Sdk) watch() {
 			//connect
 			var e error
 			if stream, e = instance.client.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(instance.start)); e != nil {
-				log.Error(nil, "[config.directsdk.watch] connect:", e)
+				log.Error(nil, "[config.directsdk.watch] connect failed", map[string]interface{}{"error": e})
 				stream = nil
 				time.Sleep(time.Millisecond * 100)
 				continue
@@ -125,7 +121,7 @@ func (instance *Sdk) watch() {
 			switch stream.Current.Lookup("operationType").StringValue() {
 			case "drop":
 				//drop collection
-				log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, "deleted")
+				log.Error(nil, "[config.directsdk.watch] all configs deleted", nil)
 				instance.lker.Lock()
 				for key, notice := range instance.notices {
 					notice(key, "", "raw")
@@ -137,36 +133,42 @@ func (instance *Sdk) watch() {
 				fallthrough
 			case "update":
 				//update
+				projectid, pok := stream.Current.Lookup("fullDocument").Document().Lookup("project_id").StringValueOK()
 				group, gok := stream.Current.Lookup("fullDocument").Document().Lookup("group").StringValueOK()
 				app, aok := stream.Current.Lookup("fullDocument").Document().Lookup("app").StringValueOK()
 				key, kok := stream.Current.Lookup("fullDocument").Document().Lookup("key").StringValueOK()
-				index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").AsInt32OK()
-				if !gok || !aok || !kok || !iok {
+				index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").AsInt64OK()
+				if !pok || !gok || !aok || !kok || !iok {
 					//unknown doc
 					continue
 				}
-				if group != instance.gname || app != instance.aname || key != "" || index != 0 {
+				if projectid != model.AdminProjectID || group != model.Group || app != model.Name || key != "" || index != 0 {
 					//this is not the needed appsummary
 					continue
 				}
 				tmp := &model.AppSummary{}
 				if e := stream.Current.Lookup("fullDocument").Unmarshal(tmp); e != nil {
-					log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, e)
+					log.Error(nil, "[config.directsdk.watch] document format wrong", map[string]interface{}{"project_id": model.AdminProjectID, "group": model.Group, "app": model.Name, "error": e})
 					continue
 				}
 				//check sign
 				if e := util.SignCheck(instance.secret, tmp.Value); e != nil {
-					log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, e)
+					log.Error(nil, "[config.directsdk.watch] sign check failed", map[string]interface{}{"project_id": model.AdminProjectID, "group": model.Group, "app": model.Name, "error": e})
 					continue
 				}
 				if instance.secret != "" {
+					success := true
 					for _, keysummary := range tmp.Keys {
 						plaintext, e := util.Decrypt(instance.secret, keysummary.CurValue)
 						if e != nil {
-							log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, e)
+							success = false
+							log.Error(nil, "[config.directsdk.watch] decrypt failed", map[string]interface{}{"project_id": model.AdminProjectID, "group": model.Group, "app": model.Name, "error": e})
 							break
 						}
 						keysummary.CurValue = common.Byte2str(plaintext)
+					}
+					if !success {
+						continue
 					}
 				}
 				instance.lker.Lock()
@@ -195,7 +197,7 @@ func (instance *Sdk) watch() {
 					continue
 				}
 				//this is same as delete the app
-				log.Error(nil, "[config.directsdk.watch] group:", instance.gname, "app:", instance.aname, "appsummary deleted")
+				log.Error(nil, "[config.directsdk.watch] app deleted", map[string]interface{}{"project_id": model.AdminProjectID, "group": model.Group, "app": model.Name})
 				instance.lker.Lock()
 				for key, notice := range instance.notices {
 					notice(key, "", "raw")
@@ -205,7 +207,7 @@ func (instance *Sdk) watch() {
 			}
 		}
 		if stream.Err() != nil {
-			log.Error(nil, "[config.selfsdk.watch] error:", stream.Err())
+			log.Error(nil, "[config.selfsdk.watch] stream disconnected", map[string]interface{}{"error": stream.Err()})
 		}
 		stream.Close(context.Background())
 		stream = nil
@@ -255,7 +257,7 @@ func newMongo(url string) (db *mongo.Client, e error) {
 	}
 	return db, nil
 }
-func initself(db *mongo.Client, gname, aname, mongourl, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (e error) {
+func initself(db *mongo.Client, mongourl, secret string, AppConfigTemplate, SourceConfigTemplate []byte) (e error) {
 	bufapp := bytes.NewBuffer(nil)
 	if e := json.Compact(bufapp, AppConfigTemplate); e != nil {
 		return e
@@ -290,19 +292,106 @@ func initself(db *mongo.Client, gname, aname, mongourl, secret string, AppConfig
 	defer func() {
 		if e != nil {
 			s.AbortTransaction(sctx)
-			if mongo.IsDuplicateKeyError(e) {
-				e = nil
-			}
 		} else if e = s.CommitTransaction(sctx); e != nil {
 			s.AbortTransaction(sctx)
 		}
 	}()
-	appsummary := &model.AppSummary{
-		Group: gname,
-		App:   aname,
-		Key:   "",
-		Index: 0,
-		Paths: map[string]*model.ProxyPath{},
+
+	//check init status
+
+	//check project index
+	existProjectIndex := &model.ProjectIndex{}
+	if e = db.Database("permission").Collection("projectindex").FindOne(sctx, bson.M{"project_id": model.AdminProjectID}).Decode(existProjectIndex); e != nil && e != mongo.ErrNoDocuments {
+		return
+	} else if e == nil && existProjectIndex.ProjectName == model.Project {
+		return
+	} else if e == nil {
+		e = errors.New("init conflict:already inited with other project name")
+		return
+	}
+	//check app
+	existAppSummary := &model.AppSummary{}
+	e = db.Database("app").Collection("config").FindOne(sctx, bson.M{"project_id": model.AdminProjectID, "group": model.Group, "app": model.Name, "key": "", "index": 0}).Decode(existAppSummary)
+	if existProjectIndex.ProjectName == "" && e != mongo.ErrNoDocuments {
+		//project not exist,the app should not exist too
+		if e == nil {
+			e = errors.New("init conflict: db data dirty")
+		}
+		return
+	}
+	if existProjectIndex.ProjectName != "" && e != nil {
+		//project exist,the app should exist too
+		if e == mongo.ErrNoDocuments {
+			e = errors.New("init conflict:db data dirty")
+		}
+		return
+	}
+	if existProjectIndex.ProjectName != "" {
+		//project exist,the app should exist too
+		//check secret
+		if e = util.SignCheck(secret, existAppSummary.Value); e != nil {
+			return
+		}
+	}
+
+	//init now
+
+	//init project index
+	if _, e = db.Database("permission").Collection("projectindex").InsertOne(sctx, bson.M{"project_name": model.Project, "project_id": model.AdminProjectID}); e != nil {
+		return
+	}
+	//init node
+	docs := bson.A{}
+	docs = append(docs, model.Node{
+		NodeId:       "0",
+		NodeName:     "root",
+		NodeData:     "",
+		CurNodeIndex: 1,
+	})
+	//first project's node
+	docs = append(docs, &model.Node{
+		NodeId:       model.AdminProjectID,
+		NodeName:     model.Project,
+		NodeData:     "",
+		CurNodeIndex: 100,
+	})
+	//first project's user and role control node
+	docs = append(docs, &model.Node{
+		NodeId:       model.AdminProjectID + model.UserAndRoleControl,
+		NodeName:     "UserAndRoleControl",
+		NodeData:     "",
+		CurNodeIndex: 0,
+	})
+	//first project's config control node
+	docs = append(docs, &model.Node{
+		NodeId:       model.AdminProjectID + model.AppControl,
+		NodeName:     "AppControl",
+		NodeData:     "",
+		CurNodeIndex: 1,
+	})
+	//first project's first app(this app: admin)'s config node
+	docs = append(docs, &model.Node{
+		NodeId:       model.AdminProjectID + model.AppControl + ",1",
+		NodeName:     model.Project + "-" + model.Group + "." + model.Name,
+		NodeData:     "",
+		CurNodeIndex: 0,
+	})
+	if _, e = db.Database("permission").Collection("node").InsertMany(sctx, docs); e != nil {
+		if mongo.IsDuplicateKeyError(e) {
+			e = errors.New("init conflict:permission node already exist")
+		}
+		return
+	}
+	//init app
+	docs = docs[0:0]
+	//summary
+	docs = append(docs, &model.AppSummary{
+		ProjectID: model.AdminProjectID,
+		Group:     model.Group,
+		App:       model.Name,
+		Key:       "",
+		Index:     0,
+		Paths:     map[string]*model.ProxyPath{},
 		Keys: map[string]*model.KeySummary{
 			"AppConfig": {
 				CurIndex:     1,
@@ -320,40 +409,32 @@ func initself(db *mongo.Client, gname, aname, mongourl, secret string, AppConfig
 			},
 		},
 		Value:            util.SignMake(secret, nonce),
-		PermissionNodeID: "",
-	}
-	if _, e = db.Database("app").Collection("config").InsertOne(sctx, appsummary); e != nil {
-		return
-	}
-	applog := &model.Log{
-		Group:     gname,
-		App:       aname,
+		PermissionNodeID: model.AdminProjectID + model.AppControl + ",1",
+	})
+	//AppConfig
+	docs = append(docs, &model.Log{
+		ProjectID: model.AdminProjectID,
+		Group:     model.Group,
+		App:       model.Name,
 		Key:       "AppConfig",
 		Index:     1,
 		Value:     appconfig,
 		ValueType: "json",
-	}
-	if _, e = db.Database("app").Collection("config").InsertOne(sctx, applog); e != nil {
-		if mongo.IsDuplicateKeyError(e) {
-			//if appsummary not exist,log shouldn't exist
-			e = errors.New("AppConfig conflict")
-		}
-		return
-	}
-	sourcelog := &model.Log{
-		Group:     gname,
-		App:       aname,
+	})
+	//SourceConfig
+	docs = append(docs, &model.Log{
+		ProjectID: model.AdminProjectID,
+		Group:     model.Group,
+		App:       model.Name,
 		Key:       "SourceConfig",
 		Index:     1,
 		Value:     sourceconfig,
 		ValueType: "json",
-	}
-	if _, e = db.Database("app").Collection("config").InsertOne(sctx, sourcelog); e != nil {
+	})
+	if _, e = db.Database("app").Collection("config").InsertMany(sctx, docs); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
-			//if appsummary not exist,log shouldn't exist
-			e = errors.New("SourceConfig conflict")
+			e = errors.New("init conflict:config already exist")
 		}
-		return
 	}
 	return
 }

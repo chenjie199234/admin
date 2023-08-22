@@ -11,149 +11,6 @@ export interface Error{
 	msg: string;
 }
 
-export interface AppInstanceCmdReq{
-	g_name: string;
-	a_name: string;
-	secret: string;
-	host_ip: string;
-	cmd: string;
-	cmd_data: string;
-}
-function AppInstanceCmdReqToJson(msg: AppInstanceCmdReq): string{
-	let s: string="{"
-	//g_name
-	if(msg.g_name==null||msg.g_name==undefined){
-		throw 'AppInstanceCmdReq.g_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.g_name)
-		s+='"g_name":'+vv+','
-	}
-	//a_name
-	if(msg.a_name==null||msg.a_name==undefined){
-		throw 'AppInstanceCmdReq.a_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.a_name)
-		s+='"a_name":'+vv+','
-	}
-	//secret
-	if(msg.secret==null||msg.secret==undefined){
-		throw 'AppInstanceCmdReq.secret must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.secret)
-		s+='"secret":'+vv+','
-	}
-	//host_ip
-	if(msg.host_ip==null||msg.host_ip==undefined){
-		throw 'AppInstanceCmdReq.host_ip must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.host_ip)
-		s+='"host_ip":'+vv+','
-	}
-	//cmd
-	if(msg.cmd==null||msg.cmd==undefined){
-		throw 'AppInstanceCmdReq.cmd must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.cmd)
-		s+='"cmd":'+vv+','
-	}
-	//cmd_data
-	if(msg.cmd_data==null||msg.cmd_data==undefined){
-		throw 'AppInstanceCmdReq.cmd_data must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.cmd_data)
-		s+='"cmd_data":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface AppInstanceCmdResp{
-	data: string;
-}
-function JsonToAppInstanceCmdResp(jsonobj: { [k:string]:any }): AppInstanceCmdResp{
-	let obj: AppInstanceCmdResp={
-		data:'',
-	}
-	//data
-	if(jsonobj['data']!=null&&jsonobj['data']!=undefined){
-		if(typeof jsonobj['data']!='string'){
-			throw 'AppInstanceCmdResp.data must be string'
-		}
-		obj['data']=jsonobj['data']
-	}
-	return obj
-}
-export interface AppInstancesReq{
-	g_name: string;
-	a_name: string;
-	secret: string;
-}
-function AppInstancesReqToJson(msg: AppInstancesReq): string{
-	let s: string="{"
-	//g_name
-	if(msg.g_name==null||msg.g_name==undefined){
-		throw 'AppInstancesReq.g_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.g_name)
-		s+='"g_name":'+vv+','
-	}
-	//a_name
-	if(msg.a_name==null||msg.a_name==undefined){
-		throw 'AppInstancesReq.a_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.a_name)
-		s+='"a_name":'+vv+','
-	}
-	//secret
-	if(msg.secret==null||msg.secret==undefined){
-		throw 'AppInstancesReq.secret must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.secret)
-		s+='"secret":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface AppInstancesResp{
-	instances: Array<InstanceInfo|null|undefined>|null|undefined;
-}
-function JsonToAppInstancesResp(jsonobj: { [k:string]:any }): AppInstancesResp{
-	let obj: AppInstancesResp={
-		instances:null,
-	}
-	//instances
-	if(jsonobj['instances']!=null&&jsonobj['instances']!=undefined){
-		if(!(jsonobj['instances'] instanceof Array)){
-			throw 'AppInstancesResp.instances must be Array<InstanceInfo>|null|undefined'
-		}
-		for(let element of jsonobj['instances']){
-			if(typeof element!='object'){
-				throw 'element in AppInstancesResp.instances must be InstanceInfo'
-			}
-			if(obj['instances']==null){
-				obj['instances']=new Array<InstanceInfo>
-			}
-			obj['instances'].push(JsonToInstanceInfo(element))
-		}
-	}
-	return obj
-}
 export interface CreateAppReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
@@ -240,12 +97,32 @@ function JsonToCreateAppResp(jsonobj: { [k:string]:any }): CreateAppResp{
 	return obj
 }
 export interface DelAppReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
 	secret: string;
 }
 function DelAppReqToJson(msg: DelAppReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in DelAppReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in DelAppReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'DelAppReq.g_name must be string'
@@ -285,6 +162,8 @@ function JsonToDelAppResp(_jsonobj: { [k:string]:any }): DelAppResp{
 	return obj
 }
 export interface DelKeyReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
 	key: string;//can't contain '.' in key
@@ -292,6 +171,24 @@ export interface DelKeyReq{
 }
 function DelKeyReqToJson(msg: DelKeyReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in DelKeyReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in DelKeyReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'DelKeyReq.g_name must be string'
@@ -339,6 +236,8 @@ function JsonToDelKeyResp(_jsonobj: { [k:string]:any }): DelKeyResp{
 	return obj
 }
 export interface DelProxyReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
 	path: string;
@@ -346,6 +245,24 @@ export interface DelProxyReq{
 }
 function DelProxyReqToJson(msg: DelProxyReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in DelProxyReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in DelProxyReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'DelProxyReq.g_name must be string'
@@ -393,12 +310,32 @@ function JsonToDelProxyResp(_jsonobj: { [k:string]:any }): DelProxyResp{
 	return obj
 }
 export interface GetAppReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
 	secret: string;
 }
 function GetAppReqToJson(msg: GetAppReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in GetAppReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in GetAppReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'GetAppReq.g_name must be string'
@@ -486,6 +423,8 @@ function JsonToGetAppResp(jsonobj: { [k:string]:any }): GetAppResp{
 	return obj
 }
 export interface GetKeyConfigReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
 	key: string;//can't contain '.' in key
@@ -495,6 +434,24 @@ export interface GetKeyConfigReq{
 }
 function GetKeyConfigReqToJson(msg: GetKeyConfigReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in GetKeyConfigReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in GetKeyConfigReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'GetKeyConfigReq.g_name must be string'
@@ -615,67 +572,6 @@ function JsonToGetKeyConfigResp(jsonobj: { [k:string]:any }): GetKeyConfigResp{
 	}
 	return obj
 }
-export interface InstanceInfo{
-	host_ip: string;
-	host_name: string;
-	cpu_num: number;
-	cpu_usage: number;
-	mem_total: number;//unit MB
-	mem_usage: number;
-}
-function JsonToInstanceInfo(jsonobj: { [k:string]:any }): InstanceInfo{
-	let obj: InstanceInfo={
-		host_ip:'',
-		host_name:'',
-		cpu_num:0,
-		cpu_usage:0,
-		mem_total:0,
-		mem_usage:0,
-	}
-	//host_ip
-	if(jsonobj['host_ip']!=null&&jsonobj['host_ip']!=undefined){
-		if(typeof jsonobj['host_ip']!='string'){
-			throw 'InstanceInfo.host_ip must be string'
-		}
-		obj['host_ip']=jsonobj['host_ip']
-	}
-	//host_name
-	if(jsonobj['host_name']!=null&&jsonobj['host_name']!=undefined){
-		if(typeof jsonobj['host_name']!='string'){
-			throw 'InstanceInfo.host_name must be string'
-		}
-		obj['host_name']=jsonobj['host_name']
-	}
-	//cpu_num
-	if(jsonobj['cpu_num']!=null&&jsonobj['cpu_num']!=undefined){
-		if(typeof jsonobj['cpu_num']!='number'){
-			throw 'InstanceInfo.cpu_num must be number'
-		}
-		obj['cpu_num']=jsonobj['cpu_num']
-	}
-	//cpu_usage
-	if(jsonobj['cpu_usage']!=null&&jsonobj['cpu_usage']!=undefined){
-		if(typeof jsonobj['cpu_usage']!='number'){
-			throw 'InstanceInfo.cpu_usage must be number'
-		}
-		obj['cpu_usage']=jsonobj['cpu_usage']
-	}
-	//mem_total
-	if(jsonobj['mem_total']!=null&&jsonobj['mem_total']!=undefined){
-		if(typeof jsonobj['mem_total']!='number'){
-			throw 'InstanceInfo.mem_total must be number'
-		}
-		obj['mem_total']=jsonobj['mem_total']
-	}
-	//mem_usage
-	if(jsonobj['mem_usage']!=null&&jsonobj['mem_usage']!=undefined){
-		if(typeof jsonobj['mem_usage']!='number'){
-			throw 'InstanceInfo.mem_usage must be number'
-		}
-		obj['mem_usage']=jsonobj['mem_usage']
-	}
-	return obj
-}
 export interface KeyConfigInfo{
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	cur_index: number;
@@ -792,20 +688,32 @@ function JsonToProxyPathInfo(jsonobj: { [k:string]:any }): ProxyPathInfo{
 	return obj
 }
 export interface ProxyReq{
-	path: string;
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
+	path: string;
 	data: string;
 }
 function ProxyReqToJson(msg: ProxyReq): string{
 	let s: string="{"
-	//path
-	if(msg.path==null||msg.path==undefined){
-		throw 'ProxyReq.path must be string'
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
 	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.path)
-		s+='"path":'+vv+','
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in ProxyReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in ProxyReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
 	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
@@ -822,6 +730,14 @@ function ProxyReqToJson(msg: ProxyReq): string{
 		//transfer the json escape
 		let vv=JSON.stringify(msg.a_name)
 		s+='"a_name":'+vv+','
+	}
+	//path
+	if(msg.path==null||msg.path==undefined){
+		throw 'ProxyReq.path must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.path)
+		s+='"path":'+vv+','
 	}
 	//data
 	if(msg.data==null||msg.data==undefined){
@@ -855,6 +771,8 @@ function JsonToProxyResp(jsonobj: { [k:string]:any }): ProxyResp{
 	return obj
 }
 export interface RollbackReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
 	key: string;//can't contain '.' in key
@@ -864,6 +782,24 @@ export interface RollbackReq{
 }
 function RollbackReqToJson(msg: RollbackReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in RollbackReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in RollbackReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'RollbackReq.g_name must be string'
@@ -919,6 +855,8 @@ function JsonToRollbackResp(_jsonobj: { [k:string]:any }): RollbackResp{
 	return obj
 }
 export interface SetKeyConfigReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
 	key: string;//can't contain '.' in key
@@ -929,6 +867,24 @@ export interface SetKeyConfigReq{
 }
 function SetKeyConfigReqToJson(msg: SetKeyConfigReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in SetKeyConfigReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in SetKeyConfigReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'SetKeyConfigReq.g_name must be string'
@@ -998,6 +954,8 @@ function JsonToSetKeyConfigResp(_jsonobj: { [k:string]:any }): SetKeyConfigResp{
 	return obj
 }
 export interface SetProxyReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
 	path: string;
@@ -1009,6 +967,24 @@ export interface SetProxyReq{
 }
 function SetProxyReqToJson(msg: SetProxyReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in SetProxyReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in SetProxyReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'SetProxyReq.g_name must be string'
@@ -1100,6 +1076,8 @@ function JsonToSetProxyResp(jsonobj: { [k:string]:any }): SetProxyResp{
 	return obj
 }
 export interface UpdateAppSecretReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
 	old_secret: string;
@@ -1107,6 +1085,24 @@ export interface UpdateAppSecretReq{
 }
 function UpdateAppSecretReqToJson(msg: UpdateAppSecretReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in UpdateAppSecretReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in UpdateAppSecretReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'UpdateAppSecretReq.g_name must be string'
@@ -1200,6 +1196,7 @@ function JsonToWatchData(jsonobj: { [k:string]:any }): WatchData{
 	return obj
 }
 export interface WatchReq{
+	project_name: string;
 	g_name: string;
 	a_name: string;
 	//map's key is config's keyname,map's value is config's cur version
@@ -1211,6 +1208,14 @@ export interface WatchReq{
 }
 function WatchReqToJson(msg: WatchReq): string{
 	let s: string="{"
+	//project_name
+	if(msg.project_name==null||msg.project_name==undefined){
+		throw 'WatchReq.project_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.project_name)
+		s+='"project_name":'+vv+','
+	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
 		throw 'WatchReq.g_name must be string'
@@ -1289,8 +1294,6 @@ function JsonToWatchResp(jsonobj: { [k:string]:any }): WatchResp{
 	return obj
 }
 const _WebPathAppGetApp: string ="/admin.app/get_app";
-const _WebPathAppAppInstances: string ="/admin.app/app_instances";
-const _WebPathAppAppInstanceCmd: string ="/admin.app/app_instance_cmd";
 const _WebPathAppCreateApp: string ="/admin.app/create_app";
 const _WebPathAppDelApp: string ="/admin.app/del_app";
 const _WebPathAppUpdateAppSecret: string ="/admin.app/update_app_secret";
@@ -1340,110 +1343,6 @@ export class AppBrowserClientToC {
 		.then(function(response){
 			try{
 				let obj:GetAppResp=JsonToGetAppResp(response.data)
-				successf(obj)
-			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
-				errorf(err)
-			}
-		})
-		.catch(function(error){
-			if(error.response==undefined){
-				errorf({code:-2,msg:error.message})
-				return
-			}
-			let respdata=error.response.data
-			let err:Error={code:-1,msg:''}
-			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
-				err.msg=respdata
-			}else{
-				err.code=respdata.code
-				err.msg=respdata.msg
-			}
-			errorf(err)
-		})
-	}
-	//timeout must be integer,timeout's unit is millisecond
-	//don't set Content-Type in header
-	app_instances(header: { [k: string]: string },req: AppInstancesReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: AppInstancesResp)=>void){
-		if(!Number.isInteger(timeout)){
-			errorf({code:-2,msg:'timeout must be integer'})
-			return
-		}
-		if(header==null||header==undefined){
-			header={}
-		}
-		header["Content-Type"] = "application/json"
-		let body: string=''
-		try{
-			body=AppInstancesReqToJson(req)
-		}catch(e){
-			errorf({code:-2,msg:''+e})
-			return
-		}
-		let config={
-			url:_WebPathAppAppInstances,
-			method: "post",
-			baseURL: this.host,
-			headers: header,
-			data: body,
-			timeout: timeout,
-		}
-		Axios.request(config)
-		.then(function(response){
-			try{
-				let obj:AppInstancesResp=JsonToAppInstancesResp(response.data)
-				successf(obj)
-			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
-				errorf(err)
-			}
-		})
-		.catch(function(error){
-			if(error.response==undefined){
-				errorf({code:-2,msg:error.message})
-				return
-			}
-			let respdata=error.response.data
-			let err:Error={code:-1,msg:''}
-			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
-				err.msg=respdata
-			}else{
-				err.code=respdata.code
-				err.msg=respdata.msg
-			}
-			errorf(err)
-		})
-	}
-	//timeout must be integer,timeout's unit is millisecond
-	//don't set Content-Type in header
-	app_instance_cmd(header: { [k: string]: string },req: AppInstanceCmdReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: AppInstanceCmdResp)=>void){
-		if(!Number.isInteger(timeout)){
-			errorf({code:-2,msg:'timeout must be integer'})
-			return
-		}
-		if(header==null||header==undefined){
-			header={}
-		}
-		header["Content-Type"] = "application/json"
-		let body: string=''
-		try{
-			body=AppInstanceCmdReqToJson(req)
-		}catch(e){
-			errorf({code:-2,msg:''+e})
-			return
-		}
-		let config={
-			url:_WebPathAppAppInstanceCmd,
-			method: "post",
-			baseURL: this.host,
-			headers: header,
-			data: body,
-			timeout: timeout,
-		}
-		Axios.request(config)
-		.then(function(response){
-			try{
-				let obj:AppInstanceCmdResp=JsonToAppInstanceCmdResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

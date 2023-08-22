@@ -172,17 +172,17 @@ var kafkaPubers map[string]*kafka.Writer
 func initlocalsource() {
 	data, e := os.ReadFile("./SourceConfig.json")
 	if e != nil {
-		log.Error(nil, "[config.local.source] read config file error:", e)
+		log.Error(nil, "[config.local.source] read config file failed", map[string]interface{}{"error": e})
 		Close()
 		os.Exit(1)
 	}
 	sc = &sourceConfig{}
 	if e = json.Unmarshal(data, sc); e != nil {
-		log.Error(nil, "[config.local.source] config file format error:", e)
+		log.Error(nil, "[config.local.source] config file format wrong", map[string]interface{}{"error": e})
 		Close()
 		os.Exit(1)
 	}
-	log.Info(nil, "[config.local.source] new config:", sc)
+	log.Info(nil, "[config.local.source] update success", map[string]interface{}{"error": sc})
 
 	initgrpcserver()
 	initgrpcclient()
@@ -200,7 +200,7 @@ func initremotesource(wait chan *struct{}) (stopwatch func()) {
 	return RemoteConfigSdk.Watch("SourceConfig", func(key, keyvalue, keytype string) {
 		//only support json
 		if keytype != "json" {
-			log.Error(nil, "[config.remote.source] config data can only support json format")
+			log.Error(nil, "[config.remote.source] config data can only support json format", nil)
 			return
 		}
 		//source config only init once
@@ -209,11 +209,11 @@ func initremotesource(wait chan *struct{}) (stopwatch func()) {
 		}
 		c := &sourceConfig{}
 		if e := json.Unmarshal(common.Str2byte(keyvalue), c); e != nil {
-			log.Error(nil, "[config.remote.source] config data format error:", e)
+			log.Error(nil, "[config.remote.source] config data format wrong", map[string]interface{}{"error": e})
 			return
 		}
 		sc = c
-		log.Info(nil, "[config.remote.source] new config:", sc)
+		log.Info(nil, "[config.remote.source] update success", map[string]interface{}{"config": sc})
 		initgrpcserver()
 		initgrpcclient()
 		initcrpcserver()
@@ -400,7 +400,7 @@ func initredis() {
 			IOTimeout:   redisc.IOTimeout.StdDuration(),
 		})
 		if e := tempredis.Ping(context.Background()); e != nil {
-			log.Error(nil, "[config.initredis] ping redis:", k, "error:", e)
+			log.Error(nil, "[config.initredis] ping failed", map[string]interface{}{"redis": k, "error": e})
 			Close()
 			os.Exit(1)
 		}
@@ -434,13 +434,13 @@ func initmongo() {
 		op = op.SetTimeout(mongoc.IOTimeout.StdDuration())
 		tempdb, e := mongo.Connect(nil, op)
 		if e != nil {
-			log.Error(nil, "[config.initmongo] open mongodb:", k, "error:", e)
+			log.Error(nil, "[config.initmongo] open failed", map[string]interface{}{"mongodb": k, "error": e})
 			Close()
 			os.Exit(1)
 		}
 		e = tempdb.Ping(context.Background(), readpref.Primary())
 		if e != nil {
-			log.Error(nil, "[config.initmongo] ping mongodb:", k, "error:", e)
+			log.Error(nil, "[config.initmongo] ping failed", map[string]interface{}{"mongodb": k, "error": e})
 			Close()
 			os.Exit(1)
 		}
@@ -469,7 +469,7 @@ func initsql() {
 		}
 		tmpc, e := mysql.ParseDSN(sqlc.URL)
 		if e != nil {
-			log.Error(nil, "[config.initsql] open mysql:", k, "error:", e)
+			log.Error(nil, "[config.initsql] url format wrong", map[string]interface{}{"mysql": k, "error": e})
 			Close()
 			os.Exit(1)
 		}
@@ -478,7 +478,7 @@ func initsql() {
 		tmpc.WriteTimeout = sqlc.IOTimeout.StdDuration()
 		tempdb, e := sql.Open("mysql", tmpc.FormatDSN())
 		if e != nil {
-			log.Error(nil, "[config.initsql] open mysql:", k, "error:", e)
+			log.Error(nil, "[config.initsql] open failed", map[string]interface{}{"mysql": k, "error": e})
 			Close()
 			os.Exit(1)
 		}
@@ -487,7 +487,7 @@ func initsql() {
 		tempdb.SetConnMaxIdleTime(sqlc.MaxIdletime.StdDuration())
 		e = tempdb.PingContext(context.Background())
 		if e != nil {
-			log.Error(nil, "[config.initsql] ping mysql:", k, "error:", e)
+			log.Error(nil, "[config.initsql] ping failed", map[string]interface{}{"mysql": k, "error": e})
 			Close()
 			os.Exit(1)
 		}
@@ -503,7 +503,7 @@ func initkafkapub() {
 			pubc.Addrs = []string{"127.0.0.1:9092"}
 		}
 		if (pubc.AuthMethod == 1 || pubc.AuthMethod == 2 || pubc.AuthMethod == 3) && (pubc.Username == "" || pubc.Passwd == "") {
-			log.Error(nil, "[config.initkafkapub] pub topic:", pubc.TopicName, "username or password missing")
+			log.Error(nil, "[config.initkafkapub] username or password missing when auth_method != 0", map[string]interface{}{"topic": pubc.TopicName})
 			Close()
 			os.Exit(1)
 		}
@@ -536,7 +536,7 @@ func initkafkapub() {
 			dialer.SASLMechanism, e = scram.Mechanism(scram.SHA512, pubc.Username, pubc.Passwd)
 		}
 		if e != nil {
-			log.Error(nil, "[config.initkafkapub] kafka topic:", pubc.TopicName, "pub username and password parse error:", e)
+			log.Error(nil, "[config.initkafkapub] username and password wrong", map[string]interface{}{"topic": pubc.TopicName, "error": e})
 			Close()
 			os.Exit(1)
 		}
@@ -575,12 +575,12 @@ func initkafkasub() {
 			subc.Addrs = []string{"127.0.0.1:9092"}
 		}
 		if (subc.AuthMethod == 1 || subc.AuthMethod == 2 || subc.AuthMethod == 3) && (subc.Username == "" || subc.Passwd == "") {
-			log.Error(nil, "[config.initkafkasub] sub topic:", subc.TopicName, "username or password missing")
+			log.Error(nil, "[config.initkafkasub] username or password missing when auth_method != 0", map[string]interface{}{"topic": subc.TopicName})
 			Close()
 			os.Exit(1)
 		}
 		if subc.GroupName == "" {
-			log.Error(nil, "[config.initkafkasub] sub topic:", subc.TopicName, "groupname missing")
+			log.Error(nil, "[config.initkafkasub] groupname missing", map[string]interface{}{"topic": subc.TopicName})
 			Close()
 			os.Exit(1)
 		}
@@ -610,7 +610,7 @@ func initkafkasub() {
 			dialer.SASLMechanism, e = scram.Mechanism(scram.SHA512, subc.Username, subc.Passwd)
 		}
 		if e != nil {
-			log.Error(nil, "[config.initkafkasub] kafka topic:", subc.TopicName, "sub username and password parse error:", e)
+			log.Error(nil, "[config.initkafkasub] username and password wrong", map[string]interface{}{"topic": subc.TopicName, "error": e})
 			Close()
 			os.Exit(1)
 		}

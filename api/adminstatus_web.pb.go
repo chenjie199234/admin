@@ -86,6 +86,7 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 	return func(ctx *web.Context) {
 		req := new(Pingreq)
 		if e := ctx.ParseForm(); e != nil {
+			log.Error(ctx, "[/admin.status/ping]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -100,12 +101,13 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 		if data.Len() > 1 {
 			data.Bytes()[data.Len()-1] = '}'
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data.Bytes(), req); e != nil {
+				log.Error(ctx, "[/admin.status/ping]", map[string]interface{}{"error": e})
 				ctx.Abort(cerror.ErrReq)
 				return
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.status/ping]", errstr)
+			log.Error(ctx, "[/admin.status/ping]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

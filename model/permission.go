@@ -13,6 +13,10 @@ type Node struct {
 	NodeData     string `bson:"node_data"`
 	CurNodeIndex uint32 `bson:"cur_node_index"` //auto increment,this is for child's node_id
 }
+type ProjectIndex struct {
+	ProjectName string `bson:"project_name"`
+	ProjectID   string `bson:"project_id"`
+}
 type UserNode struct {
 	UserId primitive.ObjectID `bson:"user_id"`
 	NodeId string             `bson:"node_id"`
@@ -21,12 +25,12 @@ type UserNode struct {
 	X      bool               `bson:"x"`
 }
 type RoleNode struct {
-	Project  string `bson:"project"`
-	RoleName string `bson:"role_name"`
-	NodeId   string `bson:"node_id"`
-	R        bool   `bson:"r"`
-	W        bool   `bson:"w"`
-	X        bool   `bson:"x"`
+	ProjectID string `bson:"project_id"`
+	RoleName  string `bson:"role_name"`
+	NodeId    string `bson:"node_id"`
+	R         bool   `bson:"r"`
+	W         bool   `bson:"w"`
+	X         bool   `bson:"x"`
 }
 type UserNodes []*UserNode
 

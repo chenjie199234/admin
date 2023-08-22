@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/chenjie199234/admin/config/internal"
-	"github.com/chenjie199234/admin/model"
 
 	"github.com/chenjie199234/Corelib/log"
 )
@@ -44,7 +43,7 @@ func Init(notice func(c *AppConfig), AppConfigTemplate, SourceConfigTemplate []b
 			case <-waitsource:
 				sourceinit = true
 			case <-tmer.C:
-				log.Error(nil, "[config.Init] timeout")
+				log.Error(nil, "[config.Init] timeout", nil)
 				Close()
 				os.Exit(1)
 			}
@@ -68,18 +67,18 @@ func initenv(AppConfigTemplate, SourceConfigTemplate []byte) {
 	if str, ok := os.LookupEnv("CONFIG_TYPE"); ok && str != "<CONFIG_TYPE>" && str != "" {
 		configtype, e := strconv.Atoi(str)
 		if e != nil || (configtype != 0 && configtype != 1 && configtype != 2) {
-			log.Error(nil, "[config.initenv] env CONFIG_TYPE must be number in [0,1,2]")
+			log.Error(nil, "[config.initenv] env CONFIG_TYPE must be number in [0,1,2]", nil)
 			Close()
 			os.Exit(1)
 		}
 		EC.ConfigType = &configtype
 	} else {
-		log.Warning(nil, "[config.initenv] missing env CONFIG_TYPE")
+		log.Warning(nil, "[config.initenv] missing env CONFIG_TYPE", nil)
 	}
 	if EC.ConfigType != nil && *EC.ConfigType == 1 {
 		var e error
-		if RemoteConfigSdk, e = internal.NewDirectSdk(model.Group, model.Name, AppConfigTemplate, SourceConfigTemplate); e != nil {
-			log.Error(nil, "[config.initenv] new direct config sdk:", e)
+		if RemoteConfigSdk, e = internal.NewDirectSdk(AppConfigTemplate, SourceConfigTemplate); e != nil {
+			log.Error(nil, "[config.initenv] new direct config failed", map[string]interface{}{"error": e})
 			Close()
 			os.Exit(1)
 		}
@@ -87,11 +86,11 @@ func initenv(AppConfigTemplate, SourceConfigTemplate []byte) {
 	if str, ok := os.LookupEnv("RUN_ENV"); ok && str != "<RUN_ENV>" && str != "" {
 		EC.RunEnv = &str
 	} else {
-		log.Warning(nil, "[config.initenv] missing env RUN_ENV")
+		log.Warning(nil, "[config.initenv] missing env RUN_ENV", nil)
 	}
 	if str, ok := os.LookupEnv("DEPLOY_ENV"); ok && str != "<DEPLOY_ENV>" && str != "" {
 		EC.DeployEnv = &str
 	} else {
-		log.Warning(nil, "[config.initenv] missing env DEPLOY_ENV")
+		log.Warning(nil, "[config.initenv] missing env DEPLOY_ENV", nil)
 	}
 }

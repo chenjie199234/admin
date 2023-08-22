@@ -341,7 +341,7 @@ func _User_UserLogin_CrpcHandler(handler func(context.Context, *UserLoginReq) (*
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/user_login] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/user_login] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -351,7 +351,7 @@ func _User_UserLogin_CrpcHandler(handler func(context.Context, *UserLoginReq) (*
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/user_login] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/user_login] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -384,7 +384,7 @@ func _User_LoginInfo_CrpcHandler(handler func(context.Context, *LoginInfoReq) (*
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/login_info] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/login_info] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -394,7 +394,7 @@ func _User_LoginInfo_CrpcHandler(handler func(context.Context, *LoginInfoReq) (*
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/login_info] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/login_info] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -427,7 +427,7 @@ func _User_InviteProject_CrpcHandler(handler func(context.Context, *InviteProjec
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/invite_project] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/invite_project] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -437,7 +437,7 @@ func _User_InviteProject_CrpcHandler(handler func(context.Context, *InviteProjec
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/invite_project] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/invite_project] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -445,7 +445,7 @@ func _User_InviteProject_CrpcHandler(handler func(context.Context, *InviteProjec
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/invite_project]", errstr)
+			log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -475,7 +475,7 @@ func _User_KickProject_CrpcHandler(handler func(context.Context, *KickProjectReq
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/kick_project] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/kick_project] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -485,7 +485,7 @@ func _User_KickProject_CrpcHandler(handler func(context.Context, *KickProjectReq
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/kick_project] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/kick_project] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -493,7 +493,7 @@ func _User_KickProject_CrpcHandler(handler func(context.Context, *KickProjectReq
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/kick_project]", errstr)
+			log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -523,7 +523,7 @@ func _User_SearchUsers_CrpcHandler(handler func(context.Context, *SearchUsersReq
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/search_users] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/search_users] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -533,7 +533,7 @@ func _User_SearchUsers_CrpcHandler(handler func(context.Context, *SearchUsersReq
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/search_users] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/search_users] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -541,7 +541,7 @@ func _User_SearchUsers_CrpcHandler(handler func(context.Context, *SearchUsersReq
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/search_users]", errstr)
+			log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -571,7 +571,7 @@ func _User_UpdateUser_CrpcHandler(handler func(context.Context, *UpdateUserReq) 
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/update_user] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/update_user] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -581,7 +581,7 @@ func _User_UpdateUser_CrpcHandler(handler func(context.Context, *UpdateUserReq) 
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/update_user] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/update_user] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -589,7 +589,7 @@ func _User_UpdateUser_CrpcHandler(handler func(context.Context, *UpdateUserReq) 
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_user]", errstr)
+			log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -619,7 +619,7 @@ func _User_CreateRole_CrpcHandler(handler func(context.Context, *CreateRoleReq) 
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/create_role] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/create_role] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -629,7 +629,7 @@ func _User_CreateRole_CrpcHandler(handler func(context.Context, *CreateRoleReq) 
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/create_role] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/create_role] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -637,7 +637,7 @@ func _User_CreateRole_CrpcHandler(handler func(context.Context, *CreateRoleReq) 
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/create_role]", errstr)
+			log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -667,7 +667,7 @@ func _User_SearchRoles_CrpcHandler(handler func(context.Context, *SearchRolesReq
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/search_roles] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/search_roles] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -677,7 +677,7 @@ func _User_SearchRoles_CrpcHandler(handler func(context.Context, *SearchRolesReq
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/search_roles] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/search_roles] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -685,7 +685,7 @@ func _User_SearchRoles_CrpcHandler(handler func(context.Context, *SearchRolesReq
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/search_roles]", errstr)
+			log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -715,7 +715,7 @@ func _User_UpdateRole_CrpcHandler(handler func(context.Context, *UpdateRoleReq) 
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/update_role] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/update_role] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -725,7 +725,7 @@ func _User_UpdateRole_CrpcHandler(handler func(context.Context, *UpdateRoleReq) 
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/update_role] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/update_role] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -733,7 +733,7 @@ func _User_UpdateRole_CrpcHandler(handler func(context.Context, *UpdateRoleReq) 
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_role]", errstr)
+			log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -763,7 +763,7 @@ func _User_DelRoles_CrpcHandler(handler func(context.Context, *DelRolesReq) (*De
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/del_roles] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/del_roles] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -773,7 +773,7 @@ func _User_DelRoles_CrpcHandler(handler func(context.Context, *DelRolesReq) (*De
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/del_roles] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/del_roles] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -781,7 +781,7 @@ func _User_DelRoles_CrpcHandler(handler func(context.Context, *DelRolesReq) (*De
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_roles]", errstr)
+			log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -811,7 +811,7 @@ func _User_AddUserRole_CrpcHandler(handler func(context.Context, *AddUserRoleReq
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/add_user_role] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/add_user_role] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -821,7 +821,7 @@ func _User_AddUserRole_CrpcHandler(handler func(context.Context, *AddUserRoleReq
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/add_user_role] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/add_user_role] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -829,7 +829,7 @@ func _User_AddUserRole_CrpcHandler(handler func(context.Context, *AddUserRoleReq
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/add_user_role]", errstr)
+			log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -859,7 +859,7 @@ func _User_DelUserRole_CrpcHandler(handler func(context.Context, *DelUserRoleReq
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/del_user_role] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.user/del_user_role] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -869,7 +869,7 @@ func _User_DelUserRole_CrpcHandler(handler func(context.Context, *DelUserRoleReq
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/del_user_role] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.user/del_user_role] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -877,7 +877,7 @@ func _User_DelUserRole_CrpcHandler(handler func(context.Context, *DelUserRoleReq
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_user_role]", errstr)
+			log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -901,16 +901,16 @@ func _User_DelUserRole_CrpcHandler(handler func(context.Context, *DelUserRoleReq
 func RegisterUserCrpcServer(engine *crpc.CrpcServer, svc UserCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	engine.RegisterHandler(_CrpcPathUserUserLogin, _User_UserLogin_CrpcHandler(svc.UserLogin))
-	engine.RegisterHandler(_CrpcPathUserLoginInfo, _User_LoginInfo_CrpcHandler(svc.LoginInfo))
-	engine.RegisterHandler(_CrpcPathUserInviteProject, _User_InviteProject_CrpcHandler(svc.InviteProject))
-	engine.RegisterHandler(_CrpcPathUserKickProject, _User_KickProject_CrpcHandler(svc.KickProject))
-	engine.RegisterHandler(_CrpcPathUserSearchUsers, _User_SearchUsers_CrpcHandler(svc.SearchUsers))
-	engine.RegisterHandler(_CrpcPathUserUpdateUser, _User_UpdateUser_CrpcHandler(svc.UpdateUser))
-	engine.RegisterHandler(_CrpcPathUserCreateRole, _User_CreateRole_CrpcHandler(svc.CreateRole))
-	engine.RegisterHandler(_CrpcPathUserSearchRoles, _User_SearchRoles_CrpcHandler(svc.SearchRoles))
-	engine.RegisterHandler(_CrpcPathUserUpdateRole, _User_UpdateRole_CrpcHandler(svc.UpdateRole))
-	engine.RegisterHandler(_CrpcPathUserDelRoles, _User_DelRoles_CrpcHandler(svc.DelRoles))
-	engine.RegisterHandler(_CrpcPathUserAddUserRole, _User_AddUserRole_CrpcHandler(svc.AddUserRole))
-	engine.RegisterHandler(_CrpcPathUserDelUserRole, _User_DelUserRole_CrpcHandler(svc.DelUserRole))
+	engine.RegisterHandler("admin.user", "user_login", _User_UserLogin_CrpcHandler(svc.UserLogin))
+	engine.RegisterHandler("admin.user", "login_info", _User_LoginInfo_CrpcHandler(svc.LoginInfo))
+	engine.RegisterHandler("admin.user", "invite_project", _User_InviteProject_CrpcHandler(svc.InviteProject))
+	engine.RegisterHandler("admin.user", "kick_project", _User_KickProject_CrpcHandler(svc.KickProject))
+	engine.RegisterHandler("admin.user", "search_users", _User_SearchUsers_CrpcHandler(svc.SearchUsers))
+	engine.RegisterHandler("admin.user", "update_user", _User_UpdateUser_CrpcHandler(svc.UpdateUser))
+	engine.RegisterHandler("admin.user", "create_role", _User_CreateRole_CrpcHandler(svc.CreateRole))
+	engine.RegisterHandler("admin.user", "search_roles", _User_SearchRoles_CrpcHandler(svc.SearchRoles))
+	engine.RegisterHandler("admin.user", "update_role", _User_UpdateRole_CrpcHandler(svc.UpdateRole))
+	engine.RegisterHandler("admin.user", "del_roles", _User_DelRoles_CrpcHandler(svc.DelRoles))
+	engine.RegisterHandler("admin.user", "add_user_role", _User_AddUserRole_CrpcHandler(svc.AddUserRole))
+	engine.RegisterHandler("admin.user", "del_user_role", _User_DelUserRole_CrpcHandler(svc.DelUserRole))
 }

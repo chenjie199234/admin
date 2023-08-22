@@ -325,42 +325,6 @@ function JsonToRootLoginResp(jsonobj: { [k:string]:any }): RootLoginResp{
 	}
 	return obj
 }
-export interface RootPasswordReq{
-	old_password: string;
-	new_password: string;
-}
-function RootPasswordReqToJson(msg: RootPasswordReq): string{
-	let s: string="{"
-	//old_password
-	if(msg.old_password==null||msg.old_password==undefined){
-		throw 'RootPasswordReq.old_password must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.old_password)
-		s+='"old_password":'+vv+','
-	}
-	//new_password
-	if(msg.new_password==null||msg.new_password==undefined){
-		throw 'RootPasswordReq.new_password must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.new_password)
-		s+='"new_password":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface RootPasswordResp{
-}
-function JsonToRootPasswordResp(_jsonobj: { [k:string]:any }): RootPasswordResp{
-	let obj: RootPasswordResp={
-	}
-	return obj
-}
 export interface UpdateProjectReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
@@ -417,10 +381,46 @@ function JsonToUpdateProjectResp(_jsonobj: { [k:string]:any }): UpdateProjectRes
 	}
 	return obj
 }
+export interface UpdateRootPasswordReq{
+	old_password: string;
+	new_password: string;
+}
+function UpdateRootPasswordReqToJson(msg: UpdateRootPasswordReq): string{
+	let s: string="{"
+	//old_password
+	if(msg.old_password==null||msg.old_password==undefined){
+		throw 'UpdateRootPasswordReq.old_password must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.old_password)
+		s+='"old_password":'+vv+','
+	}
+	//new_password
+	if(msg.new_password==null||msg.new_password==undefined){
+		throw 'UpdateRootPasswordReq.new_password must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.new_password)
+		s+='"new_password":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface UpdateRootPasswordResp{
+}
+function JsonToUpdateRootPasswordResp(_jsonobj: { [k:string]:any }): UpdateRootPasswordResp{
+	let obj: UpdateRootPasswordResp={
+	}
+	return obj
+}
 const _WebPathInitializeInitStatus: string ="/admin.initialize/init_status";
 const _WebPathInitializeInit: string ="/admin.initialize/init";
 const _WebPathInitializeRootLogin: string ="/admin.initialize/root_login";
-const _WebPathInitializeRootPassword: string ="/admin.initialize/root_password";
+const _WebPathInitializeUpdateRootPassword: string ="/admin.initialize/update_root_password";
 const _WebPathInitializeCreateProject: string ="/admin.initialize/create_project";
 const _WebPathInitializeUpdateProject: string ="/admin.initialize/update_project";
 const _WebPathInitializeListProject: string ="/admin.initialize/list_project";
@@ -591,7 +591,7 @@ export class InitializeBrowserClientToC {
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
-	root_password(header: { [k: string]: string },req: RootPasswordReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: RootPasswordResp)=>void){
+	update_root_password(header: { [k: string]: string },req: UpdateRootPasswordReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UpdateRootPasswordResp)=>void){
 		if(!Number.isInteger(timeout)){
 			errorf({code:-2,msg:'timeout must be integer'})
 			return
@@ -602,13 +602,13 @@ export class InitializeBrowserClientToC {
 		header["Content-Type"] = "application/json"
 		let body: string=''
 		try{
-			body=RootPasswordReqToJson(req)
+			body=UpdateRootPasswordReqToJson(req)
 		}catch(e){
 			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
-			url:_WebPathInitializeRootPassword,
+			url:_WebPathInitializeUpdateRootPassword,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
@@ -618,7 +618,7 @@ export class InitializeBrowserClientToC {
 		Axios.request(config)
 		.then(function(response){
 			try{
-				let obj:RootPasswordResp=JsonToRootPasswordResp(response.data)
+				let obj:UpdateRootPasswordResp=JsonToUpdateRootPasswordResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

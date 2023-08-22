@@ -14,10 +14,10 @@ import (
 func SignCheck(secret, HEXnoncesign string) (e error) {
 	noncesign, e := hex.DecodeString(HEXnoncesign)
 	if e != nil {
-		return ecode.ErrConfigDataBroken
+		return ecode.ErrDataBroken
 	}
 	if len(noncesign) < 8+64 {
-		return ecode.ErrConfigDataBroken
+		return ecode.ErrDataBroken
 	}
 	oldsign := make([]byte, 64)
 	copy(oldsign, noncesign[len(noncesign)-64:])
@@ -44,13 +44,13 @@ func Encrypt(secret string, plaintext []byte) (HEXciphertext string, e error) {
 func Decrypt(secret, HEXciphertext string) (plaintext []byte, e error) {
 	ciphertext, e := hex.DecodeString(HEXciphertext)
 	if e != nil {
-		return nil, ecode.ErrConfigDataBroken
+		return nil, ecode.ErrDataBroken
 	}
 	plaintext, e = secure.AesDecrypt(secret, ciphertext)
 	if e == secure.ErrAesSecretLength || e == secure.ErrAesSecretWrong {
 		e = ecode.ErrWrongSecret
 	} else if e == secure.ErrAesCipherTextBroken {
-		e = ecode.ErrConfigDataBroken
+		e = ecode.ErrDataBroken
 	}
 	return
 }

@@ -5,10 +5,11 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 // AppSummary and Log exist in same collection
 // key=="" && index==0 => AppSummary
 // key!="" && index!=0 => Log
-// group+app+key+index add unique index
+// project+group+app+key+index add unique index
 // permission_node_id add sparse index
 type AppSummary struct {
 	ID               primitive.ObjectID     `bson:"_id,omitempty"`
+	ProjectID        string                 `bson:"project_id"`
 	Group            string                 `bson:"group"`
 	App              string                 `bson:"app"`
 	Key              string                 `bson:"key"`   //this is always empty for Summary
@@ -18,6 +19,11 @@ type AppSummary struct {
 	Value            string                 `bson:"value"`
 	PermissionNodeID string                 `bson:"permission_node_id"`
 }
+
+func (a *AppSummary) GetFullName() string {
+	return a.ProjectID + "-" + a.Group + "." + a.App
+}
+
 type KeySummary struct {
 	CurIndex     uint32 `bson:"cur_index"`
 	MaxIndex     uint32 `bson:"max_index"`
@@ -32,6 +38,7 @@ type ProxyPath struct {
 	PermissionAdmin  bool   `bson:"permission_admin"`
 }
 type Log struct {
+	ProjectID string `bson:"project_id"`
 	Group     string `bson:"group"`
 	App       string `bson:"app"`
 	Key       string `bson:"key"`   //this is always not empty for Log

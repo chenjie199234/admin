@@ -29,7 +29,7 @@ func (d *Dao) MongoInvite(ctx context.Context, operator primitive.ObjectID, proj
 		return ecode.ErrReq
 	}
 	var r *mongo.UpdateResult
-	r, e = d.mongo.Database("user").Collection("user").UpdateOne(ctx, bson.M{"_id": target}, bson.M{"$addToSet": bson.M{"projects": projectid}})
+	r, e = d.mongo.Database("user").Collection("user").UpdateOne(ctx, bson.M{"_id": target}, bson.M{"$addToSet": bson.M{"project_ids": projectid}})
 	if e != nil {
 		return
 	}
@@ -66,7 +66,7 @@ func (d *Dao) MongoKick(ctx context.Context, operator primitive.ObjectID, projec
 			s.AbortTransaction(sctx)
 		}
 	}()
-	if _, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, bson.M{"_id": target}, bson.M{"$pull": bson.M{"projects": projectid, "roles": bson.M{"$regex": "^" + projectid}}}); e != nil {
+	if _, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, bson.M{"_id": target}, bson.M{"$pull": bson.M{"project_ids": projectid, "roles": bson.M{"$regex": "^" + projectid}}}); e != nil {
 		return
 	}
 	_, e = d.mongo.Database("permission").Collection("usernode").DeleteMany(sctx, bson.M{"user_id": target, "node_id": bson.M{"$regex": "^" + projectid}})
@@ -158,10 +158,10 @@ func (d *Dao) MongoDelUsers(ctx context.Context, userids []primitive.ObjectID) (
 
 func (d *Dao) MongoCreateRole(ctx context.Context, projectid, name, comment string) (e error) {
 	if _, e = d.mongo.Database("user").Collection("role").InsertOne(ctx, &model.Role{
-		Project:  projectid,
-		RoleName: name,
-		Comment:  comment,
-		Ctime:    uint32(time.Now().Unix()),
+		ProjectID: projectid,
+		RoleName:  name,
+		Comment:   comment,
+		Ctime:     uint32(time.Now().Unix()),
 	}); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
 			e = ecode.ErrRoleAlreadyExist
@@ -173,7 +173,7 @@ func (d *Dao) MongoCreateRole(ctx context.Context, projectid, name, comment stri
 
 // if limit is 0 means all
 func (d *Dao) MongoSearchRoles(ctx context.Context, projectid, name string, limit, skip int64) (map[string]*model.Role, int64, error) {
-	filter := bson.M{"project": projectid}
+	filter := bson.M{"project_id": projectid}
 	if name != "" {
 		filter["role_name"] = bson.M{"$regex": name}
 	}
@@ -205,7 +205,7 @@ func (d *Dao) MongoSearchRoles(ctx context.Context, projectid, name string, limi
 }
 
 func (d *Dao) MongoUpdateRole(ctx context.Context, projectid, name, newcomment string) error {
-	_, e := d.mongo.Database("user").Collection("role").UpdateOne(ctx, bson.M{"project": projectid, "role_name": name}, bson.M{"$set": bson.M{"comment": newcomment}})
+	_, e := d.mongo.Database("user").Collection("role").UpdateOne(ctx, bson.M{"project_id": projectid, "role_name": name}, bson.M{"$set": bson.M{"comment": newcomment}})
 	return e
 }
 
@@ -227,7 +227,7 @@ func (d *Dao) MongoDelRoles(ctx context.Context, projectid string, rolenames []s
 			s.AbortTransaction(sctx)
 		}
 	}()
-	if _, e = d.mongo.Database("user").Collection("role").DeleteMany(sctx, bson.M{"project": projectid, "role_name": bson.M{"$in": rolenames}}); e != nil {
+	if _, e = d.mongo.Database("user").Collection("role").DeleteMany(sctx, bson.M{"project_id": projectid, "role_name": bson.M{"$in": rolenames}}); e != nil {
 		return
 	}
 	in := []string{}
@@ -237,7 +237,7 @@ func (d *Dao) MongoDelRoles(ctx context.Context, projectid string, rolenames []s
 	if _, e = d.mongo.Database("user").Collection("user").UpdateMany(sctx, bson.M{"roles": bson.M{"$in": in}}, bson.M{"$pullAll": bson.M{"roles": in}}); e != nil {
 		return
 	}
-	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, bson.M{"project": projectid, "role_name": bson.M{"$in": rolenames}})
+	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, bson.M{"project_id": projectid, "role_name": bson.M{"$in": rolenames}})
 	return
 }
 
@@ -260,7 +260,7 @@ func (d *Dao) MongoAddUserRole(ctx context.Context, userid primitive.ObjectID, p
 		}
 	}()
 	var exist int64
-	exist, e = d.mongo.Database("user").Collection("role").CountDocuments(sctx, bson.M{"project": projectid, "role_name": rolename})
+	exist, e = d.mongo.Database("user").Collection("role").CountDocuments(sctx, bson.M{"project_id": projectid, "role_name": rolename})
 	if e != nil {
 		return
 	}

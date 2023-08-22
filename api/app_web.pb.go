@@ -20,8 +20,6 @@ import (
 )
 
 var _WebPathAppGetApp = "/admin.app/get_app"
-var _WebPathAppAppInstances = "/admin.app/app_instances"
-var _WebPathAppAppInstanceCmd = "/admin.app/app_instance_cmd"
 var _WebPathAppCreateApp = "/admin.app/create_app"
 var _WebPathAppDelApp = "/admin.app/del_app"
 var _WebPathAppUpdateAppSecret = "/admin.app/update_app_secret"
@@ -36,8 +34,6 @@ var _WebPathAppProxy = "/admin.app/proxy"
 
 type AppWebClient interface {
 	GetApp(context.Context, *GetAppReq, http.Header) (*GetAppResp, error)
-	AppInstances(context.Context, *AppInstancesReq, http.Header) (*AppInstancesResp, error)
-	AppInstanceCmd(context.Context, *AppInstanceCmdReq, http.Header) (*AppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq, http.Header) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq, http.Header) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq, http.Header) (*UpdateAppSecretResp, error)
@@ -79,70 +75,6 @@ func (c *appWebClient) GetApp(ctx context.Context, req *GetAppReq, header http.H
 		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(GetAppResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
-		if e := proto.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *appWebClient) AppInstances(ctx context.Context, req *AppInstancesReq, header http.Header) (*AppInstancesResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppAppInstances, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	data, e := io.ReadAll(r.Body)
-	r.Body.Close()
-	if e != nil {
-		return nil, cerror.ConvertStdError(e)
-	}
-	resp := new(AppInstancesResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
-		if e := proto.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *appWebClient) AppInstanceCmd(ctx context.Context, req *AppInstanceCmdReq, header http.Header) (*AppInstanceCmdResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppAppInstanceCmd, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	data, e := io.ReadAll(r.Body)
-	r.Body.Close()
-	if e != nil {
-		return nil, cerror.ConvertStdError(e)
-	}
-	resp := new(AppInstanceCmdResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -510,8 +442,6 @@ func (c *appWebClient) Proxy(ctx context.Context, req *ProxyReq, header http.Hea
 
 type AppWebServer interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	AppInstances(context.Context, *AppInstancesReq) (*AppInstancesResp, error)
-	AppInstanceCmd(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -531,11 +461,13 @@ func _App_GetApp_WebHandler(handler func(context.Context, *GetAppReq) (*GetAppRe
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -543,21 +475,24 @@ func _App_GetApp_WebHandler(handler func(context.Context, *GetAppReq) (*GetAppRe
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_app]", errstr)
+			log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -579,125 +514,19 @@ func _App_GetApp_WebHandler(handler func(context.Context, *GetAppReq) (*GetAppRe
 		}
 	}
 }
-func _App_AppInstances_WebHandler(handler func(context.Context, *AppInstancesReq) (*AppInstancesResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(AppInstancesReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/app_instances]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(AppInstancesResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
-func _App_AppInstanceCmd_WebHandler(handler func(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(AppInstanceCmdReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/app_instance_cmd]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(AppInstanceCmdResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
 func _App_CreateApp_WebHandler(handler func(context.Context, *CreateAppReq) (*CreateAppResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
 		req := new(CreateAppReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -705,21 +534,24 @@ func _App_CreateApp_WebHandler(handler func(context.Context, *CreateAppReq) (*Cr
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/create_app]", errstr)
+			log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -747,11 +579,13 @@ func _App_DelApp_WebHandler(handler func(context.Context, *DelAppReq) (*DelAppRe
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -759,21 +593,24 @@ func _App_DelApp_WebHandler(handler func(context.Context, *DelAppReq) (*DelAppRe
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_app]", errstr)
+			log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -801,11 +638,13 @@ func _App_UpdateAppSecret_WebHandler(handler func(context.Context, *UpdateAppSec
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -813,21 +652,24 @@ func _App_UpdateAppSecret_WebHandler(handler func(context.Context, *UpdateAppSec
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/update_app_secret]", errstr)
+			log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -855,11 +697,13 @@ func _App_DelKey_WebHandler(handler func(context.Context, *DelKeyReq) (*DelKeyRe
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -867,21 +711,24 @@ func _App_DelKey_WebHandler(handler func(context.Context, *DelKeyReq) (*DelKeyRe
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_key]", errstr)
+			log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -909,11 +756,13 @@ func _App_GetKeyConfig_WebHandler(handler func(context.Context, *GetKeyConfigReq
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -921,21 +770,24 @@ func _App_GetKeyConfig_WebHandler(handler func(context.Context, *GetKeyConfigReq
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_key_config]", errstr)
+			log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -963,11 +815,13 @@ func _App_SetKeyConfig_WebHandler(handler func(context.Context, *SetKeyConfigReq
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -975,21 +829,24 @@ func _App_SetKeyConfig_WebHandler(handler func(context.Context, *SetKeyConfigReq
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_key_config]", errstr)
+			log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1017,11 +874,13 @@ func _App_Rollback_WebHandler(handler func(context.Context, *RollbackReq) (*Roll
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1029,21 +888,24 @@ func _App_Rollback_WebHandler(handler func(context.Context, *RollbackReq) (*Roll
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/rollback]", errstr)
+			log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1071,11 +933,13 @@ func _App_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchResp,
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1083,21 +947,24 @@ func _App_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchResp,
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/watch]", errstr)
+			log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1125,11 +992,13 @@ func _App_SetProxy_WebHandler(handler func(context.Context, *SetProxyReq) (*SetP
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1137,21 +1006,24 @@ func _App_SetProxy_WebHandler(handler func(context.Context, *SetProxyReq) (*SetP
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_proxy]", errstr)
+			log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1179,11 +1051,13 @@ func _App_DelProxy_WebHandler(handler func(context.Context, *DelProxyReq) (*DelP
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1191,21 +1065,24 @@ func _App_DelProxy_WebHandler(handler func(context.Context, *DelProxyReq) (*DelP
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_proxy]", errstr)
+			log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1233,11 +1110,13 @@ func _App_Proxy_WebHandler(handler func(context.Context, *ProxyReq) (*ProxyResp,
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1245,21 +1124,24 @@ func _App_Proxy_WebHandler(handler func(context.Context, *ProxyReq) (*ProxyResp,
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/proxy]", errstr)
+			log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1296,32 +1178,6 @@ func RegisterAppWebServer(engine *web.WebServer, svc AppWebServer, allmids map[s
 		}
 		mids = append(mids, _App_GetApp_WebHandler(svc.GetApp))
 		engine.Post(_WebPathAppGetApp, mids...)
-	}
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _App_AppInstances_WebHandler(svc.AppInstances))
-		engine.Post(_WebPathAppAppInstances, mids...)
-	}
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _App_AppInstanceCmd_WebHandler(svc.AppInstanceCmd))
-		engine.Post(_WebPathAppAppInstanceCmd, mids...)
 	}
 	{
 		requiredMids := []string{"token"}

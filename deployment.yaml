@@ -2,21 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: admin-deployment
-  namespace: <GROUP>
+  namespace: <PROJECT>-<GROUP>
   labels:
     app: admin
 spec:
   replicas: 2
-  revisionHistoryLimit: 5
   minReadySeconds: 5
+  progressDeadlineSeconds: 300
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: admin
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
-  selector:
-    matchLabels:
-      app: admin
   template:
     metadata:
       labels:
@@ -26,6 +27,16 @@ spec:
         - name: admin
           image: <IMAGE>
           imagePullPolicy: IfNotPresent
+          ports:
+            - name: web
+              protocol: TCP
+              containerPort: 8000
+            - name: crpc
+              protocol: TCP
+              containerPort: 9000
+            - name: grpc
+              protocol: TCP
+              containerPort: 10000
           resources:
             limits:
               memory: 4096Mi
@@ -38,10 +49,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: PROJECT
+              value: <PROJECT>
             - name: GROUP
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: <GROUP>
             - name: LOG_LEVEL
               value: <LOG_LEVEL>
             - name: LOG_TRACE
@@ -56,12 +67,32 @@ spec:
               value: <MONITOR>
             - name: CONFIG_TYPE
               value: <CONFIG_TYPE>
+            - name: REMOTE_CONFIG_SERVICE_PROJECT
+              value: <REMOTE_CONFIG_SERVICE_PROJECT>
             - name: REMOTE_CONFIG_SERVICE_GROUP
               value: <REMOTE_CONFIG_SERVICE_GROUP>
-            - name: REMOTE_CONFIG_SERVICE_HOST
-              value: <REMOTE_CONFIG_SERVICE_HOST>
+            - name: REMOTE_CONFIG_SERVICE_WEB_HOST
+              value: <REMOTE_CONFIG_SERVICE_WEB_HOST>
+            - name: REMOTE_CONFIG_SERVICE_WEB_PORT
+              value: <REMOTE_CONFIG_SERVICE_WEB_PORT>
             - name: REMOTE_CONFIG_SECRET
               value: <REMOTE_CONFIG_SECRET>
+            - name: PERMISSION_SERVICE_PROJECT
+              value: <PERMISSION_SERVICE_PROJECT>
+            - name: PERMISSION_SERVICE_GROUP
+              value: <PERMISSION_SERVICE_GROUP>
+            - name: PERMISSION_SERVICE_WEB_HOST
+              value: <PERMISSION_SERVICE_WEB_HOST>
+            - name: PERMISSION_SERVICE_WEB_PORT
+              value: <PERMISSION_SERVICE_WEB_PORT>
+          startupProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
           livenessProbe:
             tcpSocket:
               port: 8000
@@ -70,22 +101,16 @@ spec:
             periodSeconds: 1
             successThreshold: 1
             failureThreshold: 3
-          readinessProbe:
-            tcpSocket:
-              port: 8000
-            initialDelaySeconds: 5
-            timeoutSeconds: 1
-            periodSeconds: 1
-            successThreshold: 1
-            failureThreshold: 3
       imagePullSecrets:
-        - name: <GROUP>-secret
+        - name: <PROJECT>-<GROUP>-image-pull-secret
 ---
 apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: admin-hpa
-  namespace: <GROUP>
+  namespace: <PROJECT>-<GROUP>
+  labels:
+    app: admin
 spec:
   scaleTargetRef:   
     apiVersion: apps/v1
@@ -94,29 +119,36 @@ spec:
   maxReplicas: 10
   minReplicas: 2
   metrics:
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: AverageValue
-        averageValue: 3500Mi
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: AverageValue
-        averageValue: 3400m
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: AverageValue
+          averageValue: 3500Mi
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: AverageValue
+          averageValue: 3400m
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: admin-headless
-  namespace: <GROUP>
+  namespace: <PROJECT>-<GROUP>
   labels:
     app: admin
 spec:
   type: ClusterIP
   clusterIP: None
+  ports:
+    - name: crpc
+      protocol: TCP
+      port: 9000
+    - name: grpc
+      protocol: TCP
+      port: 10000
   selector:
     app: admin
 ---
@@ -124,15 +156,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: admin
-  namespace: <GROUP>
+  namespace: <PROJECT>-<GROUP>
   labels:
     app: admin
 spec:
   type: ClusterIP
   ports:
-  - name: web
-    protocol: TCP
-    port: 8000
+    - name: web
+      protocol: TCP
+      port: 8000
   selector:
     app: admin
 ---
@@ -140,13 +172,20 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: admin-ingress
-  namespace: <GROUP>
+  namespace: <PROJECT>-<GROUP>
+  labels:
+    app: admin
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: 'true'
 spec:
   rules: 
-  - host: <HOST>
-    http:
-      paths:
-      - path: /admin
-        backend:
-          serviceName: admin
-          servicePort: 8000
+    - host: <HOST>
+      http:
+        paths:
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: admin
+                port:
+                  number: 8000

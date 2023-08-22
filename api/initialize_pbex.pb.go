@@ -29,18 +29,18 @@ func (m *RootLoginReq) Validate() (errstr string) {
 }
 
 // return empty means pass
-func (m *RootPasswordReq) Validate() (errstr string) {
+func (m *UpdateRootPasswordReq) Validate() (errstr string) {
 	if len(m.GetOldPassword()) < 10 {
-		return "field: old_password in object: root_password_req check value str len gte failed"
+		return "field: old_password in object: update_root_password_req check value str len gte failed"
 	}
 	if len(m.GetOldPassword()) >= 32 {
-		return "field: old_password in object: root_password_req check value str len lt failed"
+		return "field: old_password in object: update_root_password_req check value str len lt failed"
 	}
 	if len(m.GetNewPassword()) < 10 {
-		return "field: new_password in object: root_password_req check value str len gte failed"
+		return "field: new_password in object: update_root_password_req check value str len gte failed"
 	}
 	if len(m.GetNewPassword()) >= 32 {
-		return "field: new_password in object: root_password_req check value str len lt failed"
+		return "field: new_password in object: update_root_password_req check value str len lt failed"
 	}
 	return ""
 }
@@ -60,6 +60,14 @@ func (m *UpdateProjectReq) Validate() (errstr string) {
 	}
 	if len(m.GetNewProjectName()) == 0 {
 		return "field: new_project_name in object: update_project_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *GetProjectIdByNameReq) Validate() (errstr string) {
+	if len(m.GetProjectName()) == 0 {
+		return "field: project_name in object: get_project_id_by_name_req check value str len not eq failed"
 	}
 	return ""
 }

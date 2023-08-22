@@ -27,16 +27,6 @@ service app{
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc app_instances(app_instances_req)returns(app_instances_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
-	rpc app_instance_cmd(app_instance_cmd_req)returns(app_instance_cmd_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
 	//app
 
 	rpc create_app(create_app_req)returns(create_app_resp){
@@ -97,40 +87,14 @@ service app{
 //}
 
 message get_app_req{
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string secret=3[(pbex.string_bytes_len_lt)=32];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
+	string secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message get_app_resp{
 	map<string,key_config_info> keys=1;
 	map<string,proxy_path_info> paths=2;
-}
-message app_instances_req{
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string secret=3[(pbex.string_bytes_len_lt)=32];
-}
-message instance_info{
-	string host_ip=1;
-	string host_name=2;
-	double cpu_num=3;
-	double cpu_usage=4;
-	double mem_total=5;//unit MB
-	double mem_usage=6;
-}
-message app_instances_resp{
-	repeated instance_info instances=1;
-}
-message app_instance_cmd_req{
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string secret=3[(pbex.string_bytes_len_lt)=32];
-	string host_ip=4[(pbex.string_bytes_len_gt)=0];
-	string cmd=5[(pbex.string_bytes_in)="pprof"];
-	string cmd_data=6;
-}
-message app_instance_cmd_resp{
-	string data=1;
 }
 message proxy_path_info{
 	repeated uint32 node_id=1;
@@ -158,34 +122,38 @@ message create_app_resp {
 	repeated uint32 node_id=1;
 }
 message del_app_req {
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string secret=3[(pbex.string_bytes_len_lt)=32];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
+	string secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message del_app_resp {
 }
 message update_app_secret_req {
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string old_secret=3[(pbex.string_bytes_len_lt)=32];
-	string new_secret=4[(pbex.string_bytes_len_lt)=32];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
+	string old_secret=4[(pbex.string_bytes_len_lt)=32];
+	string new_secret=5[(pbex.string_bytes_len_lt)=32];
 }
 message update_app_secret_resp{
 }
 message del_key_req {
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string key=3[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
-	string secret=4[(pbex.string_bytes_len_lt)=32];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
+	string key=4[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
+	string secret=5[(pbex.string_bytes_len_lt)=32];
 }
 message del_key_resp {
 }
 message get_key_config_req {
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string key=3[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
-	uint32 index=4;//0 means return current active config,config's index start from 1
-	string secret=5[(pbex.string_bytes_len_lt)=32];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
+	string key=4[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
+	uint32 index=5;//0 means return current active config,config's index start from 1
+	string secret=6[(pbex.string_bytes_len_lt)=32];
 }
 message get_key_config_resp {
 	uint32 cur_index=1;//current active config index,0 means not exist
@@ -196,36 +164,39 @@ message get_key_config_resp {
 	string value_type=6;
 }
 message set_key_config_req {
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string key=3[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
-	string value=4[(pbex.string_bytes_len_gt)=0];
-	string value_type=5[(pbex.string_bytes_in)="raw",
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
+	string key=4[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
+	string value=5[(pbex.string_bytes_len_gt)=0];
+	string value_type=6[(pbex.string_bytes_in)="raw",
 		(pbex.string_bytes_in)="json",
 		(pbex.string_bytes_in)="yaml",
 		(pbex.string_bytes_in)="toml"];
-	string secret=6[(pbex.string_bytes_len_lt)=32];
-	bool new_key=7;
+	string secret=7[(pbex.string_bytes_len_lt)=32];
+	bool new_key=8;
 }
 message set_key_config_resp {
 }
 message rollback_req{
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
-	string key=3[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
-	string secret=4[(pbex.string_bytes_len_lt)=32];
-	uint32 index=5[(pbex.uint_gt)=0];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
+	string key=4[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
+	string secret=5[(pbex.string_bytes_len_lt)=32];
+	uint32 index=6[(pbex.uint_gt)=0];
 }
 message rollback_resp{
 }
 message watch_req{
-	string g_name=1[(pbex.string_bytes_len_gt)=0];
-	string a_name=2[(pbex.string_bytes_len_gt)=0];
+	string project_name=1[(pbex.string_bytes_len_gt)=0];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
 	//map's key is config's keyname,map's value is config's cur version
 	//if cur version == 0 means return current active config
 	//if all cur version is the newest,the request will block until a new version come
 	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
-	map<string,uint32> keys=3[(pbex.map_repeated_len_gt)=0];//can't contain '.' in key
+	map<string,uint32> keys=4[(pbex.map_repeated_len_gt)=0];//can't contain '.' in key
 }
 message watch_resp{
 	map<string,watch_data> datas=1;
@@ -240,31 +211,34 @@ message watch_data{
 //proxy
 
 message set_proxy_req{
-	string g_name=1[(pbex.string_bytes_len_not_eq)=0];
-	string a_name=2[(pbex.string_bytes_len_not_eq)=0];
-	string path=3[(pbex.string_bytes_len_not_eq)=0];
-	bool read=4;//need read permission on this node
-	bool write=5;//need write permission on this node
-	bool admin=6;//need admin permission on this node
-	string secret=7[(pbex.string_bytes_len_lt)=32];
-	bool new_path=8;
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
+	string path=4[(pbex.string_bytes_len_not_eq)=0];
+	bool read=5;//need read permission on this node
+	bool write=6;//need write permission on this node
+	bool admin=7;//need admin permission on this node
+	string secret=8[(pbex.string_bytes_len_lt)=32];
+	bool new_path=9;
 }
 message set_proxy_resp{
 	repeated uint32 node_id=1;
 }
 message del_proxy_req{
-	string g_name=1[(pbex.string_bytes_len_not_eq)=0];
-	string a_name=2[(pbex.string_bytes_len_not_eq)=0];
-	string path=3[(pbex.string_bytes_len_not_eq)=0];
-	string secret=4[(pbex.string_bytes_len_lt)=32];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
+	string path=4[(pbex.string_bytes_len_not_eq)=0];
+	string secret=5[(pbex.string_bytes_len_lt)=32];
 }
 message del_proxy_resp{
 }
 message proxy_req{
-	string path=1[(pbex.string_bytes_len_not_eq)=0];
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
-	string data=4[(pbex.string_bytes_len_gte)=2];
+	string path=4[(pbex.string_bytes_len_not_eq)=0];
+	string data=5[(pbex.string_bytes_len_gte)=2];
 }
 message proxy_resp{
 	string data=1;

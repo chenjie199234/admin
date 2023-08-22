@@ -11,14 +11,14 @@ import (
 	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/util"
 
-	//"github.com/chenjie199234/Corelib/cgrpc"
-	//"github.com/chenjie199234/Corelib/crpc"
-	//"github.com/chenjie199234/Corelib/web"
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	"github.com/chenjie199234/Corelib/pool"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	//"github.com/chenjie199234/Corelib/cgrpc"
+	//"github.com/chenjie199234/Corelib/crpc"
+	//"github.com/chenjie199234/Corelib/web"
 )
 
 // Service subservice for init business
@@ -44,14 +44,14 @@ func (s *Service) InitStatus(ctx context.Context, req *api.InitStatusReq) (*api.
 	if e == ecode.ErrNotInited {
 		return &api.InitStatusResp{Status: false}, nil
 	}
-	log.Error(ctx, "[InitStatus]", e)
+	log.Error(ctx, "[InitStatus] db op failed", map[string]interface{}{"error": e})
 	return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 }
 
 // Init 初始化项目
 func (s *Service) Init(ctx context.Context, req *api.InitReq) (*api.InitResp, error) {
 	if e := s.initializeDao.MongoInit(ctx, req.Password); e != nil {
-		log.Error(ctx, "[Init]", e)
+		log.Error(ctx, "[Init] db op failed", map[string]interface{}{"error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.InitResp{}, nil
@@ -61,28 +61,29 @@ func (s *Service) Init(ctx context.Context, req *api.InitReq) (*api.InitResp, er
 func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.RootLoginResp, error) {
 	user, e := s.initializeDao.MongoRootLogin(ctx)
 	if e != nil {
-		log.Error(ctx, "[RootLogin]", e)
+		log.Error(ctx, "[RootLogin] db op failed", map[string]interface{}{"error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	if e := util.SignCheck(req.Password, user.Password); e != nil {
-		return nil, ecode.ErrPasswordWrong
+		log.Error(ctx, "[RootLogin] password wrong", nil)
+		return nil, e
 	}
 	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, user.ID.Hex())
 	return &api.RootLoginResp{Token: tokenstr}, nil
 }
 
 // RootPassword 更新密码
-func (s *Service) RootPassword(ctx context.Context, req *api.RootPasswordReq) (*api.RootPasswordResp, error) {
+func (s *Service) UpdateRootPassword(ctx context.Context, req *api.UpdateRootPasswordReq) (*api.UpdateRootPasswordResp, error) {
 	md := metadata.GetMetadata(ctx)
 	//only super admin can change password
 	if md["Token-Data"] != primitive.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
-	if e := s.initializeDao.MongoRootPassword(ctx, req.OldPassword, req.NewPassword); e != nil {
-		log.Error(ctx, "[RootPassword]", e)
+	if e := s.initializeDao.MongoUpdateRootPassword(ctx, req.OldPassword, req.NewPassword); e != nil {
+		log.Error(ctx, "[RootPassword] db op failed", map[string]interface{}{"error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	return &api.RootPasswordResp{}, nil
+	return &api.UpdateRootPasswordResp{}, nil
 }
 
 // CreateProject 创建项目
@@ -94,7 +95,7 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 	}
 	str, e := s.initializeDao.MongoCreateProject(ctx, req.ProjectName, req.ProjectData)
 	if e != nil {
-		log.Error(ctx, "[CreateProject] operator:", md["Token-Data"], "Name:", req.ProjectName, "Data:", req.ProjectData, e)
+		log.Error(ctx, "[CreateProject] db op failed", map[string]interface{}{"operator": md["Token-Data"], "name": req.ProjectName, "data": req.ProjectData, "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectid, _ := util.ParseNodeIDstr(str)
@@ -122,10 +123,25 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 	}
 	projectid := buf.String()
 	if e := s.initializeDao.MongoUpdateProject(ctx, projectid, req.NewProjectName, req.NewProjectData); e != nil {
-		log.Error(ctx, "[UpdateProject] operator:", md["Token-Data"], "project:", projectid, "new Name:", req.NewProjectName, "new Data:", req.NewProjectData, e)
+		log.Error(ctx, "[UpdateProject] db op failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "new_name": req.NewProjectName, "new_data": req.NewProjectData, "error": e})
 		return nil, e
 	}
 	return &api.UpdateProjectResp{}, nil
+}
+
+// GetProjectIdByName 获取项目id
+func (s *Service) GetProjectIdByName(ctx context.Context, req *api.GetProjectIdByNameReq) (*api.GetProjectIdByNameResp, error) {
+	projectid, e := s.initializeDao.MongoGetProjectIDByName(ctx, req.ProjectName)
+	if e != nil {
+		log.Error(ctx, "[GetProjectIdByName] db op failed", map[string]interface{}{"project_name": req.ProjectName, "error": e})
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	projectids, e := util.ParseNodeIDstr(projectid)
+	if e != nil {
+		log.Error(ctx, "[GetProjectIdByName] project's projectid format wrong", map[string]interface{}{"project_name": req.ProjectName, "project_id": projectid, "error": e})
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	return &api.GetProjectIdByNameResp{ProjectId: projectids}, nil
 }
 
 // ListProject 获取项目列表
@@ -133,25 +149,25 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 	md := metadata.GetMetadata(ctx)
 	nodes, e := s.initializeDao.MongoListProject(ctx)
 	if e != nil {
-		log.Error(ctx, "[ListProject] operator:", md["Token-Data"], e)
+		log.Error(ctx, "[ListProject] db op failed", map[string]interface{}{"operator": md["Token-Data"], "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	var user *model.User
 	if md["Token-Data"] != primitive.NilObjectID.Hex() {
 		operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
 		if e != nil {
-			log.Error(ctx, "[ListProject] operator:", md["Token-Data"], "format wrong:", e)
+			log.Error(ctx, "[ListProject] operator's token format wrong", map[string]interface{}{"operator": md["Token-Data"], "error": e})
 			return nil, ecode.ErrToken
 		}
 		users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
 		if e != nil {
-			log.Error(ctx, "[ListProject] operator:", md["Token-Data"], "get user info:", e)
+			log.Error(ctx, "[ListProject] get operator's user info failed", map[string]interface{}{"operator": md["Token-Data"], "error": e})
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		var ok bool
 		user, ok = users[operator]
 		if !ok {
-			log.Error(ctx, "[ListProject] operator:", md["Token-Data"], "doesn't exist")
+			log.Error(ctx, "[ListProject] operator not exist", map[string]interface{}{"operator": md["Token-Data"]})
 			return nil, ecode.ErrSystem
 		}
 	}
@@ -161,8 +177,8 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 	for _, node := range nodes {
 		if user != nil {
 			find := false
-			for _, projectid := range user.Projects {
-				if projectid == node.NodeId {
+			for _, userprojectid := range user.ProjectIDs {
+				if userprojectid == node.NodeId {
 					find = true
 					break
 				}
@@ -173,7 +189,7 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 		}
 		nodeid, e := util.ParseNodeIDstr(node.NodeId)
 		if e != nil {
-			log.Error(ctx, "[ListProject] project:", node.NodeId, "format wrong:", e)
+			log.Error(ctx, "[ListProject] project's projectid format wrong", map[string]interface{}{"project_id": node.NodeId, "error": e})
 			return nil, ecode.ErrSystem
 		}
 		resp.Projects = append(resp.Projects, &api.ProjectInfo{
@@ -206,7 +222,7 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 	}
 	projectid := buf.String()
 	if e := s.initializeDao.MongoDelProject(ctx, projectid); e != nil {
-		log.Error(ctx, "[DeleteProject] operator:", md["Token-Data"], "project:", projectid, e)
+		log.Error(ctx, "[DeleteProject] db op failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.DeleteProjectResp{}, nil

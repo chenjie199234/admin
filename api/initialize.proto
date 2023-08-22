@@ -36,7 +36,7 @@ service initialize{
 		option (pbex.method)="post";
 	}
 	//更新密码
-	rpc root_password(root_password_req)returns(root_password_resp){
+	rpc update_root_password(update_root_password_req)returns(update_root_password_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -88,11 +88,11 @@ message root_login_req{
 message root_login_resp{
 	string token=1;
 }
-message root_password_req{
+message update_root_password_req{
 	string old_password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
 	string new_password=2[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
 }
-message root_password_resp{
+message update_root_password_resp{
 }
 message create_project_req{
 	string project_name=1[(pbex.string_bytes_len_not_eq)=0];
@@ -107,6 +107,12 @@ message update_project_req{
 	string new_project_data=3;//if didn't change,set this with the old value
 }
 message update_project_resp{
+}
+message get_project_id_by_name_req{
+	string project_name=1[(pbex.string_bytes_len_not_eq)=0];
+}
+message get_project_id_by_name_resp{
+	repeated uint32 project_id=1;
 }
 message department{
 	string name=1;

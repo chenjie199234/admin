@@ -8,13 +8,13 @@ type User struct {
 	Password   string             `bson:"password"`
 	Department []string           `bson:"department"`
 	Ctime      uint32             `bson:"ctime"`
-	Projects   []string           `bson:"projects"` //element is project
-	Roles      []string           `bson:"roles"`    //element is project:rolename
+	ProjectIDs []string           `bson:"project_ids"` //element is project
+	Roles      []string           `bson:"roles"`       //element is project:rolename
 }
 
 type Role struct {
-	Project  string `bson:"project"`
-	RoleName string `bson:"role_name"`
-	Comment  string `bson:"comment"`
-	Ctime    uint32 `bson:"ctime"`
+	ProjectID string `bson:"project_id"`
+	RoleName  string `bson:"role_name"`
+	Comment   string `bson:"comment"`
+	Ctime     uint32 `bson:"ctime"`
 }

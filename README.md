@@ -22,7 +22,8 @@ admin是一个微服务.
 LOG_LEVEL                               日志等级,debug,info(default),warning,error
 LOG_TRACE                               是否开启链路追踪,1-开启,0-关闭(default)
 LOG_TARGET                              日志输出目标,std-输出到标准输出,file-输出到文件(可执行文件相同目录),both-两者都输出
-GROUP                                   该项目所属的group(k8s的namespace),如果不使用k8s需要手动指定,如果使用k8s,需修改项目根目录的deployment.yaml中的<GROUP>
+PROJECT                                 该项目所属的项目,[a-z][0-9],第一个字符必须[a-z]
+GROUP                                   该项目所属的组,[a-z][0-9],第一个字符必须[a-z]
 RUN_ENV                                 当前运行环境,如:test,pre,prod
 DEPLOY_ENV                              部署环境,如:ali-kube-shanghai-1,ali-host-hangzhou-1
 MONITOR                                 是否开启系统监控采集,0关闭,1开启
@@ -48,6 +49,7 @@ database: app
 collection: config
 {
 	"_id":ObjectId("xxxx"),
+    "project_id":"",
 	"group":"",
 	"app":"",
 	"key":"",//always empty
@@ -84,6 +86,7 @@ collection: config
 	"permission_node_id":"",
 }//summary
 {
+    "project_id":"",
 	"group":"",
 	"app":"",
 	"_id":ObjectId("xxx"),
@@ -94,7 +97,8 @@ collection: config
 //手动创建数据库
 use app;
 db.createCollection("config");
-db.config.createIndex({group:1,app:1,key:1,index:1},{unique:true});
+db.config.createIndex({project_id:1,group:1,app:1,key:1,index:1},{unique:true});
+db.config.createIndex({key:1,index:1});
 db.config.createIndex({permission_node_id:1},{sparse:true,unique:true});
 ```
 #### user
@@ -108,19 +112,19 @@ collection: user
 	"password":"",
 	"department":["",""],
 	"ctime":123,//unixtimestamp,unit second
-	"projects":["project1","project2"],
-	"roles":["project1:role_name1","project2:role_name2"]
+	"project_ids":["project_id1","project_id2"],
+	"roles":["project_id1:role_name1","project_id2:role_name2"]
 }
 //手动创建数据库
 use user;
 db.createCollection("user");
 db.user.createIndex({user_name:1});
-db.user.createIndex({projects:1});
+db.user.createIndex({project_ids:1});
 db.user.createIndex({roles:1});
 
 collection: role
 {
-	"project":"",
+	"project_id":"",
 	"role_name":"",
 	"comment":"",
 	"ctime":123,//unixtimestamp,unit second
@@ -128,7 +132,7 @@ collection: role
 //手动创建数据库
 use user;
 db.createCollection("role");
-db.role.createIndex({project:1,role_name:1},{unique:true});
+db.role.createIndex({project_id:1,role_name:1},{unique:true});
 ```
 #### permission
 ```
@@ -146,6 +150,17 @@ use permission;
 db.createCollection("node");
 db.node.createIndex({node_id:1},{unique:true});
 
+collection: projectindex
+{
+    "project_name":"",
+    "project_id":"",
+}
+//手动创建数据库
+use permission;
+db.createCollection("projectindex");
+db.projectindex.createIndex({project_name:1},{unique:true});
+db.projectindex.createIndex({project_id:1},{unique:true});
+
 collection: usernode
 {
 	"user_id":ObjectId("xxx"),
@@ -162,7 +177,7 @@ db.usernode.createIndex({node_id:1});
 
 collection: rolenode
 {
-	"project":"",
+	"project_id":"",
 	"role_name":"",
 	"node_id":"",
 	"r":true,//can read
@@ -172,6 +187,6 @@ collection: rolenode
 //手动mongo创建数据库
 use permission;
 db.createCollection("rolenode");
-db.rolenode.createIndex({project:1,role_name:1,node_id:1},{unique:true});
+db.rolenode.createIndex({project_id:1,role_name:1,node_id:1},{unique:true});
 db.rolenode.createIndex({node_id:1});
 ```

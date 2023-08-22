@@ -68,7 +68,7 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.status/ping] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.status/ping] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -78,7 +78,7 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.status/ping] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.status/ping] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -86,7 +86,7 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.status/ping]", errstr)
+			log.Error(ctx, "[/admin.status/ping]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -121,6 +121,6 @@ func RegisterStatusCrpcServer(engine *crpc.CrpcServer, svc StatusCrpcServer, all
 			}
 		}
 		mids = append(mids, _Status_Ping_CrpcHandler(svc.Ping))
-		engine.RegisterHandler(_CrpcPathStatusPing, mids...)
+		engine.RegisterHandler("admin.status", "ping", mids...)
 	}
 }

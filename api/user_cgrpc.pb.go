@@ -189,7 +189,8 @@ type UserCGrpcServer interface {
 func _User_UserLogin_CGrpcHandler(handler func(context.Context, *UserLoginReq) (*UserLoginResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(UserLoginReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/user_login]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -207,7 +208,8 @@ func _User_UserLogin_CGrpcHandler(handler func(context.Context, *UserLoginReq) (
 func _User_LoginInfo_CGrpcHandler(handler func(context.Context, *LoginInfoReq) (*LoginInfoResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(LoginInfoReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/login_info]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -225,12 +227,13 @@ func _User_LoginInfo_CGrpcHandler(handler func(context.Context, *LoginInfoReq) (
 func _User_InviteProject_CGrpcHandler(handler func(context.Context, *InviteProjectReq) (*InviteProjectResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(InviteProjectReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/invite_project]", errstr)
+			log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -248,12 +251,13 @@ func _User_InviteProject_CGrpcHandler(handler func(context.Context, *InviteProje
 func _User_KickProject_CGrpcHandler(handler func(context.Context, *KickProjectReq) (*KickProjectResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(KickProjectReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/kick_project]", errstr)
+			log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -271,12 +275,13 @@ func _User_KickProject_CGrpcHandler(handler func(context.Context, *KickProjectRe
 func _User_SearchUsers_CGrpcHandler(handler func(context.Context, *SearchUsersReq) (*SearchUsersResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(SearchUsersReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/search_users]", errstr)
+			log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -294,12 +299,13 @@ func _User_SearchUsers_CGrpcHandler(handler func(context.Context, *SearchUsersRe
 func _User_UpdateUser_CGrpcHandler(handler func(context.Context, *UpdateUserReq) (*UpdateUserResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateUserReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_user]", errstr)
+			log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -317,12 +323,13 @@ func _User_UpdateUser_CGrpcHandler(handler func(context.Context, *UpdateUserReq)
 func _User_CreateRole_CGrpcHandler(handler func(context.Context, *CreateRoleReq) (*CreateRoleResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(CreateRoleReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/create_role]", errstr)
+			log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -340,12 +347,13 @@ func _User_CreateRole_CGrpcHandler(handler func(context.Context, *CreateRoleReq)
 func _User_SearchRoles_CGrpcHandler(handler func(context.Context, *SearchRolesReq) (*SearchRolesResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(SearchRolesReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/search_roles]", errstr)
+			log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -363,12 +371,13 @@ func _User_SearchRoles_CGrpcHandler(handler func(context.Context, *SearchRolesRe
 func _User_UpdateRole_CGrpcHandler(handler func(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateRoleReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_role]", errstr)
+			log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -386,12 +395,13 @@ func _User_UpdateRole_CGrpcHandler(handler func(context.Context, *UpdateRoleReq)
 func _User_DelRoles_CGrpcHandler(handler func(context.Context, *DelRolesReq) (*DelRolesResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(DelRolesReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_roles]", errstr)
+			log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -409,12 +419,13 @@ func _User_DelRoles_CGrpcHandler(handler func(context.Context, *DelRolesReq) (*D
 func _User_AddUserRole_CGrpcHandler(handler func(context.Context, *AddUserRoleReq) (*AddUserRoleResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(AddUserRoleReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/add_user_role]", errstr)
+			log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -432,12 +443,13 @@ func _User_AddUserRole_CGrpcHandler(handler func(context.Context, *AddUserRoleRe
 func _User_DelUserRole_CGrpcHandler(handler func(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(DelUserRoleReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_user_role]", errstr)
+			log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

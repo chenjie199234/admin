@@ -15,8 +15,6 @@ import (
 )
 
 var _CGrpcPathAppGetApp = "/admin.app/get_app"
-var _CGrpcPathAppAppInstances = "/admin.app/app_instances"
-var _CGrpcPathAppAppInstanceCmd = "/admin.app/app_instance_cmd"
 var _CGrpcPathAppCreateApp = "/admin.app/create_app"
 var _CGrpcPathAppDelApp = "/admin.app/del_app"
 var _CGrpcPathAppUpdateAppSecret = "/admin.app/update_app_secret"
@@ -31,8 +29,6 @@ var _CGrpcPathAppProxy = "/admin.app/proxy"
 
 type AppCGrpcClient interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	AppInstances(context.Context, *AppInstancesReq) (*AppInstancesResp, error)
-	AppInstanceCmd(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -60,26 +56,6 @@ func (c *appCGrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppRes
 	}
 	resp := new(GetAppResp)
 	if e := c.cc.Call(ctx, _CGrpcPathAppGetApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
-func (c *appCGrpcClient) AppInstances(ctx context.Context, req *AppInstancesReq) (*AppInstancesResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	resp := new(AppInstancesResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppAppInstances, req, resp, metadata.GetMetadata(ctx)); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
-func (c *appCGrpcClient) AppInstanceCmd(ctx context.Context, req *AppInstanceCmdReq) (*AppInstanceCmdResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	resp := new(AppInstanceCmdResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppAppInstanceCmd, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -197,8 +173,6 @@ func (c *appCGrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, 
 
 type AppCGrpcServer interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	AppInstances(context.Context, *AppInstancesReq) (*AppInstancesResp, error)
-	AppInstanceCmd(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)
 	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
@@ -215,12 +189,13 @@ type AppCGrpcServer interface {
 func _App_GetApp_CGrpcHandler(handler func(context.Context, *GetAppReq) (*GetAppResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(GetAppReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_app]", errstr)
+			log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -235,61 +210,16 @@ func _App_GetApp_CGrpcHandler(handler func(context.Context, *GetAppReq) (*GetApp
 		ctx.Write(resp)
 	}
 }
-func _App_AppInstances_CGrpcHandler(handler func(context.Context, *AppInstancesReq) (*AppInstancesResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(AppInstancesReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/app_instances]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(AppInstancesResp)
-		}
-		ctx.Write(resp)
-	}
-}
-func _App_AppInstanceCmd_CGrpcHandler(handler func(context.Context, *AppInstanceCmdReq) (*AppInstanceCmdResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(AppInstanceCmdReq)
-		if ctx.DecodeReq(req) != nil {
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/app_instance_cmd]", errstr)
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(AppInstanceCmdResp)
-		}
-		ctx.Write(resp)
-	}
-}
 func _App_CreateApp_CGrpcHandler(handler func(context.Context, *CreateAppReq) (*CreateAppResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(CreateAppReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/create_app]", errstr)
+			log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -307,12 +237,13 @@ func _App_CreateApp_CGrpcHandler(handler func(context.Context, *CreateAppReq) (*
 func _App_DelApp_CGrpcHandler(handler func(context.Context, *DelAppReq) (*DelAppResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(DelAppReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_app]", errstr)
+			log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -330,12 +261,13 @@ func _App_DelApp_CGrpcHandler(handler func(context.Context, *DelAppReq) (*DelApp
 func _App_UpdateAppSecret_CGrpcHandler(handler func(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateAppSecretReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/update_app_secret]", errstr)
+			log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -353,12 +285,13 @@ func _App_UpdateAppSecret_CGrpcHandler(handler func(context.Context, *UpdateAppS
 func _App_DelKey_CGrpcHandler(handler func(context.Context, *DelKeyReq) (*DelKeyResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(DelKeyReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_key]", errstr)
+			log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -376,12 +309,13 @@ func _App_DelKey_CGrpcHandler(handler func(context.Context, *DelKeyReq) (*DelKey
 func _App_GetKeyConfig_CGrpcHandler(handler func(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(GetKeyConfigReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_key_config]", errstr)
+			log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -399,12 +333,13 @@ func _App_GetKeyConfig_CGrpcHandler(handler func(context.Context, *GetKeyConfigR
 func _App_SetKeyConfig_CGrpcHandler(handler func(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(SetKeyConfigReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_key_config]", errstr)
+			log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -422,12 +357,13 @@ func _App_SetKeyConfig_CGrpcHandler(handler func(context.Context, *SetKeyConfigR
 func _App_Rollback_CGrpcHandler(handler func(context.Context, *RollbackReq) (*RollbackResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(RollbackReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/rollback]", errstr)
+			log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -445,12 +381,13 @@ func _App_Rollback_CGrpcHandler(handler func(context.Context, *RollbackReq) (*Ro
 func _App_Watch_CGrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(WatchReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/watch]", errstr)
+			log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -468,12 +405,13 @@ func _App_Watch_CGrpcHandler(handler func(context.Context, *WatchReq) (*WatchRes
 func _App_SetProxy_CGrpcHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(SetProxyReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_proxy]", errstr)
+			log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -491,12 +429,13 @@ func _App_SetProxy_CGrpcHandler(handler func(context.Context, *SetProxyReq) (*Se
 func _App_DelProxy_CGrpcHandler(handler func(context.Context, *DelProxyReq) (*DelProxyResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(DelProxyReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_proxy]", errstr)
+			log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -514,12 +453,13 @@ func _App_DelProxy_CGrpcHandler(handler func(context.Context, *DelProxyReq) (*De
 func _App_Proxy_CGrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(ProxyReq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/proxy]", errstr)
+			log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -538,8 +478,6 @@ func RegisterAppCGrpcServer(engine *cgrpc.CGrpcServer, svc AppCGrpcServer, allmi
 	// avoid lint
 	_ = allmids
 	engine.RegisterHandler("admin.app", "get_app", _App_GetApp_CGrpcHandler(svc.GetApp))
-	engine.RegisterHandler("admin.app", "app_instances", _App_AppInstances_CGrpcHandler(svc.AppInstances))
-	engine.RegisterHandler("admin.app", "app_instance_cmd", _App_AppInstanceCmd_CGrpcHandler(svc.AppInstanceCmd))
 	engine.RegisterHandler("admin.app", "create_app", _App_CreateApp_CGrpcHandler(svc.CreateApp))
 	engine.RegisterHandler("admin.app", "del_app", _App_DelApp_CGrpcHandler(svc.DelApp))
 	engine.RegisterHandler("admin.app", "update_app_secret", _App_UpdateAppSecret_CGrpcHandler(svc.UpdateAppSecret))

@@ -165,8 +165,8 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operator, target pr
 		return
 	}
 	inproject := false
-	for _, project := range targetuser.Projects {
-		if strings.HasPrefix(nodeid, project) {
+	for _, userprojectid := range targetuser.ProjectIDs {
+		if strings.HasPrefix(nodeid, userprojectid) {
 			inproject = true
 			break
 		}
@@ -265,7 +265,7 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.
 	}()
 	//first get target role permission on this node
 	targetnode := &model.UserNode{}
-	if e = d.mongo.Database("permission").Collection("rolenode").FindOne(sctx, bson.M{"project": projectid, "role_name": rolename, "node_id": nodeid}).Decode(targetnode); e != nil && e != mongo.ErrNoDocuments {
+	if e = d.mongo.Database("permission").Collection("rolenode").FindOne(sctx, bson.M{"project_id": projectid, "role_name": rolename, "node_id": nodeid}).Decode(targetnode); e != nil && e != mongo.ErrNoDocuments {
 		return
 	}
 	if targetnode.R == canread && targetnode.W == canwrite && targetnode.X == admin {
@@ -292,9 +292,9 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.
 			return
 		}
 		_, e = d.mongo.Database("permission").Collection("rolenode").DeleteOne(sctx, bson.M{
-			"project":   projectid,
-			"role_name": rolename,
-			"node_id":   nodeid,
+			"project_id": projectid,
+			"role_name":  rolename,
+			"node_id":    nodeid,
 		})
 		return
 	}
@@ -302,7 +302,7 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.
 
 	//check target role exist
 	var num int64
-	if num, e = d.mongo.Database("user").Collection("role").CountDocuments(sctx, bson.M{"project": projectid, "role_name": rolename}); e != nil || num == 0 {
+	if num, e = d.mongo.Database("user").Collection("role").CountDocuments(sctx, bson.M{"project_id": projectid, "role_name": rolename}); e != nil || num == 0 {
 		if num == 0 {
 			e = ecode.ErrRoleNotExist
 		}
@@ -331,7 +331,7 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.
 		return
 	}
 	//all check success
-	filter := bson.M{"project": projectid, "role_name": rolename, "node_id": nodeid}
+	filter := bson.M{"project_id": projectid, "role_name": rolename, "node_id": nodeid}
 	updater := bson.M{"$set": bson.M{"r": canread, "w": canwrite, "x": admin}}
 	if _, e = d.mongo.Database("permission").Collection("rolenode").UpdateOne(sctx, filter, updater, options.Update().SetUpsert(true)); e != nil {
 		return
@@ -339,7 +339,7 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.
 	if admin {
 		//if target is admin on this node
 		//clean all children permission
-		filter = bson.M{"project": projectid, "role_name": rolename, "node_id": bson.M{"$regex": "^" + nodeid + ","}}
+		filter = bson.M{"project_id": projectid, "role_name": rolename, "node_id": bson.M{"$regex": "^" + nodeid + ","}}
 		_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, filter)
 	}
 	return
@@ -348,8 +348,8 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.
 // if nodeids are not empty or nil,only the node in the required nodeids will return
 func (d *Dao) MongoGetRoleNodes(ctx context.Context, projectid, rolename string, nodeids []string) (model.RoleNodes, error) {
 	filter := bson.M{
-		"project":   projectid,
-		"role_name": rolename,
+		"project_id": projectid,
+		"role_name":  rolename,
 	}
 	exist, e := d.mongo.Database("user").Collection("role").CountDocuments(ctx, filter)
 	if e != nil {
@@ -394,8 +394,8 @@ func (d *Dao) MongoGetUserRoleNodes(ctx context.Context, userid primitive.Object
 		rolename := role[index+1:]
 		if roleproject == projectid {
 			or = append(or, bson.M{
-				"project":   projectid,
-				"role_name": rolename,
+				"project_id": projectid,
+				"role_name":  rolename,
 			})
 		}
 	}

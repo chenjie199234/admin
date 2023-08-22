@@ -22,7 +22,7 @@ import (
 var _WebPathInitializeInitStatus = "/admin.initialize/init_status"
 var _WebPathInitializeInit = "/admin.initialize/init"
 var _WebPathInitializeRootLogin = "/admin.initialize/root_login"
-var _WebPathInitializeRootPassword = "/admin.initialize/root_password"
+var _WebPathInitializeUpdateRootPassword = "/admin.initialize/update_root_password"
 var _WebPathInitializeCreateProject = "/admin.initialize/create_project"
 var _WebPathInitializeUpdateProject = "/admin.initialize/update_project"
 var _WebPathInitializeListProject = "/admin.initialize/list_project"
@@ -36,7 +36,7 @@ type InitializeWebClient interface {
 	// 登录
 	RootLogin(context.Context, *RootLoginReq, http.Header) (*RootLoginResp, error)
 	// 更新密码
-	RootPassword(context.Context, *RootPasswordReq, http.Header) (*RootPasswordResp, error)
+	UpdateRootPassword(context.Context, *UpdateRootPasswordReq, http.Header) (*UpdateRootPasswordResp, error)
 	// 创建项目
 	CreateProject(context.Context, *CreateProjectReq, http.Header) (*CreateProjectResp, error)
 	// 更新项目
@@ -151,7 +151,7 @@ func (c *initializeWebClient) RootLogin(ctx context.Context, req *RootLoginReq, 
 	}
 	return resp, nil
 }
-func (c *initializeWebClient) RootPassword(ctx context.Context, req *RootPasswordReq, header http.Header) (*RootPasswordResp, error) {
+func (c *initializeWebClient) UpdateRootPassword(ctx context.Context, req *UpdateRootPasswordReq, header http.Header) (*UpdateRootPasswordResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -161,7 +161,7 @@ func (c *initializeWebClient) RootPassword(ctx context.Context, req *RootPasswor
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathInitializeRootPassword, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathInitializeUpdateRootPassword, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -170,7 +170,7 @@ func (c *initializeWebClient) RootPassword(ctx context.Context, req *RootPasswor
 	if e != nil {
 		return nil, cerror.ConvertStdError(e)
 	}
-	resp := new(RootPasswordResp)
+	resp := new(UpdateRootPasswordResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -320,7 +320,7 @@ type InitializeWebServer interface {
 	// 登录
 	RootLogin(context.Context, *RootLoginReq) (*RootLoginResp, error)
 	// 更新密码
-	RootPassword(context.Context, *RootPasswordReq) (*RootPasswordResp, error)
+	UpdateRootPassword(context.Context, *UpdateRootPasswordReq) (*UpdateRootPasswordResp, error)
 	// 创建项目
 	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
 	// 更新项目
@@ -337,11 +337,13 @@ func _Initialize_InitStatus_WebHandler(handler func(context.Context, *InitStatus
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/init_status]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/init_status]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -349,16 +351,19 @@ func _Initialize_InitStatus_WebHandler(handler func(context.Context, *InitStatus
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/init_status]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/init_status]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.initialize/init_status]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -386,11 +391,13 @@ func _Initialize_Init_WebHandler(handler func(context.Context, *InitReq) (*InitR
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -398,21 +405,24 @@ func _Initialize_Init_WebHandler(handler func(context.Context, *InitReq) (*InitR
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/init]", errstr)
+			log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -440,11 +450,13 @@ func _Initialize_RootLogin_WebHandler(handler func(context.Context, *RootLoginRe
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -452,21 +464,24 @@ func _Initialize_RootLogin_WebHandler(handler func(context.Context, *RootLoginRe
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/root_login]", errstr)
+			log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -488,17 +503,19 @@ func _Initialize_RootLogin_WebHandler(handler func(context.Context, *RootLoginRe
 		}
 	}
 }
-func _Initialize_RootPassword_WebHandler(handler func(context.Context, *RootPasswordReq) (*RootPasswordResp, error)) web.OutsideHandler {
+func _Initialize_UpdateRootPassword_WebHandler(handler func(context.Context, *UpdateRootPasswordReq) (*UpdateRootPasswordResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(RootPasswordReq)
+		req := new(UpdateRootPasswordReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -506,21 +523,24 @@ func _Initialize_RootPassword_WebHandler(handler func(context.Context, *RootPass
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/root_password]", errstr)
+			log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -531,7 +551,7 @@ func _Initialize_RootPassword_WebHandler(handler func(context.Context, *RootPass
 			return
 		}
 		if resp == nil {
-			resp = new(RootPasswordResp)
+			resp = new(UpdateRootPasswordResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -548,11 +568,13 @@ func _Initialize_CreateProject_WebHandler(handler func(context.Context, *CreateP
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -560,21 +582,24 @@ func _Initialize_CreateProject_WebHandler(handler func(context.Context, *CreateP
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/create_project]", errstr)
+			log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -602,11 +627,13 @@ func _Initialize_UpdateProject_WebHandler(handler func(context.Context, *UpdateP
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -614,21 +641,24 @@ func _Initialize_UpdateProject_WebHandler(handler func(context.Context, *UpdateP
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/update_project]", errstr)
+			log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -656,11 +686,13 @@ func _Initialize_ListProject_WebHandler(handler func(context.Context, *ListProje
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/list_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/list_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -668,16 +700,19 @@ func _Initialize_ListProject_WebHandler(handler func(context.Context, *ListProje
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/list_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/list_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.initialize/list_project]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -705,11 +740,13 @@ func _Initialize_DeleteProject_WebHandler(handler func(context.Context, *DeleteP
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -717,21 +754,24 @@ func _Initialize_DeleteProject_WebHandler(handler func(context.Context, *DeleteP
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/delete_project]", errstr)
+			log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -781,8 +821,8 @@ func RegisterInitializeWebServer(engine *web.WebServer, svc InitializeWebServer,
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _Initialize_RootPassword_WebHandler(svc.RootPassword))
-		engine.Post(_WebPathInitializeRootPassword, mids...)
+		mids = append(mids, _Initialize_UpdateRootPassword_WebHandler(svc.UpdateRootPassword))
+		engine.Post(_WebPathInitializeUpdateRootPassword, mids...)
 	}
 	{
 		requiredMids := []string{"token"}

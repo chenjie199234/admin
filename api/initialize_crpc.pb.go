@@ -19,7 +19,7 @@ import (
 var _CrpcPathInitializeInitStatus = "/admin.initialize/init_status"
 var _CrpcPathInitializeInit = "/admin.initialize/init"
 var _CrpcPathInitializeRootLogin = "/admin.initialize/root_login"
-var _CrpcPathInitializeRootPassword = "/admin.initialize/root_password"
+var _CrpcPathInitializeUpdateRootPassword = "/admin.initialize/update_root_password"
 var _CrpcPathInitializeCreateProject = "/admin.initialize/create_project"
 var _CrpcPathInitializeUpdateProject = "/admin.initialize/update_project"
 var _CrpcPathInitializeListProject = "/admin.initialize/list_project"
@@ -33,7 +33,7 @@ type InitializeCrpcClient interface {
 	// 登录
 	RootLogin(context.Context, *RootLoginReq) (*RootLoginResp, error)
 	// 更新密码
-	RootPassword(context.Context, *RootPasswordReq) (*RootPasswordResp, error)
+	UpdateRootPassword(context.Context, *UpdateRootPasswordReq) (*UpdateRootPasswordResp, error)
 	// 创建项目
 	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
 	// 更新项目
@@ -118,16 +118,16 @@ func (c *initializeCrpcClient) RootLogin(ctx context.Context, req *RootLoginReq)
 	}
 	return resp, nil
 }
-func (c *initializeCrpcClient) RootPassword(ctx context.Context, req *RootPasswordReq) (*RootPasswordResp, error) {
+func (c *initializeCrpcClient) UpdateRootPassword(ctx context.Context, req *UpdateRootPasswordReq) (*UpdateRootPasswordResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeRootPassword, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeUpdateRootPassword, reqd, metadata.GetMetadata(ctx))
 	if e != nil {
 		return nil, e
 	}
-	resp := new(RootPasswordResp)
+	resp := new(UpdateRootPasswordResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -237,7 +237,7 @@ type InitializeCrpcServer interface {
 	// 登录
 	RootLogin(context.Context, *RootLoginReq) (*RootLoginResp, error)
 	// 更新密码
-	RootPassword(context.Context, *RootPasswordReq) (*RootPasswordResp, error)
+	UpdateRootPassword(context.Context, *UpdateRootPasswordReq) (*UpdateRootPasswordResp, error)
 	// 创建项目
 	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
 	// 更新项目
@@ -257,7 +257,7 @@ func _Initialize_InitStatus_CrpcHandler(handler func(context.Context, *InitStatu
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -267,7 +267,7 @@ func _Initialize_InitStatus_CrpcHandler(handler func(context.Context, *InitStatu
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -300,7 +300,7 @@ func _Initialize_Init_CrpcHandler(handler func(context.Context, *InitReq) (*Init
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/init] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.initialize/init] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -310,7 +310,7 @@ func _Initialize_Init_CrpcHandler(handler func(context.Context, *InitReq) (*Init
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/init] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.initialize/init] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -318,7 +318,7 @@ func _Initialize_Init_CrpcHandler(handler func(context.Context, *InitReq) (*Init
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/init]", errstr)
+			log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -348,7 +348,7 @@ func _Initialize_RootLogin_CrpcHandler(handler func(context.Context, *RootLoginR
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/root_login] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.initialize/root_login] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -358,7 +358,7 @@ func _Initialize_RootLogin_CrpcHandler(handler func(context.Context, *RootLoginR
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/root_login] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.initialize/root_login] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -366,7 +366,7 @@ func _Initialize_RootLogin_CrpcHandler(handler func(context.Context, *RootLoginR
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/root_login]", errstr)
+			log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -387,16 +387,16 @@ func _Initialize_RootLogin_CrpcHandler(handler func(context.Context, *RootLoginR
 		}
 	}
 }
-func _Initialize_RootPassword_CrpcHandler(handler func(context.Context, *RootPasswordReq) (*RootPasswordResp, error)) crpc.OutsideHandler {
+func _Initialize_UpdateRootPassword_CrpcHandler(handler func(context.Context, *UpdateRootPasswordReq) (*UpdateRootPasswordResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
-		req := new(RootPasswordReq)
+		req := new(UpdateRootPasswordReq)
 		reqbody := ctx.GetBody()
 		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/root_password] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.initialize/update_root_password] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -406,7 +406,7 @@ func _Initialize_RootPassword_CrpcHandler(handler func(context.Context, *RootPas
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/root_password] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.initialize/update_root_password] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -414,7 +414,7 @@ func _Initialize_RootPassword_CrpcHandler(handler func(context.Context, *RootPas
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/root_password]", errstr)
+			log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -424,7 +424,7 @@ func _Initialize_RootPassword_CrpcHandler(handler func(context.Context, *RootPas
 			return
 		}
 		if resp == nil {
-			resp = new(RootPasswordResp)
+			resp = new(UpdateRootPasswordResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
@@ -444,7 +444,7 @@ func _Initialize_CreateProject_CrpcHandler(handler func(context.Context, *Create
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/create_project] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.initialize/create_project] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -454,7 +454,7 @@ func _Initialize_CreateProject_CrpcHandler(handler func(context.Context, *Create
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/create_project] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.initialize/create_project] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -462,7 +462,7 @@ func _Initialize_CreateProject_CrpcHandler(handler func(context.Context, *Create
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/create_project]", errstr)
+			log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -492,7 +492,7 @@ func _Initialize_UpdateProject_CrpcHandler(handler func(context.Context, *Update
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/update_project] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.initialize/update_project] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -502,7 +502,7 @@ func _Initialize_UpdateProject_CrpcHandler(handler func(context.Context, *Update
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/update_project] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.initialize/update_project] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -510,7 +510,7 @@ func _Initialize_UpdateProject_CrpcHandler(handler func(context.Context, *Update
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/update_project]", errstr)
+			log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -540,7 +540,7 @@ func _Initialize_ListProject_CrpcHandler(handler func(context.Context, *ListProj
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/list_project] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.initialize/list_project] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -550,7 +550,7 @@ func _Initialize_ListProject_CrpcHandler(handler func(context.Context, *ListProj
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/list_project] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.initialize/list_project] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -583,7 +583,7 @@ func _Initialize_DeleteProject_CrpcHandler(handler func(context.Context, *Delete
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/delete_project] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.initialize/delete_project] json and proto format decode both failed", nil)
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -593,7 +593,7 @@ func _Initialize_DeleteProject_CrpcHandler(handler func(context.Context, *Delete
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/delete_project] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.initialize/delete_project] json and proto format decode both failed", nil)
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -601,7 +601,7 @@ func _Initialize_DeleteProject_CrpcHandler(handler func(context.Context, *Delete
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/delete_project]", errstr)
+			log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -625,12 +625,12 @@ func _Initialize_DeleteProject_CrpcHandler(handler func(context.Context, *Delete
 func RegisterInitializeCrpcServer(engine *crpc.CrpcServer, svc InitializeCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	engine.RegisterHandler(_CrpcPathInitializeInitStatus, _Initialize_InitStatus_CrpcHandler(svc.InitStatus))
-	engine.RegisterHandler(_CrpcPathInitializeInit, _Initialize_Init_CrpcHandler(svc.Init))
-	engine.RegisterHandler(_CrpcPathInitializeRootLogin, _Initialize_RootLogin_CrpcHandler(svc.RootLogin))
-	engine.RegisterHandler(_CrpcPathInitializeRootPassword, _Initialize_RootPassword_CrpcHandler(svc.RootPassword))
-	engine.RegisterHandler(_CrpcPathInitializeCreateProject, _Initialize_CreateProject_CrpcHandler(svc.CreateProject))
-	engine.RegisterHandler(_CrpcPathInitializeUpdateProject, _Initialize_UpdateProject_CrpcHandler(svc.UpdateProject))
-	engine.RegisterHandler(_CrpcPathInitializeListProject, _Initialize_ListProject_CrpcHandler(svc.ListProject))
-	engine.RegisterHandler(_CrpcPathInitializeDeleteProject, _Initialize_DeleteProject_CrpcHandler(svc.DeleteProject))
+	engine.RegisterHandler("admin.initialize", "init_status", _Initialize_InitStatus_CrpcHandler(svc.InitStatus))
+	engine.RegisterHandler("admin.initialize", "init", _Initialize_Init_CrpcHandler(svc.Init))
+	engine.RegisterHandler("admin.initialize", "root_login", _Initialize_RootLogin_CrpcHandler(svc.RootLogin))
+	engine.RegisterHandler("admin.initialize", "update_root_password", _Initialize_UpdateRootPassword_CrpcHandler(svc.UpdateRootPassword))
+	engine.RegisterHandler("admin.initialize", "create_project", _Initialize_CreateProject_CrpcHandler(svc.CreateProject))
+	engine.RegisterHandler("admin.initialize", "update_project", _Initialize_UpdateProject_CrpcHandler(svc.UpdateProject))
+	engine.RegisterHandler("admin.initialize", "list_project", _Initialize_ListProject_CrpcHandler(svc.ListProject))
+	engine.RegisterHandler("admin.initialize", "delete_project", _Initialize_DeleteProject_CrpcHandler(svc.DeleteProject))
 }

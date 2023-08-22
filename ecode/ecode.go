@@ -21,6 +21,7 @@ var (
 	ErrBusy       = cerror.ErrBusy       //10011 // http code 503
 	ErrNotExist   = cerror.ErrNotExist   //10012 // http code 404
 
+	// ErrInitConflict        = cerror.MakeError(20000, http.StatusBadRequest, "init conflict")
 	ErrNotInited           = cerror.MakeError(20001, http.StatusBadRequest, "not inited")
 	ErrAlreadyInited       = cerror.MakeError(20002, http.StatusBadRequest, "already inited")
 	ErrPasswordLength      = cerror.MakeError(20003, http.StatusBadRequest, "password length must less then 32")
@@ -36,7 +37,7 @@ var (
 	ErrIndexNotExist         = cerror.MakeError(20015, http.StatusBadRequest, "config index doesn't exist")
 	ErrWrongSecret           = cerror.MakeError(20016, http.StatusBadRequest, "wrong secret")
 	ErrSecretLength          = cerror.MakeError(20017, http.StatusBadRequest, "secret length must less then 32")
-	ErrConfigDataBroken      = cerror.MakeError(20018, http.StatusBadRequest, "config data broken")
+	ErrDataBroken            = cerror.MakeError(20018, http.StatusBadRequest, "data broken")
 	ErrProxyPathNotExist     = cerror.MakeError(20019, http.StatusBadRequest, "proxy path doesn't exist")
 	ErrProxyPathAlreadyExist = cerror.MakeError(20019, http.StatusBadRequest, "proxy path already exist")
 	ErrAppInstanceNotExist   = cerror.MakeError(200020, http.StatusBadRequest, "this app's instance doesn't exist")

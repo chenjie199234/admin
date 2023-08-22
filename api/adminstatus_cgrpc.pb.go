@@ -48,12 +48,13 @@ type StatusCGrpcServer interface {
 func _Status_Ping_CGrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(Pingreq)
-		if ctx.DecodeReq(req) != nil {
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.status/ping]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.status/ping]", errstr)
+			log.Error(ctx, "[/admin.status/ping]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

@@ -461,11 +461,13 @@ func _User_UserLogin_WebHandler(handler func(context.Context, *UserLoginReq) (*U
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/user_login]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/user_login]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -473,16 +475,19 @@ func _User_UserLogin_WebHandler(handler func(context.Context, *UserLoginReq) (*U
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/user_login]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/user_login]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/user_login]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -510,11 +515,13 @@ func _User_LoginInfo_WebHandler(handler func(context.Context, *LoginInfoReq) (*L
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/login_info]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/login_info]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -522,16 +529,19 @@ func _User_LoginInfo_WebHandler(handler func(context.Context, *LoginInfoReq) (*L
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/login_info]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/login_info]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/login_info]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -559,11 +569,13 @@ func _User_InviteProject_WebHandler(handler func(context.Context, *InviteProject
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -571,21 +583,24 @@ func _User_InviteProject_WebHandler(handler func(context.Context, *InviteProject
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/invite_project]", errstr)
+			log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -613,11 +628,13 @@ func _User_KickProject_WebHandler(handler func(context.Context, *KickProjectReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -625,21 +642,24 @@ func _User_KickProject_WebHandler(handler func(context.Context, *KickProjectReq)
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/kick_project]", errstr)
+			log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -667,11 +687,13 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -679,21 +701,24 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/search_users]", errstr)
+			log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -721,11 +746,13 @@ func _User_UpdateUser_WebHandler(handler func(context.Context, *UpdateUserReq) (
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -733,21 +760,24 @@ func _User_UpdateUser_WebHandler(handler func(context.Context, *UpdateUserReq) (
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_user]", errstr)
+			log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -775,11 +805,13 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -787,21 +819,24 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/create_role]", errstr)
+			log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -829,11 +864,13 @@ func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -841,21 +878,24 @@ func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq)
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/search_roles]", errstr)
+			log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -883,11 +923,13 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -895,21 +937,24 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_role]", errstr)
+			log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -937,11 +982,13 @@ func _User_DelRoles_WebHandler(handler func(context.Context, *DelRolesReq) (*Del
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -949,21 +996,24 @@ func _User_DelRoles_WebHandler(handler func(context.Context, *DelRolesReq) (*Del
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_roles]", errstr)
+			log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -991,11 +1041,13 @@ func _User_AddUserRole_WebHandler(handler func(context.Context, *AddUserRoleReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1003,21 +1055,24 @@ func _User_AddUserRole_WebHandler(handler func(context.Context, *AddUserRoleReq)
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/add_user_role]", errstr)
+			log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1045,11 +1100,13 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1057,21 +1114,24 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
+				log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
+			log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_user_role]", errstr)
+			log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

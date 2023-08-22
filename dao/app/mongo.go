@@ -21,9 +21,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func (d *Dao) MongoGetApp(ctx context.Context, gname, aname, secret string) (*model.AppSummary, error) {
+func (d *Dao) MongoGetApp(ctx context.Context, projectid, gname, aname, secret string) (*model.AppSummary, error) {
 	appsummary := &model.AppSummary{}
-	e := d.mongo.Database("app").Collection("config").FindOne(ctx, bson.M{"group": gname, "app": aname, "key": "", "index": 0}).Decode(appsummary)
+	e := d.mongo.Database("app").Collection("config").FindOne(ctx, bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}).Decode(appsummary)
 	if e != nil {
 		return nil, e
 	}
@@ -45,18 +45,15 @@ func (d *Dao) MongoGetApp(ctx context.Context, gname, aname, secret string) (*mo
 	}
 	return appsummary, nil
 }
-func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, gname, aname string) (string, error) {
+func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, projectid, gname, aname string) (string, error) {
 	appsummary := &model.AppSummary{}
-	filterSummary := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+	filterSummary := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	opts := options.FindOne().SetProjection(bson.M{"permission_node_id": 1})
 	if e := d.mongo.Database("app").Collection("config").FindOne(ctx, filterSummary, opts).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
 		}
 		return "", e
-	}
-	if appsummary.PermissionNodeID == "" {
-		return "", ecode.ErrNotInited
 	}
 	return appsummary.PermissionNodeID, nil
 }
@@ -100,6 +97,7 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 	nonce := make([]byte, 32)
 	rand.Read(nonce)
 	if _, e = d.mongo.Database("app").Collection("config").InsertOne(sctx, &model.AppSummary{
+		ProjectID:        projectid,
 		Group:            gname,
 		App:              aname,
 		Key:              "",
@@ -113,7 +111,7 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 	}
 	return
 }
-func (d *Dao) MongoDelApp(ctx context.Context, gname, aname, secret string) (e error) {
+func (d *Dao) MongoDelApp(ctx context.Context, projectid, gname, aname, secret string) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -132,7 +130,7 @@ func (d *Dao) MongoDelApp(ctx context.Context, gname, aname, secret string) (e e
 		}
 	}()
 	appsummary := &model.AppSummary{}
-	filterSummary := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+	filterSummary := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	opts := options.FindOne().SetProjection(bson.M{"value": 1, "permission_node_id": 1})
 	if e = d.mongo.Database("app").Collection("config").FindOne(sctx, filterSummary, opts).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
@@ -143,7 +141,7 @@ func (d *Dao) MongoDelApp(ctx context.Context, gname, aname, secret string) (e e
 	if e = util.SignCheck(secret, appsummary.Value); e != nil {
 		return
 	}
-	if _, e = d.mongo.Database("app").Collection("config").DeleteMany(sctx, bson.M{"group": gname, "app": aname}); e != nil {
+	if _, e = d.mongo.Database("app").Collection("config").DeleteMany(sctx, bson.M{"project_id": projectid, "group": gname, "app": aname}); e != nil {
 		return
 	}
 	delfilter := bson.M{"node_id": bson.M{"$regex": "^" + appsummary.PermissionNodeID}}
@@ -156,7 +154,7 @@ func (d *Dao) MongoDelApp(ctx context.Context, gname, aname, secret string) (e e
 	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, delfilter)
 	return
 }
-func (d *Dao) MongoUpdateAppSecret(ctx context.Context, gname, aname, oldsecret, newsecret string) (e error) {
+func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname, oldsecret, newsecret string) (e error) {
 	if len(oldsecret) >= 32 || len(newsecret) >= 32 {
 		return ecode.ErrSecretLength
 	}
@@ -181,7 +179,7 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, gname, aname, oldsecret,
 		}
 	}()
 	appsummary := &model.AppSummary{}
-	filterSummary := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+	filterSummary := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	opts := options.FindOne().SetProjection(bson.M{"value": 1, "keys": 1})
 	if e = d.mongo.Database("app").Collection("config").FindOne(sctx, filterSummary, opts).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
@@ -216,7 +214,7 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, gname, aname, oldsecret,
 	if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterSummary, bson.M{"$set": updaterSummary}); e != nil {
 		return
 	}
-	filterlog := bson.M{"group": gname, "app": aname, "key": bson.M{"$exists": true, "$type": "string", "$ne": ""}, "index": bson.M{"$gt": 0}}
+	filterlog := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": bson.M{"$exists": true, "$type": "string", "$ne": ""}, "index": bson.M{"$gt": 0}}
 	var cursor *mongo.Cursor
 	if cursor, e = d.mongo.Database("app").Collection("config").Find(sctx, filterlog); e != nil {
 		return
@@ -238,7 +236,7 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, gname, aname, oldsecret,
 		if newsecret != "" {
 			log.Value, _ = util.Encrypt(newsecret, common.Str2byte(log.Value))
 		}
-		filter := bson.M{"group": gname, "app": aname, "key": log.Key, "index": log.Index}
+		filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": log.Key, "index": log.Index}
 		updater := bson.M{"$set": bson.M{"value": log.Value}}
 		if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filter, updater); e != nil {
 			return
@@ -250,14 +248,14 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, gname, aname, oldsecret,
 
 // index == 0 get the current index's config
 // index != 0 get the specific index's config
-func (d *Dao) MongoGetKeyConfig(ctx context.Context, gname, aname, key string, index uint32, secret string) (*model.KeySummary, *model.Log, error) {
+func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, key string, index uint32, secret string) (*model.KeySummary, *model.Log, error) {
 	col := d.mongo.Database("app", options.Database().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())).Collection("config")
 	var appsummary *model.AppSummary
 	var log *model.Log
 	if index == 0 {
 		//get tge current index's config
 		appsummary = &model.AppSummary{}
-		filterSummary := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+		filterSummary := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 		opts := options.FindOne().SetProjection(bson.M{"value": 1, "keys." + key: 1})
 		if e := col.FindOne(ctx, filterSummary, opts).Decode(appsummary); e != nil {
 			if e == mongo.ErrNoDocuments {
@@ -292,7 +290,7 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, gname, aname, key string, i
 		return keysummary, log, nil
 	}
 	//get the specific index's config and the current status
-	filter := bson.M{"group": gname, "app": aname, "$or": bson.A{bson.M{"key": "", "index": 0}, bson.M{"key": key, "index": index}}}
+	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "$or": bson.A{bson.M{"key": "", "index": 0}, bson.M{"key": key, "index": index}}}
 	opts := options.Find().SetProjection(bson.M{"key": 1, "index": 1, "value": 1, "value_type": 1, "keys." + key: 1}).SetSort(bson.M{"index": 1})
 	cursor, e := col.Find(ctx, filter, opts)
 	if e != nil {
@@ -348,7 +346,7 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, gname, aname, key string, i
 	}
 	return keysummary, log, nil
 }
-func (d *Dao) MongoSetKeyConfig(ctx context.Context, gname, aname, key, secret, value, valuetype string, newkey bool) (newindex, newversion uint32, e error) {
+func (d *Dao) MongoSetKeyConfig(ctx context.Context, projectid, gname, aname, key, secret, value, valuetype string, newkey bool) (newindex, newversion uint32, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -367,7 +365,7 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, gname, aname, key, secret, 
 		}
 	}()
 	appsummary := &model.AppSummary{}
-	filterSummary := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+	filterSummary := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	opts := options.FindOne().SetProjection(bson.M{"value": 1, "keys." + key: 1})
 	if e = d.mongo.Database("app").Collection("config").FindOne(sctx, filterSummary, opts).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
@@ -405,7 +403,7 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, gname, aname, key, secret, 
 	if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterSummary, updaterSummary); e != nil {
 		return
 	}
-	filterLog := bson.M{"group": gname, "app": aname, "key": key, "index": keysummary.CurIndex}
+	filterLog := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": key, "index": keysummary.CurIndex}
 	updaterLog := bson.M{"$set": bson.M{"value": value, "value_type": valuetype}}
 	if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterLog, updaterLog, options.Update().SetUpsert(true)); e != nil {
 		return
@@ -414,7 +412,7 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, gname, aname, key, secret, 
 	newversion = keysummary.CurVersion
 	return
 }
-func (d *Dao) MongoDelKey(ctx context.Context, gname, aname, key, secret string) (e error) {
+func (d *Dao) MongoDelKey(ctx context.Context, projectid, gname, aname, key, secret string) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -433,7 +431,7 @@ func (d *Dao) MongoDelKey(ctx context.Context, gname, aname, key, secret string)
 		}
 	}()
 	appsummary := &model.AppSummary{}
-	filterSummary := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+	filterSummary := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	updaterSummary := bson.M{"$unset": bson.M{"keys." + key: 1}}
 	opts := options.FindOneAndUpdate().SetProjection(bson.M{"value": 1})
 	if e = d.mongo.Database("app").Collection("config").FindOneAndUpdate(sctx, filterSummary, updaterSummary, opts).Decode(appsummary); e != nil {
@@ -445,11 +443,11 @@ func (d *Dao) MongoDelKey(ctx context.Context, gname, aname, key, secret string)
 	if e = util.SignCheck(secret, appsummary.Value); e != nil {
 		return
 	}
-	delfilter := bson.M{"group": gname, "app": aname, "key": key}
+	delfilter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": key}
 	_, e = d.mongo.Database("app").Collection("config").DeleteMany(sctx, delfilter)
 	return
 }
-func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, gname, aname, key, secret string, index uint32) (e error) {
+func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, projectid, gname, aname, key, secret string, index uint32) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -468,7 +466,7 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, gname, aname, key, sec
 		}
 	}()
 	appsummary := &model.AppSummary{}
-	filterSummary := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+	filterSummary := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	if e = d.mongo.Database("app").Collection("config").FindOne(sctx, filterSummary).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
@@ -489,7 +487,7 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, gname, aname, key, sec
 		return
 	}
 	log := &model.Log{}
-	filterLog := bson.M{"group": gname, "app": aname, "key": key, "index": index}
+	filterLog := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": key, "index": index}
 	if e = d.mongo.Database("app").Collection("config").FindOne(sctx, filterLog).Decode(log); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrIndexNotExist
@@ -509,7 +507,7 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, gname, aname, key, sec
 	_, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterSummary, updaterSummary)
 	return
 }
-func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path string, read, write, admin, newpath bool) (nodeid string, e error) {
+func (d *Dao) MongoSetProxyPath(ctx context.Context, projectid, gname, aname, secret, path string, read, write, admin, newpath bool) (nodeid string, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -529,7 +527,7 @@ func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path 
 	}()
 	b64path := encodeProxyPath(path)
 	appsummary := &model.AppSummary{}
-	filter := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	updater1 := bson.M{"$set": bson.M{"paths." + b64path + ".permission_read": read, "paths." + b64path + ".permission_write": write, "paths." + b64path + ".permission_admin": admin}}
 	opts := options.FindOneAndUpdate().SetProjection(bson.M{"value": 1, "paths." + b64path: 1, "permission_node_id": 1})
 	if e = d.mongo.Database("app").Collection("config").FindOneAndUpdate(sctx, filter, updater1, opts).Decode(appsummary); e != nil {
@@ -575,7 +573,7 @@ func (d *Dao) MongoSetProxyPath(ctx context.Context, gname, aname, secret, path 
 	_, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filter, updater2)
 	return
 }
-func (d *Dao) MongoDelProxyPath(ctx context.Context, gname, aname, secret, path string) (e error) {
+func (d *Dao) MongoDelProxyPath(ctx context.Context, projectid, gname, aname, secret, path string) (e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -595,10 +593,10 @@ func (d *Dao) MongoDelProxyPath(ctx context.Context, gname, aname, secret, path 
 	}()
 	b64path := base64.StdEncoding.EncodeToString(common.Str2byte(path))
 	appsummary := &model.AppSummary{}
-	filter := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	updater := bson.M{"$unset": bson.M{"paths." + b64path: 1}}
 	opts := options.FindOneAndUpdate().SetProjection(bson.M{"value": 1, "paths." + b64path: 1})
-	if e = d.mongo.Database("app").Collection("config").FindOneAndUpdate(ctx, filter, updater, opts).Decode(appsummary); e != nil {
+	if e = d.mongo.Database("app").Collection("config").FindOneAndUpdate(sctx, filter, updater, opts).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
 		}
@@ -629,7 +627,7 @@ func (d *Dao) MongoDelProxyPath(ctx context.Context, gname, aname, secret, path 
 
 // first key groupname,second key appname,value curconfig
 type WatchDropCollectionHandler func()
-type WatchUpdateHandler func(string, string, *model.AppSummary)
+type WatchUpdateHandler func(*model.AppSummary)
 type WatchDeleteConfigHandler func(id string)
 
 func (d *Dao) MongoWatchConfig(drop WatchDropCollectionHandler, update WatchUpdateHandler, delC WatchDeleteConfigHandler, initall map[string]*model.AppSummary) error {
@@ -646,7 +644,7 @@ func (d *Dao) MongoWatchConfig(drop WatchDropCollectionHandler, update WatchUpda
 				//connect
 				var e error
 				if stream, e = d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime)); e != nil {
-					log.Error(nil, "[dao.MongoWatchConfig] connect stream error:", e)
+					log.Error(nil, "[dao.MongoWatchConfig] connect failed", map[string]interface{}{"error": e})
 					stream = nil
 					time.Sleep(time.Millisecond * 100)
 					continue
@@ -658,17 +656,19 @@ func (d *Dao) MongoWatchConfig(drop WatchDropCollectionHandler, update WatchUpda
 				switch stream.Current.Lookup("operationType").StringValue() {
 				case "drop":
 					//drop collection
+					log.Error(nil, "[config.MongoWatchConfig] all configs deleted", nil)
 					drop()
 				case "insert":
 					//insert document
 					fallthrough
 				case "update":
 					//update document
+					projectid, pok := stream.Current.Lookup("fullDocument").Document().Lookup("project_id").StringValueOK()
 					gname, gok := stream.Current.Lookup("fullDocument").Document().Lookup("group").StringValueOK()
 					aname, aok := stream.Current.Lookup("fullDocument").Document().Lookup("app").StringValueOK()
 					key, kok := stream.Current.Lookup("fullDocument").Document().Lookup("key").StringValueOK()
-					index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").AsInt32OK()
-					if !gok || !aok || !kok || !iok {
+					index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").AsInt64OK()
+					if !pok || !gok || !aok || !kok || !iok {
 						//unknown doc
 						continue
 					}
@@ -679,22 +679,22 @@ func (d *Dao) MongoWatchConfig(drop WatchDropCollectionHandler, update WatchUpda
 					//this is the app summary
 					s := &model.AppSummary{}
 					if e := stream.Current.Lookup("fullDocument").Unmarshal(s); e != nil {
-						log.Error(nil, "[dao.MongoWatchConfig] group:", gname, "app:", aname, "summary data broken:", e)
+						log.Error(nil, "[dao.MongoWatchConfig] document format wrong", map[string]interface{}{"project_id": projectid, "group": gname, "app": aname, "error": e})
 						continue
 					}
 					//decode proxy path
 					if e := decodeProxyPath(s); e != nil {
-						log.Error(nil, "[dao.MongoWatchConfig] group:", gname, "app:", aname, "proxy path broken:", e)
+						log.Error(nil, "[dao.MongoWatchConfig] db data broken", map[string]interface{}{"project_id": projectid, "group": gname, "app": aname, "error": e})
 						continue
 					}
-					update(gname, aname, s)
+					update(s)
 				case "delete":
 					//delete document
 					delC(stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex())
 				}
 			}
 			if stream.Err() != nil {
-				log.Error(nil, "[dao.MongoWatchConfig]", stream.Err())
+				log.Error(nil, "[dao.MongoWatchConfig] stream disconnected", map[string]interface{}{"error": stream.Err()})
 			}
 			stream.Close(context.Background())
 			stream = nil
@@ -709,11 +709,7 @@ func (d *Dao) mongoGetAll(initall map[string]*model.AppSummary) error {
 	if initall == nil {
 		return nil
 	}
-	filter := bson.M{
-		"permission_node_id": bson.M{"$exists": true, "$type": "string", "$ne": ""},
-		"key":                "",
-		"index":              0,
-	}
+	filter := bson.M{"key": "", "index": 0}
 	var cursor *mongo.Cursor
 	cursor, e := d.mongo.Database("app").Collection("config").Find(context.Background(), filter)
 	if e != nil {
@@ -725,15 +721,15 @@ func (d *Dao) mongoGetAll(initall map[string]*model.AppSummary) error {
 		return e
 	}
 	for _, v := range tmp {
-		initall[v.Group+"."+v.App] = v
+		initall[v.GetFullName()] = v
 	}
 	return nil
 }
 
 // this function will not decrypt
-func (d *Dao) MongoGetAppConfig(ctx context.Context, gname, aname string) (*model.AppSummary, error) {
+func (d *Dao) MongoGetAppConfig(ctx context.Context, projectid, gname, aname string) (*model.AppSummary, error) {
 	app := &model.AppSummary{}
-	filter := bson.M{"group": gname, "app": aname, "key": "", "index": 0}
+	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	if e := d.mongo.Database("app").Collection("config").FindOne(ctx, filter).Decode(app); e != nil {
 		if e == mongo.ErrNoDocuments {
 			return nil, nil

@@ -86,11 +86,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### root_password
+### update_root_password
 //更新密码
 #### Req:
 ```
-Path:         /admin.initialize/root_password
+Path:         /admin.initialize/update_root_password
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------

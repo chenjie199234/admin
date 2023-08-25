@@ -373,7 +373,7 @@ func initself(db *mongo.Client, mongourl, secret string, AppConfigTemplate, Sour
 	//first project's first app(this app: admin)'s config node
 	docs = append(docs, &model.Node{
 		NodeId:       model.AdminProjectID + model.AppControl + ",1",
-		NodeName:     model.Project + "-" + model.Group + "." + model.Name,
+		NodeName:     model.Group + "." + model.Name,
 		NodeData:     "",
 		CurNodeIndex: 0,
 	})

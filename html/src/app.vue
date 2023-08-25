@@ -15,6 +15,10 @@ const all=computed(()=>{
 			continue
 		}
 		let pieces:string[]=n.node_name.split(".")
+		if(pieces.length!=2){
+			state.set_alert("error",-1,"app's permission node's nodename format wrong,should be 'group.app',nodeid:"+n.node_id.toString())
+			continue
+		}
 		if(tmp[pieces[0]]){
 			tmp[pieces[0]][pieces[1]] = n
 		}else{
@@ -54,8 +58,8 @@ const proxys=ref<Map<string,appAPI.ProxyPathInfo>>(new Map())
 const t_proxys_hover=ref<boolean>(false)
 const proxyhover=ref<string>("")
 
-const instances=ref<appAPI.InstanceInfo[]>([])
-const t_instances_hover=ref<boolean>(false)
+//const instances=ref<appAPI.InstanceInfo[]>([])
+//const t_instances_hover=ref<boolean>(false)
 
 const get_app_status=ref<boolean>(false)
 
@@ -77,7 +81,13 @@ function get_app(){
 	if(!state.set_load()){
 		return
 	}
-	client.appClient.get_app({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,secret:secret.value},client.timeout,(e: appAPI.Error)=>{
+	let req = {
+		project_id:state.project.info.project_id,
+		g_name:curg.value,
+		a_name:cura.value,
+		secret:secret.value,
+	}
+	client.appClient.get_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetAppResp)=>{
@@ -107,6 +117,7 @@ function get_app(){
 		state.clear_load()
 	})
 }
+/*
 function get_instances(){
 	if(!get_app_status.value){
 		instances.value=[]
@@ -115,7 +126,13 @@ function get_instances(){
 	if(!state.set_load()){
 		return
 	}
-	client.appClient.get_app_instances({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,secret:secret.value},client.timeout,(e: appAPI.Error)=>{
+	let req = {
+		project_id:state.project.info.project_id,
+		g_name:curg.value,
+		a_name:cura.value,
+		secret:secret.value,
+	}
+	client.appClient.get_app_instances({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetAppInstancesResp)=>{
@@ -133,50 +150,7 @@ function get_instances(){
 		state.clear_load()
 	})
 }
-function hex_decode(data:string):Uint8Array{
-	let tmp:string[] = []
-	for(let i=0;i<data.length;i+=2){
-		tmp.push(data.substr(i,2))
-	}
-	let result:number[]=[]
-	for(let i=0;i<tmp.length;i++){
-		result.push(Number("0x"+tmp[i]))
-	}
-	return new Uint8Array(result)
-}
-function get_pprof(host_ip: string){
-	if(curg.value==""||cura.value==""){
-		state.set_alert("error",-2,"Group and App must be selected!")
-		return
-	}
-	if(!state.set_load()){
-		return
-	}
-	let req = {
-		g_name:curg.value,
-		a_name:cura.value,
-		secret:secret.value,
-		host_ip:host_ip,
-		cmd:'pprof',
-		cmd_data:'',
-	}
-	client.appClient.get_app_instance_cmd({"Token":state.user.token},req,0,(e: appAPI.Error)=>{
-		state.clear_load()
-		state.set_alert("error",e.code,e.msg)
-	},(resp: appAPI.GetAppInstanceCmdResp)=>{
-		let data=hex_decode(resp.data)
-		let fileLink = document.createElement('a')
-		let fileURL = window.URL.createObjectURL(new Blob([data],{type:"application/octet-stream"}))
-		fileLink.href = fileURL
-		fileLink.style.display='none'
-		fileLink.setAttribute('download', 'profile')
-		document.body.appendChild(fileLink)
-		fileLink.click()
-		fileLink.parentNode!.removeChild(fileLink)
-		window.URL.revokeObjectURL(fileURL)
-		state.clear_load()
-	})
-}
+*/
 
 const ing=ref<boolean>(false)
 const optype=ref<string>("")
@@ -254,9 +228,8 @@ function new_proxy_permission_same(proxy :string):boolean{
 }
 
 const cur_proxy=ref<string>("")
-const req=ref<string>("")
-const resp=ref<string>("")
-const respstatus=ref<boolean>(false)
+const reqdata=ref<string>("")
+const respdata=ref<string>("")
 
 function app_op(){
 	if(!state.set_load()){
@@ -269,7 +242,13 @@ function app_op(){
 				state.set_alert("error",-2,"Group and App must be selected!")
 				return
 			}
-			client.appClient.del_app({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,secret:secret.value},client.timeout,(e: appAPI.Error)=>{
+			let req = {
+				project_id:state.project.info.project_id,
+				g_name:curg.value,
+				a_name:cura.value,
+				secret:secret.value,
+			}
+			client.appClient.del_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.DelAppResp)=>{
@@ -295,7 +274,13 @@ function app_op(){
 			break
 		}
 		case 'add_app':{
-			client.appClient.create_app({"Token":state.user.token},{project_id:state.project.cur_id,g_name:new_g.value,a_name:new_a.value,secret:new_secret.value},client.timeout,(e: appAPI.Error)=>{
+			let req = {
+				project_id:state.project.info.project_id,
+				g_name:new_g.value,
+				a_name:new_a.value,
+				secret:new_secret.value,
+			}
+			client.appClient.create_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.CreateAppResp)=>{
@@ -333,6 +318,7 @@ function app_op(){
 		}
 		case 'update_secret':{
 			let req = {
+				project_id:state.project.info.project_id,
 				g_name:update_g.value,
 				a_name:update_a.value,
 				old_secret:update_old_secret.value,
@@ -353,6 +339,7 @@ function app_op(){
 		}
 		case 'get_key':{
 			let req = {
+				project_id:state.project.info.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -376,6 +363,7 @@ function app_op(){
 				break
 			}
 			let req = {
+				project_id:state.project.info.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -405,6 +393,7 @@ function app_op(){
 		}
 		case 'update_key':{
 			let req = {
+				project_id:state.project.info.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -426,6 +415,7 @@ function app_op(){
 		}
 		case 'rollback_key':{
 			let req = {
+				project_id:state.project.info.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -445,6 +435,7 @@ function app_op(){
 		}
 		case 'del_key':{
 			let req = {
+				project_id:state.project.info.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -468,6 +459,7 @@ function app_op(){
 				break
 			}
 			let req = {
+				project_id:state.project.info.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -501,6 +493,7 @@ function app_op(){
 		}
 		case 'update_proxy':{
 			let req = {
+				project_id:state.project.info.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -524,6 +517,7 @@ function app_op(){
 		}
 		case 'del_proxy':{
 			let req = {
+				project_id:state.project.info.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -541,12 +535,22 @@ function app_op(){
 			break
 		}
 		case 'proxy':{
-			client.appClient.proxy({"Token":state.user.token},{g_name:curg.value,a_name:cura.value,path:cur_proxy.value,data:req.value,},client.timeout,(e: appAPI.Error)=>{
+			let req = {
+				project_id:state.project.info.project_id,
+				g_name:curg.value,
+				a_name:cura.value,
+				path:cur_proxy.value,
+				data:reqdata.value,
+			}
+			client.appClient.proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(r: appAPI.ProxyResp)=>{
-				resp.value=r.data
-				respstatus.value=true
+				if(r.data==""){
+					respdata.value="{}"
+				}else{
+					respdata.value=r.data
+				}
 				ing.value=false
 				state.clear_load()
 			})
@@ -588,14 +592,12 @@ function app_op(){
 			<div v-else-if="optype=='update_secret'" style="display:flex;flex-direction:column">
 				<div>
 					<va-select 
-						trigger="hover"
-						dropdown-icon=""
-						label="Group*"
-						:options="Object.keys(all)"
-						style="width:198px;margin:2px"
 						v-model="update_g"
-						no-options-text="No Groups"
-						:hover-out-timeout="60000"
+						:options="Object.keys(all)"
+						noOptionsText="No Groups"
+						label="Group*"
+						dropdownIcon=""
+						style="width:198px;margin:2px"
 					>
 						<template #option='{option,selectOption}'>
 							<va-hover stateful @click="()=>{
@@ -605,12 +607,11 @@ function app_op(){
 									update_old_secret=''
 									update_new_secret=''
 								}
-							}"
-							>
+							}">
 								<template #default="{hover}">
 									<div
-									style="padding:10px;cursor:pointer"
-									:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||update_g==option?'var(--va-primary)':'black'}"
+										style="padding:10px;cursor:pointer"
+										:style="{'background-color':hover?'var(--va-background-border)':'',color:update_g==option?'green':'black'}"
 									>
 										{{option}}
 									</div>
@@ -619,14 +620,12 @@ function app_op(){
 						</template>
 					</va-select>
 					<va-select
-						trigger="hover"
-						dropdown-icon=""
-						label="App*"
-						:options="update_g==''?[]:Object.keys(all[update_g])"
-						style="width:198px;margin:2px"
 						v-model="update_a"
-						no-options-text="No Apps"
-						:hover-out-timeout="60000"
+						:options="update_g==''?[]:Object.keys(all[update_g])"
+						noOptionsText="No Apps"
+						label="App*"
+						dropdownIcon=""
+						style="width:198px;margin:2px"
 					>
 						<template #option='{option,selectOption}'>
 							<va-hover stateful @click="()=>{
@@ -635,12 +634,11 @@ function app_op(){
 									update_old_secret=''
 									update_new_secret=''
 								}
-							}"
-							>
+							}">
 								<template #default="{hover}">
 									<div
-									style="padding:10px;cursor:pointer"
-									:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||update_a==option?'var(--va-primary)':'black'}"
+										style="padding:10px;cursor:pointer"
+										:style="{'background-color':hover?'var(--va-background-border)':'',color:update_a==option?'green':'black'}"
 									>
 										{{option}}
 									</div>
@@ -767,15 +765,13 @@ function app_op(){
 	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
 		<div style="display:flex;margin:1px 0;align-self:center">
 			<va-select
-				dropdown-icon=""
-				outline
-				trigger="hover"
-				label="Group*"
-				no-options-text="No Groups"
-				:options="Object.keys(all)"
 				v-model="curg"
+				:options="Object.keys(all)"
+				noOptionsText="No Groups"
+				label="Group*"
+				dropdownIcon=""
 				style="width:150px;margin-right:1px"
-				:hover-out-timeout="60000"
+				outline
 			>
 				<template #option='{option,selectOption}'>
 					<va-hover
@@ -791,12 +787,11 @@ function app_op(){
 								get_app_status=false
 								config_proxy_instance=''
 							}
-						}"
-					>
+						}">
 						<template #default='{hover}'>
 							<div
 								style="padding:10px;cursor:pointer"
-								:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||curg==option?'var(--va-primary)':'black'}"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:curg==option?'green':'black'}"
 							>
 								{{option}}
 							</div>
@@ -805,15 +800,13 @@ function app_op(){
 				</template>
 			</va-select>
 			<va-select
-				dropdown-icon=""
-				outline
-				trigger="hover"
-				label="App*"
-				no-options-text="No Apps"
-				:options="curg==''?[]:Object.keys(all[curg])"
 				v-model="cura"
+				:options="curg==''?[]:Object.keys(all[curg])"
+				noOptionsText="No Apps"
+				label="App*"
+				dropdownIcon=""
 				style="width:150px;margin:0 1px"
-				:hover-out-timeout="60000"
+				outline
 			>
 				<template #option='{option,selectOption}'>
 					<va-hover
@@ -833,7 +826,7 @@ function app_op(){
 						<template #default='{hover}'>
 							<div
 								style="padding:10px;cursor:pointer"
-								:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||cura==option?'var(--va-primary)':'black'}"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:cura==option?'green':'black'}"
 							>
 								{{option}}
 							</div>
@@ -847,7 +840,7 @@ function app_op(){
 				</template>
 			</va-input>
 			<va-button style="margin:0 2px" :disabled="curg==''||cura==''" @click="get_app">Search</va-button>
-			<va-dropdown  v-if="state.page.node!.admin" trigger="hover" :hover-out-timeout="60000" style="width:36px;margin-right:4px">
+			<va-dropdown  v-if="state.page.node!.admin" style="width:36px;margin-right:4px">
 				<template #anchor>
 					<va-button>•••</va-button>
 				</template>
@@ -859,7 +852,7 @@ function app_op(){
 						<va-button style="width:36px;margin:0 3px" @click="optype='update_secret';ing=true">◉</va-button>
 					</va-popover>
 					<va-popover message="Delete App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button style="width:36px;margin:0 3px" :disabled="curg==''||cura==''" @click="optype='del_app';ing=true">x</va-button>
+						<va-button style="width:36px;margin:0 3px" :disabled="curg==''||cura==''||(all[curg][cura].node_id![1]==1&&all[curg][cura].node_id![3]==1)" @click="optype='del_app';ing=true">x</va-button>
 					</va-popover>
 				</va-dropdown-content>
 			</va-dropdown>
@@ -921,7 +914,7 @@ function app_op(){
 						<textarea readonly style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px">{{JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)}}</textarea>
 						<div style="align-self:center;display:flex;align-items:center">
 							<b style="color:var(--va-primary);margin-right:10px">Current Config ID:  {{ keys.get(key)!.cur_index }}</b>
-							<va-dropdown trigger="hover" :hover-out-timeout="60000" :disabled="cur_key_index!=0||new_cur_key_value_type!=''" prevent-overflow placement="top">
+							<va-dropdown :disabled="cur_key_index!=0||new_cur_key_value_type!=''" prevent-overflow placement="top">
 								<template #anchor>
 									<va-button style="width:60px;height:30px;margin:2px" size="small">History</va-button>
 								</template>
@@ -1058,11 +1051,11 @@ function app_op(){
 					@click="()=>{
 						if(cur_proxy==''){
 							cur_proxy=proxy
-							req='{\n}'
+							reqdata='{\n}'
 							new_proxy_permission_read=proxys.get(proxy)!.read
 							new_proxy_permission_write=proxys.get(proxy)!.write
 							new_proxy_permission_admin=proxys.get(proxy)!.admin
-							respstatus=false
+							respdata=''
 						}else{
 							cur_proxy=''
 						}
@@ -1073,12 +1066,12 @@ function app_op(){
 				</div>
 				<div v-if="cur_proxy==proxy" style="flex:1;display:flex;margin:1px 20px;overflow-y:auto">
 					<div style="flex:1;display:flex;flex-direction:column">
-						<textarea style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" v-model.trim="req" :readonly="respstatus"></textarea>
+						<textarea style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" v-model.trim="reqdata" :readonly="respdata!=''"></textarea>
 						<div style="width:100%;display:flex">
-							<va-button style="width:60px;height:30px;margin:2px 0" size="small" @click="optype='proxy';ing=true" :disabled="respstatus||!is_json_obj(req)">Proxy</va-button>
+							<va-button style="width:60px;height:30px;margin:2px 0" size="small" @click="optype='proxy';ing=true" :disabled="respdata!=''||!is_json_obj(reqdata)">Proxy</va-button>
 							<div style="flex:1"></div>
 							<va-switch
-								:disabled="respstatus||!all[curg][cura].canwrite||!all[curg][cura].admin"
+								:disabled="respdata!=''||!all[curg][cura].canwrite||!all[curg][cura].admin"
 								style="margin:2px"
 								v-model="new_proxy_permission_read"
 								true-inner-label="Read"
@@ -1086,7 +1079,7 @@ function app_op(){
 								@update:model-value="new_proxy_permission_update('read')"
 							/>
 							<va-switch
-								:disabled="respstatus||!all[curg][cura].canwrite||!all[curg][cura].admin"
+								:disabled="respdata!=''||!all[curg][cura].canwrite||!all[curg][cura].admin"
 								style="margin:2px"
 								v-model="new_proxy_permission_write"
 								true-inner-label="Write"
@@ -1094,7 +1087,7 @@ function app_op(){
 								@update:model-value="new_proxy_permission_update('write')"
 							/>
 							<va-switch
-								:disabled="respstatus||!all[curg][cura].canwrite||!all[curg][cura].admin"
+								:disabled="respdata!=''||!all[curg][cura].canwrite||!all[curg][cura].admin"
 								style="margin:2px"
 								v-model="new_proxy_permission_admin"
 								true-inner-label="Admin"
@@ -1105,14 +1098,14 @@ function app_op(){
 								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
 								style="width:60px;height:30px;margin:2px"
 								size="small"
-								:disabled="respstatus||new_proxy_permission_same(proxy)"
+								:disabled="respdata!=''||new_proxy_permission_same(proxy)"
 								@click="optype='update_proxy';ing=true"
 							>
 								Update
 							</va-button>
 							<va-button
 								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
-								:disabled="respstatus"
+								:disabled="respdata!=''"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
 								@click.stop="optype='del_proxy';ing=true"
@@ -1121,10 +1114,10 @@ function app_op(){
 							</va-button>
 						</div>
 					</div>
-					<va-divider v-if="respstatus" vertical style="margin:0 4px" />
-					<div v-if="respstatus" style="flex:1;display:flex;flex-direction:column">
-						<textarea style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" readonly>{{is_json_obj(resp)?JSON.stringify(JSON.parse(resp),null,4):resp}}</textarea>
-						<va-button style="align-self:center;width:60px;height:30px;margin:2px" size="small" @click="respstatus=false">OK</va-button>
+					<va-divider v-if="respdata!=''" vertical style="margin:0 4px" />
+					<div v-if="respdata!=''" style="flex:1;display:flex;flex-direction:column">
+						<textarea style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" readonly>{{is_json_obj(respdata)?JSON.stringify(JSON.parse(respdata),null,4):respdata}}</textarea>
+						<va-button style="align-self:center;width:60px;height:30px;margin:2px" size="small" @click="respdata=''">OK</va-button>
 					</div>
 				</div>
 			</template>
@@ -1133,74 +1126,74 @@ function app_op(){
 			<div style="margin:1px 10px;padding:12px;display:flex;flex-direction:column;background-color:var(--va-background-element);color:var(--va-primary)">No Proxy Paths</div>
 		</div>
 		<!-- instances -->
-		<div
-			v-if="get_app_status&&(config_proxy_instance=='instance'||config_proxy_instance=='')"
-			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
-			:style="{'background-color':t_instances_hover?'var(--va-shadow)':'var(--va-background-element)'}"
-			@click="()=>{
-				if(config_proxy_instance==''){
-					instances=[]
-					config_proxy_instance='instance'
-					get_instances()
-				}else{
-					config_proxy_instance=''
-				}
-			}"
-			@mouseover="t_instances_hover=true"
-			@mouseout="t_instances_hover=false"
-		>
-			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='instance'?'-':'+' }}</span>
-			<span style="flex:1;padding:12px;color:var(--va-primary)">Instances</span>
-			<va-button
-				v-if="config_proxy_instance=='instance'"
-				style="width:60px;height:30px"
-				size="small"
-				@mouseover.stop=""
-				@mouseout.stop=""
-				@click.stop="get_instances"
-			>
-				refresh
-			</va-button>
-			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance?'▲':'▼' }}</span>
-		</div>
-		<div v-if="config_proxy_instance=='instance'&&instances.length>0" style="display:flex;flex-wrap:wrap">
-			<div v-for="instance of instances" style="border:1px solid var(--va-primary);border-radius:5px;margin:5px;display:flex;flex-direction:column;align-items:center">
-				<div style="margin:1px;display:flex">
-					<span style="width:85px">Host IP</span>
-					<va-divider vertical />
-					<span style="width:200px;word-break:break-all">{{instance.host_ip}}</span>
-				</div>
-				<div style="margin:1px;display:flex">
-					<span style="width:85px">Host Name</span>
-					<va-divider vertical />
-					<span style="width:200px;word-break:break-all">{{instance.host_name}}</span>
-				</div>
-				<div style="margin:1px;display:flex">
-					<span style="width:85px">CPU Num</span>
-					<va-divider vertical />
-					<span style="width:200px">{{instance.cpu_num}}</span>
-				</div>
-				<div style="margin:1px;display:flex">
-					<span style="width:85px">CPU Use</span>
-					<va-divider vertical />
-					<span style="width:200px">{{(instance.cpu_usage*100).toFixed(2)}}%</span>
-				</div>
-				<div style="margin:1px;display:flex">
-					<span style="width:85px">Mem Total</span>
-					<va-divider vertical />
-					<span style="width:200px">{{instance.mem_total.toFixed(2)}}MB</span>
-				</div>
-				<div style="margin:1px;display:flex">
-					<span style="width:85px">Mem Use</span>
-					<va-divider vertical />
-					<span style="width:200px">{{(instance.mem_usage*100).toFixed(2)}}%</span>
-				</div>
-				<va-divider style="width:100%"/>
-				<va-button style="margin-bottom:3px" @click="get_pprof(instance.host_ip)">PPROF</va-button>
-			</div>
-		</div>
-		<div v-if="config_proxy_instance=='instance'&&instances.length==0">
-			<div style="border:1px solid var(--va-primary);border-radius:5px;margin:5px;width:300px;height:150px;display:flex;justify-content:center;align-items:center">No Instances</div>
-		</div>
+		<!-- <div -->
+		<!-- 	v-if="get_app_status&&(config_proxy_instance=='instance'||config_proxy_instance=='')" -->
+		<!-- 	style="display:flex;align-items:center;margin:1px 0;cursor:pointer" -->
+		<!-- 	:style="{'background-color':t_instances_hover?'var(--va-shadow)':'var(--va-background-element)'}" -->
+		<!-- 	@click="()=>{ -->
+		<!-- 		if(config_proxy_instance==''){ -->
+		<!-- 			instances=[] -->
+		<!-- 			config_proxy_instance='instance' -->
+		<!-- 			get_instances() -->
+		<!-- 		}else{ -->
+		<!-- 			config_proxy_instance='' -->
+		<!-- 		} -->
+		<!-- 	}" -->
+		<!-- 	@mouseover="t_instances_hover=true" -->
+		<!-- 	@mouseout="t_instances_hover=false" -->
+		<!-- > -->
+		<!-- 	<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='instance'?'-':'+' }}</span> -->
+		<!-- 	<span style="flex:1;padding:12px;color:var(--va-primary)">Instances</span> -->
+		<!-- 	<va-button -->
+		<!-- 		v-if="config_proxy_instance=='instance'" -->
+		<!-- 		style="width:60px;height:30px" -->
+		<!-- 		size="small" -->
+		<!-- 		@mouseover.stop="" -->
+		<!-- 		@mouseout.stop="" -->
+		<!-- 		@click.stop="get_instances" -->
+		<!-- 	> -->
+		<!-- 		refresh -->
+		<!-- 	</va-button> -->
+		<!-- 	<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance?'▲':'▼' }}</span> -->
+		<!-- </div> -->
+		<!-- <div v-if="config_proxy_instance=='instance'&&instances.length>0" style="display:flex;flex-wrap:wrap"> -->
+		<!-- 	<div v-for="instance of instances" style="border:1px solid var(--va-primary);border-radius:5px;margin:5px;display:flex;flex-direction:column;align-items:center"> -->
+		<!-- 		<div style="margin:1px;display:flex"> -->
+		<!-- 			<span style="width:85px">Host IP</span> -->
+		<!-- 			<va-divider vertical /> -->
+		<!-- 			<span style="width:200px;word-break:break-all">{{instance.host_ip}}</span> -->
+		<!-- 		</div> -->
+		<!-- 		<div style="margin:1px;display:flex"> -->
+		<!-- 			<span style="width:85px">Host Name</span> -->
+		<!-- 			<va-divider vertical /> -->
+		<!-- 			<span style="width:200px;word-break:break-all">{{instance.host_name}}</span> -->
+		<!-- 		</div> -->
+		<!-- 		<div style="margin:1px;display:flex"> -->
+		<!-- 			<span style="width:85px">CPU Num</span> -->
+		<!-- 			<va-divider vertical /> -->
+		<!-- 			<span style="width:200px">{{instance.cpu_num}}</span> -->
+		<!-- 		</div> -->
+		<!-- 		<div style="margin:1px;display:flex"> -->
+		<!-- 			<span style="width:85px">CPU Use</span> -->
+		<!-- 			<va-divider vertical /> -->
+		<!-- 			<span style="width:200px">{{(instance.cpu_usage*100).toFixed(2)}}%</span> -->
+		<!-- 		</div> -->
+		<!-- 		<div style="margin:1px;display:flex"> -->
+		<!-- 			<span style="width:85px">Mem Total</span> -->
+		<!-- 			<va-divider vertical /> -->
+		<!-- 			<span style="width:200px">{{instance.mem_total.toFixed(2)}}MB</span> -->
+		<!-- 		</div> -->
+		<!-- 		<div style="margin:1px;display:flex"> -->
+		<!-- 			<span style="width:85px">Mem Use</span> -->
+		<!-- 			<va-divider vertical /> -->
+		<!-- 			<span style="width:200px">{{(instance.mem_usage*100).toFixed(2)}}%</span> -->
+		<!-- 		</div> -->
+		<!-- 		<va-divider style="width:100%"/> -->
+		<!-- 		<va-button style="margin-bottom:3px" @click="get_pprof(instance.host_ip)">PPROF</va-button> -->
+		<!-- 	</div> -->
+		<!-- </div> -->
+		<!-- <div v-if="config_proxy_instance=='instance'&&instances.length==0"> -->
+		<!-- 	<div style="border:1px solid var(--va-primary);border-radius:5px;margin:5px;width:300px;height:150px;display:flex;justify-content:center;align-items:center">No Instances</div> -->
+		<!-- </div> -->
 	</div>
 </template>

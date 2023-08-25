@@ -2,7 +2,6 @@ package initialize
 
 import (
 	"context"
-	"time"
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"

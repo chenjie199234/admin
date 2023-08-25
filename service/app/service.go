@@ -302,23 +302,24 @@ func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppRe
 	}
 	projectid := buf.String()
 
+	nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GName, req.AName)
+	if e != nil {
+		log.Error(ctx, "[DelApp] get app's permission nodeid failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName, "error": e})
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	nodeids := strings.Split(nodeid, ",")
+	if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "2" {
+		log.Error(ctx, "[DelApp] app's permission nodeid format wrong", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName, "nodeid": nodeid})
+		return nil, ecode.ErrDataBroken
+	}
+	//self can't be deleted
+	if nodeids[1] == "1" && nodeids[3] == "1" {
+		log.Error(ctx, "[DelApp] can't delete self", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName})
+		return nil, ecode.ErrPermission
+	}
+
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GName, req.AName)
-		if e != nil {
-			log.Error(ctx, "[DelApp] get app's permission nodeid failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName, "error": e})
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-		}
-		nodeids := strings.Split(nodeid, ",")
-		if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "2" {
-			log.Error(ctx, "[DelApp] app's permission nodeid format wrong", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName, "nodeid": nodeid})
-			return nil, ecode.ErrDataBroken
-		}
-		//self can't be deleted
-		if nodeids[1] == "1" && nodeids[3] == "1" {
-			log.Error(ctx, "[DelApp] can't delete self", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName})
-			return nil, ecode.ErrPermission
-		}
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.AppControl, true)
 		if e != nil {
 			log.Error(ctx, "[DelApp] get operator's permission info failed", map[string]interface{}{"operator": md["Token-Data"], "nodeid": projectid + model.AppControl, "error": e})
@@ -412,22 +413,23 @@ func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyRe
 	}
 	projectid := buf.String()
 
+	nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GName, req.AName)
+	if e != nil {
+		log.Error(ctx, "[DelKey] get app's permission nodeid failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName, "error": e})
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	nodeids := strings.Split(nodeid, ",")
+	if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "2" {
+		log.Error(ctx, "[DelKey] app's permission nodeid format wrong", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName, "nodeid": nodeid})
+		return nil, ecode.ErrDataBroken
+	}
+	if nodeids[1] == "1" && nodeids[3] == "1" && (req.Key == "AppConfig" || req.Key == "SourceConfig") {
+		log.Error(ctx, "[DelKey] can't delete self's 'AppConfig' or 'SourceConfig' key", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName})
+		return nil, ecode.ErrPermission
+	}
+
 	if !operator.IsZero() {
 		//config control permission check
-		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GName, req.AName)
-		if e != nil {
-			log.Error(ctx, "[DelKey] get app's permission nodeid failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName, "error": e})
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-		}
-		nodeids := strings.Split(nodeid, ",")
-		if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "2" {
-			log.Error(ctx, "[DelKey] app's permission nodeid format wrong", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName, "nodeid": nodeid})
-			return nil, ecode.ErrDataBroken
-		}
-		if nodeids[1] == "1" && nodeids[3] == "1" && (req.Key == "AppConfig" || req.Key == "SourceConfig") {
-			log.Error(ctx, "[DelKey] can't delete self's 'AppConfig' or 'SourceConfig' key", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "group": req.GName, "app": req.AName})
-			return nil, ecode.ErrPermission
-		}
 		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {
 			log.Error(ctx, "[DelKey] get operator's permission info failed", map[string]interface{}{"operator": md["Token-Data"], "nodeid": nodeid, "error": e})
@@ -902,8 +904,8 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 			log.Error(ctx, "[Proxy] get project name failed", map[string]interface{}{"project_id": projectid, "error": e})
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
-		di := discover.NewDNSDiscover(projectid, req.GName, req.AName, req.AName+"-headless."+projectname+"-"+req.GName, time.Second*10, 9000, 10000, 8000)
-		client, e := crpc.NewCrpcClient(dao.GetCrpcClientConfig(), di, model.Project, model.Group, model.Name, projectid, req.GName, req.AName, nil)
+		di := discover.NewDNSDiscover(projectname, req.GName, req.AName, req.AName+"-headless."+projectname+"-"+req.GName, time.Second*10, 9000, 10000, 8000)
+		client, e := crpc.NewCrpcClient(dao.GetCrpcClientConfig(), di, model.Project, model.Group, model.Name, projectname, req.GName, req.AName, nil)
 		if e != nil {
 			log.Error(ctx, "[Proxy] new crpc client failed", map[string]interface{}{"project_id": projectid, "group": req.GName, "app": req.AName, "error": e})
 			s.Unlock()

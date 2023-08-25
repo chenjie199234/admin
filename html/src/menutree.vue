@@ -86,8 +86,8 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 					>
 						<va-divider color="shadow" style="margin:0;width:15px" />
 						<div style="flex:1;display:flex;align-items:center;padding:3px 0">
-							{{node!.node_name}}
-							<span v-if="jumpable(node)" style="padding-left:5px;font-size:30px" :style="{color:state.page.node==node?'var(--va-primary)':'black'}">☞</span>
+							<span style="padding:7px 0">{{node!.node_name}}</span>
+							<span v-if="jumpable(node)" style="padding-left:5px;font-size:30px" :style="{color:state.page.node==node?'green':'black'}">☞</span>
 						</div>
 						<div v-if="has_children(node)" style="margin-right:5px;padding:5px;border-radius:2px">{{open[node!.node_id!.toString()]?'▲':'▼'}}</div>
 					</div>
@@ -96,13 +96,13 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 							<va-button>•••</va-button>
 						</template>
 						<va-dropdown-content>
-							<va-popover message="Add Sub Menu" color="primary" prevent-overflow>
+							<va-popover message="Add Sub Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
 								<va-button style="width:36px;margin:0 3px" @click="$emit('nodeevent',pnode,node,'add')">+</va-button>
 							</va-popover>
-							<va-popover message="Update Menu" color="primary" prevent-overflow>
+							<va-popover message="Update Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
 								<va-button style="width:36px;margin:0 3px" @click="$emit('nodeevent',pnode,node,'update')">◉</va-button>
 							</va-popover>
-							<va-popover message="Delete Menu" color="primary" prevent-overflow>
+							<va-popover message="Delete Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
 								<va-button style="width:36px;margin:0 3px" @click="$emit('nodeevent',pnode,node,'del')">x</va-button>
 							</va-popover>
 						</va-dropdown-content>

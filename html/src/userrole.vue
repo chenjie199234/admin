@@ -36,7 +36,7 @@ function invited(user: userAPI.UserInfo):boolean{
 		return false
 	}
 	for(let i=0;i<user!.project_roles!.length;i++){
-		if(user!.project_roles![i] && user!.project_roles[i]!.project_id && user!.project_roles[i]!.project_id![1]==state.project.cur_id[1]){
+		if(user!.project_roles![i] && user!.project_roles[i]!.project_id && user!.project_roles[i]!.project_id![1]==state.project.info.project_id[1]){
 			return true
 		}
 	}
@@ -85,7 +85,7 @@ function op(){
 		case "search":{
 			if(target.value=="User"){
 				let req = {
-					project_id:state.project.cur_id,
+					project_id:state.project.info.project_id,
 					user_name:search.value,
 					only_project:range.value=="This Project",
 					page:page.value,
@@ -115,7 +115,7 @@ function op(){
 				})
 			}else{
 				let req = {
-					project_id:state.project.cur_id,
+					project_id:state.project.info.project_id,
 					role_name:search.value,
 					page:page.value,
 				}
@@ -147,14 +147,14 @@ function op(){
 		}
 		case "invite":{
 			let req = {
-				project_id:state.project.cur_id,
+				project_id:state.project.info.project_id,
 				user_id:invite_kick_user.value!.user_id,
 			}
 			client.userClient.invite_project({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: userAPI.InviteProjectResp)=>{
-				invite_kick_user.value!.project_roles=[{project_id:state.project.cur_id,roles:[]}]
+				invite_kick_user.value!.project_roles=[{project_id:state.project.info.project_id,roles:[]}]
 				ing.value=false
 				state.clear_load()
 			})
@@ -162,7 +162,7 @@ function op(){
 		}
 		case "kick":{
 			let req = {
-				project_id:state.project.cur_id,
+				project_id:state.project.info.project_id,
 				user_id:invite_kick_user.value!.user_id,
 			}
 			client.userClient.kick_project({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
@@ -187,7 +187,7 @@ function op(){
 						if(!invite_kick_user.value!.project_roles![i]!.project_id){
 							continue
 						}
-						if(invite_kick_user.value!.project_roles![i]!.project_id![1]==state.project.cur_id[1]){
+						if(invite_kick_user.value!.project_roles![i]!.project_id![1]==state.project.info.project_id[1]){
 							invite_kick_user.value!.project_roles!.splice(i,1)
 							break
 						}
@@ -217,7 +217,7 @@ function op(){
 		}
 		case "create_role":{
 			let req = {
-				project_id:state.project.cur_id,
+				project_id:state.project.info.project_id,
 				role_name:create_role_name.value,
 				comment:create_role_comment.value,
 			}
@@ -234,7 +234,7 @@ function op(){
 		}
 		case "update_role":{
 			let req = {
-				project_id:state.project.cur_id,
+				project_id:state.project.info.project_id,
 				role_name:cur_role.value!.role_name,
 				new_comment:update_role_comment.value,
 			}
@@ -250,7 +250,7 @@ function op(){
 		}
 		case "del_role":{
 			let req = {
-				project_id:state.project.cur_id,
+				project_id:state.project.info.project_id,
 				role_names:[del_role.value!.role_name],
 			}
 			client.userClient.del_roles({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
@@ -274,7 +274,7 @@ function op(){
 		}
 		case "del_user_role":{
 			let req = {
-				project_id:state.project.cur_id,
+				project_id:state.project.info.project_id,
 				user_id:del_user_role_userid.value,
 				role_name:del_user_role_rolename.value,
 			}
@@ -283,7 +283,7 @@ function op(){
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: userAPI.DelUserRoleResp)=>{
 				let index:number=cur_user.value!.project_roles!.findIndex((project_role)=>{
-					return Boolean(project_role)&&Boolean(project_role!.project_id)&&project_role!.project_id![1]==state.project.cur_id[1]
+					return Boolean(project_role)&&Boolean(project_role!.project_id)&&project_role!.project_id![1]==state.project.info.project_id[1]
 				})
 				if(index!=-1&&Boolean(cur_user.value!.project_roles![index]!.roles)){
 					index = cur_user.value!.project_roles![index]!.roles!.findIndex((role)=>{
@@ -301,7 +301,7 @@ function op(){
 		case "add_user_role_missinguser":
 		case "add_user_role_missingrole":{
 			let req = {
-				project_id:state.project.cur_id,
+				project_id:state.project.info.project_id,
 				user_id:add_user_role_userid.value,
 				role_name:add_user_role_rolename.value,
 			}
@@ -312,17 +312,17 @@ function op(){
 				if(cur_user.value){
 					if(cur_user.value.project_roles){
 						let index:number=cur_user.value.project_roles.findIndex((project_role)=>{
-							return Boolean(project_role)&&Boolean(project_role!.project_id)&&project_role!.project_id![1]==state.project.cur_id[1]
+							return Boolean(project_role)&&Boolean(project_role!.project_id)&&project_role!.project_id![1]==state.project.info.project_id[1]
 						})
 						if(index==-1){
-							cur_user.value.project_roles.push({project_id:state.project.cur_id,roles:[add_user_role_rolename.value]})
+							cur_user.value.project_roles.push({project_id:state.project.info.project_id,roles:[add_user_role_rolename.value]})
 						}else if(!cur_user.value.project_roles[index]!.roles){
 							cur_user.value.project_roles[index]!.roles = [add_user_role_rolename.value]
 						}else if(!cur_user.value.project_roles[index]!.roles!.includes(add_user_role_rolename.value)){
 							cur_user.value.project_roles[index]!.roles!.push(add_user_role_rolename.value)
 						}
 					}else{
-						cur_user.value.project_roles = [{project_id:state.project.cur_id,roles:[add_user_role_rolename.value]}]
+						cur_user.value.project_roles = [{project_id:state.project.info.project_id,roles:[add_user_role_rolename.value]}]
 					}
 				}
 				ing.value=false
@@ -352,7 +352,7 @@ function op(){
 				})
 			}else if(role_permission_select.value){
 				let req = {
-					project_id:state.project.cur_id,
+					project_id:state.project.info.project_id,
 					role_name:role_permission_select.value,
 					node_id:update_node.value!.node_id,
 					admin:admin.value,
@@ -399,7 +399,7 @@ function assign_search(part: string){
 				return
 			}
 			let req = {
-				project_id:state.project.cur_id,
+				project_id:state.project.info.project_id,
 				role_name:add_user_role_rolename.value,
 				page:0,
 			}
@@ -427,7 +427,7 @@ function assign_search(part: string){
 				return
 			}
 			let req = {
-				project_id:state.project.cur_id,
+				project_id:state.project.info.project_id,
 				user_name:add_user_role_username.value,
 				only_project:true,
 				page:0,
@@ -462,7 +462,7 @@ function get_user_permission(){
 		return
 	}
 	let req = {
-		project_id:state.project.cur_id,
+		project_id:state.project.info.project_id,
 		user_id:cur_user.value!.user_id,
 		need_user_role_node:false,
 	}
@@ -484,7 +484,7 @@ function get_role_permission(role:string){
 		return
 	}
 	let req = {
-		project_id:state.project.cur_id,
+		project_id:state.project.info.project_id,
 		role_name:role,
 	}
 	client.permissionClient.list_role_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
@@ -532,7 +532,7 @@ function parsetime(timestamp :number):string{
 				<va-card color="primary" gradient style="margin:0 0 5px 0">
 					<va-card-title>Warning</va-card-title>
 					<va-card-content>
-						<p>You are inviting user: {{ invite_kick_user!.user_name }} join project: {{ state.project.cur_name }}.</p>
+						<p>You are inviting user: {{ invite_kick_user!.user_name }} join project: {{ state.project.info.project_name}}.</p>
 						<p>Please confirm!</p>
 					</va-card-content>
 				</va-card>
@@ -545,7 +545,7 @@ function parsetime(timestamp :number):string{
 				<va-card color="primary" gradient style="margin:0 0 5px 0">
 					<va-card-title>Warning</va-card-title>
 					<va-card-content>
-						<p>You are kicking user: {{ invite_kick_user!.user_name }} out of project: {{ state.project.cur_name }}.</p>
+						<p>You are kicking user: {{ invite_kick_user!.user_name }} out of project: {{ state.project.info.project_name}}.</p>
 						<p>Please confirm!</p>
 					</va-card-content>
 				</va-card>
@@ -676,14 +676,12 @@ function parsetime(timestamp :number):string{
 		<div style="display:flex;margin:1px">
 			<div style="flex:1"></div>
 			<va-select
-				label="Target"
-				dropdown-icon=""
-				outline
-				style="width:100px;margin-right:1px"
-				:options="targets"
 				v-model="target"
-				trigger="hover"
-				:hover-out-timeout="60000"
+				:options="targets"
+				label="Target"
+				dropdownIcon=""
+				style="width:100px;margin-right:1px"
+				outline
 			>
 				<template #option='{option,selectOption}'>
 					<va-hover stateful @click="()=>{
@@ -698,12 +696,11 @@ function parsetime(timestamp :number):string{
 								search=''
 								selectOption(option)
 							}
-						}"
-					>
+						}">
 						<template #default="{hover}">
 							<div
 								style="padding:10px;cursor:pointer"
-								:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||target==option?'var(--va-primary)':'black'}"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:target==option?'green':'black'}"
 							>
 								{{option}}
 							</div>
@@ -713,14 +710,12 @@ function parsetime(timestamp :number):string{
 			</va-select>
 			<va-select
 				v-if="target=='User'"
-				label="Search Range"
-				dropdown-icon=""
-				outline
-				style="width:130px;margin:0 1px"
-				:options="ranges"
 				v-model="range"
-				trigger="hover"
-				:hover-out-timeout="60000"
+				:options="ranges"
+				label="Search Range"
+				dropdownIcon=""
+				style="width:130px;margin:0 1px"
+				outline
 			>
 				<template #option="{ option,selectOption }">
 					<va-hover stateful @click="()=>{
@@ -732,12 +727,11 @@ function parsetime(timestamp :number):string{
 								cur_user=null
 								selectOption(option)
 							}
-						}"
-					>
+						}">
 						<template #default="{hover}">
 							<div
 								style="padding:10px;cursor:pointer"
-								:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||range==option?'var(--va-primary)':'black'}"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:range==option?'green':'black'}"
 							>
 								{{option}}
 							</div>

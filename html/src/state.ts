@@ -1,6 +1,7 @@
 import { reactive,ref } from 'vue'
 import * as userAPI from './api/user_browser_toc'
 import * as permissionAPI from './api/permission_browser_toc'
+import * as initializeAPI from './api/initialize_browser_toc'
 
 //-------------------------------------------------------------------------------
 export const inited = ref<boolean>(false)
@@ -89,20 +90,12 @@ export function logout(){
 
 //-------------------------------------------------------------------------------
 export const project = reactive<{
-	cur_id:number[]
-	cur_name:string
+	info:initializeAPI.ProjectInfo|null
 }>({
-	cur_id:[],
-	cur_name:"",
+	info:null,
 })
-
-export function set_project(id:number[],name:string){
-	project.cur_id=id
-	project.cur_name=name
-}
 export function clear_project(){
-	project.cur_id=[]
-	project.cur_name=""
+	project.info=null
 }
 
 //-------------------------------------------------------------------------------

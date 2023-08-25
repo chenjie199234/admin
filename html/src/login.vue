@@ -72,9 +72,9 @@ function do_login_user(){
 			<va-select
 				v-model="oauth2"
 				:options="oauth2s"
-				no-options-text="NO Oauth2 Login"
+				noOptionsText="NO Oauth2 Login"
 				label="Select Oauth2 Login"
-				dropdown-icon=""
+				dropdownIcon=""
 				style="width:400px"
 			>
 				<template #option='{option,selectOption}'>

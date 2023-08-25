@@ -31,7 +31,23 @@ Success: httpcode:200
 	//int64 use string to avoid overflow
 	"client_timestamp":"0",
 	//int64 use string to avoid overflow
-	"server_timestamp":"0"
+	"server_timestamp":"0",
+	//uint64 use string to avoid overflow
+	"total_mem":"0",
+	//uint64 use string to avoid overflow
+	"cur_mem_usage":"0",
+	//uint64 use string to avoid overflow
+	"max_mem_usage":"0",
+	//float64
+	"cpu_num":0.1,
+	//float64
+	"cur_cpu_usage":0.1,
+	//float64
+	"avg_cpu_usage":0.1,
+	//float64
+	"max_cpu_usage":0.1,
+	"host":"str",
+	"ip":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```

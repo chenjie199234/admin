@@ -5,6 +5,7 @@ import main from './main.vue'
 // createApp(main).use(createVuestic()).mount('#app')
 import {
 	createVuesticEssential,
+	VaInnerLoading,
 	VaSplit,
 	VaModal,
 	VaModalPlugin,
@@ -29,7 +30,7 @@ import {
 import 'vuestic-ui/css'
 
 createApp(main).use(createVuesticEssential({
-		components: { VaSplit, VaModal, VaCard, VaCardTitle, VaCardContent, VaHover, VaButton, VaSelect, VaInput, VaRadio, VaSwitch, VaImage, VaIcon, VaDivider, VaPagination, VaDropdown, VaDropdownContent, VaPopover },
+		components: { VaInnerLoading, VaSplit, VaModal, VaCard, VaCardTitle, VaCardContent, VaHover, VaButton, VaSelect, VaInput, VaRadio, VaSwitch, VaImage, VaIcon, VaDivider, VaPagination, VaDropdown, VaDropdownContent, VaPopover },
 		plugins: { VaModalPlugin, VaDropdownPlugin },
 		config: {},
 })).mount('#app')

@@ -1,9 +1,0 @@
-{
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "axios": "latest",
-    "long": "latest",
-    "@protobufjs/base64":"latest"
-  }
-}

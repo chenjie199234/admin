@@ -124,7 +124,7 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -132,17 +132,5 @@ func _Status_Ping_WebHandler(handler func(context.Context, *Pingreq) (*Pingresp,
 func RegisterStatusWebServer(engine *web.WebServer, svc StatusWebServer, allmids map[string]web.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	{
-		requiredMids := []string{"accesskey", "rate"}
-		mids := make([]web.OutsideHandler, 0, 3)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _Status_Ping_WebHandler(svc.Ping))
-		engine.Get(_WebPathStatusPing, mids...)
-	}
+	engine.Get(_WebPathStatusPing, _Status_Ping_WebHandler(svc.Ping))
 }

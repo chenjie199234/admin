@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref,onMounted} from 'vue'
 
-import * as initializeAPI from 'admin/api/initialize_browser_toc'
-import * as permissionAPI from 'admin/api/permission_browser_toc'
+import * as initializeAPI from './api/initialize_browser_toc'
+import * as permissionAPI from './api/permission_browser_toc'
 
 import * as state from './state'
 import * as client from './client'
@@ -340,18 +340,15 @@ function same_node_id(a:number[],b:number[]):boolean{
 		</template>
 	</va-modal>
 	<div style="height:100%;flex:1;display:flex;flex-direction:column">
-		<div style="display:flex;padding:5px 0;background-color:var(--va-background-element)">
+		<div style="display:flex;padding:5px 0">
 			<va-select
-				dropdown-icon=""
-				trigger="hover"
-				outline
-				style="flex:1;margin:0 2px"
-				:model-value="state.project.cur_name"
+				:modelValue="state.project.cur_name"
 				:options="allprojects"
-				label="Select Project"
 				no-options-text="NO Projects"
-				prevent-overflow
-				:hover-out-timeout="60000"
+				label="Select Project"
+				dropdown-icon=""
+				style="flex:1;margin:0 2px"
+				outline
 			>
 				<template #option='{option}'>
 					<va-hover stateful @click="
@@ -361,8 +358,8 @@ function same_node_id(a:number[],b:number[]):boolean{
 					">
 						<template #default="{hover}">
 							<div
-							style="padding:10px;cursor:pointer"
-							:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||same_node_id(state.project.cur_id,option.project_id)?'var(--va-primary)':'black'}"
+								style="padding:10px;cursor:pointer"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:same_node_id(state.project.cur_id,option.project_id)?'green':'black'}"
 							>
 								{{option.project_name}}
 							</div>
@@ -370,19 +367,19 @@ function same_node_id(a:number[],b:number[]):boolean{
 					</va-hover>
 				</template>
 			</va-select>
-			<va-dropdown v-if="state.user.root" prevent-overflow trigger="hover" :hover-out-timeout="60000" style="width:36px;margin-right:2px">
+			<va-dropdown v-if="state.user.root" style="width:36px;margin-right:2px">
 				<template #anchor>
 					<va-button>•••</va-button>
 				</template>
 				<va-dropdown-content>
-					<va-popover message="Create New Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
+					<va-popover message="Create New Project" color="primary" prevent-overflow>
 						<va-button v-if="state.user.root" style="width:36px;margin:0 3px" @click="optype='add';project_name='';project_ing=true">+</va-button>
 					</va-popover>
-					<va-popover message="Rename Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='update';project_name='';project_ing=true">◉</va-button>
+					<va-popover message="Rename Project" color="primary" prevent-overflow>
+						<va-button v-if="state.user.root&&state.project.cur_id.length>0&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='update';project_name='';project_ing=true">◉</va-button>
 					</va-popover>
-					<va-popover message="Delete Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='del';project_ing=true">x</va-button>
+					<va-popover message="Delete Project" color="primary" prevent-overflow>
+						<va-button v-if="state.user.root&&state.project.cur_id.length>0&&!same_node_id(state.project.cur_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='del';project_ing=true">x</va-button>
 					</va-popover>
 				</va-dropdown-content>
 			</va-dropdown>
@@ -392,9 +389,9 @@ function same_node_id(a:number[],b:number[]):boolean{
 				<va-hover stateful>
 					<template #default="{hover}">
 						<div
-						style="padding:10px 15px;cursor:pointer"
-						:style="{'background-color':hover?'var(--va-shadow)':undefined}"
-						@click="node_name='';node_url='';optype='add';ptarget=null;target=projectnodes;node_ing=true"
+							style="padding:10px 15px;cursor:pointer"
+							:style="{'background-color':hover?'var(--va-shadow)':undefined}"
+							@click="node_name='';node_url='';optype='add';ptarget=null;target=projectnodes;node_ing=true"
 						>
 							<b>+</b>
 						</div>

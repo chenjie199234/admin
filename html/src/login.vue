@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref,onMounted} from 'vue'
 
-import * as initializeAPI from 'admin/api/initialize_browser_toc'
-import * as userAPI from 'admin/api/user_browser_toc'
+import * as initializeAPI from './api/initialize_browser_toc'
+import * as userAPI from './api/user_browser_toc'
 import * as state from './state'
 import * as client from './client'
 
@@ -76,9 +76,6 @@ function do_login_user(){
 				label="Select Oauth2 Login"
 				dropdown-icon=""
 				style="width:400px"
-				trigger="hover"
-				:hover-out-timeout="60000"
-				prevent-overflow
 			>
 				<template #option='{option,selectOption}'>
 					<va-hover stateful @click="()=>{
@@ -88,8 +85,8 @@ function do_login_user(){
 					}">
 						<template #default="{hover}">
 							<div
-							style="padding:10px;cursor:pointer"
-							:style="{'background-color':hover?'var(--va-background-border)':'',color:hover||oauth2==option?'var(--va-primary)':'black'}"
+								style="padding:10px;cursor:pointer"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:oauth2==option?'green':'black'}"
 							>
 								{{option}}
 							</div>

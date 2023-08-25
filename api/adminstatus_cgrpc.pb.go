@@ -72,17 +72,5 @@ func _Status_Ping_CGrpcHandler(handler func(context.Context, *Pingreq) (*Pingres
 func RegisterStatusCGrpcServer(engine *cgrpc.CGrpcServer, svc StatusCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	{
-		requiredMids := []string{"accesskey", "rate"}
-		mids := make([]cgrpc.OutsideHandler, 0, 3)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _Status_Ping_CGrpcHandler(svc.Ping))
-		engine.RegisterHandler("admin.status", "ping", mids...)
-	}
+	engine.RegisterHandler("admin.status", "ping", _Status_Ping_CGrpcHandler(svc.Ping))
 }

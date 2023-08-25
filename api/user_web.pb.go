@@ -504,7 +504,7 @@ func _User_UserLogin_WebHandler(handler func(context.Context, *UserLoginReq) (*U
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -558,7 +558,7 @@ func _User_LoginInfo_WebHandler(handler func(context.Context, *LoginInfoReq) (*L
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -617,7 +617,7 @@ func _User_InviteProject_WebHandler(handler func(context.Context, *InviteProject
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -676,7 +676,7 @@ func _User_KickProject_WebHandler(handler func(context.Context, *KickProjectReq)
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -735,7 +735,7 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -794,7 +794,7 @@ func _User_UpdateUser_WebHandler(handler func(context.Context, *UpdateUserReq) (
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -853,7 +853,7 @@ func _User_CreateRole_WebHandler(handler func(context.Context, *CreateRoleReq) (
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -912,7 +912,7 @@ func _User_SearchRoles_WebHandler(handler func(context.Context, *SearchRolesReq)
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -971,7 +971,7 @@ func _User_UpdateRole_WebHandler(handler func(context.Context, *UpdateRoleReq) (
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -1030,7 +1030,7 @@ func _User_DelRoles_WebHandler(handler func(context.Context, *DelRolesReq) (*Del
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -1089,7 +1089,7 @@ func _User_AddUserRole_WebHandler(handler func(context.Context, *AddUserRoleReq)
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}
@@ -1148,7 +1148,7 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 			respd, _ := proto.Marshal(resp)
 			ctx.Write("application/x-protobuf", respd)
 		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write("application/json", respd)
 		}
 	}

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 
-import * as initializeAPI from 'admin/api/initialize_browser_toc'
+import * as initializeAPI from './api/initialize_browser_toc'
 import * as state from './state'
 import * as client from './client'
 
@@ -27,10 +27,10 @@ function do_change_root_password(){
 	if(!state.set_load()){
 		return
 	}
-	client.initializeClient.root_password({"Token":state.user.token},{old_password:oldpassword.value,new_password:newpassword.value},client.timeout,(e: initializeAPI.Error)=>{
+	client.initializeClient.update_root_password({"Token":state.user.token},{old_password:oldpassword.value,new_password:newpassword.value},client.timeout,(e: initializeAPI.Error)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
-	},(_resp: initializeAPI.RootPasswordResp)=>{
+	},(_resp: initializeAPI.UpdateRootPasswordResp)=>{
 		oldpassword.value=""
 		newpassword.value=""
 		t_oldpassword.value=false
@@ -68,15 +68,14 @@ function iframeload(){
 	<div style="height:100%;flex:1;display:flex;flex-direction:column;overflow:auto">
 		<div style="display:flex;padding:5px;background-color:var(--va-background-element)">
 			<div style="display:flex;flex:1"></div>
-			<va-dropdown trigger="hover" :hover-out-timeout="60000" style="width:36px" placement="bottom-end" prevent-overflow>
+			<va-dropdown style="width:36px" placement="bottom-end">
 				<template #anchor>
 					<va-button round>{{ state.avatar() }}</va-button>
 				</template>
 				<va-dropdown-content>
 					<div style="display:flex;flex-direction:column">
 						<va-button v-if="state.user.root" style="margin:0 0 3px 0" @click="password_changing=true">ChangePassword</va-button>
-						<va-button v-if="state.user.root" style="margin:3px 0 0 0" @click="state.logout">Logout</va-button>
-						<va-button v-if="!state.user.root" @click="state.logout">Logout</va-button>
+						<va-button style="margin:3px 0 0 0" @click="state.logout">Logout</va-button>
 					</div>
 				</va-dropdown-content>
 			</va-dropdown>

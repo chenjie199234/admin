@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref,computed } from 'vue'
-import * as appAPI from 'admin/api/app_browser_toc'
-import * as permissionAPI from 'admin/api/permission_browser_toc'
+import * as appAPI from './api/app_browser_toc'
+import * as permissionAPI from './api/permission_browser_toc'
 import * as state from './state'
 import * as client from './client'
 

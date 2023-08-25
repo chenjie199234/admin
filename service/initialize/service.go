@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"context"
+	"time"
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"
@@ -15,6 +16,7 @@ import (
 	"github.com/chenjie199234/Corelib/metadata"
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	"github.com/chenjie199234/Corelib/pool"
+	"github.com/chenjie199234/Corelib/util/graceful"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
@@ -23,6 +25,8 @@ import (
 
 // Service subservice for init business
 type Service struct {
+	stop *graceful.Graceful
+
 	initializeDao *initializedao.Dao
 	userDao       *userdao.Dao
 }
@@ -30,6 +34,8 @@ type Service struct {
 // Start -
 func Start() *Service {
 	return &Service{
+		stop: graceful.New(),
+
 		initializeDao: initializedao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		userDao:       userdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 	}
@@ -230,5 +236,5 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 
 // Stop -
 func (s *Service) Stop() {
-
+	s.stop.Close(nil, nil)
 }

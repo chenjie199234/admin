@@ -104,7 +104,7 @@ spec:
       imagePullSecrets:
         - name: <PROJECT>-<GROUP>-image-pull-secret
 ---
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: admin-hpa

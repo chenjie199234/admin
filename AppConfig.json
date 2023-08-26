@@ -58,12 +58,12 @@
 		}]
 	},
 	"accesses":{
-		"/admin.exampleservice/examplemethod":[
+		"/admin.exampleservice/examplemethod":[{
 			"method":["POST","GRPC","CRPC"],
 			"accesses":{
 				"accessid":"accesskey"
 			}
-		],
+		}],
 		"/admin.initialize/init":[{
 			"method":["POST","GRPC","CRPC"],
 			"accesses":{

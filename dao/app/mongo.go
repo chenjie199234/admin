@@ -721,6 +721,9 @@ func (d *Dao) mongoGetAll(initall map[string]*model.AppSummary) error {
 		return e
 	}
 	for _, v := range tmp {
+		if e := decodeProxyPath(v); e != nil {
+			return e
+		}
 		initall[v.GetFullName()] = v
 	}
 	return nil

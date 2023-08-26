@@ -805,7 +805,7 @@ function parsetime(timestamp :number):string{
 					</va-button>
 				</div>
 				<div v-if="cur_user==user" style="margin:1px 10px;display:flex;justify-content:space-around;background-color:var(--va-background-element);color:var(--va-primary)">
-				<!-- basic info -->
+					<!-- basic info -->
 					<div style="width:400px;margin:1px;padding:12px 10px;display:flex">
 						<span><b>UserID:</b></span>
 						<span style="flex:1;text-align:center">{{ user.user_id }}</span>
@@ -816,19 +816,19 @@ function parsetime(timestamp :number):string{
 					</div>
 				</div>
 				<div v-if="cur_user==user&&invited(user)" style="margin:0 10px;display:flex;flex:1;overflow-y:auto;color:var(--va-primary)">
-				<!-- permission info -->
+					<!-- permission info -->
 					<div style="width:200px;margin:0 1px 1px 0;display:flex;flex-direction:column;overflow-y:auto">
 						<div
 							style="padding:12px 10px;margin:1px 0;cursor:pointer"
-							:style="{'background-color':role_permission_hover==''?'var(--va-shadow)':role_permission_select==''?'white':'var(--va-background-element)'}"
+							:style="{'background-color':role_permission_hover==''?'var(--va-shadow)':role_permission_select==''?'#b6d7a8':'#d9ead3'}"
 							@mouseover.stop="role_permission_hover=''"
 							@mouseout.stop="role_permission_hover=null"
 							@click="role_permission_select=null;get_user_permission()"
 						>
-							User Permissions
+							User Self Permissions
 						</div>
 						<div style="display:flex;margin:1px 0;align-items:center;background-color:var(--va-background-element)">
-							<div style="flex:1;padding:12px 10px;white-space:nowrap"><b>Role Permissions</b></div>
+							<div style="flex:1;padding:12px 10px;white-space:nowrap;overflow-x:scroll"><b>Role Permissions</b></div>
 							<va-button
 								v-if="state.page.node!.admin"
 								size="small"
@@ -848,19 +848,19 @@ function parsetime(timestamp :number):string{
 						</div>
 						<div
 							v-if="!Boolean(user.project_roles)||!Boolean(user.project_roles![0])||!Boolean(user.project_roles![0]!.roles)||user.project_roles![0]!.roles!.length==0"
-							style="padding:12px 10px;margin:1px 0;color:var(--va-shadow);background-color:var(--va-background-element)"
+							style="padding:12px 10px;margin:1px 0;color:var(--va-shadow);background-color:#d9ead3"
 						>
 							No Roles
 						</div>
 						<div
 							v-for="role of user.project_roles![0]!.roles!"
 							style="display:flex;margin:1px 0;align-items:center;cursor:pointer"
-							:style="{'background-color':role_permission_hover==role?'var(--va-shadow)':role_permission_select==role?'white':'var(--va-background-element)'}"
+							:style="{'background-color':role_permission_hover==role?'var(--va-shadow)':role_permission_select==role?'#b6d7a8':'#d9ead3'}"
 							@mouseover.stop="role_permission_hover=role"
 							@mouseout.stop="role_permission_hover=null"
 							@click="role_permission_select=null;get_role_permission(role)"
 						>
-							<div style="flex:1;padding:12px 10px;white-space:nowrap">{{role}} Permissions</div>
+							<div style="flex:1;padding:12px 10px;white-space:nowrap;overflow-x:scroll">{{role}}</div>
 							<va-button
 								v-if="state.page.node!.admin"
 								size="small"

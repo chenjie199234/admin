@@ -97,7 +97,7 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, limi
 		filter["user_name"] = bson.M{"$regex": name}
 	}
 	if projectid != "" {
-		filter["projects"] = projectid
+		filter["project_ids"] = projectid
 	}
 	totalsize, e := d.mongo.Database("user").Collection("user").CountDocuments(ctx, filter)
 	if e != nil {
@@ -188,7 +188,7 @@ func (d *Dao) MongoSearchRoles(ctx context.Context, projectid, name string, limi
 	if limit != 0 {
 		opts = opts.SetLimit(limit)
 	}
-	cursor, e := d.mongo.Database("user").Collection("role").Find(ctx, bson.M{"project": projectid, "role_name": bson.M{"$regex": name}}, opts)
+	cursor, e := d.mongo.Database("user").Collection("role").Find(ctx, filter, opts)
 	if e != nil {
 		return nil, 0, e
 	}
@@ -269,7 +269,7 @@ func (d *Dao) MongoAddUserRole(ctx context.Context, userid primitive.ObjectID, p
 		return
 	}
 	var r *mongo.UpdateResult
-	if r, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, bson.M{"_id": userid, "projects": projectid}, bson.M{"$addToSet": bson.M{"roles": projectid + ":" + rolename}}); e != nil {
+	if r, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, bson.M{"_id": userid, "project_ids": projectid}, bson.M{"$addToSet": bson.M{"roles": projectid + ":" + rolename}}); e != nil {
 		return
 	}
 	if r.MatchedCount == 0 {

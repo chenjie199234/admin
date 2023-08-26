@@ -74,7 +74,7 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 				<div v-if="showable(node)" style="display:flex;align-items:center">
 					<div
 						style="flex:1;display:flex;align-items:center"
-						:style="{'background-color':hover==node!.node_id!.toString()?'var(--va-shadow)':undefined,cursor:jumpable(node)?'pointer':'default'}"
+						:style="{'background-color':hover==node!.node_id!.toString()?'var(--va-shadow)':state.page.node==node?'#b6d7a8':undefined,cursor:jumpable(node)?'pointer':'default'}"
 						@mouseover="hover=node!.node_id!.toString()"
 						@mouseout="hover=''"
 						@click="()=>{
@@ -82,8 +82,7 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 							if(jumpable(node)){
 								state.set_page(node!)
 							}
-						}"
-					>
+						}">
 						<va-divider color="shadow" style="margin:0;width:15px" />
 						<div style="flex:1;display:flex;align-items:center;padding:3px 0">
 							<span style="padding:7px 0">{{node!.node_name}}</span>

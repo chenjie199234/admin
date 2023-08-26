@@ -221,6 +221,14 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
+
+	md := metadata.GetMetadata(ctx)
+	operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
+	if e != nil {
+		log.Error(ctx, "[SearchUsers] operator's token format wrong", map[string]interface{}{"operator": md["Token-Data"], "error": e})
+		return nil, ecode.ErrToken
+	}
+
 	buf := pool.GetBuffer()
 	defer pool.PutBuffer(buf)
 	for i, v := range req.ProjectId {
@@ -230,12 +238,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 		}
 	}
 	projectid := buf.String()
-	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
-	if e != nil {
-		log.Error(ctx, "[SearchUsers] operator's token format wrong", map[string]interface{}{"operator": md["Token-Data"], "error": e})
-		return nil, ecode.ErrToken
-	}
+
 	if !operator.IsZero() {
 		//permission check
 		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)

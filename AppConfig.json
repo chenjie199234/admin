@@ -5,12 +5,12 @@
 			"CRPC":"200ms",
 			"GRPC":"200ms"
 		},
-		"/admin.initialize/delete_project":{
+		"/admin.app/watch":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.app/watch":{
+		"/admin.initialize/delete_project":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
@@ -30,7 +30,7 @@
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.app/get_app_instance_cmd":{
+		"/admin.app/del_proxy":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
@@ -44,31 +44,26 @@
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
-		},
-		"/admin.user/kick_project":{
-			"POST":"0s",
-			"CRPC":"0s",
-			"GRPC":"0s"
 		}
 	},
 	"web_path_rewrite":{
 		"GET":{
-			"/example/origin/url":"/example/new/url"
+			"/origin/url":"/admin.exampleservice/examplemethod"
 		}
 	},
 	"handler_rate":{
-		"/admin.status/ping":[{
+		"/admin.exampleservice/examplemethod":[{
 			"method":["GET","GRPC","CRPC"],
 			"max_per_sec":10
 		}]
 	},
 	"accesses":{
-		"/admin.status/ping":[{
-			"method":["GET","GRPC","CRPC"],
+		"/admin.exampleservice/examplemethod":[
+			"method":["POST","GRPC","CRPC"],
 			"accesses":{
 				"accessid":"accesskey"
 			}
-		}],
+		],
 		"/admin.initialize/init":[{
 			"method":["POST","GRPC","CRPC"],
 			"accesses":{

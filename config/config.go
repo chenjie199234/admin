@@ -30,10 +30,10 @@ func Init(notice func(c *AppConfig), AppConfigTemplate, SourceConfigTemplate []b
 	initenv(AppConfigTemplate, SourceConfigTemplate)
 	if EC.ConfigType != nil && *EC.ConfigType == 1 {
 		tmer := time.NewTimer(time.Second * 2)
-		waitapp := make(chan *struct{})
-		waitsource := make(chan *struct{})
+		waitapp := make(chan *struct{}, 1)
+		waitsource := make(chan *struct{}, 1)
 		initremoteapp(notice, waitapp)
-		initremotesource(waitsource)
+		stopwatchsource := initremotesource(waitsource)
 		appinit := false
 		sourceinit := false
 		for {
@@ -42,6 +42,7 @@ func Init(notice func(c *AppConfig), AppConfigTemplate, SourceConfigTemplate []b
 				appinit = true
 			case <-waitsource:
 				sourceinit = true
+				stopwatchsource()
 			case <-tmer.C:
 				log.Error(nil, "[config.Init] timeout", nil)
 				Close()

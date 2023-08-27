@@ -54,7 +54,10 @@ func NewConfigSdk(selfprojectname, selfappgroup, selfappname string, tlsc *tls.C
 	if e != nil {
 		return nil, e
 	}
-	di := discover.NewDirectDiscover(serverprojectname, group, "admin", host, 0, 0, port)
+	di, e := discover.NewDirectDiscover(serverprojectname, group, "admin", host, 0, 0, port)
+	if e != nil {
+		return nil, e
+	}
 	tmpclient, e := web.NewWebClient(&web.ClientConfig{
 		ConnectTimeout: time.Second * 3,
 		GlobalTimeout:  0,

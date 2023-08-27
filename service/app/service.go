@@ -904,7 +904,11 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 			log.Error(ctx, "[Proxy] get project name failed", map[string]interface{}{"project_id": projectid, "error": e})
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
-		di := discover.NewDNSDiscover(projectname, req.GName, req.AName, req.AName+"-headless."+projectname+"-"+req.GName, time.Second*10, 9000, 10000, 8000)
+		di, e := discover.NewDNSDiscover(projectname, req.GName, req.AName, req.AName+"-headless."+projectname+"-"+req.GName, time.Second*10, 9000, 10000, 8000)
+		if e != nil {
+			log.Error(ctx, "[Proxy] new dns discover failed", map[string]interface{}{"project": projectname, "group": req.GName, "app": req.AName, "error": e})
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
 		client, e := crpc.NewCrpcClient(dao.GetCrpcClientConfig(), di, model.Project, model.Group, model.Name, projectname, req.GName, req.AName, nil)
 		if e != nil {
 			log.Error(ctx, "[Proxy] new crpc client failed", map[string]interface{}{"project_id": projectid, "group": req.GName, "app": req.AName, "error": e})

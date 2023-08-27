@@ -757,7 +757,7 @@ function app_op(){
 				</va-card>
 				<div style="display:flex;justify-content:center">
 					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient>Proxy</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="cur_proxy='';ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 		</template>

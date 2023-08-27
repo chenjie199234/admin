@@ -182,7 +182,7 @@ spec:
     - host: <HOST>
       http:
         paths:
-          - path: /admin
+          - path: /admin.*
             pathType: Prefix
             backend:
               service:

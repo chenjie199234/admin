@@ -99,7 +99,7 @@ func _Status_Ping_CrpcHandler(handler func(context.Context, *Pingreq) (*Pingresp
 			resp = new(Pingresp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)

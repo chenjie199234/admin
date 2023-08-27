@@ -283,7 +283,7 @@ func _Initialize_InitStatus_CrpcHandler(handler func(context.Context, *InitStatu
 			resp = new(InitStatusResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -331,7 +331,7 @@ func _Initialize_Init_CrpcHandler(handler func(context.Context, *InitReq) (*Init
 			resp = new(InitResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -379,7 +379,7 @@ func _Initialize_RootLogin_CrpcHandler(handler func(context.Context, *RootLoginR
 			resp = new(RootLoginResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -427,7 +427,7 @@ func _Initialize_UpdateRootPassword_CrpcHandler(handler func(context.Context, *U
 			resp = new(UpdateRootPasswordResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -475,7 +475,7 @@ func _Initialize_CreateProject_CrpcHandler(handler func(context.Context, *Create
 			resp = new(CreateProjectResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -523,7 +523,7 @@ func _Initialize_UpdateProject_CrpcHandler(handler func(context.Context, *Update
 			resp = new(UpdateProjectResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -566,7 +566,7 @@ func _Initialize_ListProject_CrpcHandler(handler func(context.Context, *ListProj
 			resp = new(ListProjectResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -614,7 +614,7 @@ func _Initialize_DeleteProject_CrpcHandler(handler func(context.Context, *Delete
 			resp = new(DeleteProjectResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)

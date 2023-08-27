@@ -10,13 +10,13 @@ const all=computed(()=>{
 	if(!state.page.node!.children){
 		return tmp
 	}
-		for(let n of state.page.node!.children){
+	for(let n of state.page.node!.children){
 		if(!n){
 			continue
 		}
 		let pieces:string[]=n.node_name.split(".")
 		if(pieces.length!=2){
-			state.set_alert("error",-1,"app's permission node's nodename format wrong,should be 'group.app',nodeid:"+n.node_id.toString())
+			state.set_alert("error",-1,"app's permission node's nodename format wrong,should be 'group.app',nodeid:"+n.node_id!.toString())
 			continue
 		}
 		if(tmp[pieces[0]]){
@@ -82,7 +82,7 @@ function get_app(){
 		return
 	}
 	let req = {
-		project_id:state.project.info.project_id,
+		project_id:state.project.info!.project_id,
 		g_name:curg.value,
 		a_name:cura.value,
 		secret:secret.value,
@@ -243,7 +243,7 @@ function app_op(){
 				return
 			}
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -275,7 +275,7 @@ function app_op(){
 		}
 		case 'add_app':{
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:new_g.value,
 				a_name:new_a.value,
 				secret:new_secret.value,
@@ -318,7 +318,7 @@ function app_op(){
 		}
 		case 'update_secret':{
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:update_g.value,
 				a_name:update_a.value,
 				old_secret:update_old_secret.value,
@@ -339,7 +339,7 @@ function app_op(){
 		}
 		case 'get_key':{
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -363,7 +363,7 @@ function app_op(){
 				break
 			}
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -393,7 +393,7 @@ function app_op(){
 		}
 		case 'update_key':{
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -415,7 +415,7 @@ function app_op(){
 		}
 		case 'rollback_key':{
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -435,7 +435,7 @@ function app_op(){
 		}
 		case 'del_key':{
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -459,7 +459,7 @@ function app_op(){
 				break
 			}
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -493,7 +493,7 @@ function app_op(){
 		}
 		case 'update_proxy':{
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -517,7 +517,7 @@ function app_op(){
 		}
 		case 'del_proxy':{
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				secret:secret.value,
@@ -536,7 +536,7 @@ function app_op(){
 		}
 		case 'proxy':{
 			let req = {
-				project_id:state.project.info.project_id,
+				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				path:cur_proxy.value,
@@ -783,7 +783,7 @@ function app_op(){
 								secret=''
 								keys=new Map()
 								proxys=new Map()
-								instances=[]
+								//instances=[]
 								get_app_status=false
 								config_proxy_instance=''
 							}
@@ -817,7 +817,7 @@ function app_op(){
 								secret=''
 								keys=new Map()
 								proxys=new Map()
-								instances=[]
+								//instances=[]
 								get_app_status=false
 								config_proxy_instance=''
 							}

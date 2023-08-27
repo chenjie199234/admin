@@ -42,7 +42,7 @@ function get_projects(){
 				if(!allprojects.value[i].project_id){
 					continue
 				}
-				if(same_node_id(allprojects.value[i].project_id!,state.project.info.project_id)){
+				if(same_node_id(allprojects.value[i].project_id!,state.project.info!.project_id!)){
 					find=true
 					state.project.info = allprojects.value[i]
 					break
@@ -64,7 +64,7 @@ function select_project(){
 		return
 	}
 	let req = {
-		project_id:state.project.info.project_id,
+		project_id:state.project.info!.project_id,
 		user_id:"",
 		need_user_role_node:true,
 	}
@@ -114,7 +114,7 @@ function project_op(){
 		}
 		case 'update':{
 			let req = {
-				project_id: state.project.info.project_id,
+				project_id: state.project.info!.project_id,
 				new_project_name: project_name.value,
 				new_project_data: "",
 			}
@@ -131,7 +131,7 @@ function project_op(){
 		}
 		case 'del':{
 			let req = {
-				project_id: state.project.info.project_id,
+				project_id: state.project.info!.project_id,
 			}
 			client.initializeClient.delete_project({"Token":state.user.token},req,client.timeout,(e :initializeAPI.Error)=>{
 				state.clear_load()
@@ -255,7 +255,7 @@ function need_create_main_menu_button():boolean{
 	if(!state.project.info){
 		return false
 	}
-	if(state.project.info.project_id[1]==1){
+	if(state.project.info.project_id![1]==1){
 		//admin project don't need this
 		return false
 	}
@@ -298,7 +298,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 				<va-card color="primary" gradient style="margin:0 0 5px 0">
 					<va-card-title>Warning</va-card-title>
 					<va-card-content>
-						<p>You are deleting project: {{ state.project.info.project_name}}.</p>
+						<p>You are deleting project: {{ state.project.info!.project_name}}.</p>
 						<p>All data in this project will be deleted.</p>
 						<p>Please confirm!</p>
 					</va-card-content>
@@ -381,10 +381,10 @@ function same_node_id(a:number[],b:number[]):boolean{
 						<va-button v-if="state.user.root" style="width:36px;margin:0 3px" @click="optype='add';project_name='';project_ing=true">+</va-button>
 					</va-popover>
 					<va-popover message="Rename Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root&&state.project.info&&!same_node_id(state.project.info.project_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='update';project_name='';project_ing=true">◉</va-button>
+						<va-button v-if="state.user.root&&state.project.info&&!same_node_id(state.project.info.project_id!,[0,1])" style="width:36px;margin:0 3px" @click="optype='update';project_name='';project_ing=true">◉</va-button>
 					</va-popover>
 					<va-popover message="Delete Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root&&state.project.info&&!same_node_id(state.project.info.project_id,[0,1])" style="width:36px;margin:0 3px" @click="optype='del';project_ing=true">x</va-button>
+						<va-button v-if="state.user.root&&state.project.info&&!same_node_id(state.project.info.project_id!,[0,1])" style="width:36px;margin:0 3px" @click="optype='del';project_ing=true">x</va-button>
 					</va-popover>
 				</va-dropdown-content>
 			</va-dropdown>

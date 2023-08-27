@@ -372,7 +372,7 @@ func _App_GetApp_CrpcHandler(handler func(context.Context, *GetAppReq) (*GetAppR
 			resp = new(GetAppResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -420,7 +420,7 @@ func _App_CreateApp_CrpcHandler(handler func(context.Context, *CreateAppReq) (*C
 			resp = new(CreateAppResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -468,7 +468,7 @@ func _App_DelApp_CrpcHandler(handler func(context.Context, *DelAppReq) (*DelAppR
 			resp = new(DelAppResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -516,7 +516,7 @@ func _App_UpdateAppSecret_CrpcHandler(handler func(context.Context, *UpdateAppSe
 			resp = new(UpdateAppSecretResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -564,7 +564,7 @@ func _App_DelKey_CrpcHandler(handler func(context.Context, *DelKeyReq) (*DelKeyR
 			resp = new(DelKeyResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -612,7 +612,7 @@ func _App_GetKeyConfig_CrpcHandler(handler func(context.Context, *GetKeyConfigRe
 			resp = new(GetKeyConfigResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -660,7 +660,7 @@ func _App_SetKeyConfig_CrpcHandler(handler func(context.Context, *SetKeyConfigRe
 			resp = new(SetKeyConfigResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -708,7 +708,7 @@ func _App_Rollback_CrpcHandler(handler func(context.Context, *RollbackReq) (*Rol
 			resp = new(RollbackResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -756,7 +756,7 @@ func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp
 			resp = new(WatchResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -804,7 +804,7 @@ func _App_SetProxy_CrpcHandler(handler func(context.Context, *SetProxyReq) (*Set
 			resp = new(SetProxyResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -852,7 +852,7 @@ func _App_DelProxy_CrpcHandler(handler func(context.Context, *DelProxyReq) (*Del
 			resp = new(DelProxyResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)
@@ -900,7 +900,7 @@ func _App_Proxy_CrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyResp
 			resp = new(ProxyResp)
 		}
 		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
 			ctx.Write(respd)
 		} else {
 			respd, _ := proto.Marshal(resp)

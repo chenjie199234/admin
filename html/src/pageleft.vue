@@ -347,14 +347,13 @@ function same_node_id(a:number[],b:number[]):boolean{
 	<div style="height:100%;flex:1;display:flex;flex-direction:column">
 		<div style="display:flex;padding:5px 0">
 			<va-select
-				v-model="state.project.info"
+				:modelValue="state.project.info?state.project.info.project_name:''"
 				:options="allprojects"
 				noOptionsText="NO Projects"
 				label="Select Project"
 				dropdownIcon=""
 				style="flex:1;margin:0 2px"
 				outline
-				textBy="project_name"
 			>
 				<template #option='{option}'>
 					<va-hover stateful @click="

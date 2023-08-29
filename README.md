@@ -42,7 +42,7 @@ SourceConfig.json该文件配置了该服务需要使用的资源配置,不热�
 
 ## DB
 ### Mongo(ReplicaSet mode)(Version >= 4.4)
-#### config
+#### app
 ```
 database: app
 

@@ -113,6 +113,9 @@ func (d *Dao) MongoUpdateRootPassword(ctx context.Context, oldpassword, newpassw
 		return
 	}
 	e = util.SignCheck(oldpassword, user.Password)
+	if e == ecode.ErrSignCheckFailed {
+		e = ecode.ErrPasswordWrong
+	}
 	return
 }
 func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata string) (projectid string, e error) {

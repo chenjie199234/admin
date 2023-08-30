@@ -38,9 +38,9 @@ var (
 	ErrWrongSecret           = cerror.MakeError(20016, http.StatusBadRequest, "wrong secret")
 	ErrSecretLength          = cerror.MakeError(20017, http.StatusBadRequest, "secret length must less then 32")
 	ErrDataBroken            = cerror.MakeError(20018, http.StatusBadRequest, "data broken")
-	ErrProxyPathNotExist     = cerror.MakeError(20019, http.StatusBadRequest, "proxy path doesn't exist")
-	ErrProxyPathAlreadyExist = cerror.MakeError(20019, http.StatusBadRequest, "proxy path already exist")
-	ErrAppInstanceNotExist   = cerror.MakeError(200020, http.StatusBadRequest, "this app's instance doesn't exist")
+	ErrSignCheckFailed       = cerror.MakeError(20019, http.StatusBadRequest, "sign check failed")
+	ErrProxyPathNotExist     = cerror.MakeError(20020, http.StatusBadRequest, "proxy path doesn't exist")
+	ErrProxyPathAlreadyExist = cerror.MakeError(20021, http.StatusBadRequest, "proxy path already exist")
 
 	ErrNodeNotExist       = cerror.MakeError(20100, http.StatusBadRequest, "node not exist")
 	ErrPNodeNotExist      = cerror.MakeError(20101, http.StatusBadRequest, "parent node not exist")

@@ -29,6 +29,9 @@ func (d *Dao) MongoGetApp(ctx context.Context, projectid, gname, aname, secret s
 	}
 	// check sign
 	if e := util.SignCheck(secret, appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return nil, e
 	}
 	if secret != "" {
@@ -139,6 +142,9 @@ func (d *Dao) MongoDelApp(ctx context.Context, projectid, gname, aname, secret s
 		return
 	}
 	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return
 	}
 	if _, e = d.mongo.Database("app").Collection("config").DeleteMany(sctx, bson.M{"project_id": projectid, "group": gname, "app": aname}); e != nil {
@@ -189,6 +195,9 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 	}
 	//check oldsecret
 	if e = util.SignCheck(oldsecret, appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return
 	}
 	nonce := make([]byte, 32)
@@ -272,6 +281,9 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 		}
 		//check secret
 		if e := util.SignCheck(secret, appsummary.Value); e != nil {
+			if e == ecode.ErrSignCheckFailed {
+				e = ecode.ErrWrongSecret
+			}
 			return nil, nil, e
 		}
 		if secret != "" {
@@ -330,6 +342,9 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 	}
 	//check secret
 	if e := util.SignCheck(secret, appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return nil, nil, e
 	}
 	if secret != "" {
@@ -375,6 +390,9 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 	}
 	//check secret
 	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return
 	}
 	if secret != "" {
@@ -441,6 +459,9 @@ func (d *Dao) MongoDelKey(ctx context.Context, projectid, gname, aname, key, sec
 		return
 	}
 	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return
 	}
 	delfilter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": key}
@@ -474,6 +495,9 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, projectid, gname, anam
 		return
 	}
 	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return
 	}
 	if len(appsummary.Keys) == 0 {
@@ -537,6 +561,9 @@ func (d *Dao) MongoSetProxyPath(ctx context.Context, projectid, gname, aname, se
 		return
 	}
 	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return
 	}
 	addpermission := false
@@ -603,6 +630,9 @@ func (d *Dao) MongoDelProxyPath(ctx context.Context, projectid, gname, aname, se
 		return
 	}
 	if e = util.SignCheck(secret, appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return
 	}
 	permissionid := ""

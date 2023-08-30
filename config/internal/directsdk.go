@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/util"
 
@@ -87,6 +88,9 @@ func (instance *Sdk) first() error {
 	}
 	//sign check
 	if e := util.SignCheck(instance.secret, instance.appsummary.Value); e != nil {
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrWrongSecret
+		}
 		return e
 	}
 	if instance.secret == "" {
@@ -153,6 +157,9 @@ func (instance *Sdk) watch() {
 				}
 				//check sign
 				if e := util.SignCheck(instance.secret, tmp.Value); e != nil {
+					if e == ecode.ErrSignCheckFailed {
+						e = ecode.ErrWrongSecret
+					}
 					log.Error(nil, "[config.directsdk.watch] sign check failed", map[string]interface{}{"project_id": model.AdminProjectID, "group": model.Group, "app": model.Name, "error": e})
 					continue
 				}

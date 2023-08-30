@@ -70,7 +70,10 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	if e := util.SignCheck(req.Password, user.Password); e != nil {
-		log.Error(ctx, "[RootLogin] password wrong", nil)
+		if e == ecode.ErrSignCheckFailed {
+			e = ecode.ErrPasswordWrong
+		}
+		log.Error(ctx, "[RootLogin] sign check failed", map[string]interface{}{"error": e})
 		return nil, e
 	}
 	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, user.ID.Hex())

@@ -23,7 +23,7 @@ func SignCheck(secret, HEXnoncesign string) (e error) {
 	copy(oldsign, noncesign[len(noncesign)-64:])
 	newsign := sha512.Sum512(append(noncesign[:len(noncesign)-64], secret...))
 	if !bytes.Equal(oldsign, newsign[:]) {
-		return ecode.ErrWrongSecret
+		return ecode.ErrSignCheckFailed
 	}
 	return nil
 }

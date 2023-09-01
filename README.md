@@ -111,7 +111,6 @@ collection: user
 	"user_name":"",
 	"password":"",
 	"department":["",""],
-	"ctime":123,//unixtimestamp,unit second
 	"project_ids":["project_id1","project_id2"],
 	"roles":["project_id1:role_name1","project_id2:role_name2"]
 }
@@ -127,7 +126,6 @@ collection: role
 	"project_id":"",
 	"role_name":"",
 	"comment":"",
-	"ctime":123,//unixtimestamp,unit second
 }
 //手动创建数据库
 use user;

@@ -256,29 +256,14 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	}
 
 	//logic
-	var users map[primitive.ObjectID]*model.User
-	var totalsize int64
-	if req.Page == 0 {
-		if req.OnlyProject {
-			users, totalsize, e = s.userDao.MongoSearchUsers(ctx, projectid, req.UserName, 0, 0)
-		} else {
-			users, totalsize, e = s.userDao.MongoSearchUsers(ctx, "", req.UserName, 0, 0)
-		}
-	} else {
-		skip := int64(req.Page-1) * 20
-		if req.OnlyProject {
-			users, totalsize, e = s.userDao.MongoSearchUsers(ctx, projectid, req.UserName, 20, skip)
-		} else {
-			users, totalsize, e = s.userDao.MongoSearchUsers(ctx, "", req.UserName, 20, skip)
-		}
-	}
+	users, page, totalsize, e := s.userDao.MongoSearchUsers(ctx, projectid, req.UserName, 20, int64(req.Page))
 	if e != nil {
 		log.Error(ctx, "[SearchUsers] db op failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "username": req.UserName, "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	resp := &api.SearchUsersResp{
 		Users:     make([]*api.UserInfo, 0, len(users)),
-		Page:      req.Page,
+		Page:      uint32(page),
 		Pagesize:  20,
 		Totalsize: uint32(totalsize),
 	}
@@ -449,21 +434,14 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 	}
 
 	//logic
-	var roles map[string]*model.Role
-	var totalsize int64
-	if req.Page == 0 {
-		roles, totalsize, e = s.userDao.MongoSearchRoles(ctx, projectid, req.RoleName, 0, 0)
-	} else {
-		skip := int64(req.Page-1) * 20
-		roles, totalsize, e = s.userDao.MongoSearchRoles(ctx, projectid, req.RoleName, 20, skip)
-	}
+	roles, page, totalsize, e := s.userDao.MongoSearchRoles(ctx, projectid, req.RoleName, 20, int64(req.Page))
 	if e != nil {
 		log.Error(ctx, "[SearchRoles] db op failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "rolename": req.RoleName, "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	resp := &api.SearchRolesResp{
 		Roles:     make([]*api.RoleInfo, 0, len(roles)),
-		Page:      req.Page,
+		Page:      uint32(page),
 		Pagesize:  20,
 		Totalsize: uint32(totalsize),
 	}

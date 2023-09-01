@@ -89,8 +89,8 @@ func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (
 	return result, cursor.Err()
 }
 
-// if limit is 0 means all
-func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, limit, skip int64) (map[primitive.ObjectID]*model.User, int64, error) {
+// page: 0:means return all,>0:means return the required page,if page overflow,the last page will return
+func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, pagesize, page int64) (map[primitive.ObjectID]*model.User, int64, int64, error) {
 	filter := bson.M{}
 	if name != "" {
 		filter["user_name"] = bson.M{"$regex": name}
@@ -100,29 +100,38 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, limi
 	}
 	totalsize, e := d.mongo.Database("user").Collection("user").CountDocuments(ctx, filter)
 	if e != nil {
-		return nil, 0, e
+		return nil, 0, 0, e
+	}
+	if totalsize == 0 {
+		return make(map[primitive.ObjectID]*model.User), 0, 0, nil
 	}
 	opts := options.Find().SetSort(bson.M{"_id": -1})
-	if skip != 0 {
-		opts = opts.SetSkip(skip)
-	}
-	if limit != 0 {
-		opts = opts.SetLimit(limit)
+	if page != 0 {
+		skip := (page - 1) * pagesize
+		if skip >= totalsize {
+			if totalsize%pagesize > 0 {
+				page = totalsize/pagesize + 1
+			} else {
+				page = totalsize / pagesize
+			}
+			skip = (page - 1) * pagesize
+		}
+		opts = opts.SetSkip(skip).SetLimit(pagesize)
 	}
 	cursor, e := d.mongo.Database("user").Collection("user").Find(ctx, filter, opts)
 	if e != nil {
-		return nil, 0, e
+		return nil, 0, 0, e
 	}
 	defer cursor.Close(ctx)
 	result := make(map[primitive.ObjectID]*model.User, cursor.RemainingBatchLength())
 	for cursor.Next(ctx) {
 		tmp := &model.User{}
 		if e := cursor.Decode(tmp); e != nil {
-			return nil, 0, e
+			return nil, 0, 0, e
 		}
 		result[tmp.ID] = tmp
 	}
-	return result, totalsize, cursor.Err()
+	return result, page, totalsize, cursor.Err()
 }
 
 func (d *Dao) MongoUpdateUser(ctx context.Context, userid primitive.ObjectID, newname string, newdepartment []string) error {
@@ -170,36 +179,45 @@ func (d *Dao) MongoCreateRole(ctx context.Context, projectid, name, comment stri
 }
 
 // if limit is 0 means all
-func (d *Dao) MongoSearchRoles(ctx context.Context, projectid, name string, limit, skip int64) (map[string]*model.Role, int64, error) {
+func (d *Dao) MongoSearchRoles(ctx context.Context, projectid, name string, pagesize, page int64) (map[string]*model.Role, int64, int64, error) {
 	filter := bson.M{"project_id": projectid}
 	if name != "" {
 		filter["role_name"] = bson.M{"$regex": name}
 	}
 	totalsize, e := d.mongo.Database("user").Collection("role").CountDocuments(ctx, filter)
 	if e != nil {
-		return nil, 0, e
+		return nil, 0, 0, e
+	}
+	if totalsize == 0 {
+		return make(map[string]*model.Role), 0, 0, nil
 	}
 	opts := options.Find().SetSort(bson.M{"_id": -1})
-	if skip != 0 {
-		opts = opts.SetSkip(skip)
-	}
-	if limit != 0 {
-		opts = opts.SetLimit(limit)
+	if page != 0 {
+		skip := (page - 1) * pagesize
+		if skip >= totalsize {
+			if totalsize%pagesize > 0 {
+				page = totalsize/pagesize + 1
+			} else {
+				page = totalsize / pagesize
+			}
+			skip = (page - 1) * totalsize
+		}
+		opts = opts.SetSkip(skip).SetLimit(pagesize)
 	}
 	cursor, e := d.mongo.Database("user").Collection("role").Find(ctx, filter, opts)
 	if e != nil {
-		return nil, 0, e
+		return nil, 0, 0, e
 	}
 	defer cursor.Close(ctx)
 	result := make(map[string]*model.Role, cursor.RemainingBatchLength())
 	for cursor.Next(ctx) {
 		tmp := &model.Role{}
 		if e := cursor.Decode(tmp); e != nil {
-			return nil, 0, e
+			return nil, 0, 0, e
 		}
 		result[tmp.RoleName] = tmp
 	}
-	return result, totalsize, cursor.Err()
+	return result, page, totalsize, cursor.Err()
 }
 
 func (d *Dao) MongoUpdateRole(ctx context.Context, projectid, name, newcomment string) error {

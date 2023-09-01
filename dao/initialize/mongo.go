@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
@@ -47,7 +46,6 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		UserName:   "superadmin",
 		Password:   util.SignMake(password, nonce),
 		Department: []string{},
-		Ctime:      uint32(time.Now().Unix()),
 		Roles:      []string{},
 		ProjectIDs: []string{},
 	}); e != nil && !mongo.IsDuplicateKeyError(e) {

@@ -107,7 +107,7 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 		UserId:       user.ID.Hex(),
 		UserName:     user.UserName,
 		Department:   user.Department,
-		Ctime:        user.Ctime,
+		Ctime:        uint32(user.ID.Timestamp().Unix()),
 		ProjectRoles: make([]*api.ProjectRoles, 0, len(user.ProjectIDs)),
 	}
 	for _, v := range tmp {
@@ -322,7 +322,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 			UserId:       user.ID.Hex(),
 			UserName:     user.UserName,
 			Department:   user.Department,
-			Ctime:        user.Ctime,
+			Ctime:        uint32(user.ID.Timestamp().Unix()),
 			ProjectRoles: make([]*api.ProjectRoles, 0, len(user.ProjectIDs)),
 		}
 		for _, v := range tmp {
@@ -475,7 +475,7 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 			ProjectId: req.ProjectId,
 			RoleName:  role.RoleName,
 			Comment:   role.Comment,
-			Ctime:     role.Ctime,
+			Ctime:     uint32(role.ID.Timestamp().Unix()),
 		})
 	}
 	sort.Slice(resp.Roles, func(i, j int) bool {

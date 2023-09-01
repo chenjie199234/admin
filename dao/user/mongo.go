@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
@@ -103,7 +102,7 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, limi
 	if e != nil {
 		return nil, 0, e
 	}
-	opts := options.Find().SetSort(bson.M{"ctime": -1})
+	opts := options.Find().SetSort(bson.M{"_id": -1})
 	if skip != 0 {
 		opts = opts.SetSkip(skip)
 	}
@@ -161,7 +160,6 @@ func (d *Dao) MongoCreateRole(ctx context.Context, projectid, name, comment stri
 		ProjectID: projectid,
 		RoleName:  name,
 		Comment:   comment,
-		Ctime:     uint32(time.Now().Unix()),
 	}); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
 			e = ecode.ErrRoleAlreadyExist
@@ -181,7 +179,7 @@ func (d *Dao) MongoSearchRoles(ctx context.Context, projectid, name string, limi
 	if e != nil {
 		return nil, 0, e
 	}
-	opts := options.Find().SetSort(bson.M{"ctime": -1})
+	opts := options.Find().SetSort(bson.M{"_id": -1})
 	if skip != 0 {
 		opts = opts.SetSkip(skip)
 	}

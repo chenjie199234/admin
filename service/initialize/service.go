@@ -76,7 +76,7 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 		log.Error(ctx, "[RootLogin] sign check failed", map[string]interface{}{"error": e})
 		return nil, e
 	}
-	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, user.ID.Hex())
+	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, user.ID.Hex(), "")
 	return &api.RootLoginResp{Token: tokenstr}, nil
 }
 
@@ -84,7 +84,7 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 func (s *Service) UpdateRootPassword(ctx context.Context, req *api.UpdateRootPasswordReq) (*api.UpdateRootPasswordResp, error) {
 	md := metadata.GetMetadata(ctx)
 	//only super admin can change password
-	if md["Token-Data"] != primitive.NilObjectID.Hex() {
+	if md["Token-User"] != primitive.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
 	if e := s.initializeDao.MongoUpdateRootPassword(ctx, req.OldPassword, req.NewPassword); e != nil {
@@ -98,12 +98,12 @@ func (s *Service) UpdateRootPassword(ctx context.Context, req *api.UpdateRootPas
 func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) (*api.CreateProjectResp, error) {
 	md := metadata.GetMetadata(ctx)
 	//only super admin can create project
-	if md["Token-Data"] != primitive.NilObjectID.Hex() {
+	if md["Token-User"] != primitive.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
 	str, e := s.initializeDao.MongoCreateProject(ctx, req.ProjectName, req.ProjectData)
 	if e != nil {
-		log.Error(ctx, "[CreateProject] db op failed", map[string]interface{}{"operator": md["Token-Data"], "name": req.ProjectName, "data": req.ProjectData, "error": e})
+		log.Error(ctx, "[CreateProject] db op failed", map[string]interface{}{"operator": md["Token-User"], "name": req.ProjectName, "data": req.ProjectData, "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectid, _ := util.ParseNodeIDstr(str)
@@ -118,7 +118,7 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 	}
 	md := metadata.GetMetadata(ctx)
 	//only super admin can update project
-	if md["Token-Data"] != primitive.NilObjectID.Hex() {
+	if md["Token-User"] != primitive.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
 	buf := pool.GetBuffer()
@@ -131,7 +131,7 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 	}
 	projectid := buf.String()
 	if e := s.initializeDao.MongoUpdateProject(ctx, projectid, req.NewProjectName, req.NewProjectData); e != nil {
-		log.Error(ctx, "[UpdateProject] db op failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "new_name": req.NewProjectName, "new_data": req.NewProjectData, "error": e})
+		log.Error(ctx, "[UpdateProject] db op failed", map[string]interface{}{"operator": md["Token-User"], "project_id": projectid, "new_name": req.NewProjectName, "new_data": req.NewProjectData, "error": e})
 		return nil, e
 	}
 	return &api.UpdateProjectResp{}, nil
@@ -157,25 +157,25 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 	md := metadata.GetMetadata(ctx)
 	nodes, e := s.initializeDao.MongoListProject(ctx)
 	if e != nil {
-		log.Error(ctx, "[ListProject] db op failed", map[string]interface{}{"operator": md["Token-Data"], "error": e})
+		log.Error(ctx, "[ListProject] db op failed", map[string]interface{}{"operator": md["Token-User"], "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	var user *model.User
-	if md["Token-Data"] != primitive.NilObjectID.Hex() {
-		operator, e := primitive.ObjectIDFromHex(md["Token-Data"])
+	if md["Token-User"] != primitive.NilObjectID.Hex() {
+		operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 		if e != nil {
-			log.Error(ctx, "[ListProject] operator's token format wrong", map[string]interface{}{"operator": md["Token-Data"], "error": e})
+			log.Error(ctx, "[ListProject] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
 			return nil, ecode.ErrToken
 		}
 		users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
 		if e != nil {
-			log.Error(ctx, "[ListProject] get operator's user info failed", map[string]interface{}{"operator": md["Token-Data"], "error": e})
+			log.Error(ctx, "[ListProject] get operator's user info failed", map[string]interface{}{"operator": md["Token-User"], "error": e})
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		var ok bool
 		user, ok = users[operator]
 		if !ok {
-			log.Error(ctx, "[ListProject] operator not exist", map[string]interface{}{"operator": md["Token-Data"]})
+			log.Error(ctx, "[ListProject] operator not exist", map[string]interface{}{"operator": md["Token-User"]})
 			return nil, ecode.ErrSystem
 		}
 	}
@@ -217,7 +217,7 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 	}
 	md := metadata.GetMetadata(ctx)
 	//only super admin can create project
-	if md["Token-Data"] != primitive.NilObjectID.Hex() {
+	if md["Token-User"] != primitive.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
 	buf := pool.GetBuffer()
@@ -230,7 +230,7 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 	}
 	projectid := buf.String()
 	if e := s.initializeDao.MongoDelProject(ctx, projectid); e != nil {
-		log.Error(ctx, "[DeleteProject] db op failed", map[string]interface{}{"operator": md["Token-Data"], "project_id": projectid, "error": e})
+		log.Error(ctx, "[DeleteProject] db op failed", map[string]interface{}{"operator": md["Token-User"], "project_id": projectid, "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.DeleteProjectResp{}, nil

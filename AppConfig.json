@@ -66,13 +66,13 @@
 	},
 	"accesses":{
 		"/admin.exampleservice/examplemethod":[{
-			"method":["POST","GRPC","CRPC"],
+			"methods":["POST","GRPC","CRPC"],
 			"accesses":{
 				"accessid":"accesskey"
 			}
 		}],
 		"/admin.initialize/init":[{
-			"method":["POST","GRPC","CRPC"],
+			"methods":["POST","GRPC","CRPC"],
 			"accesses":{
 				"accessid":"accesskey"
 			}

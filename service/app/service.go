@@ -652,8 +652,11 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 			return nil, ecode.ErrReq
 		}
 	}
-	if !s.stop.AddOne() {
-		return nil, cerror.ErrServerClosing
+	if e := s.stop.Add(1); e != nil {
+		if e == graceful.ErrClosing {
+			return nil, cerror.ErrServerClosing
+		}
+		return nil, ecode.ErrBusy
 	}
 	defer s.stop.DoneOne()
 	projectid, e := s.initializeDao.MongoGetProjectIDByName(ctx, req.ProjectName)

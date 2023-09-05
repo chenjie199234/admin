@@ -21,7 +21,6 @@ var (
 	ErrBusy       = cerror.ErrBusy       //10011 // http code 503
 	ErrNotExist   = cerror.ErrNotExist   //10012 // http code 404
 
-	// ErrInitConflict        = cerror.MakeError(20000, http.StatusBadRequest, "init conflict")
 	ErrNotInited           = cerror.MakeError(20001, http.StatusBadRequest, "not inited")
 	ErrAlreadyInited       = cerror.MakeError(20002, http.StatusBadRequest, "already inited")
 	ErrPasswordLength      = cerror.MakeError(20003, http.StatusBadRequest, "password length must less then 32")

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref,onMounted } from 'vue'
-import * as permissionAPI from './api/permission_browser_toc'
+import * as permissionAPI from './api/admin_permission_browser_toc'
 const props=defineProps<{
 	pnode:permissionAPI.NodeInfo
 	deep:number

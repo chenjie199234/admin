@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 
-import * as initializeAPI from './api/initialize_browser_toc'
+import * as initializeAPI from './api/admin_initialize_browser_toc'
 import * as state from './state'
 import * as client from './client'
 

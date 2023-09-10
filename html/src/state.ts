@@ -1,7 +1,7 @@
 import { reactive,ref } from 'vue'
-import * as userAPI from './api/user_browser_toc'
-import * as permissionAPI from './api/permission_browser_toc'
-import * as initializeAPI from './api/initialize_browser_toc'
+import * as userAPI from './api/admin_user_browser_toc'
+import * as permissionAPI from './api/admin_permission_browser_toc'
+import * as initializeAPI from './api/admin_initialize_browser_toc'
 
 //-------------------------------------------------------------------------------
 export const inited = ref<boolean>(false)

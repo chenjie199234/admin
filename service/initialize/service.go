@@ -108,7 +108,11 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 	}
 	str, e := s.initializeDao.MongoCreateProject(ctx, req.ProjectName, req.ProjectData)
 	if e != nil {
-		log.Error(ctx, "[CreateProject] db op failed", map[string]interface{}{"operator": md["Token-User"], "name": req.ProjectName, "data": req.ProjectData, "error": e})
+		log.Error(ctx, "[CreateProject] db op failed", map[string]interface{}{
+			"operator": md["Token-User"],
+			"name":     req.ProjectName,
+			"data":     req.ProjectData,
+			"error":    e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectid, _ := util.ParseNodeIDstr(str)
@@ -140,7 +144,12 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 	}
 	projectid := buf.String()
 	if e := s.initializeDao.MongoUpdateProject(ctx, projectid, req.NewProjectName, req.NewProjectData); e != nil {
-		log.Error(ctx, "[UpdateProject] db op failed", map[string]interface{}{"operator": md["Token-User"], "project_id": projectid, "new_name": req.NewProjectName, "new_data": req.NewProjectData, "error": e})
+		log.Error(ctx, "[UpdateProject] db op failed", map[string]interface{}{
+			"operator":   md["Token-User"],
+			"project_id": projectid,
+			"new_name":   req.NewProjectName,
+			"new_data":   req.NewProjectData,
+			"error":      e})
 		return nil, e
 	}
 	return &api.UpdateProjectResp{}, nil
@@ -155,7 +164,10 @@ func (s *Service) GetProjectIdByName(ctx context.Context, req *api.GetProjectIdB
 	}
 	projectids, e := util.ParseNodeIDstr(projectid)
 	if e != nil {
-		log.Error(ctx, "[GetProjectIdByName] project's projectid format wrong", map[string]interface{}{"project_name": req.ProjectName, "project_id": projectid, "error": e})
+		log.Error(ctx, "[GetProjectIdByName] project's projectid format wrong", map[string]interface{}{
+			"project_name": req.ProjectName,
+			"project_id":   projectid,
+			"error":        e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.GetProjectIdByNameResp{ProjectId: projectids}, nil

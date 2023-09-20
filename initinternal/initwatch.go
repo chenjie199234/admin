@@ -210,7 +210,7 @@ func (s *InternalSdk) watch() {
 					log.Error(nil, "[InitWatch] db data broken", map[string]interface{}{"project_id": projectid, "group": gname, "app": aname, "error": e})
 					continue
 				}
-				log.Debug(nil, "[InitWatch] app updated", map[string]interface{}{
+				log.Debug(nil, "[InitWatch] updated", map[string]interface{}{
 					"project_id": summary.ProjectID,
 					"group":      summary.Group,
 					"app":        summary.App,

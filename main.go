@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "embed"
 	"os"
 	"os/signal"
 	"sync"
@@ -17,19 +16,14 @@ import (
 	"github.com/chenjie199234/Corelib/log"
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	_ "github.com/chenjie199234/Corelib/monitor"
+
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/redis/go-redis/v9"
+	_ "go.mongodb.org/mongo-driver/mongo"
 )
 
-// this is used for DirectSDK
-//
-//go:embed AppConfig.json
-var AppConfigTemplate []byte
-
-// this is used for DirectSDK
-//
-//go:embed SourceConfig.json
-var SourceConfigTemplate []byte
-
 func main() {
+	config.InitInternal()
 	config.Init(func(ac *config.AppConfig) {
 		//this is a notice callback every time appconfig changes
 		//this function works in sync mode
@@ -43,7 +37,7 @@ func main() {
 		publicmids.UpdateTokenConfig(ac.TokenSecret, ac.SessionTokenExpire.StdDuration())
 		publicmids.UpdateSessionConfig(ac.SessionTokenExpire.StdDuration())
 		publicmids.UpdateAccessConfig(ac.Accesses)
-	}, AppConfigTemplate, SourceConfigTemplate)
+	})
 	defer config.Close()
 	if rateredis := config.GetRedis("rate_redis"); rateredis != nil {
 		publicmids.UpdateRateRedisInstance(rateredis)
@@ -92,6 +86,7 @@ func main() {
 	}()
 	signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	<-ch
+	config.StopInternal()
 	//stop the whole business service
 	service.StopService()
 	//stop low level net service

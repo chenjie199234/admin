@@ -27,11 +27,7 @@ GROUP                                   该项目所属的组,[a-z][0-9],第一�
 RUN_ENV                                 当前运行环境,如:test,pre,prod
 DEPLOY_ENV                              部署环境,如:ali-kube-shanghai-1,ali-host-hangzhou-1
 MONITOR                                 是否开启系统监控采集,0关闭,1开启
-CONFIG_TYPE                             配置类型
-                                        0-使用本地配置
-                                        1-使用远程配置中心config服务
-REMOTE_CONFIG_MONGO_URL                 当CONFIG_TYPE为1时,配置中心mongodb的url,[mongodb/mongodb+srv]://[username:password@]host1,...,hostN[/dbname][?param1=value1&...&paramN=valueN]
-REMOTE_CONFIG_SECRET                    当CONFIG_TYPE为1时,配置中心配置的密钥,首次初始化该服务时,该密钥为自身配置的密钥
+CONFIG_SECRET                           配置中心配置的密钥,用于加密和解密配置中心中自身的配置数据
 ```
 
 ## 配置文件

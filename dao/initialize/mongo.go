@@ -222,7 +222,18 @@ func (d *Dao) MongoUpdateProject(ctx context.Context, projectid, newname, newdat
 		e = ecode.ErrProjectNotExist
 		return
 	}
-	_, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": projectid}, bson.M{"$set": bson.M{"node_name": newname, "node_data": newdata}})
+	var samename bool
+	if r.ModifiedCount == 0 {
+		samename = true
+	}
+	if _, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": projectid}, bson.M{"$set": bson.M{"node_name": newname, "node_data": newdata}}); e != nil {
+		return
+	}
+	if !samename {
+		if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, bson.M{"key": "", "index": 0, "project_id": projectid}, bson.M{"$set": bson.M{"project_name": newname}}); e != nil {
+			return
+		}
+	}
 	return
 }
 func (d *Dao) MongoListProject(ctx context.Context) ([]*model.Node, error) {

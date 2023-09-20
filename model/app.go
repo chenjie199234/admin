@@ -1,6 +1,8 @@
 package model
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // AppSummary and Log exist in same collection
 // key=="" && index==0 => AppSummary
@@ -10,10 +12,17 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type AppSummary struct {
 	ID               primitive.ObjectID     `bson:"_id,omitempty"`
 	ProjectID        string                 `bson:"project_id"`
+	ProjectName      string                 `bson:"project_name"`
 	Group            string                 `bson:"group"`
 	App              string                 `bson:"app"`
-	Key              string                 `bson:"key"`   //this is always empty for Summary
-	Index            uint32                 `bson:"index"` //this is always 0 for Summary
+	Key              string                 `bson:"key"`           //this is always empty for Summary
+	Index            uint32                 `bson:"index"`         //this is always 0 for Summary
+	DiscoverMode     string                 `bson:"discover_mode"` //kubernetes,dns,static
+	KubernetesNs     string                 `bson:"kubernetes_ns"`
+	KubernetesLS     string                 `bson:"kubernetes_ls"`
+	DnsHost          string                 `bson:"dns_host"`
+	DnsInterval      uint32                 `bson:"dns_interval"` //unit second
+	StaticAddrs      []string               `bson:"static_addrs"`
 	Paths            map[string]*ProxyPath  `bson:"paths"` //map's key is the base64(proxy path)
 	Keys             map[string]*KeySummary `bson:"keys"`  //map's key is config's key name
 	Value            string                 `bson:"value"`

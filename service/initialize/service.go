@@ -16,6 +16,7 @@ import (
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	"github.com/chenjie199234/Corelib/pool"
 	"github.com/chenjie199234/Corelib/util/graceful"
+	"github.com/chenjie199234/Corelib/util/name"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
@@ -96,6 +97,10 @@ func (s *Service) UpdateRootPassword(ctx context.Context, req *api.UpdateRootPas
 
 // CreateProject 创建项目
 func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) (*api.CreateProjectResp, error) {
+	if e := name.SingleCheck(req.ProjectName, false); e != nil {
+		log.Error(ctx, "[CreateProject] project name format wrong", map[string]interface{}{"project_name": req.ProjectName})
+		return nil, ecode.ErrReq
+	}
 	md := metadata.GetMetadata(ctx)
 	//only super admin can create project
 	if md["Token-User"] != primitive.NilObjectID.Hex() {
@@ -114,6 +119,10 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) (*api.UpdateProjectResp, error) {
 	//0,1 -> project:admin can't be updated
 	if req.ProjectId[0] != 0 || req.ProjectId[1] == 1 {
+		return nil, ecode.ErrReq
+	}
+	if e := name.SingleCheck(req.NewProjectName, false); e != nil {
+		log.Error(ctx, "[UpdateProject] project name format wrong", map[string]interface{}{"project_name": req.NewProjectName})
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)

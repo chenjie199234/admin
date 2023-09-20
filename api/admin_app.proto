@@ -93,8 +93,14 @@ message get_app_req{
 	string secret=4[(pbex.string_bytes_len_lt)=32];
 }
 message get_app_resp{
-	map<string,key_config_info> keys=1;
-	map<string,proxy_path_info> paths=2;
+	string discover_mode=1;//can be one of "kubernetes" / "dns" / "static"
+	string kubernetes_namespace=2;//when discover_mode == "kubernetes"
+	string kubernetes_labelselector=3;//when discover_mode == "kubernetes"
+	string dns_host=4;//when discover_mode == "dns"
+	uint32 dns_interval=5;//when discover_mode == "dns",unit second
+	repeated string static_addrs=6;//when discover_mode == "static"
+	map<string,key_config_info> keys=7;
+	map<string,proxy_path_info> paths=8;
 }
 message proxy_path_info{
 	repeated uint32 node_id=1;
@@ -117,6 +123,12 @@ message create_app_req {
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
 	string secret=4[(pbex.string_bytes_len_lt)=32];
+	string discover_mode=5[(pbex.string_bytes_in)="kubernetes",(pbex.string_bytes_in)="dns",(pbex.string_bytes_in)="static"];
+	string kubernetes_namespace=6;//when discover_mode == "kubernetes",this need to be set
+	string kubernetes_labelselector=7;//when discover_mode == "kubernetes",this need to be set
+	string dns_host=8;//when discover_mode == "dns",this need to be set
+	uint32 dns_interval=9;//when discover_mode == "dns",this need to be set,default 10s,unit is second
+	repeated string static_addrs=10;//when discover_mode == "static",this need to be set,unit is second
 }
 message create_app_resp {
 	repeated uint32 node_id=1;

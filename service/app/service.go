@@ -5,12 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"
-	"github.com/chenjie199234/admin/dao"
 	appdao "github.com/chenjie199234/admin/dao/app"
 	initializedao "github.com/chenjie199234/admin/dao/initialize"
 	permissiondao "github.com/chenjie199234/admin/dao/permission"
@@ -18,14 +15,12 @@ import (
 	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/util"
 
-	"github.com/chenjie199234/Corelib/cerror"
-	"github.com/chenjie199234/Corelib/crpc"
-	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	"github.com/chenjie199234/Corelib/pool"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/graceful"
+	"github.com/chenjie199234/Corelib/util/name"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	// "github.com/chenjie199234/Corelib/web"
 	//"github.com/chenjie199234/Corelib/cgrpc"
@@ -38,133 +33,16 @@ type Service struct {
 	appDao        *appdao.Dao
 	permissionDao *permissiondao.Dao
 	initializeDao *initializedao.Dao
-
-	sync.Mutex
-
-	apps          map[string]*model.AppSummary            //key:projectid-group.app,value:appinfo
-	notices       map[string]map[chan *struct{}]*struct{} //key:projectid-group.app,value:waiting chans
-	clients       map[string]*clientinfo                  //key:projectid-group.app,value:clientinfo
-	clientsActive map[string]int64                        //key:projectid-group.app,value:last use timestamp(unixnano)
-}
-type clientinfo struct {
-	di     discover.DI
-	client *crpc.CrpcClient
 }
 
 // Start -
 func Start() *Service {
-	s := &Service{
+	return &Service{
 		stop: graceful.New(),
 
 		appDao:        appdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		permissionDao: permissiondao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		initializeDao: initializedao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
-
-		apps:          make(map[string]*model.AppSummary),
-		notices:       make(map[string]map[chan *struct{}]*struct{}),
-		clients:       make(map[string]*clientinfo),
-		clientsActive: make(map[string]int64),
-	}
-	if e := s.appDao.MongoWatchConfig(s.drop, s.update, s.del, s.apps); e != nil {
-		panic("[Config.Start] watch error: " + e.Error())
-	}
-	go s.job()
-	return s
-}
-
-func (s *Service) job() {
-	tker := time.NewTicker(time.Minute)
-	for {
-		now := <-tker.C
-		s.Lock()
-		for fullname, last := range s.clientsActive {
-			if now.UnixNano()-last < time.Minute.Nanoseconds() {
-				continue
-			}
-			delete(s.clientsActive, fullname)
-			c, ok := s.clients[fullname]
-			if !ok {
-				continue
-			}
-			go func() {
-				c.client.Close(false)
-				c.di.Stop()
-			}()
-			delete(s.clients, fullname)
-		}
-		s.Unlock()
-	}
-}
-func (s *Service) drop() {
-	s.Lock()
-	defer s.Unlock()
-	s.apps = make(map[string]*model.AppSummary)
-	for _, notices := range s.notices {
-		for notice := range notices {
-			select {
-			case notice <- nil:
-			default:
-			}
-		}
-	}
-	for _, v := range s.clients {
-		c := v
-		go func() {
-			c.client.Close(false)
-			c.di.Stop()
-		}()
-	}
-	s.clients = make(map[string]*clientinfo)
-	s.clientsActive = make(map[string]int64)
-}
-func (s *Service) update(cur *model.AppSummary) {
-	log.Debug(nil, "[update]", map[string]interface{}{"project_id": cur.ProjectID, "group": cur.Group, "app": cur.App, "keys": cur.Keys})
-	s.Lock()
-	defer s.Unlock()
-	if s.stop.Closed() {
-		return
-	}
-	s.apps[cur.GetFullName()] = cur
-	for notice := range s.notices[cur.GetFullName()] {
-		select {
-		case notice <- nil:
-		default:
-		}
-	}
-}
-func (s *Service) del(id string) {
-	s.Lock()
-	defer s.Unlock()
-	if s.stop.Closed() {
-		return
-	}
-	var app *model.AppSummary
-	for _, v := range s.apps {
-		if v.ID.Hex() == id {
-			app = v
-			break
-		}
-	}
-	if app == nil {
-		//the deleted doc is not the summary doc
-		return
-	}
-	//delete the summary,this is same as delete the app
-	log.Debug(nil, "[del]", map[string]interface{}{"project_id": app.ProjectID, "group": app.Group, "app": app.App})
-	delete(s.apps, app.GetFullName())
-	if c, ok := s.clients[app.GetFullName()]; ok {
-		delete(s.clients, app.GetFullName())
-		delete(s.clientsActive, app.GetFullName())
-		go func() {
-			c.client.Close(false)
-			c.di.Stop()
-		}()
-	}
-	for notice := range s.notices[app.GetFullName()] {
-		select {
-		case notice <- nil:
-		default:
-		}
 	}
 }
 
@@ -215,8 +93,14 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	resp := &api.GetAppResp{
-		Keys:  make(map[string]*api.KeyConfigInfo),
-		Paths: make(map[string]*api.ProxyPathInfo),
+		DiscoverMode:            app.DiscoverMode,
+		KubernetesNamespace:     app.KubernetesNs,
+		KubernetesLabelselector: app.KubernetesLS,
+		DnsHost:                 app.DnsHost,
+		DnsInterval:             app.DnsInterval,
+		StaticAddrs:             app.StaticAddrs,
+		Keys:                    make(map[string]*api.KeyConfigInfo),
+		Paths:                   make(map[string]*api.ProxyPathInfo),
 	}
 	for k, v := range app.Keys {
 		resp.Keys[k] = &api.KeyConfigInfo{
@@ -244,6 +128,38 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 }
 
 func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.CreateAppResp, error) {
+	if e := name.SingleCheck(req.GName, false); e != nil {
+		log.Error(ctx, "[CreateApp] group name format wrong", map[string]interface{}{"group": req.GName})
+		return nil, ecode.ErrReq
+	}
+	if e := name.SingleCheck(req.AName, false); e != nil {
+		log.Error(ctx, "[CreateApp] app name format wrong", map[string]interface{}{"app": req.AName})
+		return nil, ecode.ErrReq
+	}
+	switch req.DiscoverMode {
+	case "kubernetes":
+		if req.KubernetesNamespace == "" {
+			log.Error(ctx, "[CreateApp] kubernetes namesapce empty", nil)
+			return nil, ecode.ErrReq
+		}
+		if req.KubernetesLabelselector == "" {
+			log.Error(ctx, "[CreateApp] kubernetes labelselector empty", nil)
+			return nil, ecode.ErrReq
+		}
+	case "dns":
+		if req.DnsHost == "" {
+			log.Error(ctx, "[CreateApp] dns host empty", nil)
+			return nil, ecode.ErrReq
+		}
+		if req.DnsInterval == 0 {
+			req.DnsInterval = 10
+		}
+	case "static":
+		if len(req.StaticAddrs) == 0 {
+			log.Error(ctx, "[CreateApp] static addrs empty", nil)
+			return nil, ecode.ErrReq
+		}
+	}
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
@@ -274,7 +190,7 @@ func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.Cr
 	}
 
 	//logic
-	nodeidstr, e := s.appDao.MongoCreateApp(ctx, projectid, req.GName, req.AName, req.Secret)
+	nodeidstr, e := s.appDao.MongoCreateApp(ctx, projectid, req.GName, req.AName, req.Secret, req.DiscoverMode, req.KubernetesNamespace, req.KubernetesLabelselector, req.DnsHost, req.DnsInterval, req.StaticAddrs)
 	if e != nil {
 		log.Error(ctx, "[CreateApp] db op failed", map[string]interface{}{"operator": md["Token-User"], "project_id": projectid, "group": req.GName, "app": req.AName, "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -654,107 +570,56 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 	}
 	if e := s.stop.Add(1); e != nil {
 		if e == graceful.ErrClosing {
-			return nil, cerror.ErrServerClosing
+			return nil, ecode.ErrServerClosing
 		}
 		return nil, ecode.ErrBusy
 	}
 	defer s.stop.DoneOne()
-	projectid, e := s.initializeDao.MongoGetProjectIDByName(ctx, req.ProjectName)
+	ch, cancel, e := config.Sdk.GetNoticeByProjectName(req.ProjectName, req.GName, req.AName)
 	if e != nil {
-		log.Error(ctx, "[Watch] get projectid failed", map[string]interface{}{"project_name": req.ProjectName, "group": req.GName, "app": req.AName, "error": e})
+		log.Error(ctx, "[Watch] get notice failed", map[string]interface{}{"project_name": req.ProjectName, "group": req.GName, "app": req.AName, "error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-
-	resp := &api.WatchResp{
-		Datas: make(map[string]*api.WatchData, len(req.Keys)+3),
-	}
-
-	s.Lock()
-	a, ok := s.apps[projectid+"-"+req.GName+"."+req.AName]
-	if !ok {
-		s.Unlock()
-		return nil, ecode.ErrAppNotExist
-	}
-	needreturn := false
-	for key, clientversion := range req.Keys {
-		k, ok := a.Keys[key]
-		if !ok || k == nil || k.CurVersion == 0 {
-			s.Unlock()
-			return nil, ecode.ErrKeyNotExist
-		}
-		if clientversion == 0 || clientversion != k.CurVersion {
-			needreturn = true
-			resp.Datas[key] = &api.WatchData{
-				Key:       key,
-				Value:     k.CurValue,
-				ValueType: k.CurValueType,
-				Version:   k.CurVersion,
-			}
-		} else {
-			resp.Datas[key] = &api.WatchData{
-				Key:       key,
-				Value:     "",
-				ValueType: "",
-				Version:   k.CurVersion,
-			}
-		}
-	}
-	if needreturn {
-		s.Unlock()
-		return resp, nil
-	}
+	defer cancel()
 	for {
-		ch := make(chan *struct{})
-		if _, ok := s.notices[projectid+"-"+req.GName+"."+req.AName]; !ok {
-			s.notices[projectid+"-"+req.GName+"."+req.AName] = map[chan *struct{}]*struct{}{ch: nil}
-		} else {
-			s.notices[projectid+"-"+req.GName+"."+req.AName][ch] = nil
-		}
-		s.Unlock()
 		select {
 		case <-ctx.Done():
-			s.Lock()
-			delete(s.notices[projectid+"-"+req.GName+"."+req.AName], ch)
-			s.Unlock()
-			return nil, cerror.ConvertStdError(ctx.Err())
-		case _, ok := <-ch:
-			if !ok {
-				return nil, cerror.ErrServerClosing
+			return nil, ecode.ReturnEcode(ctx.Err(), ecode.ErrSystem)
+		case <-ch:
+			app, e := config.Sdk.GetAppConfigByProjectName(req.ProjectName, req.GName, req.AName)
+			if e != nil {
+				log.Error(ctx, "[Watch] get config failed", map[string]interface{}{"project_name": req.ProjectName, "group": req.GName, "app": req.AName, "error": e})
+				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 			}
-		}
-		s.Lock()
-		delete(s.notices[projectid+"-"+req.GName+"."+req.AName], ch)
-		a, ok = s.apps[projectid+"-"+req.GName+"."+req.AName]
-		if !ok {
-			s.Unlock()
-			return nil, ecode.ErrAppNotExist
-		}
-		for key, clientversion := range req.Keys {
-			k, ok := a.Keys[key]
-			if !ok || k == nil || k.CurVersion == 0 {
-				s.Unlock()
-				return nil, ecode.ErrKeyNotExist
+			resp := &api.WatchResp{
+				Datas: make(map[string]*api.WatchData, len(req.Keys)+3),
 			}
-			if clientversion == 0 || clientversion != k.CurVersion {
-				needreturn = true
-				resp.Datas[key] = &api.WatchData{
-					Key:       key,
-					Value:     k.CurValue,
-					ValueType: k.CurValueType,
-					Version:   k.CurVersion,
+			needreturn := false
+			for key, clientversion := range req.Keys {
+				k, ok := app.Keys[key]
+				if !ok || k == nil || k.CurVersion == 0 {
+					return nil, ecode.ErrKeyNotExist
 				}
-			} else {
-				resp.Datas[key] = &api.WatchData{
-					Key:       key,
-					Value:     "",
-					ValueType: "",
-					Version:   k.CurVersion,
+				if clientversion != k.CurVersion {
+					needreturn = true
+					resp.Datas[key] = &api.WatchData{
+						Key:       key,
+						Value:     k.CurValue,
+						ValueType: k.CurValueType,
+						Version:   k.CurVersion,
+					}
+				} else {
+					resp.Datas[key] = &api.WatchData{
+						Key:       key,
+						Value:     "",
+						ValueType: "",
+						Version:   k.CurVersion,
+					}
 				}
 			}
-		}
-		if needreturn {
-			s.Unlock()
-			return resp, nil
+			if needreturn {
+				return resp, nil
+			}
 		}
 	}
 }
@@ -886,64 +751,29 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 	}
 	projectid := buf.String()
 
-	s.Lock()
-	app, ok := s.apps[projectid+"-"+req.GName+"."+req.AName]
-	if !ok {
-		s.Unlock()
-		return nil, ecode.ErrAppNotExist
-	}
 	if req.Path[0] != '/' {
 		req.Path = "/" + req.Path
 	}
-	pathinfo, ok := app.Paths[req.Path]
-	if !ok {
-		s.Unlock()
-		return nil, ecode.ErrProxyPathNotExist
-	}
-	c, ok := s.clients[projectid+"-"+req.GName+"."+req.AName]
-	if !ok {
-		projectname, e := s.initializeDao.MongoGetProjectNameByID(ctx, projectid)
-		if e != nil {
-			log.Error(ctx, "[Proxy] get project name failed", map[string]interface{}{"project_id": projectid, "error": e})
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	pcheck := func(cctx context.Context, nodeid string, read, write, admin bool) error {
+		if operator.IsZero() || (!read && !write && !admin) {
+			return nil
 		}
-		di, e := discover.NewDNSDiscover(projectname, req.GName, req.AName, req.AName+"-headless."+projectname+"-"+req.GName, time.Second*10, 9000, 10000, 8000)
-		if e != nil {
-			log.Error(ctx, "[Proxy] new dns discover failed", map[string]interface{}{"project": projectname, "group": req.GName, "app": req.AName, "error": e})
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-		}
-		client, e := crpc.NewCrpcClient(dao.GetCrpcClientConfig(), di, model.Project, model.Group, model.Name, projectname, req.GName, req.AName, nil)
-		if e != nil {
-			log.Error(ctx, "[Proxy] new crpc client failed", map[string]interface{}{"project_id": projectid, "group": req.GName, "app": req.AName, "error": e})
-			s.Unlock()
-			return nil, ecode.ErrSystem
-		}
-		c = &clientinfo{
-			di:     di,
-			client: client,
-		}
-		s.clients[projectid+"-"+req.GName+"."+req.AName] = c
-	}
-	s.clientsActive[projectid+"-"+req.GName+"."+req.AName] = time.Now().UnixNano()
-	s.Unlock()
-	if !operator.IsZero() && (pathinfo.PermissionRead || pathinfo.PermissionWrite || pathinfo.PermissionAdmin) {
 		//permission check
-		canread, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, pathinfo.PermissionNodeID, true)
+		canread, canwrite, canadmin, e := s.permissionDao.MongoGetUserPermission(cctx, operator, nodeid, true)
 		if e != nil {
-			log.Error(ctx, "[Proxy] get operator's permission info failed", map[string]interface{}{"operator": md["Token-User"], "nodeid": pathinfo.PermissionNodeID, "error": e})
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+			log.Error(ctx, "[Proxy] get operator's permission info failed", map[string]interface{}{"operator": md["Token-User"], "nodeid": nodeid, "error": e})
+			return ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
-		if pathinfo.PermissionAdmin && !admin {
-			return nil, ecode.ErrPermission
-		} else if pathinfo.PermissionWrite && !canwrite && !admin {
-			return nil, ecode.ErrPermission
-		} else if pathinfo.PermissionRead && !canread && !admin {
-			return nil, ecode.ErrPermission
+		if admin && !canadmin {
+			return ecode.ErrPermission
+		} else if write && !canwrite && !canadmin {
+			return ecode.ErrPermission
+		} else if read && !canread && !canadmin {
+			return ecode.ErrPermission
 		}
+		return nil
 	}
-
-	//logic
-	out, e := c.client.Call(ctx, req.Path, common.Str2byte(req.Data), metadata.GetMetadata(ctx))
+	out, e := config.Sdk.CallByPrjoectID(ctx, projectid, req.GName, req.AName, req.Path, common.Str2byte(req.Data), pcheck)
 	if e != nil {
 		log.Error(ctx, "[Proxy] call server failed", map[string]interface{}{"operator": md["Token-User"], "project_id": projectid, "group": req.GName, "app": req.AName, "path": req.Path, "reqdata": req.Data, "error": e})
 		return nil, e
@@ -954,13 +784,5 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 
 // Stop -
 func (s *Service) Stop() {
-	s.stop.Close(func() {
-		s.Lock()
-		for _, notices := range s.notices {
-			for n := range notices {
-				close(n)
-			}
-		}
-		s.Unlock()
-	}, nil)
+	s.stop.Close(nil, nil)
 }

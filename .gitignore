@@ -1,5 +1,9 @@
 *
 !.gitignore
+!/initinternal/
+!/initinternal/*
+!/initinternal/**/
+!/initinternal/**/*
 !/sdk/
 !/sdk/*
 !/sdk/**/

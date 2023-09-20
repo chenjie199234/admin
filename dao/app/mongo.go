@@ -5,16 +5,13 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"strconv"
-	"time"
 
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/util"
 
-	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/util/common"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
@@ -60,7 +57,7 @@ func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, projectid, gname, an
 	}
 	return appsummary.PermissionNodeID, nil
 }
-func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secret string) (nodeid string, e error) {
+func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secret, discovermode, kubernetesns, kubernetesls, dnshost string, dnsinterval uint32, staticaddrs []string) (nodeid string, e error) {
 	if len(secret) >= 32 {
 		return "", ecode.ErrSecretLength
 	}
@@ -81,6 +78,13 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 			s.AbortTransaction(sctx)
 		}
 	}()
+	projectindex := &model.ProjectIndex{}
+	if e = d.mongo.Database("permission").Collection("projectindex").FindOne(sctx, bson.M{"project_id": projectid}).Decode(projectindex); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrProjectNotExist
+		}
+		return
+	}
 	parent := &model.Node{}
 	if e = d.mongo.Database("permission").Collection("node").FindOneAndUpdate(sctx, bson.M{"node_id": projectid + model.AppControl}, bson.M{"$inc": bson.M{"cur_node_index": 1}}).Decode(parent); e != nil {
 		if e == mongo.ErrNoDocuments {
@@ -101,10 +105,17 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 	rand.Read(nonce)
 	if _, e = d.mongo.Database("app").Collection("config").InsertOne(sctx, &model.AppSummary{
 		ProjectID:        projectid,
+		ProjectName:      projectindex.ProjectName,
 		Group:            gname,
 		App:              aname,
 		Key:              "",
 		Index:            0,
+		DiscoverMode:     discovermode,
+		KubernetesNs:     kubernetesns,
+		KubernetesLS:     kubernetesls,
+		DnsHost:          dnshost,
+		DnsInterval:      dnsinterval,
+		StaticAddrs:      staticaddrs,
 		Paths:            map[string]*model.ProxyPath{},
 		Keys:             map[string]*model.KeySummary{},
 		Value:            util.SignMake(secret, nonce),
@@ -653,110 +664,6 @@ func (d *Dao) MongoDelProxyPath(ctx context.Context, projectid, gname, aname, se
 	}
 	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, delfilter)
 	return
-}
-
-// first key groupname,second key appname,value curconfig
-type WatchDropCollectionHandler func()
-type WatchUpdateHandler func(*model.AppSummary)
-type WatchDeleteConfigHandler func(id string)
-
-func (d *Dao) MongoWatchConfig(drop WatchDropCollectionHandler, update WatchUpdateHandler, delC WatchDeleteConfigHandler, initall map[string]*model.AppSummary) error {
-	starttime := &primitive.Timestamp{T: uint32(time.Now().Unix()) - 1, I: uint32(0)}
-	watchfilter := mongo.Pipeline{bson.D{primitive.E{Key: "$match", Value: bson.M{"ns.db": "app", "ns.coll": "config"}}}}
-
-	if e := d.mongoGetAll(initall); e != nil {
-		return e
-	}
-	go func() {
-		var stream *mongo.ChangeStream
-		for {
-			for stream == nil {
-				//connect
-				var e error
-				if stream, e = d.mongo.Watch(context.Background(), watchfilter, options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(starttime)); e != nil {
-					log.Error(nil, "[dao.MongoWatchConfig] connect failed", map[string]interface{}{"error": e})
-					stream = nil
-					time.Sleep(time.Millisecond * 100)
-					continue
-				}
-			}
-			for stream.Next(context.Background()) {
-				starttime.T, starttime.I = stream.Current.Lookup("clusterTime").Timestamp()
-				starttime.I++
-				switch stream.Current.Lookup("operationType").StringValue() {
-				case "drop":
-					//drop collection
-					log.Error(nil, "[config.MongoWatchConfig] all configs deleted", nil)
-					drop()
-				case "insert":
-					//insert document
-					fallthrough
-				case "update":
-					//update document
-					projectid, pok := stream.Current.Lookup("fullDocument").Document().Lookup("project_id").StringValueOK()
-					gname, gok := stream.Current.Lookup("fullDocument").Document().Lookup("group").StringValueOK()
-					aname, aok := stream.Current.Lookup("fullDocument").Document().Lookup("app").StringValueOK()
-					key, kok := stream.Current.Lookup("fullDocument").Document().Lookup("key").StringValueOK()
-					index, iok := stream.Current.Lookup("fullDocument").Document().Lookup("index").AsInt64OK()
-					if !pok || !gok || !aok || !kok || !iok {
-						//unknown doc
-						continue
-					}
-					if key != "" || index != 0 {
-						//this is not the app summary
-						continue
-					}
-					//this is the app summary
-					s := &model.AppSummary{}
-					if e := stream.Current.Lookup("fullDocument").Unmarshal(s); e != nil {
-						log.Error(nil, "[dao.MongoWatchConfig] document format wrong", map[string]interface{}{"project_id": projectid, "group": gname, "app": aname, "error": e})
-						continue
-					}
-					//decode proxy path
-					if e := decodeProxyPath(s); e != nil {
-						log.Error(nil, "[dao.MongoWatchConfig] db data broken", map[string]interface{}{"project_id": projectid, "group": gname, "app": aname, "error": e})
-						continue
-					}
-					update(s)
-				case "delete":
-					//delete document
-					delC(stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex())
-				}
-			}
-			if stream.Err() != nil {
-				log.Error(nil, "[dao.MongoWatchConfig] stream disconnected", map[string]interface{}{"error": stream.Err()})
-			}
-			stream.Close(context.Background())
-			stream = nil
-		}
-	}()
-	return nil
-}
-
-// this function can't guarantee atomic
-// this function can only be used in MongoWatchConfig function
-func (d *Dao) mongoGetAll(initall map[string]*model.AppSummary) error {
-	if initall == nil {
-		return nil
-	}
-	filter := bson.M{"key": "", "index": 0}
-	var cursor *mongo.Cursor
-	cursor, e := d.mongo.Database("app").Collection("config").Find(context.Background(), filter)
-	if e != nil {
-		return e
-	}
-	defer cursor.Close(context.Background())
-	tmp := make([]*model.AppSummary, 0, cursor.RemainingBatchLength())
-	if e := cursor.All(context.Background(), &tmp); e != nil {
-		return e
-	}
-	for _, v := range tmp {
-		if e := decodeProxyPath(v); e != nil {
-			return e
-		}
-		initall[v.GetFullName()] = v
-	}
-	return nil
 }
 
 // this function will not decrypt

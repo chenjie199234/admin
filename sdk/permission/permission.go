@@ -6,7 +6,6 @@ import (
 	"errors"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/chenjie199234/admin/api"
 
@@ -37,16 +36,11 @@ func NewPermissionSdk(selfprojectname, selfappgroup, selfappname string, tlsc *t
 	if e != nil {
 		return nil, e
 	}
-	di, e := discover.NewDirectDiscover(serverprojectname, group, "admin", host, 0, 0, port)
+	di, e := discover.NewStaticDiscover(serverprojectname, group, "admin", []string{host}, 0, 0, port)
 	if e != nil {
 		return nil, e
 	}
-	tmpclient, e := web.NewWebClient(&web.ClientConfig{
-		ConnectTimeout: time.Second * 3,
-		GlobalTimeout:  0,
-		HeartProbe:     time.Second * 3,
-		IdleTimeout:    time.Second * 10,
-	}, di, selfprojectname, selfappgroup, selfappname, serverprojectname, group, "admin", tlsc)
+	tmpclient, e := web.NewWebClient(nil, di, selfprojectname, selfappgroup, selfappname, serverprojectname, group, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}

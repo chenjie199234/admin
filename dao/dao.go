@@ -1,15 +1,12 @@
 package dao
 
 import (
-	"time"
-
-	//"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/config"
-
-	"github.com/chenjie199234/Corelib/cgrpc"
-	"github.com/chenjie199234/Corelib/crpc"
-	"github.com/chenjie199234/Corelib/web"
+	// "github.com/chenjie199234/admin/model"
 	// "github.com/chenjie199234/Corelib/discover"
+	// "github.com/chenjie199234/Corelib/cgrpc"
+	// "github.com/chenjie199234/Corelib/crpc"
+	// "github.com/chenjie199234/Corelib/web"
 )
 
 //var ExampleCGrpcApi example.ExampleCGrpcClient
@@ -24,7 +21,7 @@ func NewApi() error {
 	//	return e
 	//}
 
-	cgrpcc := GetCGrpcClientConfig()
+	cgrpcc := config.GetCGrpcClientConfig().ClientConfig
 	_ = cgrpcc //avoid unuse
 
 	//init cgrpc client below
@@ -34,7 +31,7 @@ func NewApi() error {
 	//}
 	//ExampleCGrpcApi = example.NewExampleCGrpcClient(examplecgrpc)
 
-	crpcc := GetCrpcClientConfig()
+	crpcc := config.GetCrpcClientConfig().ClientConfig
 	_ = crpcc //avoid unuse
 
 	//init crpc client below
@@ -44,7 +41,7 @@ func NewApi() error {
 	//}
 	//ExampleCrpcApi = example.NewExampleCrpcClient(examplecrpc)
 
-	webc := GetWebClientConfig()
+	webc := config.GetWebClientConfig().ClientConfig
 	_ = webc //avoid unuse
 
 	//init web client below
@@ -59,33 +56,4 @@ func NewApi() error {
 
 func UpdateAPI(ac *config.AppConfig) {
 
-}
-
-func GetCGrpcClientConfig() *cgrpc.ClientConfig {
-	gc := config.GetCGrpcClientConfig()
-	return &cgrpc.ClientConfig{
-		ConnectTimeout: time.Duration(gc.ConnectTimeout),
-		GlobalTimeout:  time.Duration(gc.GlobalTimeout),
-		HeartProbe:     time.Duration(gc.HeartProbe),
-	}
-}
-
-func GetCrpcClientConfig() *crpc.ClientConfig {
-	rc := config.GetCrpcClientConfig()
-	return &crpc.ClientConfig{
-		ConnectTimeout: time.Duration(rc.ConnectTimeout),
-		GlobalTimeout:  time.Duration(rc.GlobalTimeout),
-		HeartProbe:     time.Duration(rc.HeartProbe),
-	}
-}
-
-func GetWebClientConfig() *web.ClientConfig {
-	wc := config.GetWebClientConfig()
-	return &web.ClientConfig{
-		ConnectTimeout: time.Duration(wc.ConnectTimeout),
-		GlobalTimeout:  time.Duration(wc.GlobalTimeout),
-		IdleTimeout:    time.Duration(wc.IdleTimeout),
-		HeartProbe:     time.Duration(wc.HeartProbe),
-		MaxHeader:      2048,
-	}
 }

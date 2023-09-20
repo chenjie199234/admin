@@ -15,6 +15,11 @@
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
+		"/admin.initialize/update_project":{
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
+		},
 		"/admin.app/del_app":{
 			"POST":"0s",
 			"CRPC":"0s",

@@ -8,8 +8,8 @@ import (
 
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
-	"github.com/chenjie199234/admin/util"
 
+	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/common"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,15 +25,12 @@ func (d *Dao) MongoGetApp(ctx context.Context, projectid, gname, aname, secret s
 		return nil, e
 	}
 	// check sign
-	if e := util.SignCheck(secret, appsummary.Value); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrWrongSecret
-		}
+	if e := secure.SignCheck(secret, appsummary.Value); e != nil {
 		return nil, e
 	}
 	if secret != "" {
 		for _, keysummary := range appsummary.Keys {
-			plaintext, e := util.Decrypt(secret, keysummary.CurValue)
+			plaintext, e := secure.AesDecrypt(secret, keysummary.CurValue)
 			if e != nil {
 				return nil, e
 			}
@@ -72,8 +69,10 @@ func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, projectid, gname, an
 	return appsummary.PermissionNodeID, nil
 }
 func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secret, discovermode, kubernetesns, kubernetesls, dnshost string, dnsinterval uint32, staticaddrs []string) (nodeid string, e error) {
-	if len(secret) >= 32 {
-		return "", ecode.ErrSecretLength
+	var sign string
+	sign, e = secure.SignMake(secret)
+	if e != nil {
+		return "", e
 	}
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
@@ -115,8 +114,6 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 	}); e != nil {
 		return
 	}
-	nonce := make([]byte, 32)
-	rand.Read(nonce)
 	if _, e = d.mongo.Database("app").Collection("config").InsertOne(sctx, &model.AppSummary{
 		ProjectID:        projectid,
 		ProjectName:      projectindex.ProjectName,
@@ -132,7 +129,7 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 		StaticAddrs:      staticaddrs,
 		Paths:            map[string]*model.ProxyPath{},
 		Keys:             map[string]*model.KeySummary{},
-		Value:            util.SignMake(secret, nonce),
+		Value:            sign,
 		PermissionNodeID: nodeid,
 	}); e != nil && mongo.IsDuplicateKeyError(e) {
 		e = ecode.ErrAppAlreadyExist
@@ -189,10 +186,7 @@ func (d *Dao) MongoDelApp(ctx context.Context, projectid, gname, aname, secret s
 		}
 		return
 	}
-	if e = util.SignCheck(secret, appsummary.Value); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrWrongSecret
-		}
+	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
 		return
 	}
 	if _, e = d.mongo.Database("app").Collection("config").DeleteMany(sctx, bson.M{"project_id": projectid, "group": gname, "app": aname}); e != nil {
@@ -209,10 +203,12 @@ func (d *Dao) MongoDelApp(ctx context.Context, projectid, gname, aname, secret s
 	return
 }
 func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname, oldsecret, newsecret string) (e error) {
-	if len(oldsecret) >= 32 || len(newsecret) >= 32 {
-		return ecode.ErrSecretLength
-	}
 	if oldsecret == newsecret {
+		return
+	}
+	var sign string
+	sign, e = secure.SignMake(newsecret)
+	if e != nil {
 		return
 	}
 	var s mongo.Session
@@ -242,28 +238,25 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 		return
 	}
 	//check oldsecret
-	if e = util.SignCheck(oldsecret, appsummary.Value); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrWrongSecret
-		}
+	if e = secure.SignCheck(oldsecret, appsummary.Value); e != nil {
 		return
 	}
 	nonce := make([]byte, 32)
 	rand.Read(nonce)
 	updaterSummary := bson.M{
-		"value": util.SignMake(newsecret, nonce),
+		"value": sign,
 	}
 	for key, keysummary := range appsummary.Keys {
 		if oldsecret != "" {
 			var plaintext []byte
-			plaintext, e = util.Decrypt(oldsecret, keysummary.CurValue)
+			plaintext, e = secure.AesDecrypt(oldsecret, keysummary.CurValue)
 			if e != nil {
 				return
 			}
 			keysummary.CurValue = common.Byte2str(plaintext)
 		}
 		if newsecret != "" {
-			updaterSummary["keys."+key+".cur_value"], _ = util.Encrypt(newsecret, common.Str2byte(keysummary.CurValue))
+			updaterSummary["keys."+key+".cur_value"], _ = secure.AesEncrypt(newsecret, common.Str2byte(keysummary.CurValue))
 		} else {
 			updaterSummary["keys."+key+".cur_value"] = keysummary.CurValue
 		}
@@ -284,14 +277,14 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 		}
 		if oldsecret != "" {
 			var plaintext []byte
-			plaintext, e = util.Decrypt(oldsecret, log.Value)
+			plaintext, e = secure.AesDecrypt(oldsecret, log.Value)
 			if e != nil {
 				return
 			}
 			log.Value = common.Byte2str(plaintext)
 		}
 		if newsecret != "" {
-			log.Value, _ = util.Encrypt(newsecret, common.Str2byte(log.Value))
+			log.Value, _ = secure.AesEncrypt(newsecret, common.Str2byte(log.Value))
 		}
 		filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": log.Key, "index": log.Index}
 		updater := bson.M{"$set": bson.M{"value": log.Value}}
@@ -328,14 +321,11 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 			return nil, nil, ecode.ErrKeyNotExist
 		}
 		//check secret
-		if e := util.SignCheck(secret, appsummary.Value); e != nil {
-			if e == ecode.ErrSignCheckFailed {
-				e = ecode.ErrWrongSecret
-			}
+		if e := secure.SignCheck(secret, appsummary.Value); e != nil {
 			return nil, nil, e
 		}
 		if secret != "" {
-			plaintext, e := util.Decrypt(secret, keysummary.CurValue)
+			plaintext, e := secure.AesDecrypt(secret, keysummary.CurValue)
 			if e != nil {
 				return nil, nil, e
 			}
@@ -389,19 +379,16 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 		return nil, nil, ecode.ErrIndexNotExist
 	}
 	//check secret
-	if e := util.SignCheck(secret, appsummary.Value); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrWrongSecret
-		}
+	if e := secure.SignCheck(secret, appsummary.Value); e != nil {
 		return nil, nil, e
 	}
 	if secret != "" {
-		plaintext, e := util.Decrypt(secret, keysummary.CurValue)
+		plaintext, e := secure.AesDecrypt(secret, keysummary.CurValue)
 		if e != nil {
 			return nil, nil, e
 		}
 		keysummary.CurValue = common.Byte2str(plaintext)
-		plaintext, e = util.Decrypt(secret, log.Value)
+		plaintext, e = secure.AesDecrypt(secret, log.Value)
 		if e != nil {
 			return nil, nil, e
 		}
@@ -437,14 +424,11 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 		return
 	}
 	//check secret
-	if e = util.SignCheck(secret, appsummary.Value); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrWrongSecret
-		}
+	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
 		return
 	}
 	if secret != "" {
-		if value, e = util.Encrypt(secret, common.Str2byte(value)); e != nil {
+		if value, e = secure.AesEncrypt(secret, common.Str2byte(value)); e != nil {
 			return
 		}
 	}
@@ -506,10 +490,7 @@ func (d *Dao) MongoDelKey(ctx context.Context, projectid, gname, aname, key, sec
 		}
 		return
 	}
-	if e = util.SignCheck(secret, appsummary.Value); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrWrongSecret
-		}
+	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
 		return
 	}
 	delfilter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": key}
@@ -542,10 +523,7 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, projectid, gname, anam
 		}
 		return
 	}
-	if e = util.SignCheck(secret, appsummary.Value); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrWrongSecret
-		}
+	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
 		return
 	}
 	if len(appsummary.Keys) == 0 {
@@ -614,10 +592,7 @@ func (d *Dao) MongoSetProxyPath(ctx context.Context, projectid, gname, aname, se
 		}
 		return
 	}
-	if e = util.SignCheck(secret, appsummary.Value); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrWrongSecret
-		}
+	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
 		return
 	}
 	addpermission := false
@@ -683,10 +658,7 @@ func (d *Dao) MongoDelProxyPath(ctx context.Context, projectid, gname, aname, se
 		}
 		return
 	}
-	if e = util.SignCheck(secret, appsummary.Value); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrWrongSecret
-		}
+	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
 		return
 	}
 	permissionid := ""

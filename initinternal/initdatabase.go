@@ -3,15 +3,14 @@ package initinternal
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"os"
 
 	"github.com/chenjie199234/admin/model"
-	"github.com/chenjie199234/admin/util"
 
 	"github.com/chenjie199234/Corelib/log"
+	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/common"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -44,8 +43,8 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	appconfig := ""
 	sourceconfig := ""
 	if secret != "" {
-		appconfig, _ = util.Encrypt(secret, bufapp.Bytes())
-		sourceconfig, _ = util.Encrypt(secret, bufsource.Bytes())
+		appconfig, _ = secure.AesEncrypt(secret, bufapp.Bytes())
+		sourceconfig, _ = secure.AesEncrypt(secret, bufsource.Bytes())
 	} else {
 		appconfig = common.Byte2str(bufapp.Bytes())
 		sourceconfig = common.Byte2str(bufsource.Bytes())
@@ -196,7 +195,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	if existProjectIndex.ProjectName != "" {
 		//project exist,the app should exist too
 		//check secret
-		if e = util.SignCheck(secret, existAppSummary.Value); e != nil {
+		if e = secure.SignCheck(secret, existAppSummary.Value); e != nil {
 			log.Error(nil, "[InitSelf] secret check failed", map[string]interface{}{
 				"project_id": model.AdminProjectID,
 				"group":      model.Group,
@@ -274,8 +273,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	}
 	//init app
 	docs = docs[0:0]
-	nonce := make([]byte, 32)
-	rand.Read(nonce)
+	sign, _ := secure.SignMake(secret)
 	//summary
 	docs = append(docs, &model.AppSummary{
 		ProjectID: model.AdminProjectID,
@@ -300,7 +298,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 				CurValueType: "json",
 			},
 		},
-		Value:            util.SignMake(secret, nonce),
+		Value:            sign,
 		PermissionNodeID: model.AdminProjectID + model.AppControl + ",1",
 	})
 	//AppConfig

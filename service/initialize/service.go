@@ -15,6 +15,7 @@ import (
 	"github.com/chenjie199234/Corelib/metadata"
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	"github.com/chenjie199234/Corelib/pool"
+	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/graceful"
 	"github.com/chenjie199234/Corelib/util/name"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -70,10 +71,8 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 		log.Error(ctx, "[RootLogin] db op failed", map[string]interface{}{"error": e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	if e := util.SignCheck(req.Password, user.Password); e != nil {
-		if e == ecode.ErrSignCheckFailed {
-			e = ecode.ErrPasswordWrong
-		} else if e == ecode.ErrDataBroken {
+	if e := secure.SignCheck(req.Password, user.Password); e != nil {
+		if e == ecode.ErrDataBroken {
 			e = ecode.ErrDBDataBroken
 		}
 		log.Error(ctx, "[RootLogin] sign check failed", map[string]interface{}{"error": e})

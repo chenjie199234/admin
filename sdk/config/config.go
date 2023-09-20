@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/chenjie199234/admin/api"
-	"github.com/chenjie199234/admin/util"
 
 	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/log"
+	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/web"
 )
@@ -143,7 +143,7 @@ func (instance *Sdk) watch(selfprojectname, selfappgroup, selfappname string) {
 				continue
 			}
 			if instance.secret != "" {
-				plaintext, e := util.Decrypt(instance.secret, data.Value)
+				plaintext, e := secure.AesDecrypt(instance.secret, data.Value)
 				if e != nil {
 					broken = true
 					log.Error(nil, "[config.sdk.watch] decrypt keys's value failed", map[string]interface{}{"key": data.Key, "error": e})

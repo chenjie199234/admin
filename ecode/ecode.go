@@ -8,11 +8,13 @@ import (
 
 var (
 	ErrServerClosing     = cerror.ErrServerClosing     //1000  // http code 449 Warning!! Client will retry on this error,be careful to use this error
-	ErrDBDataConflict    = cerror.ErrDBDataConflict    //9001  // http code 500
-	ErrDBDataBroken      = cerror.ErrDBDataBroken      //9002  // http code 500
-	ErrCacheDataConflict = cerror.ErrCacheDataConflict //9101  // http code 500
-	ErrCacheDataBroken   = cerror.ErrCacheDataBroken   //9102  // http code 500
-	ErrMQDataBroken      = cerror.ErrMQDataBroken      //9201  // http code 500
+	ErrDataConflict      = cerror.ErrDataConflict      //9001  // http code 500
+	ErrDataBroken        = cerror.ErrDataBroken        //9002  // http code 500
+	ErrDBDataConflict    = cerror.ErrDBDataConflict    //9101  // http code 500
+	ErrDBDataBroken      = cerror.ErrDBDataBroken      //9102  // http code 500
+	ErrCacheDataConflict = cerror.ErrCacheDataConflict //9201  // http code 500
+	ErrCacheDataBroken   = cerror.ErrCacheDataBroken   //9202  // http code 500
+	ErrMQDataBroken      = cerror.ErrMQDataBroken      //9301  // http code 500
 	ErrUnknown           = cerror.ErrUnknown           //10000 // http code 500
 	ErrReq               = cerror.ErrReq               //10001 // http code 400
 	ErrResp              = cerror.ErrResp              //10002 // http code 500
@@ -26,13 +28,13 @@ var (
 	ErrBan               = cerror.ErrBan               //10010 // http code 403
 	ErrBusy              = cerror.ErrBusy              //10011 // http code 503
 	ErrNotExist          = cerror.ErrNotExist          //10012 // http code 404
+	ErrPasswordWrong     = cerror.ErrPasswordWrong     //10013 // http code 400
+	ErrPasswordLength    = cerror.ErrPasswordLength    //10014 // http code 400
 
 	ErrNotInited           = cerror.MakeError(20001, http.StatusBadRequest, "not inited")
 	ErrAlreadyInited       = cerror.MakeError(20002, http.StatusBadRequest, "already inited")
-	ErrPasswordLength      = cerror.MakeError(20003, http.StatusBadRequest, "password length must less then 32")
-	ErrPasswordWrong       = cerror.MakeError(20004, http.StatusBadRequest, "password wrong")
-	ErrProjectNotExist     = cerror.MakeError(20005, http.StatusBadRequest, "project doesn't exist")
-	ErrProjectAlreadyExist = cerror.MakeError(20006, http.StatusBadRequest, "project already exist")
+	ErrProjectNotExist     = cerror.MakeError(20003, http.StatusBadRequest, "project doesn't exist")
+	ErrProjectAlreadyExist = cerror.MakeError(20004, http.StatusBadRequest, "project already exist")
 
 	ErrAppNotExist           = cerror.MakeError(20010, http.StatusBadRequest, "app doesn't exist")
 	ErrAppPermissionMissing  = cerror.MakeError(20011, http.StatusBadRequest, "app's permission node id missing")
@@ -40,12 +42,8 @@ var (
 	ErrAppAlreadyExist       = cerror.MakeError(20013, http.StatusBadRequest, "app already exist")
 	ErrKeyAlreadyExist       = cerror.MakeError(20014, http.StatusBadRequest, "key already exist")
 	ErrIndexNotExist         = cerror.MakeError(20015, http.StatusBadRequest, "config index doesn't exist")
-	ErrWrongSecret           = cerror.MakeError(20016, http.StatusBadRequest, "wrong secret")
-	ErrSecretLength          = cerror.MakeError(20017, http.StatusBadRequest, "secret length must less then 32")
-	ErrDataBroken            = cerror.MakeError(20018, http.StatusInternalServerError, "data broken")
-	ErrSignCheckFailed       = cerror.MakeError(20019, http.StatusBadRequest, "sign check failed")
-	ErrProxyPathNotExist     = cerror.MakeError(20020, http.StatusBadRequest, "proxy path doesn't exist")
-	ErrProxyPathAlreadyExist = cerror.MakeError(20021, http.StatusBadRequest, "proxy path already exist")
+	ErrProxyPathNotExist     = cerror.MakeError(20016, http.StatusBadRequest, "proxy path doesn't exist")
+	ErrProxyPathAlreadyExist = cerror.MakeError(20017, http.StatusBadRequest, "proxy path already exist")
 
 	ErrNodeNotExist       = cerror.MakeError(20100, http.StatusBadRequest, "node not exist")
 	ErrPNodeNotExist      = cerror.MakeError(20101, http.StatusBadRequest, "parent node not exist")

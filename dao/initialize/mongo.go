@@ -8,8 +8,8 @@ import (
 
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
-	"github.com/chenjie199234/admin/util"
 
+	"github.com/chenjie199234/Corelib/secure"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -39,12 +39,11 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 			s.AbortTransaction(sctx)
 		}
 	}()
-	nonce := make([]byte, 16)
-	rand.Read(nonce)
+	sign, _ := secure.SignMake(password)
 	if _, e = d.mongo.Database("user").Collection("user").InsertOne(sctx, &model.User{
 		ID:         primitive.NilObjectID,
 		UserName:   "superadmin",
-		Password:   util.SignMake(password, nonce),
+		Password:   sign,
 		Department: []string{},
 		Roles:      []string{},
 		ProjectIDs: []string{},
@@ -103,17 +102,15 @@ func (d *Dao) MongoUpdateRootPassword(ctx context.Context, oldpassword, newpassw
 	rand.Read(nonce)
 	user := &model.User{}
 	filter := bson.M{"_id": primitive.NilObjectID}
-	updater := bson.M{"password": util.SignMake(newpassword, nonce)}
+	sign, _ := secure.SignMake(newpassword)
+	updater := bson.M{"password": sign}
 	if e = d.mongo.Database("user").Collection("user").FindOneAndUpdate(sctx, filter, bson.M{"$set": updater}).Decode(user); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrNotInited
 		}
 		return
 	}
-	e = util.SignCheck(oldpassword, user.Password)
-	if e == ecode.ErrSignCheckFailed {
-		e = ecode.ErrPasswordWrong
-	}
+	e = secure.SignCheck(oldpassword, user.Password)
 	return
 }
 func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata string) (projectid string, e error) {

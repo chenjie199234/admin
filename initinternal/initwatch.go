@@ -262,7 +262,10 @@ func (s *InternalSdk) watch() {
 				delete(s.appsIDIndex, exist.summary.ProjectID+"-"+exist.summary.Group+"."+exist.summary.App)
 				exist.Lock()
 				s.lker.Unlock()
-				log.Debug(nil, "[del]", map[string]interface{}{"project_id": exist.summary.ProjectID, "group": exist.summary.Group, "app": exist.summary.App})
+				log.Debug(nil, "[InitWatch] deleted", map[string]interface{}{
+					"project_id": exist.summary.ProjectID,
+					"group":      exist.summary.Group,
+					"app":        exist.summary.App})
 				exist.delstatus = true
 				for notice := range exist.notices {
 					delete(exist.notices, notice)

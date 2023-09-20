@@ -54,7 +54,10 @@ func Init(notice func(c *AppConfig)) {
 			os.Exit(1)
 		}
 		for {
-			<-ch
+			_, ok := <-ch
+			if !ok {
+				return
+			}
 			app, e := Sdk.GetAppConfigByProjectID(model.AdminProjectID, model.Group, model.Name)
 			if e != nil {
 				log.Error(nil, "[config.Init] get app config failed", map[string]interface{}{"error": e})
@@ -87,8 +90,9 @@ func Init(notice func(c *AppConfig)) {
 				if notice != nil {
 					notice(c)
 				}
-				log.Info(nil, "[config.Init] update success", map[string]interface{}{"config": c})
+				log.Info(nil, "[config.Init] update app config success", map[string]interface{}{"config": c})
 				AC = c
+				appversion = appkey.CurVersion
 				select {
 				case appch <- nil:
 				default:
@@ -101,8 +105,9 @@ func Init(notice func(c *AppConfig)) {
 					log.Error(nil, "[config.Init] key: SourceConfig data format wrong", map[string]interface{}{"error": e})
 					continue
 				}
-				log.Info(nil, "[config.remote.source] update success", map[string]interface{}{"config": sc})
+				log.Info(nil, "[config.remote.source] update source config success", map[string]interface{}{"config": c})
 				sc = c
+				sourceversion = sourcekey.CurVersion
 				initsource()
 				select {
 				case sourcech <- nil:

@@ -54,6 +54,7 @@ func StartWebServer() {
 	//example
 	//api.RegisterExampleWebServer(r, service.SvcExample, mids.AllMids())
 
+	s.SetRouter(r)
 	if e = s.StartWebServer(":8000"); e != nil && e != web.ErrServerClosed {
 		log.Error(nil, "[xweb] start server failed", map[string]interface{}{"error": e})
 		return

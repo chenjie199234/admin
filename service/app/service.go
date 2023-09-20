@@ -84,7 +84,7 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 				"group":      req.GName,
 				"app":        req.AName,
 				"nodeid":     nodeid})
-			return nil, ecode.ErrDataBroken
+			return nil, ecode.ErrDBDataBroken
 		}
 		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {
@@ -140,7 +140,7 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 				"path":       k,
 				"nodeid":     v.PermissionNodeID,
 				"error":      e})
-			return nil, ecode.ErrDataBroken
+			return nil, ecode.ErrDBDataBroken
 		}
 		resp.Paths[k] = &api.ProxyPathInfo{
 			NodeId: nodeid,
@@ -152,34 +152,34 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 	return resp, nil
 }
 
-func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.CreateAppResp, error) {
+func (s *Service) SetApp(ctx context.Context, req *api.SetAppReq) (*api.SetAppResp, error) {
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[CreateApp] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[SetApp] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
 		return nil, ecode.ErrToken
 	}
 	if e := name.SingleCheck(req.GName, false); e != nil {
-		log.Error(ctx, "[CreateApp] group name format wrong", map[string]interface{}{"operator": md["Token-User"], "group": req.GName})
+		log.Error(ctx, "[SetApp] group name format wrong", map[string]interface{}{"operator": md["Token-User"], "group": req.GName})
 		return nil, ecode.ErrReq
 	}
 	if e := name.SingleCheck(req.AName, false); e != nil {
-		log.Error(ctx, "[CreateApp] app name format wrong", map[string]interface{}{"operator": md["Token-User"], "app": req.AName})
+		log.Error(ctx, "[SetApp] app name format wrong", map[string]interface{}{"operator": md["Token-User"], "app": req.AName})
 		return nil, ecode.ErrReq
 	}
 	switch req.DiscoverMode {
 	case "kubernetes":
 		if req.KubernetesNamespace == "" {
-			log.Error(ctx, "[CreateApp] kubernetes namesapce empty", map[string]interface{}{"operator": md["Token-User"]})
+			log.Error(ctx, "[SetApp] kubernetes namesapce empty", map[string]interface{}{"operator": md["Token-User"]})
 			return nil, ecode.ErrReq
 		}
 		if req.KubernetesLabelselector == "" {
-			log.Error(ctx, "[CreateApp] kubernetes labelselector empty", map[string]interface{}{"operator": md["Token-User"]})
+			log.Error(ctx, "[SetApp] kubernetes labelselector empty", map[string]interface{}{"operator": md["Token-User"]})
 			return nil, ecode.ErrReq
 		}
 	case "dns":
 		if req.DnsHost == "" {
-			log.Error(ctx, "[CreateApp] dns host empty", map[string]interface{}{"operator": md["Token-User"]})
+			log.Error(ctx, "[SetApp] dns host empty", map[string]interface{}{"operator": md["Token-User"]})
 			return nil, ecode.ErrReq
 		}
 		if req.DnsInterval == 0 {
@@ -187,7 +187,7 @@ func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.Cr
 		}
 	case "static":
 		if len(req.StaticAddrs) == 0 {
-			log.Error(ctx, "[CreateApp] static addrs empty", map[string]interface{}{"operator": md["Token-User"]})
+			log.Error(ctx, "[SetApp] static addrs empty", map[string]interface{}{"operator": md["Token-User"]})
 			return nil, ecode.ErrReq
 		}
 	}
@@ -206,7 +206,7 @@ func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.Cr
 		//config control permission check
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.AppControl, true)
 		if e != nil {
-			log.Error(ctx, "[CreateApp] get operator's permission info failed", map[string]interface{}{
+			log.Error(ctx, "[SetApp] get operator's permission info failed", map[string]interface{}{
 				"operator": md["Token-User"],
 				"nodeid":   projectid + model.AppControl,
 				"error":    e})
@@ -218,9 +218,14 @@ func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.Cr
 	}
 
 	//logic
-	nodeidstr, e := s.appDao.MongoCreateApp(ctx, projectid, req.GName, req.AName, req.Secret, req.DiscoverMode, req.KubernetesNamespace, req.KubernetesLabelselector, req.DnsHost, req.DnsInterval, req.StaticAddrs)
+	var nodeidstr string
+	if req.NewApp {
+		nodeidstr, e = s.appDao.MongoCreateApp(ctx, projectid, req.GName, req.AName, req.Secret, req.DiscoverMode, req.KubernetesNamespace, req.KubernetesLabelselector, req.DnsHost, req.DnsInterval, req.StaticAddrs)
+	} else {
+		nodeidstr, e = s.appDao.MongoUpdateApp(ctx, projectid, req.GName, req.AName, req.Secret, req.DiscoverMode, req.KubernetesNamespace, req.KubernetesLabelselector, req.DnsHost, req.DnsInterval, req.StaticAddrs)
+	}
 	if e != nil {
-		log.Error(ctx, "[CreateApp] db op failed", map[string]interface{}{
+		log.Error(ctx, "[SetApp] db op failed", map[string]interface{}{
 			"operator":   md["Token-User"],
 			"project_id": projectid,
 			"group":      req.GName,
@@ -228,13 +233,21 @@ func (s *Service) CreateApp(ctx context.Context, req *api.CreateAppReq) (*api.Cr
 			"error":      e})
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	nodeid, _ := util.ParseNodeIDstr(nodeidstr)
-	log.Info(ctx, "[CreateApp] success", map[string]interface{}{
+	nodeid, e := util.ParseNodeIDstr(nodeidstr)
+	if e != nil {
+		log.Error(ctx, "[SetApp] nodeid format wrong", map[string]interface{}{
+			"operator":   md["Token-User"],
+			"project_id": projectid,
+			"group":      req.GName,
+			"app":        req.AName,
+			"error":      ecode.ErrDBDataBroken})
+	}
+	log.Info(ctx, "[SetApp] success", map[string]interface{}{
 		"operator":   md["Token-User"],
 		"project_id": projectid,
 		"group":      req.GName,
 		"app":        req.AName})
-	return &api.CreateAppResp{NodeId: nodeid}, nil
+	return &api.SetAppResp{NodeId: nodeid}, nil
 }
 
 func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppResp, error) {
@@ -273,7 +286,7 @@ func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppRe
 			"group":      req.GName,
 			"app":        req.AName,
 			"nodeid":     nodeid})
-		return nil, ecode.ErrDataBroken
+		return nil, ecode.ErrDBDataBroken
 	}
 	//self can't be deleted
 	if nodeids[1] == "1" && nodeids[3] == "1" {
@@ -360,7 +373,7 @@ func (s *Service) UpdateAppSecret(ctx context.Context, req *api.UpdateAppSecretR
 				"group":      req.GName,
 				"app":        req.AName,
 				"nodeid":     nodeid})
-			return nil, ecode.ErrDataBroken
+			return nil, ecode.ErrDBDataBroken
 		}
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {
@@ -432,7 +445,7 @@ func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyRe
 			"group":      req.GName,
 			"app":        req.AName,
 			"nodeid":     nodeid})
-		return nil, ecode.ErrDataBroken
+		return nil, ecode.ErrDBDataBroken
 	}
 	if nodeids[1] == "1" && nodeids[3] == "1" && (req.Key == "AppConfig" || req.Key == "SourceConfig") {
 		log.Error(ctx, "[DelKey] can't delete self's 'AppConfig' or 'SourceConfig' key", map[string]interface{}{
@@ -519,7 +532,7 @@ func (s *Service) GetKeyConfig(ctx context.Context, req *api.GetKeyConfigReq) (*
 				"group":      req.GName,
 				"app":        req.AName,
 				"nodeid":     nodeid})
-			return nil, ecode.ErrDataBroken
+			return nil, ecode.ErrDBDataBroken
 		}
 		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {
@@ -652,7 +665,7 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 				"group":      req.GName,
 				"app":        req.AName,
 				"nodeid":     nodeid})
-			return nil, ecode.ErrDataBroken
+			return nil, ecode.ErrDBDataBroken
 		}
 		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {
@@ -731,7 +744,7 @@ func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.Roll
 				"group":      req.GName,
 				"app":        req.AName,
 				"nodeid":     nodeid})
-			return nil, ecode.ErrDataBroken
+			return nil, ecode.ErrDBDataBroken
 		}
 		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {
@@ -876,7 +889,7 @@ func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetP
 				"group":      req.GName,
 				"app":        req.AName,
 				"nodeid":     nodeid})
-			return nil, ecode.ErrDataBroken
+			return nil, ecode.ErrDBDataBroken
 		}
 		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {
@@ -955,7 +968,7 @@ func (s *Service) DelProxy(ctx context.Context, req *api.DelProxyReq) (*api.DelP
 				"group":      req.GName,
 				"app":        req.AName,
 				"nodeid":     nodeid})
-			return nil, ecode.ErrDataBroken
+			return nil, ecode.ErrDBDataBroken
 		}
 		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
 		if e != nil {

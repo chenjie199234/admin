@@ -7,20 +7,25 @@ import (
 )
 
 var (
-	ErrServerClosing = cerror.ErrServerClosing //1000  // http code 449 Warning!! Client will retry on this error,be careful to use this error
-	ErrUnknown       = cerror.ErrUnknown       //10000 // http code 500
-	ErrReq           = cerror.ErrReq           //10001 // http code 400
-	ErrResp          = cerror.ErrResp          //10002 // http code 500
-	ErrSystem        = cerror.ErrSystem        //10003 // http code 500
-	ErrToken         = cerror.ErrToken         //10004 // http code 401
-	ErrSession       = cerror.ErrSession       //10005 // http code 401
-	ErrKey           = cerror.ErrKey           //10006 // http code 401
-	ErrSign          = cerror.ErrSign          //10007 // http code 401
-	ErrPermission    = cerror.ErrPermission    //10008 // http code 403
-	ErrTooFast       = cerror.ErrTooFast       //10009 // http code 403
-	ErrBan           = cerror.ErrBan           //10010 // http code 403
-	ErrBusy          = cerror.ErrBusy          //10011 // http code 503
-	ErrNotExist      = cerror.ErrNotExist      //10012 // http code 404
+	ErrServerClosing     = cerror.ErrServerClosing     //1000  // http code 449 Warning!! Client will retry on this error,be careful to use this error
+	ErrDBDataConflict    = cerror.ErrDBDataConflict    //9001  // http code 500
+	ErrDBDataBroken      = cerror.ErrDBDataBroken      //9002  // http code 500
+	ErrCacheDataConflict = cerror.ErrCacheDataConflict //9101  // http code 500
+	ErrCacheDataBroken   = cerror.ErrCacheDataBroken   //9102  // http code 500
+	ErrMQDataBroken      = cerror.ErrMQDataBroken      //9201  // http code 500
+	ErrUnknown           = cerror.ErrUnknown           //10000 // http code 500
+	ErrReq               = cerror.ErrReq               //10001 // http code 400
+	ErrResp              = cerror.ErrResp              //10002 // http code 500
+	ErrSystem            = cerror.ErrSystem            //10003 // http code 500
+	ErrToken             = cerror.ErrToken             //10004 // http code 401
+	ErrSession           = cerror.ErrSession           //10005 // http code 401
+	ErrKey               = cerror.ErrKey               //10006 // http code 401
+	ErrSign              = cerror.ErrSign              //10007 // http code 401
+	ErrPermission        = cerror.ErrPermission        //10008 // http code 403
+	ErrTooFast           = cerror.ErrTooFast           //10009 // http code 403
+	ErrBan               = cerror.ErrBan               //10010 // http code 403
+	ErrBusy              = cerror.ErrBusy              //10011 // http code 503
+	ErrNotExist          = cerror.ErrNotExist          //10012 // http code 404
 
 	ErrNotInited           = cerror.MakeError(20001, http.StatusBadRequest, "not inited")
 	ErrAlreadyInited       = cerror.MakeError(20002, http.StatusBadRequest, "already inited")
@@ -37,7 +42,7 @@ var (
 	ErrIndexNotExist         = cerror.MakeError(20015, http.StatusBadRequest, "config index doesn't exist")
 	ErrWrongSecret           = cerror.MakeError(20016, http.StatusBadRequest, "wrong secret")
 	ErrSecretLength          = cerror.MakeError(20017, http.StatusBadRequest, "secret length must less then 32")
-	ErrDataBroken            = cerror.MakeError(20018, http.StatusBadRequest, "data broken")
+	ErrDataBroken            = cerror.MakeError(20018, http.StatusInternalServerError, "data broken")
 	ErrSignCheckFailed       = cerror.MakeError(20019, http.StatusBadRequest, "sign check failed")
 	ErrProxyPathNotExist     = cerror.MakeError(20020, http.StatusBadRequest, "proxy path doesn't exist")
 	ErrProxyPathAlreadyExist = cerror.MakeError(20021, http.StatusBadRequest, "proxy path already exist")

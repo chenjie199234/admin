@@ -15,7 +15,7 @@ import (
 )
 
 var _CGrpcPathAppGetApp = "/admin.app/get_app"
-var _CGrpcPathAppCreateApp = "/admin.app/create_app"
+var _CGrpcPathAppSetApp = "/admin.app/set_app"
 var _CGrpcPathAppDelApp = "/admin.app/del_app"
 var _CGrpcPathAppUpdateAppSecret = "/admin.app/update_app_secret"
 var _CGrpcPathAppDelKey = "/admin.app/del_key"
@@ -29,7 +29,7 @@ var _CGrpcPathAppProxy = "/admin.app/proxy"
 
 type AppCGrpcClient interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
+	SetApp(context.Context, *SetAppReq) (*SetAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
@@ -60,12 +60,12 @@ func (c *appCGrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppRes
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) CreateApp(ctx context.Context, req *CreateAppReq) (*CreateAppResp, error) {
+func (c *appCGrpcClient) SetApp(ctx context.Context, req *SetAppReq) (*SetAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
-	resp := new(CreateAppResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppCreateApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	resp := new(SetAppResp)
+	if e := c.cc.Call(ctx, _CGrpcPathAppSetApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -173,7 +173,7 @@ func (c *appCGrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, 
 
 type AppCGrpcServer interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
+	SetApp(context.Context, *SetAppReq) (*SetAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
@@ -210,16 +210,16 @@ func _App_GetApp_CGrpcHandler(handler func(context.Context, *GetAppReq) (*GetApp
 		ctx.Write(resp)
 	}
 }
-func _App_CreateApp_CGrpcHandler(handler func(context.Context, *CreateAppReq) (*CreateAppResp, error)) cgrpc.OutsideHandler {
+func _App_SetApp_CGrpcHandler(handler func(context.Context, *SetAppReq) (*SetAppResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
-		req := new(CreateAppReq)
+		req := new(SetAppReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -229,7 +229,7 @@ func _App_CreateApp_CGrpcHandler(handler func(context.Context, *CreateAppReq) (*
 			return
 		}
 		if resp == nil {
-			resp = new(CreateAppResp)
+			resp = new(SetAppResp)
 		}
 		ctx.Write(resp)
 	}
@@ -478,7 +478,7 @@ func RegisterAppCGrpcServer(engine *cgrpc.CGrpcServer, svc AppCGrpcServer, allmi
 	// avoid lint
 	_ = allmids
 	engine.RegisterHandler("admin.app", "get_app", _App_GetApp_CGrpcHandler(svc.GetApp))
-	engine.RegisterHandler("admin.app", "create_app", _App_CreateApp_CGrpcHandler(svc.CreateApp))
+	engine.RegisterHandler("admin.app", "set_app", _App_SetApp_CGrpcHandler(svc.SetApp))
 	engine.RegisterHandler("admin.app", "del_app", _App_DelApp_CGrpcHandler(svc.DelApp))
 	engine.RegisterHandler("admin.app", "update_app_secret", _App_UpdateAppSecret_CGrpcHandler(svc.UpdateAppSecret))
 	engine.RegisterHandler("admin.app", "del_key", _App_DelKey_CGrpcHandler(svc.DelKey))

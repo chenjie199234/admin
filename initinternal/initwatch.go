@@ -10,6 +10,7 @@ import (
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
 
+	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/crpc"
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/log"
@@ -73,11 +74,13 @@ func (s *InternalSdk) Stop() {
 			delete(app.notices, notice)
 			close(notice)
 		}
-		if app.di != nil {
-			go app.di.Stop()
-		}
 		if app.client != nil {
-			go app.client.Close(false)
+			go func() {
+				app.client.Close(false)
+				app.di.Stop()
+			}()
+		} else if app.di != nil {
+			go app.di.Stop()
 		}
 		app.Unlock()
 	}
@@ -92,16 +95,35 @@ func (s *InternalSdk) timeout() {
 		s.lker.RLock()
 		for _, v := range s.apps {
 			v.Lock()
-			if now.UnixNano()-v.clientactive >= time.Minute.Nanoseconds() && v.client != nil {
-				client := v.client
-				v.clientactive = 0
-				v.client = nil
-				go client.Close(false)
-			}
-			if now.UnixNano()-v.diactive >= time.Minute.Nanoseconds() && v.di != nil {
+			//discover should always stop after client
+			if v.client != nil {
+				if now.UnixNano()-v.clientactive >= time.Minute.Nanoseconds() {
+					//client timeout
+					if now.UnixNano()-v.diactive >= time.Minute.Nanoseconds() {
+						//client and di both timeout
+						di := v.di
+						client := v.client
+						v.di = nil
+						v.diactive = 0
+						v.client = nil
+						v.clientactive = 0
+						go func() {
+							client.Close(false)
+							di.Stop()
+						}()
+					} else {
+						//only client timeout
+						client := v.client
+						v.client = nil
+						v.clientactive = 0
+						go client.Close(false)
+					}
+
+				}
+			} else if v.di != nil && now.UnixNano()-v.diactive >= time.Minute.Nanoseconds() {
 				di := v.di
-				v.diactive = 0
 				v.di = nil
+				v.diactive = 0
 				go di.Stop()
 			}
 			v.Unlock()
@@ -169,11 +191,14 @@ func (s *InternalSdk) watch() {
 						delete(app.notices, notice)
 						close(notice)
 					}
-					if app.di != nil {
-						go app.di.Stop()
-					}
+					//discover should always stop after client
 					if app.client != nil {
-						go app.client.Close(false)
+						go func() {
+							app.client.Close(false)
+							app.di.Stop()
+						}()
+					} else if app.di != nil {
+						go app.di.Stop()
 					}
 					app.Unlock()
 				}
@@ -224,8 +249,8 @@ func (s *InternalSdk) watch() {
 					s.apps[summary.ID.Hex()] = tmp
 					s.appsNameIndex[summary.ProjectName+"-"+summary.Group+"."+summary.App] = tmp
 					s.appsIDIndex[summary.ProjectID+"-"+summary.Group+"."+summary.App] = tmp
-					s.lker.Unlock()
 				} else {
+					exist.Lock()
 					if exist.summary.ProjectName != summary.ProjectName {
 						//ProjectName changed
 						delete(s.appsNameIndex, exist.summary.ProjectName+"-"+exist.summary.Group+"."+exist.summary.App)
@@ -236,8 +261,55 @@ func (s *InternalSdk) watch() {
 						delete(s.appsIDIndex, exist.summary.ProjectID+"-"+exist.summary.Group+"."+exist.summary.App)
 						s.appsIDIndex[summary.ProjectID+"-"+summary.Group+"."+summary.App] = exist
 					}
-					exist.Lock()
-					s.lker.Unlock()
+					undup := make(map[string]*struct{}, len(summary.StaticAddrs))
+					for _, v := range summary.StaticAddrs {
+						undup[v] = nil
+					}
+					summary.StaticAddrs = make([]string, 0, len(undup))
+					for k := range undup {
+						summary.StaticAddrs = append(summary.StaticAddrs, k)
+					}
+					discoverchanged := exist.summary.DiscoverMode != summary.DiscoverMode ||
+						exist.summary.KubernetesNs != summary.KubernetesNs ||
+						exist.summary.KubernetesLS != summary.KubernetesLS ||
+						exist.summary.DnsHost != summary.DnsHost ||
+						exist.summary.DnsInterval != summary.DnsInterval ||
+						len(exist.summary.StaticAddrs) != len(summary.StaticAddrs)
+					if !discoverchanged {
+						for _, a := range exist.summary.StaticAddrs {
+							find := false
+							for _, b := range summary.StaticAddrs {
+								if a == b {
+									find = true
+									break
+								}
+							}
+							if !find {
+								discoverchanged = true
+								break
+							}
+						}
+					}
+					if discoverchanged {
+						//discover should always stop after client
+						if exist.client != nil {
+							di := exist.di
+							client := exist.client
+							exist.di = nil
+							exist.diactive = 0
+							exist.client = nil
+							exist.clientactive = 0
+							go func() {
+								client.Close(false)
+								di.Stop()
+							}()
+						} else if exist.di != nil {
+							di := exist.di
+							exist.di = nil
+							exist.diactive = 0
+							go di.Stop()
+						}
+					}
 					exist.summary = summary
 					for notice := range exist.notices {
 						select {
@@ -247,6 +319,7 @@ func (s *InternalSdk) watch() {
 					}
 					exist.Unlock()
 				}
+				s.lker.Unlock()
 			case "delete":
 				//delete document
 				objid := stream.Current.Lookup("documentKey").Document().Lookup("_id").ObjectID().Hex()
@@ -271,11 +344,14 @@ func (s *InternalSdk) watch() {
 					delete(exist.notices, notice)
 					close(notice)
 				}
-				if exist.di != nil {
-					go exist.di.Stop()
-				}
+				//discover should always stop after client
 				if exist.client != nil {
-					go exist.client.Close(false)
+					go func() {
+						exist.client.Close(false)
+						exist.di.Stop()
+					}()
+				} else if exist.di != nil {
+					go exist.di.Stop()
 				}
 				exist.Unlock()
 			}
@@ -390,52 +466,110 @@ func (s *InternalSdk) GetAppConfigByProjectName(pname, g, a string) (*model.AppS
 	return app.summary, nil
 }
 
-// func (s *InternalSdk) GetAppIPsByProjectID(pid, g, a string) (discover.DI, error) {
-// 	fullname := pid + "-" + g + "." + a
-// 	s.lker.RLock()
-// 	app, ok := s.appsIDIndex[fullname]
-// 	if !ok {
-// 		s.lker.RUnlock()
-// 		return nil, ecode.ErrAppNotExist
-// 	}
-// 	app.Lock()
-// 	s.lker.RUnlock()
-// 	defer app.Unlock()
-// 	if app.delstatus {
-// 		return nil, ecode.ErrAppNotExist
-// 	}
-// 	if app.di != nil {
-// 		app.diactive = time.Now().UnixNano()
-// 		return app.di, nil
-// 	}
-// 	var e error
-// 	app.di, e = discover.NewDNSDiscover(pname, g, a, a+"-headless."+pname+"-"+g, time.Second*10, 9000, 10000, 8000)
-// 	app.diactive = time.Now().UnixNano()
-// 	return app.di, e
-// }
-// func (s *InternalSdk) GetAppIPsByProjectName(pname, g, a string) (discover.DI, error) {
-// 	fullname := pid + "-" + g + "." + a
-// 	s.lker.RLock()
-// 	app, ok := s.apps[fullname]
-// 	if !ok {
-// 		s.lker.RUnlock()
-// 		return nil, ecode.ErrAppNotExist
-// 	}
-// 	app.Lock()
-// 	s.lker.RUnlock()
-// 	defer app.Unlock()
-// 	if app.delstatus {
-// 		return nil, ecode.ErrAppNotExist
-// 	}
-// 	if app.di != nil {
-// 		app.diactive = time.Now().UnixNano()
-// 		return app.di, nil
-// 	}
-// 	var e error
-// 	app.di, e = discover.NewDNSDiscover(pname, g, a, a+"-headless."+pname+"-"+g, time.Second*10, 9000, 10000, 8000)
-// 	app.diactive = time.Now().UnixNano()
-// 	return app.di, e
-// }
+func (s *InternalSdk) GetAppIPsByProjectID(ctx context.Context, pid, g, a string) ([]string, error) {
+	fullname := pid + "-" + g + "." + a
+	s.lker.RLock()
+	app, ok := s.appsIDIndex[fullname]
+	if !ok {
+		s.lker.RUnlock()
+		return nil, ecode.ErrAppNotExist
+	}
+	app.Lock()
+	s.lker.RUnlock()
+	if app.delstatus {
+		app.Unlock()
+		return nil, ecode.ErrAppNotExist
+	}
+	if app.di == nil {
+		var e error
+		switch app.summary.DiscoverMode {
+		case "kubernetes":
+			app.di, e = discover.NewKubernetesDiscover(app.summary.ProjectName, g, a, app.summary.KubernetesNs, app.summary.KubernetesLS, 9000, 10000, 8000)
+		case "dns":
+			interval := time.Duration(app.summary.DnsInterval) * time.Second
+			app.di, e = discover.NewDNSDiscover(app.summary.ProjectName, g, a, app.summary.DnsHost, interval, 9000, 10000, 8000)
+		case "static":
+			app.di, e = discover.NewStaticDiscover(app.summary.ProjectName, g, a, app.summary.StaticAddrs, 9000, 10000, 8000)
+		default:
+			e = errors.New("unknown discover mode")
+		}
+		if e != nil {
+			app.Unlock()
+			return nil, e
+		}
+	}
+	//copy the di pointer
+	di := app.di
+	app.Unlock()
+	ch, cancel := di.GetNotice()
+	defer cancel()
+	select {
+	case _, ok := <-ch:
+		if !ok {
+			return nil, cerror.ErrDiscoverStopped
+		}
+		tmp, _, _ := di.GetAddrs(discover.NotNeed)
+		addrs := make([]string, 0, len(tmp))
+		for addr := range tmp {
+			addrs = append(addrs, addr)
+		}
+		return addrs, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
+func (s *InternalSdk) GetAppIPsByProjectName(ctx context.Context, pname, g, a string) ([]string, error) {
+	fullname := pname + "-" + g + "." + a
+	s.lker.RLock()
+	app, ok := s.appsNameIndex[fullname]
+	if !ok {
+		s.lker.RUnlock()
+		return nil, ecode.ErrAppNotExist
+	}
+	app.Lock()
+	s.lker.RUnlock()
+	if app.delstatus {
+		app.Unlock()
+		return nil, ecode.ErrAppNotExist
+	}
+	if app.di == nil {
+		var e error
+		switch app.summary.DiscoverMode {
+		case "kubernetes":
+			app.di, e = discover.NewKubernetesDiscover(app.summary.ProjectName, g, a, app.summary.KubernetesNs, app.summary.KubernetesLS, 9000, 10000, 8000)
+		case "dns":
+			interval := time.Duration(app.summary.DnsInterval) * time.Second
+			app.di, e = discover.NewDNSDiscover(app.summary.ProjectName, g, a, app.summary.DnsHost, interval, 9000, 10000, 8000)
+		case "static":
+			app.di, e = discover.NewStaticDiscover(app.summary.ProjectName, g, a, app.summary.StaticAddrs, 9000, 10000, 8000)
+		default:
+			e = errors.New("unknown discover mode")
+		}
+		if e != nil {
+			app.Unlock()
+			return nil, e
+		}
+	}
+	//copy the di pointer
+	di := app.di
+	app.Unlock()
+	ch, cancel := di.GetNotice()
+	defer cancel()
+	select {
+	case _, ok := <-ch:
+		if !ok {
+			return nil, cerror.ErrDiscoverStopped
+		}
+		tmp, _, _ := di.GetAddrs(discover.NotNeed)
+		addrs := make([]string, 0, len(tmp))
+		for addr := range tmp {
+			addrs = append(addrs, addr)
+		}
+		return addrs, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
 
 type PermissionCheckHandler func(ctx context.Context, nodeid string, read, write, admin bool) error
 
@@ -492,8 +626,10 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 	now := time.Now().UnixNano()
 	app.diactive = now
 	app.clientactive = now
+	//copy the client pointer
+	client := app.client
 	app.Unlock()
-	return app.client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx))
+	return client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx))
 }
 
 func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string, path string, reqdata []byte, pcheck PermissionCheckHandler) ([]byte, error) {
@@ -549,6 +685,8 @@ func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string,
 	now := time.Now().UnixNano()
 	app.diactive = now
 	app.clientactive = now
+	//copy the client pointer
+	client := app.client
 	app.Unlock()
-	return app.client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx))
+	return client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx))
 }

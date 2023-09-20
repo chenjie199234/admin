@@ -50,6 +50,11 @@ collection: config
 	"app":"",
 	"key":"",//always empty
 	"index":0,//always be 0
+    "discover_mode":"",
+    "kubernetes_ns":"",
+    "kubernetes_ls":"",
+    "dns_host":"",
+    "dns_interval":0,
 	"paths":{
 		"base64(/path1)":{
 			"permission_node_id":"",

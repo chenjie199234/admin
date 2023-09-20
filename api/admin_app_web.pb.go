@@ -20,7 +20,7 @@ import (
 )
 
 var _WebPathAppGetApp = "/admin.app/get_app"
-var _WebPathAppCreateApp = "/admin.app/create_app"
+var _WebPathAppSetApp = "/admin.app/set_app"
 var _WebPathAppDelApp = "/admin.app/del_app"
 var _WebPathAppUpdateAppSecret = "/admin.app/update_app_secret"
 var _WebPathAppDelKey = "/admin.app/del_key"
@@ -34,7 +34,7 @@ var _WebPathAppProxy = "/admin.app/proxy"
 
 type AppWebClient interface {
 	GetApp(context.Context, *GetAppReq, http.Header) (*GetAppResp, error)
-	CreateApp(context.Context, *CreateAppReq, http.Header) (*CreateAppResp, error)
+	SetApp(context.Context, *SetAppReq, http.Header) (*SetAppResp, error)
 	DelApp(context.Context, *DelAppReq, http.Header) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq, http.Header) (*UpdateAppSecretResp, error)
 	DelKey(context.Context, *DelKeyReq, http.Header) (*DelKeyResp, error)
@@ -87,7 +87,7 @@ func (c *appWebClient) GetApp(ctx context.Context, req *GetAppReq, header http.H
 	}
 	return resp, nil
 }
-func (c *appWebClient) CreateApp(ctx context.Context, req *CreateAppReq, header http.Header) (*CreateAppResp, error) {
+func (c *appWebClient) SetApp(ctx context.Context, req *SetAppReq, header http.Header) (*SetAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -97,7 +97,7 @@ func (c *appWebClient) CreateApp(ctx context.Context, req *CreateAppReq, header 
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppCreateApp, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppSetApp, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -106,7 +106,7 @@ func (c *appWebClient) CreateApp(ctx context.Context, req *CreateAppReq, header 
 	if e != nil {
 		return nil, cerror.ConvertStdError(e)
 	}
-	resp := new(CreateAppResp)
+	resp := new(SetAppResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -442,7 +442,7 @@ func (c *appWebClient) Proxy(ctx context.Context, req *ProxyReq, header http.Hea
 
 type AppWebServer interface {
 	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	CreateApp(context.Context, *CreateAppReq) (*CreateAppResp, error)
+	SetApp(context.Context, *SetAppReq) (*SetAppResp, error)
 	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
 	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
 	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
@@ -514,19 +514,19 @@ func _App_GetApp_WebHandler(handler func(context.Context, *GetAppReq) (*GetAppRe
 		}
 	}
 }
-func _App_CreateApp_WebHandler(handler func(context.Context, *CreateAppReq) (*CreateAppResp, error)) web.OutsideHandler {
+func _App_SetApp_WebHandler(handler func(context.Context, *SetAppReq) (*SetAppResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(CreateAppReq)
+		req := new(SetAppReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -534,24 +534,24 @@ func _App_CreateApp_WebHandler(handler func(context.Context, *CreateAppReq) (*Cr
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/create_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": errstr})
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -562,7 +562,7 @@ func _App_CreateApp_WebHandler(handler func(context.Context, *CreateAppReq) (*Cr
 			return
 		}
 		if resp == nil {
-			resp = new(CreateAppResp)
+			resp = new(SetAppResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1189,8 +1189,8 @@ func RegisterAppWebServer(router *web.Router, svc AppWebServer, allmids map[stri
 				panic("missing midware:" + v)
 			}
 		}
-		mids = append(mids, _App_CreateApp_WebHandler(svc.CreateApp))
-		router.Post(_WebPathAppCreateApp, mids...)
+		mids = append(mids, _App_SetApp_WebHandler(svc.SetApp))
+		router.Post(_WebPathAppSetApp, mids...)
 	}
 	{
 		requiredMids := []string{"token"}

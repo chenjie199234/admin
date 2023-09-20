@@ -45,6 +45,20 @@ func (d *Dao) MongoGetApp(ctx context.Context, projectid, gname, aname, secret s
 	}
 	return appsummary, nil
 }
+func (d *Dao) MongoGetAppWithoutDecrypt(ctx context.Context, projectid, gname, aname string) (*model.AppSummary, error) {
+	app := &model.AppSummary{}
+	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
+	if e := d.mongo.Database("app").Collection("config").FindOne(ctx, filter).Decode(app); e != nil {
+		if e == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, e
+	}
+	if e := decodeProxyPath(app); e != nil {
+		return nil, e
+	}
+	return app, nil
+}
 func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, projectid, gname, aname string) (string, error) {
 	appsummary := &model.AppSummary{}
 	filterSummary := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
@@ -123,6 +137,29 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 	}); e != nil && mongo.IsDuplicateKeyError(e) {
 		e = ecode.ErrAppAlreadyExist
 	}
+	return
+}
+func (d *Dao) MongoUpdateApp(ctx context.Context, projectid, gname, aname, secret, discovermode, kubernetesns, kubernetesls, dnshost string, dnsinterval uint32, staticaddrs []string) (nodeid string, e error) {
+	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
+	updater := bson.M{
+		"$set": bson.M{
+			"discover_mode": discovermode,
+			"kubernetes_ns": kubernetesns,
+			"kubernetes_ls": kubernetesls,
+			"dns_host":      dnshost,
+			"dns_interval":  dnsinterval,
+			"static_addrs":  staticaddrs,
+		},
+	}
+	app := &model.AppSummary{}
+	e = d.mongo.Database("app").Collection("config").FindOneAndUpdate(ctx, filter, updater, options.FindOneAndUpdate().SetProjection(bson.M{"permission_node_id": 1})).Decode(app)
+	if e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrAppNotExist
+		}
+		return
+	}
+	nodeid = app.PermissionNodeID
 	return
 }
 func (d *Dao) MongoDelApp(ctx context.Context, projectid, gname, aname, secret string) (e error) {
@@ -563,7 +600,13 @@ func (d *Dao) MongoSetProxyPath(ctx context.Context, projectid, gname, aname, se
 	b64path := encodeProxyPath(path)
 	appsummary := &model.AppSummary{}
 	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
-	updater1 := bson.M{"$set": bson.M{"paths." + b64path + ".permission_read": read, "paths." + b64path + ".permission_write": write, "paths." + b64path + ".permission_admin": admin}}
+	updater1 := bson.M{
+		"$set": bson.M{
+			"paths." + b64path + ".permission_read":  read,
+			"paths." + b64path + ".permission_write": write,
+			"paths." + b64path + ".permission_admin": admin,
+		},
+	}
 	opts := options.FindOneAndUpdate().SetProjection(bson.M{"value": 1, "paths." + b64path: 1, "permission_node_id": 1})
 	if e = d.mongo.Database("app").Collection("config").FindOneAndUpdate(sctx, filter, updater1, opts).Decode(appsummary); e != nil {
 		if e == mongo.ErrNoDocuments {
@@ -664,22 +707,6 @@ func (d *Dao) MongoDelProxyPath(ctx context.Context, projectid, gname, aname, se
 	}
 	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, delfilter)
 	return
-}
-
-// this function will not decrypt
-func (d *Dao) MongoGetAppConfig(ctx context.Context, projectid, gname, aname string) (*model.AppSummary, error) {
-	app := &model.AppSummary{}
-	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
-	if e := d.mongo.Database("app").Collection("config").FindOne(ctx, filter).Decode(app); e != nil {
-		if e == mongo.ErrNoDocuments {
-			return nil, nil
-		}
-		return nil, e
-	}
-	if e := decodeProxyPath(app); e != nil {
-		return nil, e
-	}
-	return app, nil
 }
 func encodeProxyPath(path string) string {
 	return base64.StdEncoding.EncodeToString(common.Str2byte(path))

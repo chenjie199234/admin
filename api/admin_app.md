@@ -77,11 +77,11 @@ proxy_path_info: {
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### create_app
+### set_app
 
 #### Req:
 ```
-Path:         /admin.app/create_app
+Path:         /admin.app/set_app
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -107,7 +107,9 @@ Content-Type: application/json
 	//uint32
 	"dns_interval":0,
 	//when discover_mode == "static",this need to be set,unit is second
-	"static_addrs":["str","str"]
+	"static_addrs":["str","str"],
+	//true: create a new app. false: update the already exist app
+	"new_app":true
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -307,6 +309,7 @@ Content-Type: application/json
 	"value_type":"str",
 	//value length must < 32
 	"secret":"str",
+	//true: create a new key config. false: update the already exist key config
 	"new_key":true
 }
 ------------------------------------------------------------------------------------------------------------
@@ -436,6 +439,7 @@ Content-Type: application/json
 	"admin":true,
 	//value length must < 32
 	"secret":"str",
+	//true: create a new proxy path config. false: update the already exist proxy path setting
 	"new_path":true
 }
 ------------------------------------------------------------------------------------------------------------

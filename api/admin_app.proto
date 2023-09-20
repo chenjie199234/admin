@@ -29,7 +29,7 @@ service app{
 
 	//app
 
-	rpc create_app(create_app_req)returns(create_app_resp){
+	rpc set_app(set_app_req)returns(set_app_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
@@ -118,7 +118,7 @@ message key_config_info{
 
 //app
 
-message create_app_req {
+message set_app_req {
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
@@ -129,8 +129,9 @@ message create_app_req {
 	string dns_host=8;//when discover_mode == "dns",this need to be set
 	uint32 dns_interval=9;//when discover_mode == "dns",this need to be set,default 10s,unit is second
 	repeated string static_addrs=10;//when discover_mode == "static",this need to be set,unit is second
+	bool new_app=11;//true: create a new app. false: update the already exist app
 }
-message create_app_resp {
+message set_app_resp {
 	repeated uint32 node_id=1;
 }
 message del_app_req {
@@ -186,7 +187,7 @@ message set_key_config_req {
 		(pbex.string_bytes_in)="yaml",
 		(pbex.string_bytes_in)="toml"];
 	string secret=7[(pbex.string_bytes_len_lt)=32];
-	bool new_key=8;
+	bool new_key=8;//true: create a new key config. false: update the already exist key config
 }
 message set_key_config_resp {
 }
@@ -231,7 +232,7 @@ message set_proxy_req{
 	bool write=6;//need write permission on this node
 	bool admin=7;//need admin permission on this node
 	string secret=8[(pbex.string_bytes_len_lt)=32];
-	bool new_path=9;
+	bool new_path=9;//true: create a new proxy path config. false: update the already exist proxy path setting
 }
 message set_proxy_resp{
 	repeated uint32 node_id=1;

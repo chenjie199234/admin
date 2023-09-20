@@ -24,21 +24,21 @@ func (m *GetAppReq) Validate() (errstr string) {
 }
 
 // return empty means pass
-func (m *CreateAppReq) Validate() (errstr string) {
+func (m *SetAppReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
-		return "field: project_id in object: create_app_req check len eq failed"
+		return "field: project_id in object: set_app_req check len eq failed"
 	}
 	if len(m.GetGName()) <= 0 {
-		return "field: g_name in object: create_app_req check value str len gt failed"
+		return "field: g_name in object: set_app_req check value str len gt failed"
 	}
 	if len(m.GetAName()) <= 0 {
-		return "field: a_name in object: create_app_req check value str len gt failed"
+		return "field: a_name in object: set_app_req check value str len gt failed"
 	}
 	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: create_app_req check value str len lt failed"
+		return "field: secret in object: set_app_req check value str len lt failed"
 	}
 	if m.GetDiscoverMode() != "kubernetes" && m.GetDiscoverMode() != "dns" && m.GetDiscoverMode() != "static" {
-		return "field: discover_mode in object: create_app_req check value str in failed"
+		return "field: discover_mode in object: set_app_req check value str in failed"
 	}
 	return ""
 }

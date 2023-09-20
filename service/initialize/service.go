@@ -73,6 +73,8 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 	if e := util.SignCheck(req.Password, user.Password); e != nil {
 		if e == ecode.ErrSignCheckFailed {
 			e = ecode.ErrPasswordWrong
+		} else if e == ecode.ErrDataBroken {
+			e = ecode.ErrDBDataBroken
 		}
 		log.Error(ctx, "[RootLogin] sign check failed", map[string]interface{}{"error": e})
 		return nil, e

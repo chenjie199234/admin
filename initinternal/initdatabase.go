@@ -89,9 +89,76 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 		e = errors.New("conflict")
 		return
 	}
+	//check node
+	nodefilter := bson.M{
+		"node_id": bson.M{
+			"$in": bson.A{
+				"0",
+				model.AdminProjectID,
+				model.AdminProjectID + model.UserAndRoleControl,
+				model.AdminProjectID + model.AppControl,
+				model.AdminProjectID + model.AppControl + ",1",
+			},
+		},
+	}
+	if existProjectIndex.ProjectName != "" {
+		var c *mongo.Cursor
+		c, e = db.Database("permission").Collection("node").Find(sctx, nodefilter)
+		if e != nil {
+			log.Error(nil, "[InitSelf] get nodes failed", map[string]interface{}{"error": e})
+			return
+		}
+		nodes := make([]*model.Node, 0, c.RemainingBatchLength())
+		if e = c.All(context.Background(), &nodes); e != nil {
+			log.Error(nil, "[InitSelf] get nodes failed", map[string]interface{}{"error": e})
+			return
+		}
+		if len(nodes) != 5 {
+			log.Error(nil, "[InitSelf] basic nodes missing", nil)
+			e = errors.New("dirty")
+			return
+		}
+		for _, node := range nodes {
+			dirty := false
+			switch node.NodeId {
+			case "0":
+				if node.NodeName != "root" {
+					dirty = true
+				}
+			case model.AdminProjectID:
+				if node.NodeName != model.Project {
+					dirty = true
+				}
+			case model.AdminProjectID + model.UserAndRoleControl:
+				if node.NodeName != "UserAndRoleControl" {
+					dirty = true
+				}
+			case model.AdminProjectID + model.AppControl:
+				if node.NodeName != "AppControl" {
+					dirty = true
+				}
+			case model.AdminProjectID + model.AppControl + ",1":
+				if node.NodeName != model.Group+"."+model.Name {
+					dirty = true
+				}
+			}
+			if dirty {
+				log.Error(nil, "[InitSelf] basic node data dirty", nil)
+				e = errors.New("dirty")
+				return
+			}
+		}
+	}
 	//check app
 	existAppSummary := &model.AppSummary{}
-	e = db.Database("app").Collection("config").FindOne(sctx, bson.M{"project_id": model.AdminProjectID, "group": model.Group, "app": model.Name, "key": "", "index": 0}).Decode(existAppSummary)
+	appSummaryFilter := bson.M{
+		"project_id": model.AdminProjectID,
+		"group":      model.Group,
+		"app":        model.Name,
+		"key":        "",
+		"index":      0,
+	}
+	e = db.Database("app").Collection("config").FindOne(sctx, appSummaryFilter).Decode(existAppSummary)
 	if existProjectIndex.ProjectName == "" && e != mongo.ErrNoDocuments {
 		//project not exist,the app should not exist too
 		if e == nil {

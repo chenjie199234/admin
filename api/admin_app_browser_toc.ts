@@ -11,155 +11,6 @@ export interface Error{
 	msg: string;
 }
 
-export interface CreateAppReq{
-	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
-	project_id: Array<number>|null|undefined;
-	g_name: string;
-	a_name: string;
-	secret: string;
-	discover_mode: string;
-	kubernetes_namespace: string;//when discover_mode == "kubernetes",this need to be set
-	kubernetes_labelselector: string;//when discover_mode == "kubernetes",this need to be set
-	dns_host: string;//when discover_mode == "dns",this need to be set
-	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	dns_interval: number;//when discover_mode == "dns",this need to be set,default 10s,unit is second
-	static_addrs: Array<string>|null|undefined;//when discover_mode == "static",this need to be set,unit is second
-}
-function CreateAppReqToJson(msg: CreateAppReq): string{
-	let s: string="{"
-	//project_id
-	if(msg.project_id==null||msg.project_id==undefined){
-		s+='"project_id":null,'
-	}else if(msg.project_id.length==0){
-		s+='"project_id":[],'
-	}else{
-		s+='"project_id":['
-		for(let element of msg.project_id){
-			if(element==null||element==undefined||!Number.isInteger(element)){
-				throw 'element in CreateAppReq.project_id must be integer'
-			}
-			if(element>4294967295||element<0){
-				throw 'element in CreateAppReq.project_id overflow'
-			}
-			s+=element+','
-		}
-		s=s.substr(0,s.length-1)+'],'
-	}
-	//g_name
-	if(msg.g_name==null||msg.g_name==undefined){
-		throw 'CreateAppReq.g_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.g_name)
-		s+='"g_name":'+vv+','
-	}
-	//a_name
-	if(msg.a_name==null||msg.a_name==undefined){
-		throw 'CreateAppReq.a_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.a_name)
-		s+='"a_name":'+vv+','
-	}
-	//secret
-	if(msg.secret==null||msg.secret==undefined){
-		throw 'CreateAppReq.secret must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.secret)
-		s+='"secret":'+vv+','
-	}
-	//discover_mode
-	if(msg.discover_mode==null||msg.discover_mode==undefined){
-		throw 'CreateAppReq.discover_mode must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.discover_mode)
-		s+='"discover_mode":'+vv+','
-	}
-	//kubernetes_namespace
-	if(msg.kubernetes_namespace==null||msg.kubernetes_namespace==undefined){
-		throw 'CreateAppReq.kubernetes_namespace must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.kubernetes_namespace)
-		s+='"kubernetes_namespace":'+vv+','
-	}
-	//kubernetes_labelselector
-	if(msg.kubernetes_labelselector==null||msg.kubernetes_labelselector==undefined){
-		throw 'CreateAppReq.kubernetes_labelselector must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.kubernetes_labelselector)
-		s+='"kubernetes_labelselector":'+vv+','
-	}
-	//dns_host
-	if(msg.dns_host==null||msg.dns_host==undefined){
-		throw 'CreateAppReq.dns_host must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.dns_host)
-		s+='"dns_host":'+vv+','
-	}
-	//dns_interval
-	if(msg.dns_interval==null||msg.dns_interval==undefined||!Number.isInteger(msg.dns_interval)){
-		throw 'CreateAppReq.dns_interval must be integer'
-	}else if(msg.dns_interval>4294967295||msg.dns_interval<0){
-		throw 'CreateAppReq.dns_interval overflow'
-	}else{
-		s+='"dns_interval":'+msg.dns_interval+','
-	}
-	//static_addrs
-	if(msg.static_addrs==null||msg.static_addrs==undefined){
-		s+='"static_addrs":null,'
-	}else if(msg.static_addrs.length==0){
-		s+='"static_addrs":[],'
-	}else{
-		s+='"static_addrs":['
-		for(let element of msg.static_addrs){
-			if(element==null||element==undefined){
-				throw 'element in CreateAppReq.static_addrs must be string'
-			}
-			//transfer the json escape
-			let vv=JSON.stringify(element)
-			s+=vv+','
-		}
-		s=s.substr(0,s.length-1)+'],'
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface CreateAppResp{
-	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
-	node_id: Array<number>|null|undefined;
-}
-function JsonToCreateAppResp(jsonobj: { [k:string]:any }): CreateAppResp{
-	let obj: CreateAppResp={
-		node_id:null,
-	}
-	//node_id
-	if(jsonobj['node_id']!=null&&jsonobj['node_id']!=undefined){
-		if(!(jsonobj['node_id'] instanceof Array)){
-			throw 'CreateAppResp.node_id must be Array<number>|null|undefined'
-		}
-		for(let element of jsonobj['node_id']){
-			if(typeof element!='number'||!Number.isInteger(element)){
-				throw 'element in CreateAppResp.node_id must be integer'
-			}else if(element>4294967295||element<0){
-				throw 'element in CreateAppResp.node_id overflow'
-			}
-			if(obj['node_id']==null){
-				obj['node_id']=new Array<number>
-			}
-			obj['node_id'].push(element)
-		}
-	}
-	return obj
-}
 export interface DelAppReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
@@ -983,6 +834,162 @@ function JsonToRollbackResp(_jsonobj: { [k:string]:any }): RollbackResp{
 	}
 	return obj
 }
+export interface SetAppReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
+	g_name: string;
+	a_name: string;
+	secret: string;
+	discover_mode: string;
+	kubernetes_namespace: string;//when discover_mode == "kubernetes",this need to be set
+	kubernetes_labelselector: string;//when discover_mode == "kubernetes",this need to be set
+	dns_host: string;//when discover_mode == "dns",this need to be set
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	dns_interval: number;//when discover_mode == "dns",this need to be set,default 10s,unit is second
+	static_addrs: Array<string>|null|undefined;//when discover_mode == "static",this need to be set,unit is second
+	new_app: boolean;//true: create a new app. false: update the already exist app
+}
+function SetAppReqToJson(msg: SetAppReq): string{
+	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in SetAppReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in SetAppReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'SetAppReq.g_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
+	}
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'SetAppReq.a_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'SetAppReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
+	}
+	//discover_mode
+	if(msg.discover_mode==null||msg.discover_mode==undefined){
+		throw 'SetAppReq.discover_mode must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.discover_mode)
+		s+='"discover_mode":'+vv+','
+	}
+	//kubernetes_namespace
+	if(msg.kubernetes_namespace==null||msg.kubernetes_namespace==undefined){
+		throw 'SetAppReq.kubernetes_namespace must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.kubernetes_namespace)
+		s+='"kubernetes_namespace":'+vv+','
+	}
+	//kubernetes_labelselector
+	if(msg.kubernetes_labelselector==null||msg.kubernetes_labelselector==undefined){
+		throw 'SetAppReq.kubernetes_labelselector must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.kubernetes_labelselector)
+		s+='"kubernetes_labelselector":'+vv+','
+	}
+	//dns_host
+	if(msg.dns_host==null||msg.dns_host==undefined){
+		throw 'SetAppReq.dns_host must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.dns_host)
+		s+='"dns_host":'+vv+','
+	}
+	//dns_interval
+	if(msg.dns_interval==null||msg.dns_interval==undefined||!Number.isInteger(msg.dns_interval)){
+		throw 'SetAppReq.dns_interval must be integer'
+	}else if(msg.dns_interval>4294967295||msg.dns_interval<0){
+		throw 'SetAppReq.dns_interval overflow'
+	}else{
+		s+='"dns_interval":'+msg.dns_interval+','
+	}
+	//static_addrs
+	if(msg.static_addrs==null||msg.static_addrs==undefined){
+		s+='"static_addrs":null,'
+	}else if(msg.static_addrs.length==0){
+		s+='"static_addrs":[],'
+	}else{
+		s+='"static_addrs":['
+		for(let element of msg.static_addrs){
+			if(element==null||element==undefined){
+				throw 'element in SetAppReq.static_addrs must be string'
+			}
+			//transfer the json escape
+			let vv=JSON.stringify(element)
+			s+=vv+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
+	//new_app
+	if(msg.new_app==null||msg.new_app==undefined){
+		throw 'SetAppReq.new_app must be boolean'
+	}else{
+		s+='"new_app":'+msg.new_app+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface SetAppResp{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	node_id: Array<number>|null|undefined;
+}
+function JsonToSetAppResp(jsonobj: { [k:string]:any }): SetAppResp{
+	let obj: SetAppResp={
+		node_id:null,
+	}
+	//node_id
+	if(jsonobj['node_id']!=null&&jsonobj['node_id']!=undefined){
+		if(!(jsonobj['node_id'] instanceof Array)){
+			throw 'SetAppResp.node_id must be Array<number>|null|undefined'
+		}
+		for(let element of jsonobj['node_id']){
+			if(typeof element!='number'||!Number.isInteger(element)){
+				throw 'element in SetAppResp.node_id must be integer'
+			}else if(element>4294967295||element<0){
+				throw 'element in SetAppResp.node_id overflow'
+			}
+			if(obj['node_id']==null){
+				obj['node_id']=new Array<number>
+			}
+			obj['node_id'].push(element)
+		}
+	}
+	return obj
+}
 export interface SetKeyConfigReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
@@ -992,7 +999,7 @@ export interface SetKeyConfigReq{
 	value: string;
 	value_type: string;
 	secret: string;
-	new_key: boolean;
+	new_key: boolean;//true: create a new key config. false: update the already exist key config
 }
 function SetKeyConfigReqToJson(msg: SetKeyConfigReq): string{
 	let s: string="{"
@@ -1092,7 +1099,7 @@ export interface SetProxyReq{
 	write: boolean;//need write permission on this node
 	admin: boolean;//need admin permission on this node
 	secret: string;
-	new_path: boolean;
+	new_path: boolean;//true: create a new proxy path config. false: update the already exist proxy path setting
 }
 function SetProxyReqToJson(msg: SetProxyReq): string{
 	let s: string="{"
@@ -1423,7 +1430,7 @@ function JsonToWatchResp(jsonobj: { [k:string]:any }): WatchResp{
 	return obj
 }
 const _WebPathAppGetApp: string ="/admin.app/get_app";
-const _WebPathAppCreateApp: string ="/admin.app/create_app";
+const _WebPathAppSetApp: string ="/admin.app/set_app";
 const _WebPathAppDelApp: string ="/admin.app/del_app";
 const _WebPathAppUpdateAppSecret: string ="/admin.app/update_app_secret";
 const _WebPathAppDelKey: string ="/admin.app/del_key";
@@ -1496,7 +1503,7 @@ export class AppBrowserClientToC {
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
-	create_app(header: { [k: string]: string },req: CreateAppReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: CreateAppResp)=>void){
+	set_app(header: { [k: string]: string },req: SetAppReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: SetAppResp)=>void){
 		if(!Number.isInteger(timeout)){
 			errorf({code:-2,msg:'timeout must be integer'})
 			return
@@ -1507,13 +1514,13 @@ export class AppBrowserClientToC {
 		header["Content-Type"] = "application/json"
 		let body: string=''
 		try{
-			body=CreateAppReqToJson(req)
+			body=SetAppReqToJson(req)
 		}catch(e){
 			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
-			url:_WebPathAppCreateApp,
+			url:_WebPathAppSetApp,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
@@ -1523,7 +1530,7 @@ export class AppBrowserClientToC {
 		Axios.request(config)
 		.then(function(response){
 			try{
-				let obj:CreateAppResp=JsonToCreateAppResp(response.data)
+				let obj:SetAppResp=JsonToSetAppResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

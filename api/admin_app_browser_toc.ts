@@ -845,8 +845,8 @@ export interface SetAppReq{
 	kubernetes_labelselector: string;//when discover_mode == "kubernetes",this need to be set
 	dns_host: string;//when discover_mode == "dns",this need to be set
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	dns_interval: number;//when discover_mode == "dns",this need to be set,default 10s,unit is second
-	static_addrs: Array<string>|null|undefined;//when discover_mode == "static",this need to be set,unit is second
+	dns_interval: number;//when discover_mode == "dns",this need to be set,unit is second
+	static_addrs: Array<string>|null|undefined;//when discover_mode == "static",this need to be set
 	new_app: boolean;//true: create a new app. false: update the already exist app
 }
 function SetAppReqToJson(msg: SetAppReq): string{

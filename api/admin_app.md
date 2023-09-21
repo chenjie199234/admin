@@ -103,10 +103,10 @@ Content-Type: application/json
 	"kubernetes_labelselector":"str",
 	//when discover_mode == "dns",this need to be set
 	"dns_host":"str",
-	//when discover_mode == "dns",this need to be set,default 10s,unit is second
+	//when discover_mode == "dns",this need to be set,unit is second
 	//uint32
 	"dns_interval":0,
-	//when discover_mode == "static",this need to be set,unit is second
+	//when discover_mode == "static",this need to be set
 	"static_addrs":["str","str"],
 	//true: create a new app. false: update the already exist app
 	"new_app":true

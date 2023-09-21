@@ -360,8 +360,8 @@ type SetAppReq struct {
 	KubernetesNamespace     string   `protobuf:"bytes,6,opt,name=kubernetes_namespace,json=kubernetesNamespace,proto3" json:"kubernetes_namespace,omitempty"`             //when discover_mode == "kubernetes",this need to be set
 	KubernetesLabelselector string   `protobuf:"bytes,7,opt,name=kubernetes_labelselector,json=kubernetesLabelselector,proto3" json:"kubernetes_labelselector,omitempty"` //when discover_mode == "kubernetes",this need to be set
 	DnsHost                 string   `protobuf:"bytes,8,opt,name=dns_host,json=dnsHost,proto3" json:"dns_host,omitempty"`                                                 //when discover_mode == "dns",this need to be set
-	DnsInterval             uint32   `protobuf:"varint,9,opt,name=dns_interval,json=dnsInterval,proto3" json:"dns_interval,omitempty"`                                    //when discover_mode == "dns",this need to be set,default 10s,unit is second
-	StaticAddrs             []string `protobuf:"bytes,10,rep,name=static_addrs,json=staticAddrs,proto3" json:"static_addrs,omitempty"`                                    //when discover_mode == "static",this need to be set,unit is second
+	DnsInterval             uint32   `protobuf:"varint,9,opt,name=dns_interval,json=dnsInterval,proto3" json:"dns_interval,omitempty"`                                    //when discover_mode == "dns",this need to be set,unit is second
+	StaticAddrs             []string `protobuf:"bytes,10,rep,name=static_addrs,json=staticAddrs,proto3" json:"static_addrs,omitempty"`                                    //when discover_mode == "static",this need to be set
 	NewApp                  bool     `protobuf:"varint,11,opt,name=new_app,json=newApp,proto3" json:"new_app,omitempty"`                                                  //true: create a new app. false: update the already exist app
 }
 

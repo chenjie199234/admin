@@ -23,7 +23,7 @@ import (
 	"github.com/chenjie199234/Corelib/util/name"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	// "github.com/chenjie199234/Corelib/web"
-	//"github.com/chenjie199234/Corelib/cgrpc"
+	// "github.com/chenjie199234/Corelib/cgrpc"
 )
 
 // Service subservice for config business
@@ -183,7 +183,8 @@ func (s *Service) SetApp(ctx context.Context, req *api.SetAppReq) (*api.SetAppRe
 			return nil, ecode.ErrReq
 		}
 		if req.DnsInterval == 0 {
-			req.DnsInterval = 10
+			log.Error(ctx, "[SetApp] dns interval must be set", map[string]interface{}{"operator": md["Token-User"]})
+			return nil, ecode.ErrReq
 		}
 	case "static":
 		if len(req.StaticAddrs) == 0 {

@@ -640,12 +640,13 @@ function app_op(){
 			break
 		}
 		case 'proxy':{
+			let data=JSON.stringify(JSON.parse(reqdata.value))
 			let req = {
 				project_id:state.project.info!.project_id,
 				g_name:curg.value,
 				a_name:cura.value,
 				path:cur_proxy.value,
-				data:reqdata.value,
+				data:data,
 			}
 			client.appClient.proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()

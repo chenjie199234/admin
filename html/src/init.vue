@@ -54,12 +54,12 @@ function do_init(){
 			<va-card-content>System not initialized.</va-card-content>
 		</va-card>
 		<div style="display:flex;flex-direction:column">
-			<va-input :type="t_access_key?'text':'password'" label="Access Key*" v-model="access_key" style="width:400px;margin:5px 0" @keyup.enter="()=>{if(init_able()){do_init()}}">
+			<va-input :type="t_access_key?'text':'password'" label="Access Key*" v-model="access_key" style="width:400px;margin:5px 0">
 				<template #appendInner>
 					<va-icon :name="t_access_key?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_access_key=!t_access_key" />
 				</template>
 			</va-input>
-			<va-input :type="t_password?'text':'password'" label="Root Password*" v-model="password" style="width:400px;margin:5px 0" @keyup.enter="()=>{if(init_able()){do_init()}}">
+			<va-input :type="t_password?'text':'password'" label="Root Password*" v-model="password" style="width:400px;margin:5px 0">
 				<template #appendInner>
 					<va-icon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
 				</template>

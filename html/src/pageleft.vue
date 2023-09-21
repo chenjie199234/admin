@@ -327,16 +327,16 @@ function same_node_id(a:number[],b:number[]):boolean{
 				</div>
 			</div>
 			<div v-else-if="optype=='add'" style="display:flex;flex-direction:column">
-				<va-input style="width:400px;margin:3px 0" label="New Node Name*" v-model="node_name" @keyup.enter="()=>{if(node_name!=''){node_op()}}"></va-input>
-				<va-input style="width:400px;margin:3px 0" label="New Node Url?" v-model="node_url" @keyup.enter="()=>{if(node_name!=''){node_op()}}"></va-input>
+				<va-input style="width:400px;margin:3px 0" label="New Node Name*" v-model="node_name"></va-input>
+				<va-input style="width:400px;margin:3px 0" label="New Node Url?" v-model="node_url"></va-input>
 				<div>
 					<va-button style="width:80px;margin:3px 3px 0 234px" :disabled="node_name==''" @click="node_op">Add</va-button>
 					<va-button style="width:80px;margin:3px 0 0 3px" @click="node_ing=false">Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='update'" style="display:flex;flex-direction:column">
-				<va-input style="width:400px;margin:3px 0" label="New Node Name*" v-model="node_name" @keyup.enter="()=>{if(node_name!=''){node_op()}}"></va-input>
-				<va-input style="width:400px;margin:3px 0" label="New Node Url?" v-model="node_url" @keyup.enter="()=>{if(node_name!=''){node_op()}}"></va-input>
+				<va-input style="width:400px;margin:3px 0" label="New Node Name*" v-model="node_name"></va-input>
+				<va-input style="width:400px;margin:3px 0" label="New Node Url?" v-model="node_url"></va-input>
 				<div>
 					<va-button style="width:80px;margin:3px 3px 0 234px" :disabled="node_name==''" @click="node_op">Update</va-button>
 					<va-button style="width:80px;margin:3px 0 0 3px" @click="node_ing=false">Cancel</va-button>

@@ -287,7 +287,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 		KubernetesLS: "",
 		DnsHost:      "",
 		DnsInterval:  0,
-		StaticAddrs:  []string{},
+		StaticAddrs:  nil,
 		Paths:        map[string]*model.ProxyPath{},
 		Keys: map[string]*model.KeySummary{
 			"AppConfig": {

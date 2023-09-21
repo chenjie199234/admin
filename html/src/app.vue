@@ -242,7 +242,7 @@ function update_discover_able():boolean{
 		if(update_new_dnshost.value==''){
 			return false
 		}
-		if(update_new_dnshost.value==dnshost.value){
+		if(update_new_dnshost.value==dnshost.value&&update_new_dnsinterval.value==dnsinterval.value){
 			return false
 		}
 	}
@@ -264,7 +264,7 @@ function update_discover_copy(){
 	update_new_kubernetesls.value=kubernetesls.value
 	update_new_dnshost.value=dnshost.value
 	update_new_dnsinterval.value=dnsinterval.value
-	update_new_staticaddrs.value=staticaddrs.value
+	update_new_staticaddrs.value=[...staticaddrs.value]
 }
 
 //add key config
@@ -713,16 +713,12 @@ function is_json_obj(str :string):boolean{
 					<template #option='{option,selectOption}'>
 						<va-hover stateful @click="()=>{
 							selectOption(option)
-							if(option=='kubernetes'){
-								new_kubernetesns=''
-								new_kubernetesls=''
-							}else if(option=='dns'){
-								new_dnshost=''
-								new_dnsinterval=0
-							}else{
-								new_staticaddrs=[]
-								new_staticaddr=''
-							}
+							new_kubernetesns=''
+							new_kubernetesls=''
+							new_dnshost=''
+							new_dnsinterval=0
+							new_staticaddrs=[]
+							new_staticaddr=''
 						}">
 							<template #default="{hover}">
 								<div
@@ -774,16 +770,12 @@ function is_json_obj(str :string):boolean{
 					<template #option='{option,selectOption}'>
 						<va-hover stateful @click="()=>{
 							selectOption(option)
-							if(option=='kubernetes'){
-								update_new_kubernetesns=''
-								update_new_kubernetesls=''
-							}else if(option=='dns'){
-								update_new_dnshost=''
-								update_new_dnsinterval=0
-							}else{
-								update_new_staticaddrs=[]
-								update_new_staticaddr=''
-							}
+							update_new_kubernetesns=''
+							update_new_kubernetesls=''
+							update_new_dnshost=''
+							update_new_dnsinterval=0
+							update_new_staticaddrs=[]
+							update_new_staticaddr=''
 						}">
 							<template #default="{hover}">
 								<div
@@ -1028,7 +1020,7 @@ function is_json_obj(str :string):boolean{
 					</va-hover>
 				</template>
 			</va-select>
-			<va-input :type="t_secret?'text':'password'" v-model.trim="secret" outline label="Secret" :max-length="31" style="width:250px;margin:0 1px" @keyup.enter="()=>{if(curg!=''&&cura!=''){get_app()}}">
+			<va-input :type="t_secret?'text':'password'" v-model.trim="secret" outline label="Secret" :max-length="31" style="width:250px;margin:0 1px">
 				<template #appendInner>
 					<va-icon :name="t_secret?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_secret=!t_secret" />
 				</template>
@@ -1039,8 +1031,8 @@ function is_json_obj(str :string):boolean{
 		<div v-else style="display:flex;margin:1px 0;align-self:center">
 			<va-button v-if="mustadmin()" style="margin:0 2px" @click="optype='update_secret';ing=true">UpdateSecret</va-button>
 			<va-button v-if="mustadmin()" style="margin:0 2px" @click="update_discover_copy();optype='update_discover';ing=true">UpdateDiscover</va-button>
-			<va-button v-if="state.page.node!.admin&&!selfapp()" style="margin:0 2px">Delete</va-button>
-			<va-button style="margin:0 2px" @click="get_app_status=false">Back</va-button>
+			<va-button v-if="state.page.node!.admin&&!selfapp()" style="margin:0 2px" @click="optype='del_app';ing=true">Delete</va-button>
+			<va-button style="margin:0 2px" @click="config_proxy_instance='';get_app_status=false">Back</va-button>
 		</div>
 		<!-- configs -->
 		<div
@@ -1073,7 +1065,7 @@ function is_json_obj(str :string):boolean{
 			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance?'▲':'▼' }}</span>
 		</div>
 		<!-- keys -->
-		<div v-if="config_proxy_instance=='config'&&keys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
+		<div v-if="get_app_status&&config_proxy_instance=='config'&&keys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
 			<template v-for="key of keys.keys()">
 				<div
 					v-if="cur_key==''||cur_key==key"
@@ -1191,7 +1183,7 @@ function is_json_obj(str :string):boolean{
 				</div>
 			</template>
 		</div>
-		<div v-if="config_proxy_instance=='config'&&keys.size==0">
+		<div v-if="get_app_status&&config_proxy_instance=='config'&&keys.size==0">
 			<div style="margin:1px 10px;padding:12px;display:flex;flex-direction:column;background-color:var(--va-background-element);color:var(--va-primary)">No Config Keys</div>
 		</div>
 		<!-- proxys -->
@@ -1225,7 +1217,7 @@ function is_json_obj(str :string):boolean{
 			<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance?'▲':'▼' }}</span>
 		</div>
 		<!-- paths -->
-		<div v-if="config_proxy_instance=='proxy'&&proxys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
+		<div v-if="get_app_status&&config_proxy_instance=='proxy'&&proxys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
 			<template v-for="proxy of proxys.keys()">
 				<div
 					v-if="cur_proxy==''||cur_proxy==proxy"
@@ -1330,7 +1322,7 @@ function is_json_obj(str :string):boolean{
 				</div>
 			</template>
 		</div>
-		<div v-if="config_proxy_instance=='proxy'&&proxys.size==0">
+		<div v-if="get_app_status&&config_proxy_instance=='proxy'&&proxys.size==0">
 			<div style="margin:1px 10px;padding:12px;display:flex;flex-direction:column;background-color:var(--va-background-element);color:var(--va-primary)">No Proxy Paths</div>
 		</div>
 		<!-- instances -->

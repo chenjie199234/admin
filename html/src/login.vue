@@ -99,7 +99,7 @@ function do_login_user(){
 		</div>
 		<div v-else>
 			<div>
-				<va-input :type="t_password?'text':'password'" style="width:300px" label="Root Password*" v-model="password" @keyup.enter="()=>{if(login_root_able()){do_login_root()}}">
+				<va-input :type="t_password?'text':'password'" style="width:300px" label="Root Password*" v-model="password">
 					<template #appendInner>
 						<va-icon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
 					</template>

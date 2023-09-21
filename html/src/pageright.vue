@@ -48,12 +48,12 @@ function iframeload(){
 	<va-modal v-model="password_changing" attach-element="#app" max-width="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
 		<template #default>
 			<div style="display:flex;flex-direction:column">
-				<va-input :type="t_oldpassword?'text':'password'" label="Old Root Password*" v-model="oldpassword" style="width:400px;margin:5px 0" @keyup.enter="()=>{if(change_root_password_able()){do_change_root_password()}}">
+				<va-input :type="t_oldpassword?'text':'password'" label="Old Root Password*" v-model="oldpassword" style="width:400px;margin:5px 0">
 					<template #appendInner>
 						<va-icon :name="t_oldpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_oldpassword=!t_oldpassword" />
 					</template>
 				</va-input>
-				<va-input :type="t_newpassword?'text':'password'" label="New Root Password*" v-model="newpassword" style="width:400px;margin:5px 0" @keyup.enter="()=>{if(change_root_password_able()){do_change_root_password()}}">
+				<va-input :type="t_newpassword?'text':'password'" label="New Root Password*" v-model="newpassword" style="width:400px;margin:5px 0">
 					<template #appendInner>
 						<va-icon :name="t_newpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_newpassword=!t_newpassword" />
 					</template>

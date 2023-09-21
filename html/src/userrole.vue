@@ -554,7 +554,7 @@ function parsetime(timestamp :number):string{
 				</div>
 			</div>
 			<div v-else-if="optype=='update_user'">
-				<va-input v-model.trim="update_user_new_name" label="New User Name" style="width:300px;margin:1px 0" @keyup.enter="()=>{if(update_user_new_name!=update_user!.user_name){op()}}"></va-input>
+				<va-input v-model.trim="update_user_new_name" label="New User Name" style="width:300px;margin:1px 0" />
 				<div style="width:300px;display:flex;margin:1px 0">
 				<!-- TODO: department -->
 				</div>
@@ -564,8 +564,8 @@ function parsetime(timestamp :number):string{
 				</div>
 			</div>
 			<div v-else-if="optype=='create_role'" style="display:flex;flex-direction:column">
-				<va-input v-model.trim="create_role_name" label="New Role Name" style="margin:1px 0;width:300px" @keyup.enter="()=>{if(create_role_name!=''){op()}}" />
-				<va-input v-model.trim="create_role_comment" label="New Role Comment" style="margin:1px 0;width:300px" @keyup.enter="()=>{if(create_role_name!=''){op()}}" />
+				<va-input v-model.trim="create_role_name" label="New Role Name" style="margin:1px 0;width:300px" />
+				<va-input v-model.trim="create_role_comment" label="New Role Comment" style="margin:1px 0;width:300px" />
 				<div style="display:flex;justify-content:center;margin:1px 0">
 					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient :disabled="create_role_name==''">Create</va-button>
 					<va-button style="width:80px;margin:5px 0 0 10px" @click="create_role_name='';create_role_comment='';ing=false" gradient>Cancel</va-button>
@@ -738,7 +738,7 @@ function parsetime(timestamp :number):string{
 					</va-hover>
 				</template>
 			</va-select>
-			<va-input :label="target=='User'?'User Name':'Role Name'" outline style="max-width:250px;margin:0 1px" v-model.trim="search" @keyup.enter="optype='search';op()"></va-input>
+			<va-input :label="target=='User'?'User Name':'Role Name'" outline style="max-width:250px;margin:0 1px" v-model.trim="search" />
 			<va-button style="margin:0 1px" @click="optype='search';op()">Search</va-button>
 			<div style="flex:1"></div>
 			<va-button v-if="target=='Role'" style="margin-left:1px" @click="optype='create_role';ing=true">Create</va-button>

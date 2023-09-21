@@ -12,6 +12,7 @@ import (
 
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/mongo"
+	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/ctime"
 )
@@ -41,6 +42,10 @@ func Init(notice func(c *AppConfig)) {
 		EC.DeployEnv = &str
 	} else {
 		log.Warning(nil, "[config.Init] missing env DEPLOY_ENV", nil)
+	}
+	var secret string
+	if str, ok := os.LookupEnv("CONFIG_SECRET"); ok && str != "<CONFIG_SECRET>" && str != "" {
+		secret = str
 	}
 	tmer := time.NewTimer(time.Second)
 	appch := make(chan *struct{}, 1)
@@ -81,8 +86,18 @@ func Init(notice func(c *AppConfig)) {
 				continue
 			}
 			if appkey.CurVersion != appversion {
+				var plaintxt []byte
+				if secret != "" {
+					plaintxt, e = secure.AesDecrypt(secret, appkey.CurValue)
+					if e != nil {
+						log.Error(nil, "[config.Init] decrypt failed", map[string]interface{}{"error": e})
+						continue
+					}
+				} else {
+					plaintxt = common.Str2byte(appkey.CurValue)
+				}
 				c := &AppConfig{}
-				if e := json.Unmarshal(common.Str2byte(appkey.CurValue), c); e != nil {
+				if e := json.Unmarshal(plaintxt, c); e != nil {
 					log.Error(nil, "[config.Init] key: AppConfig data format wrong", map[string]interface{}{"error": e})
 					continue
 				}
@@ -100,8 +115,18 @@ func Init(notice func(c *AppConfig)) {
 			}
 			if sourcekey.CurVersion != sourceversion && sc == nil {
 				//source config can't hot update,can only init once
+				var plaintxt []byte
+				if secret != "" {
+					plaintxt, e = secure.AesDecrypt(secret, sourcekey.CurValue)
+					if e != nil {
+						log.Error(nil, "[config.Init] decrypt failed", map[string]interface{}{"error": e})
+						continue
+					}
+				} else {
+					plaintxt = common.Str2byte(sourcekey.CurValue)
+				}
 				c := &sourceConfig{}
-				if e := json.Unmarshal(common.Str2byte(sourcekey.CurValue), c); e != nil {
+				if e := json.Unmarshal(plaintxt, c); e != nil {
 					log.Error(nil, "[config.Init] key: SourceConfig data format wrong", map[string]interface{}{"error": e})
 					continue
 				}

@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/base64"
 	"strconv"
 
@@ -241,29 +240,8 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 	if e = secure.SignCheck(oldsecret, appsummary.Value); e != nil {
 		return
 	}
-	nonce := make([]byte, 32)
-	rand.Read(nonce)
-	updaterSummary := bson.M{
-		"value": sign,
-	}
-	for key, keysummary := range appsummary.Keys {
-		if oldsecret != "" {
-			var plaintext []byte
-			plaintext, e = secure.AesDecrypt(oldsecret, keysummary.CurValue)
-			if e != nil {
-				return
-			}
-			keysummary.CurValue = common.Byte2str(plaintext)
-		}
-		if newsecret != "" {
-			updaterSummary["keys."+key+".cur_value"], _ = secure.AesEncrypt(newsecret, common.Str2byte(keysummary.CurValue))
-		} else {
-			updaterSummary["keys."+key+".cur_value"] = keysummary.CurValue
-		}
-	}
-	if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterSummary, bson.M{"$set": updaterSummary}); e != nil {
-		return
-	}
+	//deal log
+	tmp := make(map[string]string, len(appsummary.Keys))
 	filterlog := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": bson.M{"$exists": true, "$type": "string", "$ne": ""}, "index": bson.M{"$gt": 0}}
 	var cursor *mongo.Cursor
 	if cursor, e = d.mongo.Database("app").Collection("config").Find(sctx, filterlog); e != nil {
@@ -291,8 +269,38 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 		if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filter, updater); e != nil {
 			return
 		}
+		if keysummary, ok := appsummary.Keys[log.Key]; ok && keysummary.CurIndex == log.Index {
+			tmp[log.Key] = log.Value
+		}
 	}
-	e = cursor.Err()
+	if e = cursor.Err(); e != nil {
+		return
+	}
+	//deal summary
+	updater := bson.M{
+		"value": sign,
+	}
+	for key, summary := range appsummary.Keys {
+		if newvalue, ok := tmp[key]; ok {
+			//use the log's value
+			summary.CurValue = newvalue
+		} else {
+			//fallback update by self
+			if oldsecret != "" {
+				var plaintext []byte
+				plaintext, e = secure.AesDecrypt(oldsecret, summary.CurValue)
+				if e != nil {
+					return
+				}
+				summary.CurValue = common.Byte2str(plaintext)
+			}
+			if newsecret != "" {
+				summary.CurValue, _ = secure.AesEncrypt(newsecret, common.Str2byte(summary.CurValue))
+			}
+		}
+		updater["keys."+key+".cur_value"] = summary.CurValue
+	}
+	_, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterSummary, bson.M{"$set": updater})
 	return
 }
 

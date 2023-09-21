@@ -28,27 +28,31 @@ const all=computed(()=>{
 	}
 	return tmp
 })
-function is_json_obj(str :string):boolean{
-	if(str.length<2){
-		return false
-	}
-	if(str[0]!='{'&&str[str.length-1]!='}'){
-		return false
-	}
-	try{
-		JSON.parse(str)
-	}catch(e){
-		return false
-	}
-	return true
-}
+
 
 const curg=ref<string>("")
 const cura=ref<string>("")
 const secret=ref<string>("")
 const t_secret=ref<boolean>(false)
+function selfapp():boolean{
+	let nodeid=all.value[curg.value][cura.value].node_id
+	return nodeid![1]==1&&nodeid![2]==2&&nodeid![3]==1
+}
+function canwrite():boolean{
+	return all.value[curg.value][cura.value].canwrite||all.value[curg.value][cura.value].admin
+}
+function mustadmin():boolean{
+	return all.value[curg.value][cura.value].admin
+}
 
 const config_proxy_instance=ref<string>("")
+
+const discovermode=ref<string>("")
+const kubernetesns=ref<string>("")
+const kubernetesls=ref<string>("")
+const dnshost=ref<string>("")
+const dnsinterval=ref<number>(0)
+const staticaddrs=ref<string[]>([])
 
 const keys=ref<Map<string,appAPI.KeyConfigInfo>>(new Map())
 const t_keys_hover=ref<boolean>(false)
@@ -68,6 +72,12 @@ function get_app(){
 		keys.value=new Map()
 		proxys.value=new Map()
 		config_proxy_instance.value=""
+		discovermode.value=""
+		kubernetesns.value=""
+		kubernetesls.value=""
+		dnshost.value=""
+		dnsinterval.value=0
+		staticaddrs.value=[]
 		state.set_alert("error",-2,"Group and App must be selected!")
 		return
 	}
@@ -75,6 +85,12 @@ function get_app(){
 		keys.value=new Map()
 		proxys.value=new Map()
 		config_proxy_instance.value=""
+		discovermode.value=""
+		kubernetesns.value=""
+		kubernetesls.value=""
+		dnshost.value=""
+		dnsinterval.value=0
+		staticaddrs.value=[]
 		state.set_alert("error",-2,"Missing node_id on Group:"+curg.value+" App:"+cura.value)
 		return
 	}
@@ -112,6 +128,16 @@ function get_app(){
 			}
 		}else{
 			proxys.value = new Map()
+		}
+		discovermode.value=resp.discover_mode
+		kubernetesns.value=resp.kubernetes_namespace
+		kubernetesls.value=resp.kubernetes_labelselector
+	      	dnshost.value=resp.dns_host
+	      	dnsinterval.value=resp.dns_interval
+		if(resp.static_addrs){
+			staticaddrs.value=resp.static_addrs
+		}else{
+			staticaddrs.value=[]
 		}
 		get_app_status.value=true
 		state.clear_load()
@@ -159,12 +185,87 @@ const optype=ref<string>("")
 const new_g=ref<string>("")
 const new_a=ref<string>("")
 const new_secret=ref<string>("")
+const new_discovermode=ref<string>("")
+const new_kubernetesns=ref<string>("")
+const new_kubernetesls=ref<string>("")
+const new_dnshost=ref<string>("")
+const new_dnsinterval=ref<number>(0)
+const new_staticaddrs=ref<string[]>([])
+const new_staticaddr=ref<string>("")
+function add_app_able() :boolean{
+	if(new_g.value==''){
+		return false
+	}
+	if(new_a.value==''){
+		return false
+	}
+	if(new_discovermode.value==''){
+		return false
+	}
+	if(new_discovermode.value=='kubernetes'&&(new_kubernetesns.value==''||new_kubernetesls.value=='')){
+		return false
+	}
+	if(new_discovermode.value=='dns'&&new_dnshost.value==''){
+		return false
+	}
+	if(new_discovermode.value=='static'&&new_staticaddrs.value.length==0){
+		return false
+	}
+	return true
+}
 
-//update app secret
-const update_g=ref<string>("")
-const update_a=ref<string>("")
-const update_old_secret=ref<string>("")
+//update app
 const update_new_secret=ref<string>("")
+const update_new_discovermode=ref<string>("")
+const update_new_kubernetesns=ref<string>("")
+const update_new_kubernetesls=ref<string>("")
+const update_new_dnshost=ref<string>("")
+const update_new_dnsinterval=ref<number>(0)
+const update_new_staticaddrs=ref<string[]>([])
+const update_new_staticaddr=ref<string>("")
+function update_secret_able():boolean{
+	return update_new_secret.value != secret.value
+}
+function update_discover_able():boolean{
+	if(update_new_discovermode.value==''){
+		return false
+	}
+	if(update_new_discovermode.value=='kubernetes'){
+		if(update_new_kubernetesns.value==''||update_new_kubernetesls.value==''){
+			return false
+		}
+		if(update_new_kubernetesns.value==kubernetesns.value&&update_new_kubernetesls.value==kubernetesls.value){
+			return false
+		}
+	}
+	if(update_new_discovermode.value=='dns'){
+		if(update_new_dnshost.value==''){
+			return false
+		}
+		if(update_new_dnshost.value==dnshost.value){
+			return false
+		}
+	}
+	if(update_new_discovermode.value=='static'){
+		if(update_new_staticaddrs.value.length==0){
+			return false
+		}
+		if(update_new_staticaddrs.value.length==staticaddrs.value.length){
+			if(staticaddrs.value.every(function(v,i){return v==update_new_staticaddrs.value[i]})){
+				return false
+			}
+		}
+	}
+	return true
+}
+function update_discover_copy(){
+	update_new_discovermode.value=discovermode.value
+	update_new_kubernetesns.value=kubernetesns.value
+	update_new_kubernetesls.value=kubernetesls.value
+	update_new_dnshost.value=dnshost.value
+	update_new_dnsinterval.value=dnsinterval.value
+	update_new_staticaddrs.value=staticaddrs.value
+}
 
 //add key config
 const config_value_types=ref<string[]>(["json","raw","yaml","toml"])
@@ -188,46 +289,28 @@ const new_proxy_path=ref<string>("")
 const new_proxy_permission_read=ref<boolean>(false)
 const new_proxy_permission_write=ref<boolean>(false)
 const new_proxy_permission_admin=ref<boolean>(false)
-function new_proxy_permission_update(t :string){
-	switch(t){
-		case "read":{
-			if(!new_proxy_permission_read.value){
-				new_proxy_permission_write.value=false
-				new_proxy_permission_admin.value=false
-			}
-			break
-		}
-		case "write":{
-			if(!new_proxy_permission_write.value){
-				new_proxy_permission_admin.value=false
-			}else{
-				new_proxy_permission_read.value=true
-			}
-			break
-		}
-		case "admin":{
-			if(new_proxy_permission_admin.value){
-				new_proxy_permission_read.value=true
-				new_proxy_permission_write.value=true
-			}
-			break
-		}
-	}
-}
-function new_proxy_permission_same(proxy :string):boolean{
-	if(proxys.value.get(proxy)!.read!=new_proxy_permission_read.value){
-		return false 
-	}
-	if(proxys.value.get(proxy)!.write!=new_proxy_permission_write.value){
-		return false
-	}
-	if(proxys.value.get(proxy)!.admin!=new_proxy_permission_admin.value){
-		return false
-	}
-	return true
-}
 
 const cur_proxy=ref<string>("")
+
+//update proxy
+const update_proxy_permission_read=ref<boolean>(false)
+const update_proxy_permission_write=ref<boolean>(false)
+const update_proxy_permission_admin=ref<boolean>(false)
+
+function update_proxy_able():boolean{
+	if(proxys.value.get(cur_proxy.value)!.read!=update_proxy_permission_read.value){
+		return true
+	}
+	if(proxys.value.get(cur_proxy.value)!.write!=update_proxy_permission_write.value){
+		return true
+	}
+	if(proxys.value.get(cur_proxy.value)!.admin!=update_proxy_permission_admin.value){
+		return true
+	}
+	return false
+}
+
+//proxy
 const reqdata=ref<string>("")
 const respdata=ref<string>("")
 
@@ -237,11 +320,6 @@ function app_op(){
 	}
 	switch(optype.value){
 		case 'del_app':{
-			if(curg.value==""||cura.value==""){
-				state.clear_load()
-				state.set_alert("error",-2,"Group and App must be selected!")
-				return
-			}
 			let req = {
 				project_id:state.project.info!.project_id,
 				g_name:curg.value,
@@ -264,6 +342,7 @@ function app_op(){
 				curg.value=""
 				cura.value=""
 				secret.value=""
+				discovermode.value=""
 				keys.value=new Map()
 				proxys.value=new Map()
 				get_app_status.value=false
@@ -279,11 +358,18 @@ function app_op(){
 				g_name:new_g.value,
 				a_name:new_a.value,
 				secret:new_secret.value,
+				discover_mode:new_discovermode.value,
+				kubernetes_namespace:new_kubernetesns.value,
+	      			kubernetes_labelselector:new_kubernetesls.value,
+	      			dns_host:new_dnshost.value,
+	      			dns_interval:new_dnsinterval.value,
+	      			static_addrs:new_staticaddrs.value,
+	      			new_app:true,
 			}
-			client.appClient.create_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.CreateAppResp)=>{
+			},(resp: appAPI.SetAppResp)=>{
 				if(all.value[new_g.value] && all.value[new_g.value][new_a.value]){
 					return
 				}
@@ -311,6 +397,37 @@ function app_op(){
 				new_g.value=""
 				new_a.value=""
 				new_secret.value=""
+				new_discovermode.value=""
+				ing.value=false
+				state.clear_load()
+			})
+			break
+		}
+		case 'update_discover':{
+			let req = {
+				project_id:state.project.info!.project_id,
+				g_name:curg.value,
+				a_name:cura.value,
+				secret:secret.value,
+				discover_mode:update_new_discovermode.value,
+				kubernetes_namespace:update_new_kubernetesns.value,
+	      			kubernetes_labelselector:update_new_kubernetesls.value,
+	      			dns_host:update_new_dnshost.value,
+	      			dns_interval:update_new_dnsinterval.value,
+	      			static_addrs:update_new_staticaddrs.value,
+	      			new_app:false,
+			}
+			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(_: appAPI.SetAppResp)=>{
+				discovermode.value=update_new_discovermode.value
+				kubernetesns.value=update_new_kubernetesns.value
+				kubernetesls.value=update_new_kubernetesls.value
+				dnshost.value=update_new_dnshost.value
+				dnsinterval.value=update_new_dnsinterval.value
+				staticaddrs.value=update_new_staticaddrs.value
+				update_new_discovermode.value=""
 				ing.value=false
 				state.clear_load()
 			})
@@ -319,18 +436,16 @@ function app_op(){
 		case 'update_secret':{
 			let req = {
 				project_id:state.project.info!.project_id,
-				g_name:update_g.value,
-				a_name:update_a.value,
-				old_secret:update_old_secret.value,
+				g_name:curg.value,
+				a_name:cura.value,
+				old_secret:secret.value,
 				new_secret:update_new_secret.value
 			}
 			client.appClient.update_app_secret({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.UpdateAppSecretResp)=>{
-				update_g.value=""
-				update_a.value=""
-				update_old_secret.value=""
+				secret.value=update_new_secret.value
 				update_new_secret.value=""
 				ing.value=false
 				state.clear_load()
@@ -357,11 +472,6 @@ function app_op(){
 			break
 		}
 		case 'add_key':{
-			if(keys.value.has(config_key.value)){
-				state.clear_load()
-				state.set_alert("error",-2,"key already exist")
-				break
-			}
 			let req = {
 				project_id:state.project.info!.project_id,
 				g_name:curg.value,
@@ -453,11 +563,6 @@ function app_op(){
 			break
 		}
 		case 'add_proxy':{
-			if(proxys.value.has(new_proxy_path.value)){
-				state.clear_load()
-				state.set_alert("error",-2,"proxy path already exist")
-				break
-			}
 			let req = {
 				project_id:state.project.info!.project_id,
 				g_name:curg.value,
@@ -498,18 +603,18 @@ function app_op(){
 				a_name:cura.value,
 				secret:secret.value,
 				path:cur_proxy.value,
-				read:new_proxy_permission_read.value,
-				write:new_proxy_permission_write.value,
-				admin:new_proxy_permission_admin.value,
+				read:update_proxy_permission_read.value,
+				write:update_proxy_permission_write.value,
+				admin:update_proxy_permission_admin.value,
 				new_path:false,
 			}
 			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.SetProxyResp)=>{
-				proxys.value.get(cur_proxy.value)!.read=new_proxy_permission_read.value
-				proxys.value.get(cur_proxy.value)!.write=new_proxy_permission_write.value
-				proxys.value.get(cur_proxy.value)!.admin=new_proxy_permission_admin.value
+				proxys.value.get(cur_proxy.value)!.read=update_proxy_permission_read.value
+				proxys.value.get(cur_proxy.value)!.write=update_proxy_permission_write.value
+				proxys.value.get(cur_proxy.value)!.admin=update_proxy_permission_admin.value
 				ing.value=false
 				state.clear_load()
 			})
@@ -562,6 +667,20 @@ function app_op(){
 		}
 	}
 }
+function is_json_obj(str :string):boolean{
+	if(str.length<2){
+		return false
+	}
+	if(str[0]!='{'&&str[str.length-1]!='}'){
+		return false
+	}
+	try{
+		JSON.parse(str)
+	}catch(e){
+		return false
+	}
+	return true
+}
 </script>
 <template>
 	<va-modal v-model="ing" attach-element="#app" max-width="1000px" max-height="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
@@ -581,77 +700,121 @@ function app_op(){
 				</div>
 			</div>
 			<div v-else-if="optype=='add_app'" style="display:flex;flex-direction:column">
-				<va-input type="text" label="Group*" style="margin:2px" v-model.trim="new_g" @keyup.enter="()=>{if(new_g!=''&&new_a!=''&&(!Boolean(all[new_g])||!Boolean(all[new_g][new_a]))){app_op()}}" />
-				<va-input type="text" label="App*" style="margin:2px" v-model.trim="new_a" @keyup.enter="()=>{if(new_g!=''&&new_a!=''&&(!Boolean(all[new_g])||!Boolean(all[new_g][new_a]))){app_op()}}" />
-				<va-input type="text" label="Secret" style="margin:2px" v-model.trim="new_secret" :max-length="31" @keyup.enter="()=>{if(new_g!=''&&new_a!=''&&(!Boolean(all[new_g])||!Boolean(all[new_g][new_a]))){app_op()}}" />
+				<va-input type="text" label="Group*" style="margin:2px" v-model.trim="new_g" />
+				<va-input type="text" label="App*" style="margin:2px" v-model.trim="new_a" />
+				<va-input type="text" label="Secret" style="margin:2px" v-model.trim="new_secret" :max-length="31" />
+				<va-select
+					v-model="new_discovermode"
+					:options="['dns','kubernetes','static']"
+					label="Discover Mode*"
+					dropdownIcon=""
+					style="margin:2px"
+				>
+					<template #option='{option,selectOption}'>
+						<va-hover stateful @click="()=>{
+							selectOption(option)
+							if(option=='kubernetes'){
+								new_kubernetesns=''
+								new_kubernetesls=''
+							}else if(option=='dns'){
+								new_dnshost=''
+								new_dnsinterval=0
+							}else{
+								new_staticaddrs=[]
+								new_staticaddr=''
+							}
+						}">
+							<template #default="{hover}">
+								<div
+									style="padding:10px;cursor:pointer"
+									:style="{'background-color':hover?'var(--va-background-border)':'',color:new_discovermode==option?'green':'black'}"
+								>
+									{{option}}
+								</div>
+							</template>
+						</va-hover>
+					</template>
+				</va-select>
+				<va-input v-if="new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin:2px" v-model.trim="new_kubernetesns" />
+				<va-input v-if="new_discovermode=='kubernetes'" type="text" label="Kubernetes Label Selector*" style="margin:2px" v-model.trim="new_kubernetesls" />
+				<va-input v-if="new_discovermode=='dns'" type="text" label="Dns Host*" style="margin:2px" v-model.trim="new_dnshost" />
+				<va-input v-if="new_discovermode=='dns'" type="text" label="Dns Interval(seconds)*" style="margin:2px" v-model.number="new_dnsinterval" />
+				<div v-if="new_discovermode=='static'" v-for="(addr,index) in new_staticaddrs">
+					<va-input v-if="addr!=''" readonly type="text" label="Addr" style="margin:2px" v-model="new_staticaddrs[index]" />
+					<va-button v-if="addr!=''" style="margin:2px" @click="new_staticaddrs.splice(index,1)">X</va-button>
+				</div>
+				<div v-if="new_discovermode=='static'">
+					<va-input type="text" label="Addr" style="margin:2px" v-model.trim="new_staticaddr" />
+					<va-button
+						:disabled="new_staticaddr==''||new_staticaddrs.includes(new_staticaddr)" 
+						style="margin:2px"
+						@click="new_staticaddrs.push(new_staticaddr);new_staticaddr=''"
+					>+</va-button>
+				</div>
 				<div style="display:flex;justify-content:center">
-					<va-button @click="app_op" style="margin:5px" :disabled="new_g==''||new_a==''||(Boolean(all[new_g])&&Boolean(all[new_g][new_a]))">Add</va-button>
-					<va-button @click="new_g='';new_a='';new_secret='';ing=false" style="margin:5px">Cancel</va-button>
+					<va-button @click="app_op" style="margin:5px" :disabled="!add_app_able()">Add</va-button>
+					<va-button @click="new_g='';new_a='';new_secret='';new_discovermode='';ing=false" style="margin:5px">Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='update_secret'" style="display:flex;flex-direction:column">
-				<div>
-					<va-select 
-						v-model="update_g"
-						:options="Object.keys(all)"
-						noOptionsText="No Groups"
-						label="Group*"
-						dropdownIcon=""
-						style="width:198px;margin:2px"
-					>
-						<template #option='{option,selectOption}'>
-							<va-hover stateful @click="()=>{
-								if(option!=update_g){
-									selectOption(option)
-									update_a=''
-									update_old_secret=''
-									update_new_secret=''
-								}
-							}">
-								<template #default="{hover}">
-									<div
-										style="padding:10px;cursor:pointer"
-										:style="{'background-color':hover?'var(--va-background-border)':'',color:update_g==option?'green':'black'}"
-									>
-										{{option}}
-									</div>
-								</template>
-							</va-hover>
-						</template>
-					</va-select>
-					<va-select
-						v-model="update_a"
-						:options="update_g==''?[]:Object.keys(all[update_g])"
-						noOptionsText="No Apps"
-						label="App*"
-						dropdownIcon=""
-						style="width:198px;margin:2px"
-					>
-						<template #option='{option,selectOption}'>
-							<va-hover stateful @click="()=>{
-								if(option!=update_a){
-									selectOption(option)
-									update_old_secret=''
-									update_new_secret=''
-								}
-							}">
-								<template #default="{hover}">
-									<div
-										style="padding:10px;cursor:pointer"
-										:style="{'background-color':hover?'var(--va-background-border)':'',color:update_a==option?'green':'black'}"
-									>
-										{{option}}
-									</div>
-								</template>
-							</va-hover>
-						</template>
-					</va-select>
-				</div>
-				<va-input type="text" label="Old Secret" style="width:400px;margin:2px" v-model.trim="update_old_secret" @keyup.enter="()=>{if(update_g!=''&&update_a!=''&&update_new_secret!=update_old_secret){app_op()}}" />
-				<va-input type="text" label="New Secret" style="width:400px;margin:2px" v-model.trim="update_new_secret" @keyup.enter="()=>{if(update_g!=''&&update_a!=''&&update_new_secret!=update_old_secret){app_op()}}" />
+				<va-input type="text" label="New Secret" style="width:400px;margin:2px" v-model.trim="update_new_secret" />
 				<div style="display:flex;justify-content:center">
-					<va-button @click="app_op" style="margin:5px" :disabled="update_g==''||update_a==''||update_old_secret==update_new_secret">Update</va-button>
-					<va-button @click="update_g='';update_a='';update_old_secret='';update_new_secret='';ing=false" style="margin:5px">Cancel</va-button>
+					<va-button @click="app_op" style="margin:5px" :disabled="!update_secret_able()">Update</va-button>
+					<va-button @click="update_new_secret='';ing=false" style="margin:5px">Cancel</va-button>
+				</div>
+			</div>
+			<div v-else-if="optype=='update_discover'" style="display:flex;flex-direction:column">
+				<va-select
+					v-model="update_new_discovermode"
+					:options="['dns','kubernetes','static']"
+					label="Discover Mode*"
+					dropdownIcon=""
+					style="margin:2px"
+				>
+					<template #option='{option,selectOption}'>
+						<va-hover stateful @click="()=>{
+							selectOption(option)
+							if(option=='kubernetes'){
+								update_new_kubernetesns=''
+								update_new_kubernetesls=''
+							}else if(option=='dns'){
+								update_new_dnshost=''
+								update_new_dnsinterval=0
+							}else{
+								update_new_staticaddrs=[]
+								update_new_staticaddr=''
+							}
+						}">
+							<template #default="{hover}">
+								<div
+									style="padding:10px;cursor:pointer"
+									:style="{'background-color':hover?'var(--va-background-border)':'',color:update_new_discovermode==option?'green':'black'}"
+								>
+									{{option}}
+								</div>
+							</template>
+						</va-hover>
+					</template>
+				</va-select>
+				<va-input v-if="update_new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin:2px" v-model.trim="update_new_kubernetesns" />
+				<va-input v-if="update_new_discovermode=='kubernetes'" type="text" label="Kubernetes Label Selector*" style="margin:2px" v-model.trim="update_new_kubernetesls" />
+				<va-input v-if="update_new_discovermode=='dns'" type="text" label="Dns Host*" style="margin:2px" v-model.trim="update_new_dnshost" />
+				<va-input v-if="update_new_discovermode=='dns'" type="text" label="Dns Interval(seconds)*" style="margin:2px" v-model.number="update_new_dnsinterval" />
+				<div v-if="update_new_discovermode=='static'" v-for="(addr,index) in update_new_staticaddrs">
+					<va-input v-if="addr!=''" readonly type="text" label="Addr" style="margin:2px" v-model="update_new_staticaddrs[index]" />
+					<va-button v-if="addr!=''" style="margin:2px" @click="update_new_staticaddrs.splice(index,1)">X</va-button>
+				</div>
+				<div v-if="update_new_discovermode=='static'">
+					<va-input type="text" label="Addr" style="margin:2px" v-model.trim="update_new_staticaddr" />
+					<va-button
+						:disabled="update_new_staticaddr==''||update_new_staticaddrs.includes(update_new_staticaddr)" 
+						style="margin:2px"
+						@click="update_new_staticaddrs.push(update_new_staticaddr);update_new_staticaddr=''"
+					>+</va-button>
+				</div>
+				<div style="display:flex;justify-content:center">
+					<va-button @click="app_op" style="margin:5px" :disabled="!update_discover_able()">Update</va-button>
+					<va-button @click="update_new_discovermode='';ing=false" style="margin:5px">Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='del_key'" style="display:flex;flex-direction:column">
@@ -710,9 +873,40 @@ function app_op(){
 			<div v-else-if="optype=='add_proxy'">
 				<va-input label="Path" style="width:500px" v-model.trim="new_proxy_path"/>
 				<div style="display:flex;justify-content:space-around;margin:4px">
-					<va-switch v-model="new_proxy_permission_read" true-inner-label="Read" false-inner-label="Read" @update:model-value="new_proxy_permission_update('read')" />
-					<va-switch v-model="new_proxy_permission_write" true-inner-label="Write" false-inner-label="Write" @update:model-value="new_proxy_permission_update('write')" />
-					<va-switch v-model="new_proxy_permission_admin" true-inner-label="Admin" false-inner-label="Admin" @update:model-value="new_proxy_permission_update('admin')" />
+					<va-switch
+						v-model="new_proxy_permission_read"
+						true-inner-label="Read"
+						false-inner-label="Read"
+						@update:model-value="()=>{
+							if(!new_proxy_permission_read){
+								new_proxy_permission_write=false
+								new_proxy_permission_admin=false
+							}
+						}"
+					/>
+					<va-switch
+						v-model="new_proxy_permission_write"
+						true-inner-label="Write"
+						false-inner-label="Write"
+						@update:model-value="()=>{
+							if(!new_proxy_permission_write){
+								new_proxy_permission_admin=false
+							}else{
+								new_proxy_permission_read=true
+							}
+						}"
+					/>
+					<va-switch
+						v-model="new_proxy_permission_admin"
+						true-inner-label="Admin"
+						false-inner-label="Admin"
+						@update:model-value="()=>{
+							if(new_proxy_permission_admin){
+								new_proxy_permission_read=true
+								new_proxy_permission_write=true
+							}
+						}"
+					/>
 				</div>
 				<div style="display:flex;justify-content:center">
 					<va-button style="width:80px;margin:5px 10px 0 0" @click="app_op" gradient :disabled="new_proxy_path==''||proxys.has(new_proxy_path)">Add</va-button>
@@ -763,7 +957,7 @@ function app_op(){
 		</template>
 	</va-modal>
 	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
-		<div style="display:flex;margin:1px 0;align-self:center">
+		<div v-if="!get_app_status" style="display:flex;margin:1px 0;align-self:center">
 			<va-select
 				v-model="curg"
 				:options="Object.keys(all)"
@@ -840,22 +1034,13 @@ function app_op(){
 				</template>
 			</va-input>
 			<va-button style="margin:0 2px" :disabled="curg==''||cura==''" @click="get_app">Search</va-button>
-			<va-dropdown  v-if="state.page.node!.admin" style="width:36px;margin-right:4px">
-				<template #anchor>
-					<va-button>•••</va-button>
-				</template>
-				<va-dropdown-content>
-					<va-popover message="Create New App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button style="width:36px;margin:0 3px" @click="optype='add_app';ing=true">+</va-button>
-					</va-popover>
-					<va-popover message="Update Add Secret" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button style="width:36px;margin:0 3px" @click="optype='update_secret';ing=true">◉</va-button>
-					</va-popover>
-					<va-popover message="Delete App" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button style="width:36px;margin:0 3px" :disabled="curg==''||cura==''||(all[curg][cura].node_id![1]==1&&all[curg][cura].node_id![3]==1)" @click="optype='del_app';ing=true">x</va-button>
-					</va-popover>
-				</va-dropdown-content>
-			</va-dropdown>
+			<va-button v-if="state.page.node!.admin" style="margin:0 2px" @click="optype='add_app';ing=true">Add</va-button>
+		</div>
+		<div v-else style="display:flex;margin:1px 0;align-self:center">
+			<va-button v-if="mustadmin()" style="margin:0 2px" @click="optype='update_secret';ing=true">UpdateSecret</va-button>
+			<va-button v-if="mustadmin()" style="margin:0 2px" @click="update_discover_copy();optype='update_discover';ing=true">UpdateDiscover</va-button>
+			<va-button v-if="state.page.node!.admin&&!selfapp()" style="margin:0 2px">Delete</va-button>
+			<va-button style="margin:0 2px" @click="get_app_status=false">Back</va-button>
 		</div>
 		<!-- configs -->
 		<div
@@ -876,7 +1061,7 @@ function app_op(){
 			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='config'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Configs</span>
 			<va-button
-				v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+				v-if="canwrite()"
 				style="height:30px"
 				size="small"
 				@mouseover.stop=""
@@ -933,7 +1118,7 @@ function app_op(){
 								</va-dropdown-content>
 							</va-dropdown>
 							<va-button
-								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+								v-if="canwrite()"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
 								:disabled="cur_key_index!=0||new_cur_key_value_type!=''"
@@ -950,7 +1135,7 @@ function app_op(){
 								Edit
 							</va-button>
 							<va-button
-								v-if="(all[curg][cura].canwrite||all[curg][cura].admin)&&((key!='AppConfig'&&key!='SourceConfig')||all[curg][cura].node_id![1]!=1||all[curg][cura].node_id![3]!=1)"
+								v-if="canwrite()&&(!selfapp()||(key!='AppConfig'&&key!='SourceConfig'))"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
 								@click.stop="optype='del_key';ing=true"
@@ -984,7 +1169,7 @@ function app_op(){
 							/>
 							<span style="flex:1"></span>
 							<va-button
-								v-if="cur_key_index!=0&&all[curg][cura].canwrite&&all[curg][cura].admin"
+								v-if="cur_key_index!=0&&canwrite()"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
 								@click="optype='rollback_key';ing=true"
@@ -992,7 +1177,7 @@ function app_op(){
 								Rollback
 							</va-button>
 							<va-button
-								v-if="new_cur_key_value_type!=''"
+								v-if="new_cur_key_value_type!=''&&canwrite()"
 								:disabled="!is_json_obj(new_cur_key_value)||JSON.stringify(JSON.parse(new_cur_key_value),null,4)==JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)"
 								size="small"
 								style="width:60px;height:30px;margin:2px"
@@ -1011,7 +1196,7 @@ function app_op(){
 		</div>
 		<!-- proxys -->
 		<div
-			v-if="get_app_status&&(all[curg][cura].node_id![1]!=1||all[curg][cura].node_id![3]!=1)&&(config_proxy_instance=='proxy'||config_proxy_instance=='')" 
+			v-if="get_app_status&&(config_proxy_instance=='proxy'||config_proxy_instance=='')" 
 			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_proxys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
@@ -1028,7 +1213,7 @@ function app_op(){
 			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='proxy'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Proxys</span>
 			<va-button
-				v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+				v-if="canwrite()"
 				style="height:30px"
 				size="small"
 				@mouseover.stop=""
@@ -1052,9 +1237,9 @@ function app_op(){
 						if(cur_proxy==''){
 							cur_proxy=proxy
 							reqdata='{\n}'
-							new_proxy_permission_read=proxys.get(proxy)!.read
-							new_proxy_permission_write=proxys.get(proxy)!.write
-							new_proxy_permission_admin=proxys.get(proxy)!.admin
+							update_proxy_permission_read=proxys.get(proxy)!.read
+							update_proxy_permission_write=proxys.get(proxy)!.write
+							update_proxy_permission_admin=proxys.get(proxy)!.admin
 							respdata=''
 						}else{
 							cur_proxy=''
@@ -1068,43 +1253,66 @@ function app_op(){
 					<div style="flex:1;display:flex;flex-direction:column">
 						<textarea style="border:0px;flex:1;resize:none;background-color:var(--va-background-element);padding:10px 20px" v-model.trim="reqdata" :readonly="respdata!=''"></textarea>
 						<div style="width:100%;display:flex">
-							<va-button style="width:60px;height:30px;margin:2px 0" size="small" @click="optype='proxy';ing=true" :disabled="respdata!=''||!is_json_obj(reqdata)">Proxy</va-button>
+							<va-button
+								style="width:60px;height:30px;margin:2px 0"
+								size="small"
+								@click="optype='proxy';ing=true"
+								:disabled="respdata!=''||!is_json_obj(reqdata)"
+							>
+								Proxy
+							</va-button>
 							<div style="flex:1"></div>
 							<va-switch
-								:disabled="respdata!=''||!all[curg][cura].canwrite||!all[curg][cura].admin"
+								:disabled="respdata!=''||!canwrite()"
 								style="margin:2px"
-								v-model="new_proxy_permission_read"
+								v-model="update_proxy_permission_read"
 								true-inner-label="Read"
 								false-inner-label="Read"
-								@update:model-value="new_proxy_permission_update('read')"
+								@update:model-value="()=>{
+									if(!update_proxy_permission_read){
+										update_proxy_permission_write=false
+										update_proxy_permission_admin=false
+									}
+								}"
 							/>
 							<va-switch
-								:disabled="respdata!=''||!all[curg][cura].canwrite||!all[curg][cura].admin"
+								:disabled="respdata!=''||!canwrite()"
 								style="margin:2px"
-								v-model="new_proxy_permission_write"
+								v-model="update_proxy_permission_write"
 								true-inner-label="Write"
 								false-inner-label="Write"
-								@update:model-value="new_proxy_permission_update('write')"
+								@update:model-value="()=>{
+									if(!update_proxy_permission_write){
+										update_proxy_permission_admin=false
+									}else{
+										update_proxy_permission_read=true
+									}
+								}"
 							/>
 							<va-switch
-								:disabled="respdata!=''||!all[curg][cura].canwrite||!all[curg][cura].admin"
+								:disabled="respdata!=''||!canwrite()"
 								style="margin:2px"
-								v-model="new_proxy_permission_admin"
+								v-model="update_proxy_permission_admin"
 								true-inner-label="Admin"
 								false-inner-label="Admin"
-								@update:model-value="new_proxy_permission_update('admin')"
+								@update:model-value="()=>{
+									if(update_proxy_permission_admin){
+										update_proxy_permission_read=true
+										update_proxy_permission_write=true
+									}
+								}"
 							/>
 							<va-button
-								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+								v-if="canwrite()"
 								style="width:60px;height:30px;margin:2px"
 								size="small"
-								:disabled="respdata!=''||new_proxy_permission_same(proxy)"
+								:disabled="respdata!=''||!update_proxy_able()"
 								@click="optype='update_proxy';ing=true"
 							>
 								Update
 							</va-button>
 							<va-button
-								v-if="all[curg][cura].canwrite||all[curg][cura].admin"
+								v-if="canwrite()"
 								:disabled="respdata!=''"
 								size="small"
 								style="width:60px;height:30px;margin:2px"

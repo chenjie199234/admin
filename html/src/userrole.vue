@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref,onMounted} from 'vue'
+import {ref,computed} from 'vue'
 import * as userAPI from './api/admin_user_browser_toc'
 import * as permissionAPI from './api/admin_permission_browser_toc'
 import * as state from './state'
@@ -7,16 +7,15 @@ import * as client from './client'
 
 import nodetree from './nodetree.vue'
 
-onMounted(()=>{
+const targets=ref<string[]>(["User","Role"])
+const ranges=computed(()=>{
 	if(state.page.node!.admin){
-		ranges.value=["This Project","All Projects"]
+		return ["This Project","All Projects"]
 	}else{
-		ranges.value=["This Project"]
+		return ["This Project"]
 	}
 })
-const targets=ref<string[]>(["User","Role"])
 const target=ref<string>("User")
-const ranges=ref<string[]>([])
 const range=ref<string>("This Project")
 const search=ref<string>("")
 

@@ -347,7 +347,8 @@ function same_node_id(a:number[],b:number[]):boolean{
 	<div style="height:100%;flex:1;display:flex;flex-direction:column">
 		<div style="display:flex;padding:5px 0">
 			<va-select
-				:modelValue="state.project.info?state.project.info.project_name:''"
+				:modelValue="state.project.info?state.project.info!:{}"
+				textBy="project_name"
 				:options="allprojects"
 				noOptionsText="NO Projects"
 				label="Select Project"

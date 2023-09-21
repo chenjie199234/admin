@@ -204,16 +204,52 @@ func (s *Service) SetApp(ctx context.Context, req *api.SetAppReq) (*api.SetAppRe
 
 	if !operator.IsZero() {
 		//config control permission check
-		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.AppControl, true)
-		if e != nil {
-			log.Error(ctx, "[SetApp] get operator's permission info failed", map[string]interface{}{
-				"operator": md["Token-User"],
-				"nodeid":   projectid + model.AppControl,
-				"error":    e})
-			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-		}
-		if !admin {
-			return nil, ecode.ErrPermission
+		if req.NewApp {
+			//create new app need the AppControl's admin permission
+			_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.AppControl, true)
+			if e != nil {
+				log.Error(ctx, "[SetApp] get operator's permission info failed", map[string]interface{}{
+					"operator": md["Token-User"],
+					"nodeid":   projectid + model.AppControl,
+					"error":    e})
+				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+			}
+			if !admin {
+				return nil, ecode.ErrPermission
+			}
+		} else {
+			//update app need the app's admin permission
+			nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GName, req.AName)
+			if e != nil {
+				log.Error(ctx, "[SetApp] get app's permission nodeid failed", map[string]interface{}{
+					"operator":   md["Token-User"],
+					"project_id": projectid,
+					"group":      req.GName,
+					"app":        req.AName,
+					"error":      e})
+				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+			}
+			nodeids := strings.Split(nodeid, ",")
+			if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "2" {
+				log.Error(ctx, "[SetApp] app's permission nodeid format wrong", map[string]interface{}{
+					"operator":   md["Token-User"],
+					"project_id": projectid,
+					"group":      req.GName,
+					"app":        req.AName,
+					"nodeid":     nodeid})
+				return nil, ecode.ErrDBDataBroken
+			}
+			_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
+			if e != nil {
+				log.Error(ctx, "[SetApp] get operator's permission info failed", map[string]interface{}{
+					"operator": md["Token-User"],
+					"nodeid":   nodeid,
+					"error":    e})
+				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+			}
+			if !admin {
+				return nil, ecode.ErrPermission
+			}
 		}
 	}
 

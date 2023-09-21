@@ -291,6 +291,7 @@ func (s *InternalSdk) watch() {
 						}
 					}
 					if discoverchanged {
+						log.Debug(nil, "[InitWatch] discover changed", map[string]interface{}{"project_id": projectid, "group": gname, "app": aname})
 						//discover should always stop after client
 						if exist.client != nil {
 							di := exist.di

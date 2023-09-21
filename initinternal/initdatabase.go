@@ -276,12 +276,19 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	sign, _ := secure.SignMake(secret)
 	//summary
 	docs = append(docs, &model.AppSummary{
-		ProjectID: model.AdminProjectID,
-		Group:     model.Group,
-		App:       model.Name,
-		Key:       "",
-		Index:     0,
-		Paths:     map[string]*model.ProxyPath{},
+		ProjectID:    model.AdminProjectID,
+		ProjectName:  model.Project,
+		Group:        model.Group,
+		App:          model.Name,
+		Key:          "",
+		Index:        0,
+		DiscoverMode: "",
+		KubernetesNs: "",
+		KubernetesLS: "",
+		DnsHost:      "",
+		DnsInterval:  0,
+		StaticAddrs:  []string{},
+		Paths:        map[string]*model.ProxyPath{},
 		Keys: map[string]*model.KeySummary{
 			"AppConfig": {
 				CurIndex:     1,

@@ -190,12 +190,12 @@ func _App_GetApp_CGrpcHandler(handler func(context.Context, *GetAppReq) (*GetApp
 	return func(ctx *cgrpc.Context) {
 		req := new(GetAppReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/get_app] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/get_app] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -214,12 +214,12 @@ func _App_SetApp_CGrpcHandler(handler func(context.Context, *SetAppReq) (*SetApp
 	return func(ctx *cgrpc.Context) {
 		req := new(SetAppReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/set_app] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_app] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -238,12 +238,12 @@ func _App_DelApp_CGrpcHandler(handler func(context.Context, *DelAppReq) (*DelApp
 	return func(ctx *cgrpc.Context) {
 		req := new(DelAppReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/del_app] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/del_app] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -262,12 +262,12 @@ func _App_UpdateAppSecret_CGrpcHandler(handler func(context.Context, *UpdateAppS
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateAppSecretReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/update_app_secret] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/update_app_secret] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -286,12 +286,12 @@ func _App_DelKey_CGrpcHandler(handler func(context.Context, *DelKeyReq) (*DelKey
 	return func(ctx *cgrpc.Context) {
 		req := new(DelKeyReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/del_key] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/del_key] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -310,12 +310,12 @@ func _App_GetKeyConfig_CGrpcHandler(handler func(context.Context, *GetKeyConfigR
 	return func(ctx *cgrpc.Context) {
 		req := new(GetKeyConfigReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/get_key_config] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/get_key_config] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -334,12 +334,12 @@ func _App_SetKeyConfig_CGrpcHandler(handler func(context.Context, *SetKeyConfigR
 	return func(ctx *cgrpc.Context) {
 		req := new(SetKeyConfigReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/set_key_config] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_key_config] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -358,12 +358,12 @@ func _App_Rollback_CGrpcHandler(handler func(context.Context, *RollbackReq) (*Ro
 	return func(ctx *cgrpc.Context) {
 		req := new(RollbackReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/rollback] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/rollback] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -382,12 +382,12 @@ func _App_Watch_CGrpcHandler(handler func(context.Context, *WatchReq) (*WatchRes
 	return func(ctx *cgrpc.Context) {
 		req := new(WatchReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/watch] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/watch] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -406,12 +406,12 @@ func _App_SetProxy_CGrpcHandler(handler func(context.Context, *SetProxyReq) (*Se
 	return func(ctx *cgrpc.Context) {
 		req := new(SetProxyReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/set_proxy] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_proxy] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -430,12 +430,12 @@ func _App_DelProxy_CGrpcHandler(handler func(context.Context, *DelProxyReq) (*De
 	return func(ctx *cgrpc.Context) {
 		req := new(DelProxyReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/del_proxy] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/del_proxy] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -454,12 +454,12 @@ func _App_Proxy_CGrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyRes
 	return func(ctx *cgrpc.Context) {
 		req := new(ProxyReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.app/proxy] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/proxy] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

@@ -164,12 +164,12 @@ func _Permission_GetUserPermission_CGrpcHandler(handler func(context.Context, *G
 	return func(ctx *cgrpc.Context) {
 		req := new(GetUserPermissionReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/get_user_permission]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/get_user_permission] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/get_user_permission]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/get_user_permission] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -188,12 +188,12 @@ func _Permission_UpdateUserPermission_CGrpcHandler(handler func(context.Context,
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateUserPermissionReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/update_user_permission]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/update_user_permission] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/update_user_permission]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/update_user_permission] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -212,12 +212,12 @@ func _Permission_UpdateRolePermission_CGrpcHandler(handler func(context.Context,
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateRolePermissionReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/update_role_permission]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/update_role_permission] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/update_role_permission]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/update_role_permission] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -236,12 +236,12 @@ func _Permission_AddNode_CGrpcHandler(handler func(context.Context, *AddNodeReq)
 	return func(ctx *cgrpc.Context) {
 		req := new(AddNodeReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/add_node]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/add_node] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/add_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/add_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -260,12 +260,12 @@ func _Permission_UpdateNode_CGrpcHandler(handler func(context.Context, *UpdateNo
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateNodeReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/update_node]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/update_node] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/update_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/update_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -284,12 +284,12 @@ func _Permission_MoveNode_CGrpcHandler(handler func(context.Context, *MoveNodeRe
 	return func(ctx *cgrpc.Context) {
 		req := new(MoveNodeReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/move_node]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/move_node] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/move_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/move_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -308,12 +308,12 @@ func _Permission_DelNode_CGrpcHandler(handler func(context.Context, *DelNodeReq)
 	return func(ctx *cgrpc.Context) {
 		req := new(DelNodeReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/del_node]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/del_node] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/del_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/del_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -332,12 +332,12 @@ func _Permission_ListUserNode_CGrpcHandler(handler func(context.Context, *ListUs
 	return func(ctx *cgrpc.Context) {
 		req := new(ListUserNodeReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/list_user_node]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/list_user_node] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_user_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/list_user_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -356,12 +356,12 @@ func _Permission_ListRoleNode_CGrpcHandler(handler func(context.Context, *ListRo
 	return func(ctx *cgrpc.Context) {
 		req := new(ListRoleNodeReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/list_role_node]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/list_role_node] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_role_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/list_role_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -380,12 +380,12 @@ func _Permission_ListProjectNode_CGrpcHandler(handler func(context.Context, *Lis
 	return func(ctx *cgrpc.Context) {
 		req := new(ListProjectNodeReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.permission/list_project_node]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.permission/list_project_node] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_project_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/list_project_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

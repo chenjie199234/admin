@@ -341,7 +341,7 @@ func _App_GetApp_CrpcHandler(handler func(context.Context, *GetAppReq) (*GetAppR
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/get_app] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/get_app] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -351,7 +351,7 @@ func _App_GetApp_CrpcHandler(handler func(context.Context, *GetAppReq) (*GetAppR
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/get_app] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/get_app] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -359,7 +359,7 @@ func _App_GetApp_CrpcHandler(handler func(context.Context, *GetAppReq) (*GetAppR
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/get_app] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -389,7 +389,7 @@ func _App_SetApp_CrpcHandler(handler func(context.Context, *SetAppReq) (*SetAppR
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/set_app] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/set_app] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -399,7 +399,7 @@ func _App_SetApp_CrpcHandler(handler func(context.Context, *SetAppReq) (*SetAppR
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/set_app] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/set_app] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -407,7 +407,7 @@ func _App_SetApp_CrpcHandler(handler func(context.Context, *SetAppReq) (*SetAppR
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_app] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -437,7 +437,7 @@ func _App_DelApp_CrpcHandler(handler func(context.Context, *DelAppReq) (*DelAppR
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/del_app] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/del_app] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -447,7 +447,7 @@ func _App_DelApp_CrpcHandler(handler func(context.Context, *DelAppReq) (*DelAppR
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/del_app] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/del_app] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -455,7 +455,7 @@ func _App_DelApp_CrpcHandler(handler func(context.Context, *DelAppReq) (*DelAppR
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/del_app] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -485,7 +485,7 @@ func _App_UpdateAppSecret_CrpcHandler(handler func(context.Context, *UpdateAppSe
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/update_app_secret] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/update_app_secret] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -495,7 +495,7 @@ func _App_UpdateAppSecret_CrpcHandler(handler func(context.Context, *UpdateAppSe
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/update_app_secret] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/update_app_secret] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -503,7 +503,7 @@ func _App_UpdateAppSecret_CrpcHandler(handler func(context.Context, *UpdateAppSe
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/update_app_secret] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -533,7 +533,7 @@ func _App_DelKey_CrpcHandler(handler func(context.Context, *DelKeyReq) (*DelKeyR
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/del_key] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/del_key] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -543,7 +543,7 @@ func _App_DelKey_CrpcHandler(handler func(context.Context, *DelKeyReq) (*DelKeyR
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/del_key] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/del_key] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -551,7 +551,7 @@ func _App_DelKey_CrpcHandler(handler func(context.Context, *DelKeyReq) (*DelKeyR
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/del_key] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -581,7 +581,7 @@ func _App_GetKeyConfig_CrpcHandler(handler func(context.Context, *GetKeyConfigRe
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/get_key_config] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/get_key_config] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -591,7 +591,7 @@ func _App_GetKeyConfig_CrpcHandler(handler func(context.Context, *GetKeyConfigRe
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/get_key_config] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/get_key_config] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -599,7 +599,7 @@ func _App_GetKeyConfig_CrpcHandler(handler func(context.Context, *GetKeyConfigRe
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/get_key_config] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -629,7 +629,7 @@ func _App_SetKeyConfig_CrpcHandler(handler func(context.Context, *SetKeyConfigRe
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/set_key_config] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/set_key_config] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -639,7 +639,7 @@ func _App_SetKeyConfig_CrpcHandler(handler func(context.Context, *SetKeyConfigRe
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/set_key_config] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/set_key_config] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -647,7 +647,7 @@ func _App_SetKeyConfig_CrpcHandler(handler func(context.Context, *SetKeyConfigRe
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_key_config] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -677,7 +677,7 @@ func _App_Rollback_CrpcHandler(handler func(context.Context, *RollbackReq) (*Rol
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/rollback] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/rollback] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -687,7 +687,7 @@ func _App_Rollback_CrpcHandler(handler func(context.Context, *RollbackReq) (*Rol
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/rollback] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/rollback] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -695,7 +695,7 @@ func _App_Rollback_CrpcHandler(handler func(context.Context, *RollbackReq) (*Rol
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/rollback] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -725,7 +725,7 @@ func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/watch] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/watch] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -735,7 +735,7 @@ func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/watch] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/watch] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -743,7 +743,7 @@ func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/watch] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -773,7 +773,7 @@ func _App_SetProxy_CrpcHandler(handler func(context.Context, *SetProxyReq) (*Set
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/set_proxy] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/set_proxy] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -783,7 +783,7 @@ func _App_SetProxy_CrpcHandler(handler func(context.Context, *SetProxyReq) (*Set
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/set_proxy] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/set_proxy] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -791,7 +791,7 @@ func _App_SetProxy_CrpcHandler(handler func(context.Context, *SetProxyReq) (*Set
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_proxy] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -821,7 +821,7 @@ func _App_DelProxy_CrpcHandler(handler func(context.Context, *DelProxyReq) (*Del
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/del_proxy] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/del_proxy] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -831,7 +831,7 @@ func _App_DelProxy_CrpcHandler(handler func(context.Context, *DelProxyReq) (*Del
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/del_proxy] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/del_proxy] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -839,7 +839,7 @@ func _App_DelProxy_CrpcHandler(handler func(context.Context, *DelProxyReq) (*Del
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/del_proxy] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -869,7 +869,7 @@ func _App_Proxy_CrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyResp
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/proxy] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.app/proxy] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -879,7 +879,7 @@ func _App_Proxy_CrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyResp
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/proxy] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.app/proxy] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -887,7 +887,7 @@ func _App_Proxy_CrpcHandler(handler func(context.Context, *ProxyReq) (*ProxyResp
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/proxy] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

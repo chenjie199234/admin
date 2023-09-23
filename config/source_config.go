@@ -251,7 +251,7 @@ func initwebserver() {
 		}
 	} else {
 		if sc.WebServer.WaitCloseMode != 0 && sc.WebServer.WaitCloseMode != 1 {
-			log.Error(nil, "[config.initwebserver] wait_close_mode must be 0 or 1", nil)
+			log.Error(nil, "[config.initwebserver] wait_close_mode must be 0 or 1")
 			Close()
 			os.Exit(1)
 		}
@@ -326,12 +326,14 @@ func initredis() {
 					for _, certpath := range redisc.SpecificCAPaths {
 						cert, e := os.ReadFile(certpath)
 						if e != nil {
-							log.Error(nil, "[config.initredis] read specific cert failed", map[string]interface{}{"redis": redisc.RedisName, "cert_path": certpath, "error": e})
+							log.Error(nil, "[config.initredis] read specific cert failed",
+								log.String("redis", redisc.RedisName), log.String("cert_path", certpath), log.CError(e))
 							Close()
 							os.Exit(1)
 						}
 						if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
-							log.Error(nil, "[config.initredis] specific cert load failed", map[string]interface{}{"redis": redisc.RedisName, "cert_path": certpath, "error": e})
+							log.Error(nil, "[config.initredis] specific cert load failed",
+								log.String("redis", redisc.RedisName), log.String("cert_path", certpath), log.CError(e))
 							Close()
 							os.Exit(1)
 						}
@@ -340,7 +342,7 @@ func initredis() {
 			}
 			c, e := redis.NewRedis(redisc.Config, tlsc)
 			if e != nil {
-				log.Error(nil, "[config.initredis] failed", map[string]interface{}{"redis": redisc.RedisName, "error": e})
+				log.Error(nil, "[config.initredis] failed", log.String("redis", redisc.RedisName), log.CError(e))
 				Close()
 				os.Exit(1)
 			}
@@ -389,12 +391,14 @@ func initmongo() {
 					for _, certpath := range mongoc.SpecificCAPaths {
 						cert, e := os.ReadFile(certpath)
 						if e != nil {
-							log.Error(nil, "[config.initmongo] read specific cert failed", map[string]interface{}{"mongo": mongoc.MongoName, "cert_path": certpath, "error": e})
+							log.Error(nil, "[config.initmongo] read specific cert failed",
+								log.String("mongo", mongoc.MongoName), log.String("cert_path", certpath), log.CError(e))
 							Close()
 							os.Exit(1)
 						}
 						if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
-							log.Error(nil, "[config.initmongo] specific cert load failed", map[string]interface{}{"mongo": mongoc.MongoName, "cert_path": certpath, "error": e})
+							log.Error(nil, "[config.initmongo] specific cert load failed",
+								log.String("mongo", mongoc.MongoName), log.String("cert_path", certpath), log.CError(e))
 							Close()
 							os.Exit(1)
 						}
@@ -403,7 +407,7 @@ func initmongo() {
 			}
 			c, e := mongo.NewMongo(mongoc.Config, tlsc)
 			if e != nil {
-				log.Error(nil, "[config.initmongo] failed", map[string]interface{}{"mongo": mongoc.MongoName, "error": e})
+				log.Error(nil, "[config.initmongo] failed", log.String("mongo", mongoc.MongoName), log.CError(e))
 				Close()
 				os.Exit(1)
 			}
@@ -452,12 +456,14 @@ func initmysql() {
 					for _, certpath := range mysqlc.SpecificCAPaths {
 						cert, e := os.ReadFile(certpath)
 						if e != nil {
-							log.Error(nil, "[config.initmysql] read specific cert failed", map[string]interface{}{"mysql": mysqlc.MysqlName, "cert_path": certpath, "error": e})
+							log.Error(nil, "[config.initmysql] read specific cert failed",
+								log.String("mysql", mysqlc.MysqlName), log.String("cert_path", certpath), log.CError(e))
 							Close()
 							os.Exit(1)
 						}
 						if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
-							log.Error(nil, "[config.initmysql] specific cert load failed", map[string]interface{}{"mysql": mysqlc.MysqlName, "cert_path": certpath, "error": e})
+							log.Error(nil, "[config.initmysql] specific cert load failed",
+								log.String("mysql", mysqlc.MysqlName), log.String("cert_path", certpath), log.CError(e))
 							Close()
 							os.Exit(1)
 						}
@@ -466,7 +472,7 @@ func initmysql() {
 			}
 			c, e := mysql.NewMysql(mysqlc.Config, tlsc)
 			if e != nil {
-				log.Error(nil, "[config.initmysql] failed", map[string]interface{}{"mysql": mysqlc.MysqlName, "error": e})
+				log.Error(nil, "[config.initmysql] failed", log.String("mysql", mysqlc.MysqlName), log.CError(e))
 				Close()
 				os.Exit(1)
 			}

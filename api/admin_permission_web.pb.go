@@ -391,13 +391,13 @@ func _Permission_GetUserPermission_WebHandler(handler func(context.Context, *Get
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/get_user_permission]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/get_user_permission] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/get_user_permission]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/get_user_permission] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -405,24 +405,24 @@ func _Permission_GetUserPermission_WebHandler(handler func(context.Context, *Get
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/get_user_permission]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/get_user_permission] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/get_user_permission]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/get_user_permission] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/get_user_permission]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/get_user_permission] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/get_user_permission]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/get_user_permission] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -450,13 +450,13 @@ func _Permission_UpdateUserPermission_WebHandler(handler func(context.Context, *
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/update_user_permission]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/update_user_permission] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/update_user_permission]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/update_user_permission] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -464,24 +464,24 @@ func _Permission_UpdateUserPermission_WebHandler(handler func(context.Context, *
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/update_user_permission]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/update_user_permission] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/update_user_permission]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/update_user_permission] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/update_user_permission]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/update_user_permission] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/update_user_permission]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/update_user_permission] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -509,13 +509,13 @@ func _Permission_UpdateRolePermission_WebHandler(handler func(context.Context, *
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/update_role_permission]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/update_role_permission] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/update_role_permission]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/update_role_permission] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -523,24 +523,24 @@ func _Permission_UpdateRolePermission_WebHandler(handler func(context.Context, *
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/update_role_permission]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/update_role_permission] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/update_role_permission]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/update_role_permission] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/update_role_permission]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/update_role_permission] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/update_role_permission]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/update_role_permission] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -568,13 +568,13 @@ func _Permission_AddNode_WebHandler(handler func(context.Context, *AddNodeReq) (
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/add_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/add_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/add_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/add_node] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -582,24 +582,24 @@ func _Permission_AddNode_WebHandler(handler func(context.Context, *AddNodeReq) (
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/add_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/add_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/add_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/add_node] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/add_node]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/add_node] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/add_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/add_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -627,13 +627,13 @@ func _Permission_UpdateNode_WebHandler(handler func(context.Context, *UpdateNode
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/update_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/update_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/update_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/update_node] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -641,24 +641,24 @@ func _Permission_UpdateNode_WebHandler(handler func(context.Context, *UpdateNode
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/update_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/update_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/update_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/update_node] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/update_node]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/update_node] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/update_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/update_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -686,13 +686,13 @@ func _Permission_MoveNode_WebHandler(handler func(context.Context, *MoveNodeReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/move_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/move_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/move_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/move_node] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -700,24 +700,24 @@ func _Permission_MoveNode_WebHandler(handler func(context.Context, *MoveNodeReq)
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/move_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/move_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/move_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/move_node] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/move_node]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/move_node] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/move_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/move_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -745,13 +745,13 @@ func _Permission_DelNode_WebHandler(handler func(context.Context, *DelNodeReq) (
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/del_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/del_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/del_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/del_node] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -759,24 +759,24 @@ func _Permission_DelNode_WebHandler(handler func(context.Context, *DelNodeReq) (
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/del_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/del_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/del_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/del_node] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/del_node]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/del_node] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/del_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/del_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -804,13 +804,13 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/list_user_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/list_user_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/list_user_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/list_user_node] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -818,24 +818,24 @@ func _Permission_ListUserNode_WebHandler(handler func(context.Context, *ListUser
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/list_user_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/list_user_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/list_user_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/list_user_node] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/list_user_node]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/list_user_node] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_user_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/list_user_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -863,13 +863,13 @@ func _Permission_ListRoleNode_WebHandler(handler func(context.Context, *ListRole
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/list_role_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/list_role_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/list_role_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/list_role_node] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -877,24 +877,24 @@ func _Permission_ListRoleNode_WebHandler(handler func(context.Context, *ListRole
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/list_role_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/list_role_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/list_role_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/list_role_node] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/list_role_node]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/list_role_node] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_role_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/list_role_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -922,13 +922,13 @@ func _Permission_ListProjectNode_WebHandler(handler func(context.Context, *ListP
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/list_project_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/list_project_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/list_project_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/list_project_node] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -936,24 +936,24 @@ func _Permission_ListProjectNode_WebHandler(handler func(context.Context, *ListP
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.permission/list_project_node]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.permission/list_project_node] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.permission/list_project_node]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.permission/list_project_node] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.permission/list_project_node]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.permission/list_project_node] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_project_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/list_project_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

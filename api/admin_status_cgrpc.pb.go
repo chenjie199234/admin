@@ -49,12 +49,12 @@ func _Status_Ping_CGrpcHandler(handler func(context.Context, *Pingreq) (*Pingres
 	return func(ctx *cgrpc.Context) {
 		req := new(Pingreq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.status/ping]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.status/ping] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.status/ping]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.status/ping] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

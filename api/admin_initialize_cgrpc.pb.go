@@ -154,7 +154,7 @@ func _Initialize_InitStatus_CGrpcHandler(handler func(context.Context, *InitStat
 	return func(ctx *cgrpc.Context) {
 		req := new(InitStatusReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.initialize/init_status]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.initialize/init_status] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -173,12 +173,12 @@ func _Initialize_Init_CGrpcHandler(handler func(context.Context, *InitReq) (*Ini
 	return func(ctx *cgrpc.Context) {
 		req := new(InitReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.initialize/init] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/init] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -197,12 +197,12 @@ func _Initialize_RootLogin_CGrpcHandler(handler func(context.Context, *RootLogin
 	return func(ctx *cgrpc.Context) {
 		req := new(RootLoginReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.initialize/root_login] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/root_login] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -221,12 +221,12 @@ func _Initialize_UpdateRootPassword_CGrpcHandler(handler func(context.Context, *
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateRootPasswordReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.initialize/update_root_password] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/update_root_password] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -245,12 +245,12 @@ func _Initialize_CreateProject_CGrpcHandler(handler func(context.Context, *Creat
 	return func(ctx *cgrpc.Context) {
 		req := new(CreateProjectReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.initialize/create_project] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/create_project] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -269,12 +269,12 @@ func _Initialize_UpdateProject_CGrpcHandler(handler func(context.Context, *Updat
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateProjectReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.initialize/update_project] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/update_project] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -293,7 +293,7 @@ func _Initialize_ListProject_CGrpcHandler(handler func(context.Context, *ListPro
 	return func(ctx *cgrpc.Context) {
 		req := new(ListProjectReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.initialize/list_project]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.initialize/list_project] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -312,12 +312,12 @@ func _Initialize_DeleteProject_CGrpcHandler(handler func(context.Context, *Delet
 	return func(ctx *cgrpc.Context) {
 		req := new(DeleteProjectReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.initialize/delete_project] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/delete_project] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

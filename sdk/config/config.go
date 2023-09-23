@@ -120,7 +120,7 @@ func (instance *Sdk) watch(selfprojectname, selfappgroup, selfappname string) {
 		resp, e := instance.client.Watch(instance.ctx, &api.WatchReq{ProjectName: selfprojectname, GName: selfappgroup, AName: selfappname, Keys: keys}, nil)
 		if e != nil {
 			if !cerror.Equal(e, cerror.ErrCanceled) {
-				log.Error(nil, "[config.sdk.watch] failed", map[string]interface{}{"error": e, "watch_keys": keys})
+				log.Error(nil, "[config.sdk.watch] failed", log.Any("watch_keys", keys), log.CError(e))
 				time.Sleep(time.Millisecond * 100)
 				instance.cancel()
 			}
@@ -139,14 +139,14 @@ func (instance *Sdk) watch(selfprojectname, selfappgroup, selfappname string) {
 				continue
 			}
 			if data.Version == 0 {
-				log.Error(nil, "[config.sdk.watch] key's value's version == 0", map[string]interface{}{"key": data.Key})
+				log.Error(nil, "[config.sdk.watch] key's value's version == 0", log.String("key", data.Key))
 				continue
 			}
 			if instance.secret != "" {
 				plaintext, e := secure.AesDecrypt(instance.secret, data.Value)
 				if e != nil {
 					broken = true
-					log.Error(nil, "[config.sdk.watch] decrypt keys's value failed", map[string]interface{}{"key": data.Key, "error": e})
+					log.Error(nil, "[config.sdk.watch] decrypt keys's value failed", log.String("key", data.Key), log.CError(e))
 					continue
 				}
 				data.Value = common.Byte2str(plaintext)

@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/chenjie199234/admin/api"
@@ -17,6 +18,7 @@ import (
 	"github.com/chenjie199234/Corelib/metadata"
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	"github.com/chenjie199234/Corelib/pool"
+	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/graceful"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	//"github.com/chenjie199234/Corelib/web"
@@ -53,21 +55,21 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 	//get other's info,need check permission
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[LoginInfo] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[LoginInfo] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
 	if operator.IsZero() {
-		log.Error(ctx, "[LoginInfo] superadmin shouldn't send this request", map[string]interface{}{"operator": md["Token-User"]})
+		log.Error(ctx, "[LoginInfo] superadmin shouldn't send this request", log.String("operator", md["Token-User"]))
 		return &api.LoginInfoResp{User: nil}, nil
 	}
 	users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
 	if e != nil {
-		log.Error(ctx, "[LoginInfo] db op failed", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[LoginInfo] db op failed", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	user, ok := users[operator]
 	if !ok {
-		log.Error(ctx, "[LoginInfo] operator not exist", map[string]interface{}{"operator": md["Token-User"]})
+		log.Error(ctx, "[LoginInfo] operator not exist", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrSystem
 	}
 	tmp := make(map[string]*api.ProjectRoles)
@@ -78,10 +80,10 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 		}
 		id, e := util.ParseNodeIDstr(userprojectid)
 		if e != nil {
-			log.Error(ctx, "[LoginInfo] operator join project's projectid format wrong", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": userprojectid,
-				"error":      e})
+			log.Error(ctx, "[LoginInfo] operator join project's projectid format wrong",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", userprojectid),
+				log.CError(e))
 			return nil, ecode.ErrSystem
 		}
 		tmp[userprojectid] = &api.ProjectRoles{
@@ -95,11 +97,11 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 		roleprojectid := role[:index]
 		roleproject, e := util.ParseNodeIDstr(roleprojectid)
 		if e != nil {
-			log.Error(ctx, "[LoginInfo] operator's role's projectid format wrong", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"role":       role,
-				"project_id": roleprojectid,
-				"error":      e})
+			log.Error(ctx, "[LoginInfo] operator's role's projectid format wrong",
+				log.String("operator", md["Token-User"]),
+				log.String("role", role),
+				log.String("project_id", roleprojectid),
+				log.CError(e))
 			return nil, ecode.ErrSystem
 		}
 		rolename := role[index+1:]
@@ -132,34 +134,36 @@ func (s *Service) InviteProject(ctx context.Context, req *api.InviteProjectReq) 
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-	for i, v := range req.ProjectId {
-		buf.AppendUint32(v)
-		if i != len(req.ProjectId)-1 {
-			buf.AppendByte(',')
-		}
-	}
-	projectid := buf.String()
+
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[InviteProject] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[InviteProject] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[InviteProject] target's userid format wrong", map[string]interface{}{"target": req.UserId, "error": e})
+		log.Error(ctx, "[InviteProject] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
 		return nil, ecode.ErrReq
 	}
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
 	if !operator.IsZero() {
 		//permission check
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[InviteProject] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[InviteProject] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -169,11 +173,11 @@ func (s *Service) InviteProject(ctx context.Context, req *api.InviteProjectReq) 
 
 	//logic
 	if e := s.userDao.MongoInvite(ctx, operator, projectid, target); e != nil {
-		log.Error(ctx, "[InviteProject] db op failed", map[string]interface{}{
-			"operator":   md["Token-User"],
-			"project_id": projectid,
-			"target":     req.UserId,
-			"error":      e})
+		log.Error(ctx, "[InviteProject] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("target", req.UserId),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.InviteProjectResp{}, nil
@@ -182,34 +186,37 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-	for i, v := range req.ProjectId {
-		buf.AppendUint32(v)
-		if i != len(req.ProjectId)-1 {
-			buf.AppendByte(',')
-		}
-	}
-	projectid := buf.String()
+
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[KickProject] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[KickProject] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[KickProject] target's userid format wrong", map[string]interface{}{"target": req.UserId, "error": e})
+		log.Error(ctx, "[KickProject] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
 		return nil, ecode.ErrReq
 	}
+
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
 	if !operator.IsZero() {
 		//permission check
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, target, projectid, true)
 		if e != nil {
-			log.Error(ctx, "[KickProject] get target's permission info failed", map[string]interface{}{
-				"target":     req.UserId,
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[KickProject] get target's permission info failed",
+				log.String("target", req.UserId),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if admin {
@@ -219,10 +226,10 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 		//target is not admin in this project
 		_, _, admin, e = s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[KickProject] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[KickProject] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -232,11 +239,11 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 
 	//logic
 	if e := s.userDao.MongoKick(ctx, operator, projectid, target); e != nil {
-		log.Error(ctx, "[InviteProject] db op failed", map[string]interface{}{
-			"operator":   md["Token-User"],
-			"target":     req.UserId,
-			"project_id": projectid,
-			"error":      e})
+		log.Error(ctx, "[InviteProject] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("target", req.UserId),
+			log.String("project_id", projectid),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.KickProjectResp{}, nil
@@ -249,28 +256,28 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[SearchUsers] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[SearchUsers] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
 	for i, v := range req.ProjectId {
-		buf.AppendUint32(v)
-		if i != len(req.ProjectId)-1 {
-			buf.AppendByte(',')
+		if i != 0 {
+			buf = append(buf, ',')
 		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := buf.String()
+	projectid := common.Byte2str(buf)
 
 	if !operator.IsZero() {
 		//permission check
 		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[SearchUsers] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[SearchUsers] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if req.OnlyProject {
@@ -285,11 +292,11 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	//logic
 	users, page, totalsize, e := s.userDao.MongoSearchUsers(ctx, projectid, req.UserName, 20, int64(req.Page))
 	if e != nil {
-		log.Error(ctx, "[SearchUsers] db op failed", map[string]interface{}{
-			"operator":   md["Token-User"],
-			"project_id": projectid,
-			"username":   req.UserName,
-			"error":      e})
+		log.Error(ctx, "[SearchUsers] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("username", req.UserName),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	resp := &api.SearchUsersResp{
@@ -364,22 +371,22 @@ func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[UpdateUser] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[UpdateUser] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[UpdateUser] target's userid format wrong", map[string]interface{}{"target": req.UserId, "error": e})
+		log.Error(ctx, "[UpdateUser] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
 		return nil, ecode.ErrReq
 	}
 	if !operator.IsZero() {
 		//permission check
 		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.AdminProjectID+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[UpdateUser] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": model.AdminProjectID,
-				"error":      e})
+			log.Error(ctx, "[UpdateUser] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", model.AdminProjectID),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !canwrite && !admin {
@@ -389,12 +396,12 @@ func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.
 
 	//logic
 	if e := s.userDao.MongoUpdateUser(ctx, target, req.NewUserName, req.NewDepartment); e != nil {
-		log.Error(ctx, "[UpdateUser] db op failed", map[string]interface{}{
-			"operator":       md["Token-User"],
-			"target":         req.UserId,
-			"new_user_name":  req.NewUserName,
-			"new_department": req.NewDepartment,
-			"error":          e})
+		log.Error(ctx, "[UpdateUser] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("target", req.UserId),
+			log.String("new_user_name", req.NewUserName),
+			log.Any("new_department", req.NewDepartment),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.UpdateUserResp{}, nil
@@ -407,29 +414,31 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 	if req.RoleName == "" {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-	for i, v := range req.ProjectId {
-		buf.AppendUint32(v)
-		if i != len(req.ProjectId)-1 {
-			buf.AppendByte(',')
-		}
-	}
-	projectid := buf.String()
+
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[CreateRole] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[CreateRole] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
 	if !operator.IsZero() {
 		//permission check
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[CreateRole] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[CreateRole] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -439,11 +448,11 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 
 	//logic
 	if e := s.userDao.MongoCreateRole(ctx, projectid, req.RoleName, req.Comment); e != nil {
-		log.Error(ctx, "[CreateRole] db op failed", map[string]interface{}{
-			"operator":   md["Token-User"],
-			"project_id": projectid,
-			"rolename":   req.RoleName,
-			"error":      e})
+		log.Error(ctx, "[CreateRole] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("rolename", req.RoleName),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.CreateRoleResp{}, nil
@@ -452,29 +461,31 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-	for i, v := range req.ProjectId {
-		buf.AppendUint32(v)
-		if i != len(req.ProjectId)-1 {
-			buf.AppendByte(',')
-		}
-	}
-	projectid := buf.String()
+
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[SearchRoles] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[SearchRoles] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
 	if !operator.IsZero() {
 		//permission check
 		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[SearchRoles] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[SearchRoles] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !canread && !admin {
@@ -485,11 +496,11 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 	//logic
 	roles, page, totalsize, e := s.userDao.MongoSearchRoles(ctx, projectid, req.RoleName, 20, int64(req.Page))
 	if e != nil {
-		log.Error(ctx, "[SearchRoles] db op failed", map[string]interface{}{
-			"operator":   md["Token-User"],
-			"project_id": projectid,
-			"rolename":   req.RoleName,
-			"error":      e})
+		log.Error(ctx, "[SearchRoles] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("rolename", req.RoleName),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	resp := &api.SearchRolesResp{
@@ -521,29 +532,30 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-	for i, v := range req.ProjectId {
-		buf.AppendUint32(v)
-		if i != len(req.ProjectId)-1 {
-			buf.AppendByte(',')
-		}
-	}
-	projectid := buf.String()
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[UpdateRole] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[UpdateRole] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
 	if !operator.IsZero() {
 		//permission check
 		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[UpdateRole] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[UpdateRole] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !canwrite && !admin {
@@ -553,11 +565,11 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 
 	//logic
 	if e := s.userDao.MongoUpdateRole(ctx, projectid, req.RoleName, req.NewComment); e != nil {
-		log.Error(ctx, "[UpdateRole] db op failed", map[string]interface{}{
-			"operator":   md["Token-User"],
-			"project_id": projectid,
-			"rolename":   req.RoleName,
-			"error":      e})
+		log.Error(ctx, "[UpdateRole] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("rolename", req.RoleName),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.UpdateRoleResp{}, nil
@@ -566,29 +578,30 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-	for i, v := range req.ProjectId {
-		buf.AppendUint32(v)
-		if i != len(req.ProjectId)-1 {
-			buf.AppendByte(',')
-		}
-	}
-	projectid := buf.String()
-	//permission check
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[DelRoles] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[DelRoles] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
+	//permission check
 	if !operator.IsZero() {
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[DelRoles] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[DelRoles] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -598,11 +611,11 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 
 	//logic
 	if e := s.userDao.MongoDelRoles(ctx, projectid, req.RoleNames); e != nil {
-		log.Error(ctx, "[DelRoles] db op failed", map[string]interface{}{
-			"operator":   md["Token-User"],
-			"project_id": projectid,
-			"rolenames":  req.RoleNames,
-			"error":      e})
+		log.Error(ctx, "[DelRoles] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.Any("rolenames", req.RoleNames),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.DelRolesResp{}, nil
@@ -611,34 +624,35 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-	for i, v := range req.ProjectId {
-		buf.AppendUint32(v)
-		if i != len(req.ProjectId)-1 {
-			buf.AppendByte(',')
-		}
-	}
-	projectid := buf.String()
-	//permission check
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[AddUserRole] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[AddUserRole] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[AddUserRole] target's userid format wrong", map[string]interface{}{"target": req.UserId, "error": e})
+		log.Error(ctx, "[AddUserRole] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
 		return nil, ecode.ErrReq
 	}
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
+	//permission check
 	if !operator.IsZero() {
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[AddUserRole] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[AddUserRole] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -648,12 +662,12 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 
 	//logic
 	if e = s.userDao.MongoAddUserRole(ctx, target, projectid, req.RoleName); e != nil {
-		log.Error(ctx, "[AddUserRole] db op failed", map[string]interface{}{
-			"operator":   md["Token-User"],
-			"project_id": projectid,
-			"target":     req.UserId,
-			"rolename":   req.RoleName,
-			"error":      e})
+		log.Error(ctx, "[AddUserRole] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("target", req.UserId),
+			log.String("rolename", req.RoleName),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.AddUserRoleResp{}, nil
@@ -662,34 +676,35 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-	for i, v := range req.ProjectId {
-		buf.AppendUint32(v)
-		if i != len(req.ProjectId)-1 {
-			buf.AppendByte(',')
-		}
-	}
-	projectid := buf.String()
 	//permission check
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[DelUserRole] operator's token format wrong", map[string]interface{}{"operator": md["Token-User"], "error": e})
+		log.Error(ctx, "[DelUserRole] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[DelUserRole] target's userid format wrong", map[string]interface{}{"target": req.UserId, "error": e})
+		log.Error(ctx, "[DelUserRole] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
 		return nil, ecode.ErrReq
 	}
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
 	if !operator.IsZero() {
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[DelUserRole] get operator's permission info failed", map[string]interface{}{
-				"operator":   md["Token-User"],
-				"project_id": projectid,
-				"error":      e})
+			log.Error(ctx, "[DelUserRole] get operator's permission info failed",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projectid),
+				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -699,12 +714,12 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 
 	//logic
 	if e = s.userDao.MongoDelUserRole(ctx, target, projectid, req.RoleName); e != nil {
-		log.Error(ctx, "[DelUserRole] db op failed", map[string]interface{}{
-			"operator":   md["Token-User"],
-			"project_id": projectid,
-			"target":     req.UserId,
-			"rolename":   req.RoleName,
-			"error":      e})
+		log.Error(ctx, "[DelUserRole] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("target", req.UserId),
+			log.String("rolename", req.RoleName),
+			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.DelUserRoleResp{}, nil

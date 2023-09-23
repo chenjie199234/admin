@@ -257,7 +257,7 @@ func _Initialize_InitStatus_CrpcHandler(handler func(context.Context, *InitStatu
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -267,7 +267,7 @@ func _Initialize_InitStatus_CrpcHandler(handler func(context.Context, *InitStatu
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.initialize/init_status] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -300,7 +300,7 @@ func _Initialize_Init_CrpcHandler(handler func(context.Context, *InitReq) (*Init
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/init] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.initialize/init] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -310,7 +310,7 @@ func _Initialize_Init_CrpcHandler(handler func(context.Context, *InitReq) (*Init
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/init] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.initialize/init] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -318,7 +318,7 @@ func _Initialize_Init_CrpcHandler(handler func(context.Context, *InitReq) (*Init
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/init]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/init] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -348,7 +348,7 @@ func _Initialize_RootLogin_CrpcHandler(handler func(context.Context, *RootLoginR
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/root_login] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.initialize/root_login] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -358,7 +358,7 @@ func _Initialize_RootLogin_CrpcHandler(handler func(context.Context, *RootLoginR
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/root_login] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.initialize/root_login] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -366,7 +366,7 @@ func _Initialize_RootLogin_CrpcHandler(handler func(context.Context, *RootLoginR
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/root_login]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/root_login] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -396,7 +396,7 @@ func _Initialize_UpdateRootPassword_CrpcHandler(handler func(context.Context, *U
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/update_root_password] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.initialize/update_root_password] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -406,7 +406,7 @@ func _Initialize_UpdateRootPassword_CrpcHandler(handler func(context.Context, *U
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/update_root_password] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.initialize/update_root_password] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -414,7 +414,7 @@ func _Initialize_UpdateRootPassword_CrpcHandler(handler func(context.Context, *U
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/update_root_password]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/update_root_password] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -444,7 +444,7 @@ func _Initialize_CreateProject_CrpcHandler(handler func(context.Context, *Create
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/create_project] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.initialize/create_project] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -454,7 +454,7 @@ func _Initialize_CreateProject_CrpcHandler(handler func(context.Context, *Create
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/create_project] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.initialize/create_project] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -462,7 +462,7 @@ func _Initialize_CreateProject_CrpcHandler(handler func(context.Context, *Create
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/create_project]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/create_project] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -492,7 +492,7 @@ func _Initialize_UpdateProject_CrpcHandler(handler func(context.Context, *Update
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/update_project] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.initialize/update_project] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -502,7 +502,7 @@ func _Initialize_UpdateProject_CrpcHandler(handler func(context.Context, *Update
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/update_project] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.initialize/update_project] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -510,7 +510,7 @@ func _Initialize_UpdateProject_CrpcHandler(handler func(context.Context, *Update
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/update_project]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/update_project] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -540,7 +540,7 @@ func _Initialize_ListProject_CrpcHandler(handler func(context.Context, *ListProj
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/list_project] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.initialize/list_project] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -550,7 +550,7 @@ func _Initialize_ListProject_CrpcHandler(handler func(context.Context, *ListProj
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/list_project] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.initialize/list_project] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -583,7 +583,7 @@ func _Initialize_DeleteProject_CrpcHandler(handler func(context.Context, *Delete
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.initialize/delete_project] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.initialize/delete_project] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -593,7 +593,7 @@ func _Initialize_DeleteProject_CrpcHandler(handler func(context.Context, *Delete
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.initialize/delete_project] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.initialize/delete_project] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -601,7 +601,7 @@ func _Initialize_DeleteProject_CrpcHandler(handler func(context.Context, *Delete
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.initialize/delete_project]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.initialize/delete_project] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

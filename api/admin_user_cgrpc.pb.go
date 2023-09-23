@@ -190,7 +190,7 @@ func _User_UserLogin_CGrpcHandler(handler func(context.Context, *UserLoginReq) (
 	return func(ctx *cgrpc.Context) {
 		req := new(UserLoginReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/user_login]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/user_login] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -209,7 +209,7 @@ func _User_LoginInfo_CGrpcHandler(handler func(context.Context, *LoginInfoReq) (
 	return func(ctx *cgrpc.Context) {
 		req := new(LoginInfoReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/login_info]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/login_info] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -228,12 +228,12 @@ func _User_InviteProject_CGrpcHandler(handler func(context.Context, *InviteProje
 	return func(ctx *cgrpc.Context) {
 		req := new(InviteProjectReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/invite_project] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/invite_project]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/invite_project] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -252,12 +252,12 @@ func _User_KickProject_CGrpcHandler(handler func(context.Context, *KickProjectRe
 	return func(ctx *cgrpc.Context) {
 		req := new(KickProjectReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/kick_project] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/kick_project]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/kick_project] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -276,12 +276,12 @@ func _User_SearchUsers_CGrpcHandler(handler func(context.Context, *SearchUsersRe
 	return func(ctx *cgrpc.Context) {
 		req := new(SearchUsersReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/search_users] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/search_users]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/search_users] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -300,12 +300,12 @@ func _User_UpdateUser_CGrpcHandler(handler func(context.Context, *UpdateUserReq)
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateUserReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/update_user] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_user]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/update_user] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -324,12 +324,12 @@ func _User_CreateRole_CGrpcHandler(handler func(context.Context, *CreateRoleReq)
 	return func(ctx *cgrpc.Context) {
 		req := new(CreateRoleReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/create_role] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/create_role]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/create_role] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -348,12 +348,12 @@ func _User_SearchRoles_CGrpcHandler(handler func(context.Context, *SearchRolesRe
 	return func(ctx *cgrpc.Context) {
 		req := new(SearchRolesReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/search_roles] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/search_roles]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/search_roles] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -372,12 +372,12 @@ func _User_UpdateRole_CGrpcHandler(handler func(context.Context, *UpdateRoleReq)
 	return func(ctx *cgrpc.Context) {
 		req := new(UpdateRoleReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/update_role] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_role]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/update_role] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -396,12 +396,12 @@ func _User_DelRoles_CGrpcHandler(handler func(context.Context, *DelRolesReq) (*D
 	return func(ctx *cgrpc.Context) {
 		req := new(DelRolesReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/del_roles] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_roles]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/del_roles] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -420,12 +420,12 @@ func _User_AddUserRole_CGrpcHandler(handler func(context.Context, *AddUserRoleRe
 	return func(ctx *cgrpc.Context) {
 		req := new(AddUserRoleReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/add_user_role] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/add_user_role]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/add_user_role] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -444,12 +444,12 @@ func _User_DelUserRole_CGrpcHandler(handler func(context.Context, *DelUserRoleRe
 	return func(ctx *cgrpc.Context) {
 		req := new(DelUserRoleReq)
 		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": e})
+			log.Error(ctx, "[/admin.user/del_user_role] decode failed")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/del_user_role]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.user/del_user_role] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

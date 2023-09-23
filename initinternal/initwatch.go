@@ -137,13 +137,13 @@ func (s *InternalSdk) mongoGetAllApp() error {
 	primarylocalOPTS := options.Collection().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())
 	cursor, e := s.db.Database("app").Collection("config", primarylocalOPTS).Find(context.Background(), filter)
 	if e != nil {
-		log.Error(nil, "[InitWatch] get all app config failed", map[string]interface{}{"error": e})
+		log.Error(nil, "[InitWatch] get all app config failed", log.CError(e))
 		return e
 	}
 	defer cursor.Close(context.Background())
 	apps := make([]*model.AppSummary, 0, cursor.RemainingBatchLength())
 	if e := cursor.All(context.Background(), &apps); e != nil {
-		log.Error(nil, "[InitWatch] get all app config failed", map[string]interface{}{"error": e})
+		log.Error(nil, "[InitWatch] get all app config failed", log.CError(e))
 		return e
 	}
 	for _, v := range apps {
@@ -169,7 +169,7 @@ func (s *InternalSdk) watch() {
 			var e error
 			opts := options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(s.start)
 			if stream, e = s.db.Watch(context.Background(), watchfilter, opts); e != nil {
-				log.Error(nil, "[InitWatch] get stream failed", map[string]interface{}{"error": e})
+				log.Error(nil, "[InitWatch] get stream failed", log.CError(e))
 				stream = nil
 				time.Sleep(time.Millisecond * 100)
 				continue
@@ -181,7 +181,7 @@ func (s *InternalSdk) watch() {
 			switch stream.Current.Lookup("operationType").StringValue() {
 			case "drop":
 				//drop collection
-				log.Error(nil, "[InitWatch] all configs deleted", nil)
+				log.Error(nil, "[InitWatch] all configs deleted")
 				s.lker.Lock()
 				for _, v := range s.apps {
 					app := v
@@ -227,19 +227,27 @@ func (s *InternalSdk) watch() {
 				//this is the app summary
 				summary := &model.AppSummary{}
 				if e := stream.Current.Lookup("fullDocument").Unmarshal(summary); e != nil {
-					log.Error(nil, "[InitWatch] document format wrong", map[string]interface{}{"project_id": projectid, "group": gname, "app": aname, "error": e})
+					log.Error(nil, "[InitWatch] document format wrong",
+						log.String("project_id", projectid),
+						log.String("group", gname),
+						log.String("app", aname),
+						log.CError(e))
 					continue
 				}
 				//decode proxy path
 				if e := s.decodeProxyPath(summary); e != nil {
-					log.Error(nil, "[InitWatch] db data broken", map[string]interface{}{"project_id": projectid, "group": gname, "app": aname, "error": e})
+					log.Error(nil, "[InitWatch] db data broken",
+						log.String("project_id", projectid),
+						log.String("group", gname),
+						log.String("app", aname),
+						log.CError(e))
 					continue
 				}
-				log.Debug(nil, "[InitWatch] updated", map[string]interface{}{
-					"project_id": summary.ProjectID,
-					"group":      summary.Group,
-					"app":        summary.App,
-					"keys":       summary.Keys})
+				log.Debug(nil, "[InitWatch] updated",
+					log.String("project_id", summary.ProjectID),
+					log.String("group", summary.Group),
+					log.String("app", summary.App),
+					log.Any("keys", summary.Keys))
 				s.lker.Lock()
 				if exist, ok := s.apps[summary.ID.Hex()]; !ok {
 					tmp := &app{
@@ -291,7 +299,10 @@ func (s *InternalSdk) watch() {
 						}
 					}
 					if discoverchanged {
-						log.Debug(nil, "[InitWatch] discover changed", map[string]interface{}{"project_id": projectid, "group": gname, "app": aname})
+						log.Debug(nil, "[InitWatch] discover changed",
+							log.String("project_id", projectid),
+							log.String("group", gname),
+							log.String("app", aname))
 						//discover should always stop after client
 						if exist.client != nil {
 							di := exist.di
@@ -336,10 +347,10 @@ func (s *InternalSdk) watch() {
 				delete(s.appsIDIndex, exist.summary.ProjectID+"-"+exist.summary.Group+"."+exist.summary.App)
 				exist.Lock()
 				s.lker.Unlock()
-				log.Debug(nil, "[InitWatch] deleted", map[string]interface{}{
-					"project_id": exist.summary.ProjectID,
-					"group":      exist.summary.Group,
-					"app":        exist.summary.App})
+				log.Debug(nil, "[InitWatch] deleted",
+					log.String("project_id", exist.summary.ProjectID),
+					log.String("group", exist.summary.Group),
+					log.String("app", exist.summary.App))
 				exist.delstatus = true
 				for notice := range exist.notices {
 					delete(exist.notices, notice)
@@ -358,7 +369,7 @@ func (s *InternalSdk) watch() {
 			}
 		}
 		if stream.Err() != nil {
-			log.Error(nil, "[InitWatch] stream disconnected", map[string]interface{}{"error": stream.Err()})
+			log.Error(nil, "[InitWatch] stream disconnected", log.CError(stream.Err()))
 		}
 		stream.Close(context.Background())
 		stream = nil
@@ -369,12 +380,12 @@ func (s *InternalSdk) decodeProxyPath(app *model.AppSummary) error {
 	for path, info := range app.Paths {
 		realpath, e := base64.StdEncoding.DecodeString(path)
 		if e != nil {
-			log.Error(nil, "[InitWatch] app's proxy path's base64 format wrong", map[string]interface{}{
-				"project_id":  app.ProjectID,
-				"group":       app.Group,
-				"app":         app.App,
-				"error":       e,
-				"base64_path": path})
+			log.Error(nil, "[InitWatch] app's proxy path's base64 format wrong",
+				log.String("project_id", app.ProjectID),
+				log.String("group", app.Group),
+				log.String("app", app.App),
+				log.String("base64_path", path),
+				log.CError(e))
 			return e
 		}
 		tmp[common.Byte2str(realpath)] = info

@@ -291,7 +291,7 @@ func _Permission_GetUserPermission_CrpcHandler(handler func(context.Context, *Ge
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/get_user_permission] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/get_user_permission] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -301,7 +301,7 @@ func _Permission_GetUserPermission_CrpcHandler(handler func(context.Context, *Ge
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/get_user_permission] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/get_user_permission] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -309,7 +309,7 @@ func _Permission_GetUserPermission_CrpcHandler(handler func(context.Context, *Ge
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/get_user_permission]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/get_user_permission] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -339,7 +339,7 @@ func _Permission_UpdateUserPermission_CrpcHandler(handler func(context.Context, 
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/update_user_permission] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/update_user_permission] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -349,7 +349,7 @@ func _Permission_UpdateUserPermission_CrpcHandler(handler func(context.Context, 
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/update_user_permission] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/update_user_permission] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -357,7 +357,7 @@ func _Permission_UpdateUserPermission_CrpcHandler(handler func(context.Context, 
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/update_user_permission]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/update_user_permission] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -387,7 +387,7 @@ func _Permission_UpdateRolePermission_CrpcHandler(handler func(context.Context, 
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/update_role_permission] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/update_role_permission] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -397,7 +397,7 @@ func _Permission_UpdateRolePermission_CrpcHandler(handler func(context.Context, 
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/update_role_permission] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/update_role_permission] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -405,7 +405,7 @@ func _Permission_UpdateRolePermission_CrpcHandler(handler func(context.Context, 
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/update_role_permission]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/update_role_permission] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -435,7 +435,7 @@ func _Permission_AddNode_CrpcHandler(handler func(context.Context, *AddNodeReq) 
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/add_node] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/add_node] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -445,7 +445,7 @@ func _Permission_AddNode_CrpcHandler(handler func(context.Context, *AddNodeReq) 
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/add_node] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/add_node] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -453,7 +453,7 @@ func _Permission_AddNode_CrpcHandler(handler func(context.Context, *AddNodeReq) 
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/add_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/add_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -483,7 +483,7 @@ func _Permission_UpdateNode_CrpcHandler(handler func(context.Context, *UpdateNod
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/update_node] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/update_node] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -493,7 +493,7 @@ func _Permission_UpdateNode_CrpcHandler(handler func(context.Context, *UpdateNod
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/update_node] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/update_node] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -501,7 +501,7 @@ func _Permission_UpdateNode_CrpcHandler(handler func(context.Context, *UpdateNod
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/update_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/update_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -531,7 +531,7 @@ func _Permission_MoveNode_CrpcHandler(handler func(context.Context, *MoveNodeReq
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/move_node] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/move_node] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -541,7 +541,7 @@ func _Permission_MoveNode_CrpcHandler(handler func(context.Context, *MoveNodeReq
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/move_node] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/move_node] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -549,7 +549,7 @@ func _Permission_MoveNode_CrpcHandler(handler func(context.Context, *MoveNodeReq
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/move_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/move_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -579,7 +579,7 @@ func _Permission_DelNode_CrpcHandler(handler func(context.Context, *DelNodeReq) 
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/del_node] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/del_node] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -589,7 +589,7 @@ func _Permission_DelNode_CrpcHandler(handler func(context.Context, *DelNodeReq) 
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/del_node] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/del_node] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -597,7 +597,7 @@ func _Permission_DelNode_CrpcHandler(handler func(context.Context, *DelNodeReq) 
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/del_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/del_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -627,7 +627,7 @@ func _Permission_ListUserNode_CrpcHandler(handler func(context.Context, *ListUse
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/list_user_node] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/list_user_node] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -637,7 +637,7 @@ func _Permission_ListUserNode_CrpcHandler(handler func(context.Context, *ListUse
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/list_user_node] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/list_user_node] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -645,7 +645,7 @@ func _Permission_ListUserNode_CrpcHandler(handler func(context.Context, *ListUse
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_user_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/list_user_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -675,7 +675,7 @@ func _Permission_ListRoleNode_CrpcHandler(handler func(context.Context, *ListRol
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/list_role_node] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/list_role_node] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -685,7 +685,7 @@ func _Permission_ListRoleNode_CrpcHandler(handler func(context.Context, *ListRol
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/list_role_node] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/list_role_node] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -693,7 +693,7 @@ func _Permission_ListRoleNode_CrpcHandler(handler func(context.Context, *ListRol
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_role_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/list_role_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -723,7 +723,7 @@ func _Permission_ListProjectNode_CrpcHandler(handler func(context.Context, *List
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.permission/list_project_node] json and proto format decode both failed", nil)
+					log.Error(ctx, "[/admin.permission/list_project_node] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -733,7 +733,7 @@ func _Permission_ListProjectNode_CrpcHandler(handler func(context.Context, *List
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.permission/list_project_node] json and proto format decode both failed", nil)
+				log.Error(ctx, "[/admin.permission/list_project_node] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -741,7 +741,7 @@ func _Permission_ListProjectNode_CrpcHandler(handler func(context.Context, *List
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.permission/list_project_node]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.permission/list_project_node] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

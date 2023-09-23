@@ -461,13 +461,13 @@ func _App_GetApp_WebHandler(handler func(context.Context, *GetAppReq) (*GetAppRe
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/get_app] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/get_app] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -475,24 +475,24 @@ func _App_GetApp_WebHandler(handler func(context.Context, *GetAppReq) (*GetAppRe
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/get_app] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/get_app] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/get_app] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/get_app] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -520,13 +520,13 @@ func _App_SetApp_WebHandler(handler func(context.Context, *SetAppReq) (*SetAppRe
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/set_app] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/set_app] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -534,24 +534,24 @@ func _App_SetApp_WebHandler(handler func(context.Context, *SetAppReq) (*SetAppRe
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/set_app] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/set_app] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/set_app] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_app] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -579,13 +579,13 @@ func _App_DelApp_WebHandler(handler func(context.Context, *DelAppReq) (*DelAppRe
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/del_app] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/del_app] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -593,24 +593,24 @@ func _App_DelApp_WebHandler(handler func(context.Context, *DelAppReq) (*DelAppRe
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/del_app] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/del_app] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/del_app] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_app]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/del_app] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -638,13 +638,13 @@ func _App_UpdateAppSecret_WebHandler(handler func(context.Context, *UpdateAppSec
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/update_app_secret] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/update_app_secret] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -652,24 +652,24 @@ func _App_UpdateAppSecret_WebHandler(handler func(context.Context, *UpdateAppSec
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/update_app_secret] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/update_app_secret] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/update_app_secret] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/update_app_secret]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/update_app_secret] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -697,13 +697,13 @@ func _App_DelKey_WebHandler(handler func(context.Context, *DelKeyReq) (*DelKeyRe
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/del_key] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/del_key] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -711,24 +711,24 @@ func _App_DelKey_WebHandler(handler func(context.Context, *DelKeyReq) (*DelKeyRe
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/del_key] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/del_key] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/del_key] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_key]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/del_key] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -756,13 +756,13 @@ func _App_GetKeyConfig_WebHandler(handler func(context.Context, *GetKeyConfigReq
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/get_key_config] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/get_key_config] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -770,24 +770,24 @@ func _App_GetKeyConfig_WebHandler(handler func(context.Context, *GetKeyConfigReq
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/get_key_config] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/get_key_config] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/get_key_config] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/get_key_config]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/get_key_config] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -815,13 +815,13 @@ func _App_SetKeyConfig_WebHandler(handler func(context.Context, *SetKeyConfigReq
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/set_key_config] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/set_key_config] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -829,24 +829,24 @@ func _App_SetKeyConfig_WebHandler(handler func(context.Context, *SetKeyConfigReq
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/set_key_config] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/set_key_config] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/set_key_config] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_key_config]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_key_config] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -874,13 +874,13 @@ func _App_Rollback_WebHandler(handler func(context.Context, *RollbackReq) (*Roll
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/rollback] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/rollback] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -888,24 +888,24 @@ func _App_Rollback_WebHandler(handler func(context.Context, *RollbackReq) (*Roll
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/rollback] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/rollback] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/rollback] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/rollback]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/rollback] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -933,13 +933,13 @@ func _App_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchResp,
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/watch] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/watch] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -947,24 +947,24 @@ func _App_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchResp,
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/watch] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/watch] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/watch] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/watch]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/watch] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -992,13 +992,13 @@ func _App_SetProxy_WebHandler(handler func(context.Context, *SetProxyReq) (*SetP
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/set_proxy] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/set_proxy] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1006,24 +1006,24 @@ func _App_SetProxy_WebHandler(handler func(context.Context, *SetProxyReq) (*SetP
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/set_proxy] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/set_proxy] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/set_proxy] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/set_proxy]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/set_proxy] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1051,13 +1051,13 @@ func _App_DelProxy_WebHandler(handler func(context.Context, *DelProxyReq) (*DelP
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/del_proxy] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/del_proxy] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1065,24 +1065,24 @@ func _App_DelProxy_WebHandler(handler func(context.Context, *DelProxyReq) (*DelP
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/del_proxy] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/del_proxy] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/del_proxy] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/del_proxy]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/del_proxy] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1110,13 +1110,13 @@ func _App_Proxy_WebHandler(handler func(context.Context, *ProxyReq) (*ProxyResp,
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/proxy] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/proxy] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1124,24 +1124,24 @@ func _App_Proxy_WebHandler(handler func(context.Context, *ProxyReq) (*ProxyResp,
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
+				log.Error(ctx, "[/admin.app/proxy] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": e})
+					log.Error(ctx, "[/admin.app/proxy] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": "POST,PUT,PATCH only support application/json or application/x-protobuf"})
+			log.Error(ctx, "[/admin.app/proxy] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/proxy]", map[string]interface{}{"error": errstr})
+			log.Error(ctx, "[/admin.app/proxy] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}

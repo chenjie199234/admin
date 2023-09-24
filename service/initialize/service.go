@@ -92,9 +92,10 @@ func (s *Service) UpdateRootPassword(ctx context.Context, req *api.UpdateRootPas
 		return nil, ecode.ErrPermission
 	}
 	if e := s.initializeDao.MongoUpdateRootPassword(ctx, req.OldPassword, req.NewPassword); e != nil {
-		log.Error(ctx, "[RootPassword] db op failed", log.CError(e))
+		log.Error(ctx, "[UpdateRootPassword] db op failed", log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	log.Info(ctx, "[UpdateRootPassword] success")
 	return &api.UpdateRootPasswordResp{}, nil
 }
 
@@ -119,6 +120,7 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectid, _ := util.ParseNodeIDstr(str)
+	log.Info(ctx, "[CreateProject] success", log.String("project_id", str), log.String("project_name", req.ProjectName), log.String("project_data", req.ProjectData))
 	return &api.CreateProjectResp{ProjectId: projectid}, nil
 }
 
@@ -156,6 +158,7 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 			log.CError(e))
 		return nil, e
 	}
+	log.Info(ctx, "[UpdateProject] success", log.String("project_id", projectid), log.String("project_name", req.NewProjectName), log.String("project_data", req.NewProjectData))
 	return &api.UpdateProjectResp{}, nil
 }
 
@@ -254,10 +257,13 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
 	projectid := common.Byte2str(buf)
-	if e := s.initializeDao.MongoDelProject(ctx, projectid); e != nil {
+
+	projectname, e := s.initializeDao.MongoDelProject(ctx, projectid)
+	if e != nil {
 		log.Error(ctx, "[DeleteProject] db op failed", log.String("operator", md["Token-User"]), log.String("project_id", projectid), log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	log.Info(ctx, "[DeleteProject] success", log.String("project_id", projectid), log.String("project_name", projectname))
 	return &api.DeleteProjectResp{}, nil
 }
 

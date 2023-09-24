@@ -243,7 +243,7 @@ func (d *Dao) MongoListProject(ctx context.Context) ([]*model.Node, error) {
 	e = cur.All(ctx, &result)
 	return result, e
 }
-func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (e error) {
+func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (projectname string, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -261,14 +261,14 @@ func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (e error) {
 			s.AbortTransaction(sctx)
 		}
 	}()
-	var r *mongo.DeleteResult
-	if r, e = d.mongo.Database("permission").Collection("projectindex").DeleteOne(sctx, bson.M{"project_id": projectid}); e != nil {
+	projectindex := &model.ProjectIndex{}
+	if e = d.mongo.Database("permission").Collection("projectindex").FindOneAndDelete(sctx, bson.M{"project_id": projectid}).Decode(projectindex); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrProjectNotExist
+		}
 		return
 	}
-	if r.DeletedCount == 0 {
-		e = ecode.ErrProjectNotExist
-		return
-	}
+	projectname = projectindex.ProjectName
 	if _, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, bson.M{"node_id": bson.M{"$regex": "^" + projectid}}); e != nil {
 		return
 	}

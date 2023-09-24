@@ -57,6 +57,10 @@ function get_projects(){
 	})
 }
 
+function selfproject():boolean{
+	return state.project.info&&state.project.info.project_id![0]==0&&state.project.info.project_id![1]==1
+}
+
 const projectnodes=ref<permissionAPI.NodeInfo|null>(null)
 
 function select_project(){
@@ -251,7 +255,7 @@ function node_op(){
 		}
 	}
 }
-function need_create_main_menu_button():boolean{
+function create_main_menu_able():boolean{
 	if(!state.project.info){
 		return false
 	}
@@ -372,25 +376,38 @@ function same_node_id(a:number[],b:number[]):boolean{
 					</va-hover>
 				</template>
 			</va-select>
-			<va-dropdown v-if="state.user.root" style="width:36px;margin-right:2px">
-				<template #anchor>
-					<va-button>•••</va-button>
-				</template>
-				<va-dropdown-content>
-					<va-popover message="Create New Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root" style="width:36px;margin:0 3px" @click="optype='add';project_name='';project_ing=true">+</va-button>
-					</va-popover>
-					<va-popover message="Rename Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root&&state.project.info&&!same_node_id(state.project.info.project_id!,[0,1])" style="width:36px;margin:0 3px" @click="optype='update';project_name='';project_ing=true">◉</va-button>
-					</va-popover>
-					<va-popover message="Delete Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-						<va-button v-if="state.user.root&&state.project.info&&!same_node_id(state.project.info.project_id!,[0,1])" style="width:36px;margin:0 3px" @click="optype='del';project_ing=true">x</va-button>
-					</va-popover>
-				</va-dropdown-content>
-			</va-dropdown>
+			<va-popover message="Create New Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
+				<va-button v-if="state.user.root" style="width:36px;margin:0 3px" @click="optype='add';project_name='';project_ing=true">+</va-button>
+			</va-popover>
 		</div>
-		<div v-if="need_create_main_menu_button()" style="text-align:center;background-color:var(--va-background-element)">
-			<va-popover message="Create Main Menu" color="primary" :hover-over-timeout="0" :hover-out-timeout="0" placement="right" prevent-overflow>
+		<div v-if="state.project.info" style="text-align:center;background-color:var(--va-background-element)">
+			<va-popover v-if="state.user.root&&!selfproject()" message="Update Project" color="primary" :hover-over-timeout="0" :hover-out-timeout="0" prevent-overflow>
+				<va-hover stateful>
+					<template #default="{hover}">
+						<div
+							style="padding:10px 15px;cursor:pointer"
+							:style="{'background-color':hover?'var(--va-shadow)':undefined}"
+							@click="optype='update';project_name='';project_ing=true"
+						>
+							<b>◉</b>
+						</div>
+					</template>
+				</va-hover>
+			</va-popover>
+			<va-popover v-if="state.user.root&&!selfproject()" message="Delete Project" color="primary" :hover-over-timeout="0" :hover-out-timeout="0" prevent-overflow>
+				<va-hover stateful>
+					<template #default="{hover}">
+						<div
+							style="padding:10px 15px;cursor:pointer"
+							:style="{'background-color':hover?'var(--va-shadow)':undefined}"
+							@click="optype='del';project_ing=true"
+						>
+							<b>x</b>
+						</div>
+					</template>
+				</va-hover>
+			</va-popover>
+			<va-popover v-if="create_main_menu_able()" message="Create Main Menu" color="primary" :hover-over-timeout="0" :hover-out-timeout="0" prevent-overflow>
 				<va-hover stateful>
 					<template #default="{hover}">
 						<div

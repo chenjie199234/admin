@@ -165,7 +165,7 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operator, target pr
 		return
 	}
 	inproject := false
-	for _, userprojectid := range targetuser.ProjectIDs {
+	for userprojectid := range targetuser.Projects {
 		if strings.HasPrefix(nodeid, userprojectid) {
 			inproject = true
 			break
@@ -227,6 +227,7 @@ func (d *Dao) MongoGetUserNodes(ctx context.Context, userid primitive.ObjectID, 
 	defer cursor.Close(ctx)
 	result := make(model.UserNodes, 0, cursor.RemainingBatchLength())
 	e = cursor.All(ctx, &result)
+	result.Sort()
 	return result, e
 }
 
@@ -368,6 +369,7 @@ func (d *Dao) MongoGetRoleNodes(ctx context.Context, projectid, rolename string,
 	defer cursor.Close(ctx)
 	result := make(model.RoleNodes, 0, cursor.RemainingBatchLength())
 	e = cursor.All(ctx, &result)
+	result.Sort()
 	return result, e
 }
 
@@ -384,23 +386,19 @@ func (d *Dao) MongoGetUserRoleNodes(ctx context.Context, userid primitive.Object
 	if e := r.Decode(userinfo); e != nil {
 		return nil, e
 	}
-	if len(userinfo.Roles) == 0 {
+	if len(userinfo.Projects) == 0 {
+		return nil, nil
+	}
+	userprojectroles, ok := userinfo.Projects[projectid]
+	if !ok || len(userprojectroles) == 0 {
 		return nil, nil
 	}
 	or := bson.A{}
-	for _, role := range userinfo.Roles {
-		index := strings.Index(role, ":")
-		roleproject := role[:index]
-		rolename := role[index+1:]
-		if roleproject == projectid {
-			or = append(or, bson.M{
-				"project_id": projectid,
-				"role_name":  rolename,
-			})
-		}
-	}
-	if len(or) == 0 {
-		return nil, nil
+	for _, userprojectrole := range userprojectroles {
+		or = append(or, bson.M{
+			"project_id": projectid,
+			"role_name":  userprojectrole,
+		})
 	}
 	filter := bson.M{"$or": or}
 	if len(nodeids) > 0 {
@@ -421,6 +419,9 @@ func (d *Dao) MongoGetUserRoleNodes(ctx context.Context, userid primitive.Object
 			result[v.RoleName] = make(model.RoleNodes, 0, 10)
 		}
 		result[v.RoleName] = append(result[v.RoleName], v)
+	}
+	for _, rolenodes := range result {
+		rolenodes.Sort()
 	}
 	return result, nil
 }
@@ -525,7 +526,7 @@ func (d *Dao) MongoAddNode(ctx context.Context, operator primitive.ObjectID, pno
 	})
 	return
 }
-func (d *Dao) MongoUpdateNode(ctx context.Context, operator primitive.ObjectID, nodeid string, newname, newdata string) (e error) {
+func (d *Dao) MongoUpdateNode(ctx context.Context, operator primitive.ObjectID, nodeid string, newname, newdata string) (node *model.Node, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -552,24 +553,28 @@ func (d *Dao) MongoUpdateNode(ctx context.Context, operator primitive.ObjectID, 
 		return
 	}
 	//all check success,update database
-	r, e := d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": nodeid}, bson.M{"$set": bson.M{"node_name": newname, "node_data": newdata}})
-	if e == nil && r.MatchedCount == 0 {
-		e = ecode.ErrNodeNotExist
+	node = &model.Node{}
+	e = d.mongo.Database("permission").Collection("node").FindOneAndUpdate(sctx, bson.M{"node_id": nodeid}, bson.M{"$set": bson.M{"node_name": newname, "node_data": newdata}}).Decode(node)
+	if e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrNodeNotExist
+		}
+		return
 	}
 	return
 }
-func (d *Dao) MongoMoveNode(ctx context.Context, operator primitive.ObjectID, nodeid, pnodeid string) (e error) {
+func (d *Dao) MongoMoveNode(ctx context.Context, operator primitive.ObjectID, nodeid, pnodeid string) (newnodeid string, e error) {
 	//nodeid and pnodeid must in same project
 	if !strings.HasPrefix(nodeid, "0,") || strings.Count(nodeid, ",") == 1 || !strings.HasPrefix(pnodeid, "0,") {
-		return ecode.ErrReq
+		return "", ecode.ErrReq
 	}
 	if index := strings.Index(pnodeid[2:], ","); index == -1 {
 		if pnodeid[2:] != nodeid[2:][:strings.Index(nodeid[2:], ",")] {
-			return ecode.ErrReq
+			return "", ecode.ErrReq
 		}
 	} else {
 		if pnodeid[2:][:strings.Index(pnodeid[2:], ",")] != nodeid[2:][:strings.Index(nodeid[2:], ",")] {
-			return ecode.ErrReq
+			return "", ecode.ErrReq
 		}
 	}
 	var s mongo.Session
@@ -626,7 +631,7 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operator primitive.ObjectID, no
 	if _, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": pnodeid}, bson.M{"$inc": bson.M{"cur_node_index": 1}}); e != nil {
 		return
 	}
-	newnodeid := parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10)
+	newnodeid = parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10)
 	filter := bson.M{"node_id": bson.M{"$regex": "^" + nodeid}}
 	updater := bson.A{bson.M{
 		"$set": bson.M{
@@ -658,7 +663,7 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operator primitive.ObjectID, no
 	}
 	return
 }
-func (d *Dao) MongoDeleteNode(ctx context.Context, operator primitive.ObjectID, nodeid string) (e error) {
+func (d *Dao) MongoDeleteNode(ctx context.Context, operator primitive.ObjectID, nodeid string) (node *model.Node, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -685,6 +690,13 @@ func (d *Dao) MongoDeleteNode(ctx context.Context, operator primitive.ObjectID, 
 		return
 	}
 	//all check success,delete database
+	node = &model.Node{}
+	if e = d.mongo.Database("permission").Collection("node").FindOneAndDelete(sctx, bson.M{"node_id": nodeid}).Decode(node); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrNodeNotExist
+		}
+		return
+	}
 	delfilter := bson.M{"node_id": bson.M{"$regex": "^" + nodeid}}
 	if _, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, delfilter); e != nil {
 		return

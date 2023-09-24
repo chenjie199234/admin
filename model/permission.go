@@ -34,15 +34,18 @@ type RoleNode struct {
 }
 type UserNodes []*UserNode
 
-func (u UserNodes) CheckNode(nodeid string) (canread, canwrite, admin bool) {
+func (u UserNodes) Sort() {
 	sort.Slice(u, func(i, j int) bool {
 		return strings.Count(u[i].NodeId, ",") < strings.Count(u[j].NodeId, ",")
 	})
+}
+
+func (u UserNodes) CheckNode(nodeid string) (canread, canwrite, admin bool) {
 	for _, usernode := range u {
 		if strings.Count(usernode.NodeId, ",") > strings.Count(nodeid, ",") {
 			return false, false, false
 		}
-		if !strings.HasPrefix(nodeid, usernode.NodeId) {
+		if !strings.HasPrefix(nodeid+",", usernode.NodeId+",") {
 			continue
 		}
 		//check admin
@@ -62,15 +65,17 @@ func (u UserNodes) CheckNode(nodeid string) (canread, canwrite, admin bool) {
 
 type RoleNodes []*RoleNode
 
-func (r RoleNodes) CheckNode(nodeid string) (canread, canwrite, admin bool) {
+func (r RoleNodes) Sort() {
 	sort.Slice(r, func(i, j int) bool {
 		return strings.Count(r[i].NodeId, ",") < strings.Count(r[j].NodeId, ",")
 	})
+}
+func (r RoleNodes) CheckNode(nodeid string) (canread, canwrite, admin bool) {
 	for _, rolenode := range r {
 		if strings.Count(rolenode.NodeId, ",") > strings.Count(nodeid, ",") {
 			return false, false, false
 		}
-		if !strings.HasPrefix(nodeid, rolenode.NodeId) {
+		if !strings.HasPrefix(nodeid+",", rolenode.NodeId+",") {
 			continue
 		}
 		//check admin

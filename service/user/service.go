@@ -55,7 +55,7 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 	//get other's info,need check permission
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[LoginInfo] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[LoginInfo] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	if operator.IsZero() {
@@ -74,7 +74,7 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 	}
 	tmp := make(map[string]*api.ProjectRoles)
 	//join projects
-	for _, userprojectid := range user.ProjectIDs {
+	for userprojectid := range user.Projects {
 		if _, ok := tmp[userprojectid]; ok {
 			continue
 		}
@@ -82,8 +82,7 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 		if e != nil {
 			log.Error(ctx, "[LoginInfo] operator join project's projectid format wrong",
 				log.String("operator", md["Token-User"]),
-				log.String("project_id", userprojectid),
-				log.CError(e))
+				log.String("project_id", userprojectid))
 			return nil, ecode.ErrSystem
 		}
 		tmp[userprojectid] = &api.ProjectRoles{
@@ -92,32 +91,28 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 		}
 	}
 	//roles
-	for _, role := range user.Roles {
-		index := strings.Index(role, ":")
-		roleprojectid := role[:index]
-		roleproject, e := util.ParseNodeIDstr(roleprojectid)
-		if e != nil {
-			log.Error(ctx, "[LoginInfo] operator's role's projectid format wrong",
-				log.String("operator", md["Token-User"]),
-				log.String("role", role),
-				log.String("project_id", roleprojectid),
-				log.CError(e))
-			return nil, ecode.ErrSystem
-		}
-		rolename := role[index+1:]
-		if _, ok := tmp[roleprojectid]; !ok {
-			tmp[roleprojectid] = &api.ProjectRoles{
-				ProjectId: roleproject,
+	for userprojectid, userprojectroles := range user.Projects {
+		for _, userprojectrole := range userprojectroles {
+			projectid, e := util.ParseNodeIDstr(userprojectid)
+			if e != nil {
+				log.Error(ctx, "[LoginInfo] operator's joined project's projectid format wrong",
+					log.String("operator", md["Token-User"]),
+					log.String("project_id", userprojectid))
+				return nil, ecode.ErrSystem
 			}
+			if _, ok := tmp[userprojectid]; !ok {
+				tmp[userprojectid] = &api.ProjectRoles{
+					ProjectId: projectid,
+				}
+			}
+			tmp[userprojectid].Roles = append(tmp[userprojectid].Roles, userprojectrole)
 		}
-		tmp[roleprojectid].Roles = append(tmp[roleprojectid].Roles, rolename)
 	}
 	respuser := &api.UserInfo{
 		UserId:       user.ID.Hex(),
 		UserName:     user.UserName,
-		Department:   user.Department,
 		Ctime:        uint32(user.ID.Timestamp().Unix()),
-		ProjectRoles: make([]*api.ProjectRoles, 0, len(user.ProjectIDs)),
+		ProjectRoles: make([]*api.ProjectRoles, 0, len(tmp)),
 	}
 	for _, v := range tmp {
 		respuser.ProjectRoles = append(respuser.ProjectRoles, v)
@@ -138,12 +133,12 @@ func (s *Service) InviteProject(ctx context.Context, req *api.InviteProjectReq) 
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[InviteProject] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[InviteProject] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[InviteProject] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
+		log.Error(ctx, "[InviteProject] target's userid format wrong", log.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
 	buf := pool.GetPool().Get(0)
@@ -176,10 +171,14 @@ func (s *Service) InviteProject(ctx context.Context, req *api.InviteProjectReq) 
 		log.Error(ctx, "[InviteProject] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("target", req.UserId),
+			log.String("user_id", req.UserId),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	log.Info(ctx, "[InviteProject] success",
+		log.String("operator", md["Token-User"]),
+		log.String("user_id", req.UserId),
+		log.String("project_id", projectid))
 	return &api.InviteProjectResp{}, nil
 }
 func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*api.KickProjectResp, error) {
@@ -190,12 +189,12 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[KickProject] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[KickProject] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[KickProject] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
+		log.Error(ctx, "[KickProject] target's userid format wrong", log.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
 
@@ -214,7 +213,7 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, target, projectid, true)
 		if e != nil {
 			log.Error(ctx, "[KickProject] get target's permission info failed",
-				log.String("target", req.UserId),
+				log.String("user_id", req.UserId),
 				log.String("project_id", projectid),
 				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -239,13 +238,17 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 
 	//logic
 	if e := s.userDao.MongoKick(ctx, operator, projectid, target); e != nil {
-		log.Error(ctx, "[InviteProject] db op failed",
+		log.Error(ctx, "[KickProject] db op failed",
 			log.String("operator", md["Token-User"]),
-			log.String("target", req.UserId),
+			log.String("user_id", req.UserId),
 			log.String("project_id", projectid),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	log.Info(ctx, "[KickProject] success",
+		log.String("operator", md["Token-User"]),
+		log.String("user_id", req.UserId),
+		log.String("project_id", projectid))
 	return &api.KickProjectResp{}, nil
 }
 func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*api.SearchUsersResp, error) {
@@ -256,7 +259,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[SearchUsers] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[SearchUsers] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 
@@ -290,12 +293,16 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	}
 
 	//logic
-	users, page, totalsize, e := s.userDao.MongoSearchUsers(ctx, projectid, req.UserName, 20, int64(req.Page))
+	searchProjectid := projectid
+	if !req.OnlyProject {
+		searchProjectid = ""
+	}
+	users, page, totalsize, e := s.userDao.MongoSearchUsers(ctx, searchProjectid, req.UserName, 20, int64(req.Page))
 	if e != nil {
 		log.Error(ctx, "[SearchUsers] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("username", req.UserName),
+			log.String("user_name", req.UserName),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -315,38 +322,20 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 			continue
 		}
 		tmp := make(map[string]*api.ProjectRoles)
-		for _, role := range user.Roles {
-			index := strings.Index(role, ":")
-			roleproject := role[:index]
-			if projectid != roleproject {
-				continue
-			}
-			rolename := role[index+1:]
-			if _, ok := tmp[roleproject]; !ok {
-				tmp[roleproject] = &api.ProjectRoles{
-					ProjectId: req.ProjectId,
-				}
-			}
-			tmp[roleproject].Roles = append(tmp[roleproject].Roles, rolename)
-		}
-		for _, userprojectid := range user.ProjectIDs {
-			if projectid != userprojectid {
-				continue
-			}
-			if _, ok := tmp[userprojectid]; ok {
-				continue
-			}
-			tmp[userprojectid] = &api.ProjectRoles{
+		if userprojectroles, ok := user.Projects[projectid]; ok {
+			tmp[projectid] = &api.ProjectRoles{
 				ProjectId: req.ProjectId,
-				Roles:     make([]string, 0),
+				Roles:     make([]string, 0, 10),
+			}
+			for _, userprojectrole := range userprojectroles {
+				tmp[projectid].Roles = append(tmp[projectid].Roles, userprojectrole)
 			}
 		}
 		respuser := &api.UserInfo{
 			UserId:       user.ID.Hex(),
 			UserName:     user.UserName,
-			Department:   user.Department,
 			Ctime:        uint32(user.ID.Timestamp().Unix()),
-			ProjectRoles: make([]*api.ProjectRoles, 0, len(user.ProjectIDs)),
+			ProjectRoles: make([]*api.ProjectRoles, 0, len(tmp)),
 		}
 		for _, v := range tmp {
 			respuser.ProjectRoles = append(respuser.ProjectRoles, v)
@@ -371,12 +360,12 @@ func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[UpdateUser] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[UpdateUser] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[UpdateUser] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
+		log.Error(ctx, "[UpdateUser] target's userid format wrong", log.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
 	if !operator.IsZero() {
@@ -395,14 +384,19 @@ func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.
 	}
 
 	//logic
-	if e := s.userDao.MongoUpdateUser(ctx, target, req.NewUserName, req.NewDepartment); e != nil {
+	olduser, e := s.userDao.MongoUpdateUser(ctx, target, req.NewUserName)
+	if e != nil {
 		log.Error(ctx, "[UpdateUser] db op failed",
 			log.String("operator", md["Token-User"]),
-			log.String("target", req.UserId),
+			log.String("user_id", req.UserId),
 			log.String("new_user_name", req.NewUserName),
-			log.Any("new_department", req.NewDepartment),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	if olduser.UserName != req.NewUserName {
+		log.Info(ctx, "[UpdateUser] success", log.String("user_id", req.UserId), log.String("old_user_name", olduser.UserName), log.String("new_user_name", req.NewUserName))
+	} else {
+		log.Info(ctx, "[UpdateUser] success,nothing changed", log.String("user_id", req.UserId), log.String("user_name", olduser.UserName))
 	}
 	return &api.UpdateUserResp{}, nil
 }
@@ -418,7 +412,7 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[CreateRole] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[CreateRole] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	buf := pool.GetPool().Get(0)
@@ -451,10 +445,16 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 		log.Error(ctx, "[CreateRole] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("rolename", req.RoleName),
+			log.String("role_name", req.RoleName),
+			log.String("role_comment", req.Comment),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	log.Info(ctx, "[CreateRole] success",
+		log.String("operator", md["Token-User"]),
+		log.String("project_id", projectid),
+		log.String("role_name", req.RoleName),
+		log.String("role_comment", req.Comment))
 	return &api.CreateRoleResp{}, nil
 }
 func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*api.SearchRolesResp, error) {
@@ -465,7 +465,7 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[SearchRoles] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[SearchRoles] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	buf := pool.GetPool().Get(0)
@@ -499,7 +499,7 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 		log.Error(ctx, "[SearchRoles] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("rolename", req.RoleName),
+			log.String("role_name", req.RoleName),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -535,7 +535,7 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[UpdateRole] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[UpdateRole] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	buf := pool.GetPool().Get(0)
@@ -564,13 +564,27 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 	}
 
 	//logic
-	if e := s.userDao.MongoUpdateRole(ctx, projectid, req.RoleName, req.NewComment); e != nil {
+	oldrole, e := s.userDao.MongoUpdateRole(ctx, projectid, req.RoleName, req.NewComment)
+	if e != nil {
 		log.Error(ctx, "[UpdateRole] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("rolename", req.RoleName),
+			log.String("role_name", req.RoleName),
+			log.String("new_role_comment", req.NewComment),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	if oldrole.Comment != req.NewComment {
+		log.Info(ctx, "[UpdateRole] success",
+			log.String("project_id", oldrole.ProjectID),
+			log.String("role_name", oldrole.RoleName),
+			log.String("old_role_comment", oldrole.Comment),
+			log.String("new_role_comment", req.NewComment))
+	} else {
+		log.Info(ctx, "[UpdateRole] success,nothing changed",
+			log.String("project_id", oldrole.ProjectID),
+			log.String("role_name", oldrole.RoleName),
+			log.String("role_comment", oldrole.Comment))
 	}
 	return &api.UpdateRoleResp{}, nil
 }
@@ -581,7 +595,7 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[DelRoles] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[DelRoles] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	buf := pool.GetPool().Get(0)
@@ -614,10 +628,14 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 		log.Error(ctx, "[DelRoles] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.Any("rolenames", req.RoleNames),
+			log.Any("role_names", req.RoleNames),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	log.Info(ctx, "[DelRoles] success",
+		log.String("operator", md["Token-User"]),
+		log.String("project_id", projectid),
+		log.Any("role_names", req.RoleNames))
 	return &api.DelRolesResp{}, nil
 }
 func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*api.AddUserRoleResp, error) {
@@ -627,12 +645,12 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[AddUserRole] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[AddUserRole] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[AddUserRole] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
+		log.Error(ctx, "[AddUserRole] target's userid format wrong", log.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
 	buf := pool.GetPool().Get(0)
@@ -665,11 +683,16 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 		log.Error(ctx, "[AddUserRole] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("target", req.UserId),
-			log.String("rolename", req.RoleName),
+			log.String("user_id", req.UserId),
+			log.String("role_name", req.RoleName),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	log.Info(ctx, "[AddUserRole] success",
+		log.String("operator", md["Token-User"]),
+		log.String("project_id", projectid),
+		log.String("user_id", req.UserId),
+		log.String("role_name", req.RoleName))
 	return &api.AddUserRoleResp{}, nil
 }
 func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*api.DelUserRoleResp, error) {
@@ -680,12 +703,12 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[DelUserRole] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+		log.Error(ctx, "[DelUserRole] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[DelUserRole] target's userid format wrong", log.String("target", req.UserId), log.CError(e))
+		log.Error(ctx, "[DelUserRole] target's userid format wrong", log.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
 	buf := pool.GetPool().Get(0)
@@ -717,11 +740,16 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 		log.Error(ctx, "[DelUserRole] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("target", req.UserId),
-			log.String("rolename", req.RoleName),
+			log.String("user_id", req.UserId),
+			log.String("role_name", req.RoleName),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
+	log.Info(ctx, "[DelUserRole] success",
+		log.String("operator", md["Token-User"]),
+		log.String("project_id", projectid),
+		log.String("user_id", req.UserId),
+		log.String("role_name", req.RoleName))
 	return &api.DelUserRoleResp{}, nil
 }
 

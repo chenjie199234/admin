@@ -47,7 +47,6 @@ const invite_kick_user=ref<userAPI.UserInfo|null>(null)
 
 const update_user=ref<userAPI.UserInfo|null>(null)
 const update_user_new_name=ref<string>("")
-const update_user_new_department=ref<string[]>([])
 
 const cur_role=ref<userAPI.RoleInfo|null>(null)
 
@@ -201,14 +200,12 @@ function op(){
 			let req = {
 				user_id: update_user.value!.user_id,
 				new_user_name: update_user_new_name.value,
-				new_department: update_user_new_department.value,
 			}
 			client.userClient.update_user({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: userAPI.UpdateUserResp)=>{
 				update_user.value!.user_name = update_user_new_name.value
-				update_user.value!.department = update_user_new_department.value
 				ing.value=false
 				state.clear_load()
 			})
@@ -556,7 +553,6 @@ function parsetime(timestamp :number):string{
 			<div v-else-if="optype=='update_user'">
 				<va-input v-model.trim="update_user_new_name" label="New User Name" style="width:300px;margin:1px 0" />
 				<div style="width:300px;display:flex;margin:1px 0">
-				<!-- TODO: department -->
 				</div>
 				<div style="display:flex;justify-content:center;margin:1px 0">
 					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient :disabled="update_user_new_name==update_user!.user_name">Update</va-button>
@@ -750,7 +746,7 @@ function parsetime(timestamp :number):string{
 					style="display:flex;margin:1px 0;align-items:center;cursor:pointer"
 					:style="{'background-color':userhover==user.user_id?'var(--va-shadow)':'var(--va-background-element)'}"
 					@click="()=>{
-						if(!cur_user){
+						if(!cur_user&&invited(user)){
 							cur_user=user
 							role_permission_hover=null
 							role_permission_select=null
@@ -762,8 +758,9 @@ function parsetime(timestamp :number):string{
 					@mouseout="userhover=''"
 				>
 					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{cur_user==user?'-':'+' }}</span>
-					<span style="flex:1;padding:12px 20px;color:var(--va-primary)">{{user.user_name}}</span>
-					<span style="padding:12px 0;color:var(--va-primary)">Create Time: {{parsetime(user.ctime)}}</span>
+					<span style="padding:12px 0px 12px 20px;color:var(--va-primary)">{{user.user_name}}</span>
+					<span style="flex:1;padding:12px;color:green">{{user.user_id}}</span>
+					<span style="padding:12px;color:green">Create Time: {{parsetime(user.ctime)}}</span>
 					<va-button
 						v-if="state.page.node!.canwrite||state.page.node!.admin"
 						size="small"
@@ -774,11 +771,6 @@ function parsetime(timestamp :number):string{
 							optype='update_user'
 							update_user=user
 							update_user_new_name=user.user_name
-							if(user.department){
-								update_user_new_department=user.department
-							}else{
-								update_user_new_department=[]
-							}
 							ing=true
 						}"
 					>
@@ -802,17 +794,6 @@ function parsetime(timestamp :number):string{
 					>
 						{{invited(user)?'Kick':'Invite'}}
 					</va-button>
-				</div>
-				<div v-if="cur_user==user" style="margin:1px 10px;display:flex;justify-content:space-around;background-color:var(--va-background-element);color:var(--va-primary)">
-					<!-- basic info -->
-					<div style="width:400px;margin:1px;padding:12px 10px;display:flex">
-						<span><b>UserID:</b></span>
-						<span style="flex:1;text-align:center">{{ user.user_id }}</span>
-					</div>
-					<div style="width:400px;margin:1px;padding:12px 10px;display:flex">
-						<span><b>Department:</b></span>
-						<span style="flex:1;text-align:center">{{ Boolean(user.department)?user.department!.join('/'):'' }}</span>
-					</div>
 				</div>
 				<div v-if="cur_user==user&&invited(user)" style="margin:0 10px;display:flex;flex:1;overflow-y:auto;color:var(--va-primary)">
 					<!-- permission info -->
@@ -913,7 +894,7 @@ function parsetime(timestamp :number):string{
 				>
 					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ cur_role==role?'-':'+' }}</span>
 					<span style="flex:1;padding:12px 20px;color:var(--va-primary)">{{role.role_name}}</span>
-					<span style="padding:12px 0;color:var(--va-primary)">Create Time: {{parsetime(role.ctime)}}</span>
+					<span style="padding:12px;color:green">Create Time: {{parsetime(role.ctime)}}</span>
 					<va-button
 						v-if="state.page.node!.admin"
 						size="small"

@@ -20,26 +20,17 @@ func (d *Dao) MongoUserLogin(ctx context.Context) (userid primitive.ObjectID, e 
 	return primitive.NewObjectID(), nil
 }
 
-func (d *Dao) MongoInvite(ctx context.Context, operator primitive.ObjectID, projectid string, target primitive.ObjectID) (e error) {
+func (d *Dao) MongoInvite(ctx context.Context, operator primitive.ObjectID, projectid string, target primitive.ObjectID) error {
 	if target == primitive.NilObjectID {
 		return ecode.ErrReq
 	}
 	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 {
 		return ecode.ErrReq
 	}
-	var r *mongo.UpdateResult
-	r, e = d.mongo.Database("user").Collection("user").UpdateOne(ctx, bson.M{"_id": target}, bson.M{"$addToSet": bson.M{"project_ids": projectid}})
-	if e != nil {
-		return
-	}
-	if r.MatchedCount == 0 {
-		e = ecode.ErrUserNotExist
-		return
-	} else if r.ModifiedCount == 0 {
-		e = ecode.ErrUserAlreadyInvited
-		return
-	}
-	return
+	filter := bson.M{"_id": target, "projects." + projectid: bson.M{"$exists": false}}
+	updater := bson.M{"$set": bson.M{"projects." + projectid: []string{}}}
+	_, e := d.mongo.Database("user").Collection("user").UpdateOne(ctx, filter, updater)
+	return e
 }
 func (d *Dao) MongoKick(ctx context.Context, operator primitive.ObjectID, projectid string, target primitive.ObjectID) (e error) {
 	if target == primitive.NilObjectID {
@@ -65,7 +56,17 @@ func (d *Dao) MongoKick(ctx context.Context, operator primitive.ObjectID, projec
 			s.AbortTransaction(sctx)
 		}
 	}()
-	if _, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, bson.M{"_id": target}, bson.M{"$pull": bson.M{"project_ids": projectid, "roles": bson.M{"$regex": "^" + projectid}}}); e != nil {
+	var r *mongo.UpdateResult
+	r, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, bson.M{"_id": target}, bson.M{"$unset": bson.M{"projects." + projectid: 1}})
+	if e != nil {
+		return
+	}
+	if r.MatchedCount == 0 {
+		e = ecode.ErrUserNotExist
+		return
+	}
+	if r.ModifiedCount == 0 {
+		e = ecode.ErrUserNotInProject
 		return
 	}
 	_, e = d.mongo.Database("permission").Collection("usernode").DeleteMany(sctx, bson.M{"user_id": target, "node_id": bson.M{"$regex": "^" + projectid}})
@@ -96,7 +97,7 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, page
 		filter["user_name"] = bson.M{"$regex": name}
 	}
 	if projectid != "" {
-		filter["project_ids"] = projectid
+		filter["projects."+projectid] = bson.M{"$exists": true}
 	}
 	totalsize, e := d.mongo.Database("user").Collection("user").CountDocuments(ctx, filter)
 	if e != nil {
@@ -134,9 +135,15 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, page
 	return result, page, totalsize, cursor.Err()
 }
 
-func (d *Dao) MongoUpdateUser(ctx context.Context, userid primitive.ObjectID, newname string, newdepartment []string) error {
-	_, e := d.mongo.Database("user").Collection("user").UpdateOne(ctx, bson.M{"_id": userid}, bson.M{"$set": bson.M{"user_name": newname, "department": newdepartment}})
-	return e
+func (d *Dao) MongoUpdateUser(ctx context.Context, userid primitive.ObjectID, newname string) (*model.User, error) {
+	user := &model.User{}
+	filter := bson.M{"_id": userid}
+	updater := bson.M{"$set": bson.M{"user_name": newname}}
+	e := d.mongo.Database("user").Collection("user").FindOneAndUpdate(ctx, filter, updater).Decode(user)
+	if e == mongo.ErrNoDocuments {
+		e = ecode.ErrUserNotExist
+	}
+	return user, e
 }
 
 func (d *Dao) MongoDelUsers(ctx context.Context, userids []primitive.ObjectID) (e error) {
@@ -220,9 +227,15 @@ func (d *Dao) MongoSearchRoles(ctx context.Context, projectid, name string, page
 	return result, page, totalsize, cursor.Err()
 }
 
-func (d *Dao) MongoUpdateRole(ctx context.Context, projectid, name, newcomment string) error {
-	_, e := d.mongo.Database("user").Collection("role").UpdateOne(ctx, bson.M{"project_id": projectid, "role_name": name}, bson.M{"$set": bson.M{"comment": newcomment}})
-	return e
+func (d *Dao) MongoUpdateRole(ctx context.Context, projectid, name, newcomment string) (*model.Role, error) {
+	role := &model.Role{}
+	filter := bson.M{"project_id": projectid, "role_name": name}
+	updater := bson.M{"$set": bson.M{"comment": newcomment}}
+	e := d.mongo.Database("user").Collection("role").FindOneAndUpdate(ctx, filter, updater).Decode(role)
+	if e == mongo.ErrNoDocuments {
+		e = ecode.ErrRoleNotExist
+	}
+	return role, e
 }
 
 func (d *Dao) MongoDelRoles(ctx context.Context, projectid string, rolenames []string) (e error) {
@@ -284,16 +297,17 @@ func (d *Dao) MongoAddUserRole(ctx context.Context, userid primitive.ObjectID, p
 		e = ecode.ErrRoleNotExist
 		return
 	}
-	var r *mongo.UpdateResult
-	if r, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, bson.M{"_id": userid, "project_ids": projectid}, bson.M{"$addToSet": bson.M{"roles": projectid + ":" + rolename}}); e != nil {
-		return
-	}
-	if r.MatchedCount == 0 {
-		e = ecode.ErrUserNotInProject
-	}
+	filter := bson.M{"_id": userid, "projects." + projectid: bson.M{"$exists": true}}
+	updater := bson.M{"$addToSet": bson.M{"projects." + projectid: rolename}}
+	_, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, filter, updater)
 	return
 }
 func (d *Dao) MongoDelUserRole(ctx context.Context, userid primitive.ObjectID, projectid, rolename string) error {
-	_, e := d.mongo.Database("user").Collection("user").UpdateOne(ctx, bson.M{"_id": userid}, bson.M{"$pull": bson.M{"roles": projectid + ":" + rolename}})
+	filter := bson.M{"_id": userid}
+	updater := bson.M{"$pull": bson.M{"projects." + projectid: rolename}}
+	r, e := d.mongo.Database("user").Collection("user").UpdateOne(ctx, filter, updater)
+	if r.MatchedCount == 0 {
+		e = ecode.ErrUserNotExist
+	}
 	return e
 }

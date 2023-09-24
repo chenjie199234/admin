@@ -111,16 +111,15 @@ collection: user
 	"_id":ObjectId("xxx"),//userid,if this is empty,means this is the super admin user
 	"user_name":"",
 	"password":"",
-	"department":["",""],
-	"project_ids":["project_id1","project_id2"],
-	"roles":["project_id1:role_name1","project_id2:role_name2"]
+    "projects":{
+        "project_id1":["role_name1","role_name2"],
+        "project_id2":[]
+    }
 }
 //手动创建数据库
 use user;
 db.createCollection("user");
 db.user.createIndex({user_name:1});
-db.user.createIndex({project_ids:1});
-db.user.createIndex({roles:1});
 
 collection: role
 {

@@ -89,23 +89,64 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 							<span v-if="jumpable(node)" style="padding-left:5px;font-size:30px" :style="{color:state.page.node==node?'green':'black'}">☞</span>
 						</div>
 						<div v-if="has_children(node)" style="margin-right:5px;padding:5px;border-radius:2px">{{open[node!.node_id!.toString()]?'▲':'▼'}}</div>
+						<va-hover v-if="need_button(node)" stateful>
+							<template #default="{hover}">
+								<div
+									v-if="!hover"
+									style="padding:5px 7px"
+									@mouseover.stop=""
+									@mouseout.stop=""
+								>
+									•••
+								</div>
+								<va-popover v-if="hover" message="Update Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
+									<va-hover stateful>
+										<template #default="{hover}">
+											<div
+												style="padding:5px 7px;cursor:pointer"
+												:style="{'background-color':hover?'var(--va-shadow)':undefined}"
+												@click.stop="$emit('nodeevent',pnode,node,'update')"
+												@mouseover.stop=""
+												@mouseout.stop=""
+											>
+												<b>◉</b>
+											</div>
+										</template>
+									</va-hover>
+								</va-popover>
+								<va-popover v-if="hover" message="Delete Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
+									<va-hover stateful>
+										<template #default="{hover}">
+											<div
+												style="padding:5px 7px;cursor:pointer"
+												:style="{'background-color':hover?'var(--va-shadow)':undefined}"
+												@click.stop="$emit('nodeevent',pnode,node,'del')"
+												@mouseover.stop=""
+												@mouseout.stop=""
+											>
+												<b>x</b>
+											</div>
+										</template>
+									</va-hover>
+								</va-popover>
+								<va-popover v-if="hover" message="Add Sub Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
+									<va-hover stateful>
+										<template #default="{hover}">
+											<div
+												style="padding:5px 7px;cursor:pointer"
+												:style="{'background-color':hover?'var(--va-shadow)':undefined}"
+												@click.stop="$emit('nodeevent',pnode,node,'add')"
+												@mouseover.stop=""
+												@mouseout.stop=""
+											>
+												<b>+</b>
+											</div>
+										</template>
+									</va-hover>
+								</va-popover>
+							</template>
+						</va-hover>
 					</div>
-					<va-dropdown v-if="need_button(node)" style="width:36px;height:36px;margin:2px">
-						<template #anchor>
-							<va-button>•••</va-button>
-						</template>
-						<va-dropdown-content>
-							<va-popover message="Add Sub Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-								<va-button style="width:36px;margin:0 3px" @click="$emit('nodeevent',pnode,node,'add')">+</va-button>
-							</va-popover>
-							<va-popover message="Update Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-								<va-button style="width:36px;margin:0 3px" @click="$emit('nodeevent',pnode,node,'update')">◉</va-button>
-							</va-popover>
-							<va-popover message="Delete Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-								<va-button style="width:36px;margin:0 3px" @click="$emit('nodeevent',pnode,node,'del')">x</va-button>
-							</va-popover>
-						</va-dropdown-content>
-					</va-dropdown>
 				</div>
 				<menutree v-if="showable(node)&&open[node!.node_id!.toString()]&&has_children(node)" :pnode="node!" :deep="deep+1" @nodeevent="(pnode,node,type)=>{$emit('nodeevent',pnode,node,type)}"></menutree>
 			</template>

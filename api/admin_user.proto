@@ -93,9 +93,8 @@ service user{
 message user_info {
 	string user_id=1;
 	string user_name=2;
-	repeated string department=3;
-	uint32 ctime=4;//timestamp,uint:second
-	repeated project_roles project_roles=5;
+	uint32 ctime=3;//timestamp,uint:second
+	repeated project_roles project_roles=4;
 }
 message project_roles{
 	repeated uint32 project_id=1;
@@ -152,7 +151,6 @@ message search_users_resp {
 message update_user_req{
 	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
 	string new_user_name=2[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
-	repeated string new_department=3[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
 }
 message update_user_resp{
 }

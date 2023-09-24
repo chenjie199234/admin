@@ -44,14 +44,6 @@ func (m *UpdateUserReq) Validate() (errstr string) {
 	if len(m.GetNewUserName()) == 0 {
 		return "field: new_user_name in object: update_user_req check value str len not eq failed"
 	}
-	if len(m.GetNewDepartment()) == 0 {
-		return "field: new_department in object: update_user_req check len not eq failed"
-	}
-	for _, v := range m.GetNewDepartment() {
-		if len(v) == 0 {
-			return "field: new_department in object: update_user_req check value str len not eq failed"
-		}
-	}
 	return ""
 }
 

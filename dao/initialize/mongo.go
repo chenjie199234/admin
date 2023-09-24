@@ -41,12 +41,10 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 	}()
 	sign, _ := secure.SignMake(password)
 	if _, e = d.mongo.Database("user").Collection("user").InsertOne(sctx, &model.User{
-		ID:         primitive.NilObjectID,
-		UserName:   "superadmin",
-		Password:   sign,
-		Department: []string{},
-		Roles:      []string{},
-		ProjectIDs: []string{},
+		ID:       primitive.NilObjectID,
+		UserName: "superadmin",
+		Password: sign,
+		Projects: map[string][]string{},
 	}); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	} else if e != nil {
@@ -187,9 +185,9 @@ func (d *Dao) MongoGetProjectNameByID(ctx context.Context, projectid string) (st
 	}
 	return projectindex.ProjectName, nil
 }
-func (d *Dao) MongoUpdateProject(ctx context.Context, projectid, newname, newdata string) (e error) {
+func (d *Dao) MongoUpdateProject(ctx context.Context, projectid, newname, newdata string) (node *model.Node, e error) {
 	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 {
-		return ecode.ErrReq
+		return nil, ecode.ErrReq
 	}
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
@@ -209,7 +207,8 @@ func (d *Dao) MongoUpdateProject(ctx context.Context, projectid, newname, newdat
 		}
 	}()
 	var r *mongo.UpdateResult
-	if r, e = d.mongo.Database("permission").Collection("projectindex").UpdateOne(sctx, bson.M{"project_id": projectid}, bson.M{"$set": bson.M{"project_name": newname}}); e != nil {
+	nameupdater := bson.M{"$set": bson.M{"project_name": newname}}
+	if r, e = d.mongo.Database("permission").Collection("projectindex").UpdateOne(sctx, bson.M{"project_id": projectid}, nameupdater); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
 			e = ecode.ErrProjectAlreadyExist
 		}
@@ -223,11 +222,13 @@ func (d *Dao) MongoUpdateProject(ctx context.Context, projectid, newname, newdat
 	if r.ModifiedCount == 0 {
 		samename = true
 	}
-	if _, e = d.mongo.Database("permission").Collection("node").UpdateOne(sctx, bson.M{"node_id": projectid}, bson.M{"$set": bson.M{"node_name": newname, "node_data": newdata}}); e != nil {
+	node = &model.Node{}
+	nodeupdater := bson.M{"$set": bson.M{"node_name": newname, "node_data": newdata}}
+	if e = d.mongo.Database("permission").Collection("node").FindOneAndUpdate(sctx, bson.M{"node_id": projectid}, nodeupdater).Decode(node); e != nil {
 		return
 	}
 	if !samename {
-		if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, bson.M{"key": "", "index": 0, "project_id": projectid}, bson.M{"$set": bson.M{"project_name": newname}}); e != nil {
+		if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, bson.M{"key": "", "index": 0, "project_id": projectid}, nameupdater); e != nil {
 			return
 		}
 	}
@@ -243,7 +244,7 @@ func (d *Dao) MongoListProject(ctx context.Context) ([]*model.Node, error) {
 	e = cur.All(ctx, &result)
 	return result, e
 }
-func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (projectname string, e error) {
+func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (node *model.Node, e error) {
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -261,14 +262,16 @@ func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (projectnam
 			s.AbortTransaction(sctx)
 		}
 	}()
-	projectindex := &model.ProjectIndex{}
-	if e = d.mongo.Database("permission").Collection("projectindex").FindOneAndDelete(sctx, bson.M{"project_id": projectid}).Decode(projectindex); e != nil {
+	node = &model.Node{}
+	if e = d.mongo.Database("permission").Collection("node").FindOneAndDelete(sctx, bson.M{"node_id": projectid}).Decode(node); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrProjectNotExist
 		}
 		return
 	}
-	projectname = projectindex.ProjectName
+	if _, e = d.mongo.Database("permission").Collection("projectindex").DeleteOne(sctx, bson.M{"project_id": projectid}); e != nil {
+		return
+	}
 	if _, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, bson.M{"node_id": bson.M{"$regex": "^" + projectid}}); e != nil {
 		return
 	}
@@ -278,7 +281,7 @@ func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (projectnam
 	if _, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, bson.M{"project_id": projectid}); e != nil {
 		return
 	}
-	if _, e = d.mongo.Database("user").Collection("user").UpdateMany(sctx, bson.M{}, bson.M{"$pull": bson.M{"project_ids": projectid, "roles": bson.M{"$regex": "^" + projectid}}}); e != nil {
+	if _, e = d.mongo.Database("user").Collection("user").UpdateMany(sctx, bson.M{}, bson.M{"$unset": bson.M{"projects." + projectid: 1}}); e != nil {
 		return
 	}
 	if _, e = d.mongo.Database("user").Collection("role").DeleteMany(sctx, bson.M{"project_id": projectid}); e != nil {

@@ -754,7 +754,6 @@ function JsonToUpdateRoleResp(_jsonobj: { [k:string]:any }): UpdateRoleResp{
 export interface UpdateUserReq{
 	user_id: string;
 	new_user_name: string;//if didn't change,set this with the old value
-	new_department: Array<string>|null|undefined;//if didn't change,set this with the old value
 }
 function UpdateUserReqToJson(msg: UpdateUserReq): string{
 	let s: string="{"
@@ -774,23 +773,6 @@ function UpdateUserReqToJson(msg: UpdateUserReq): string{
 		let vv=JSON.stringify(msg.new_user_name)
 		s+='"new_user_name":'+vv+','
 	}
-	//new_department
-	if(msg.new_department==null||msg.new_department==undefined){
-		s+='"new_department":null,'
-	}else if(msg.new_department.length==0){
-		s+='"new_department":[],'
-	}else{
-		s+='"new_department":['
-		for(let element of msg.new_department){
-			if(element==null||element==undefined){
-				throw 'element in UpdateUserReq.new_department must be string'
-			}
-			//transfer the json escape
-			let vv=JSON.stringify(element)
-			s+=vv+','
-		}
-		s=s.substr(0,s.length-1)+'],'
-	}
 	if(s.length==1){
 		s+="}"
 	}else{
@@ -808,7 +790,6 @@ function JsonToUpdateUserResp(_jsonobj: { [k:string]:any }): UpdateUserResp{
 export interface UserInfo{
 	user_id: string;
 	user_name: string;
-	department: Array<string>|null|undefined;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	ctime: number;//timestamp,uint:second
 	project_roles: Array<ProjectRoles|null|undefined>|null|undefined;
@@ -817,7 +798,6 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 	let obj: UserInfo={
 		user_id:'',
 		user_name:'',
-		department:null,
 		ctime:0,
 		project_roles:null,
 	}
@@ -834,21 +814,6 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 			throw 'UserInfo.user_name must be string'
 		}
 		obj['user_name']=jsonobj['user_name']
-	}
-	//department
-	if(jsonobj['department']!=null&&jsonobj['department']!=undefined){
-		if(!(jsonobj['department'] instanceof Array)){
-			throw 'UserInfo.department must be Array<string>|null|undefined'
-		}
-		for(let element of jsonobj['department']){
-			if(typeof element!='string'){
-				throw 'element in UserInfo.department must be string'
-			}
-			if(obj['department']==null){
-				obj['department']=new Array<string>
-			}
-			obj['department'].push(element)
-		}
 	}
 	//ctime
 	if(jsonobj['ctime']!=null&&jsonobj['ctime']!=undefined){

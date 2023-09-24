@@ -110,7 +110,7 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 	if md["Token-User"] != primitive.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
-	str, e := s.initializeDao.MongoCreateProject(ctx, req.ProjectName, req.ProjectData)
+	projectidstr, e := s.initializeDao.MongoCreateProject(ctx, req.ProjectName, req.ProjectData)
 	if e != nil {
 		log.Error(ctx, "[CreateProject] db op failed",
 			log.String("operator", md["Token-User"]),
@@ -119,8 +119,11 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	projectid, _ := util.ParseNodeIDstr(str)
-	log.Info(ctx, "[CreateProject] success", log.String("project_id", str), log.String("project_name", req.ProjectName), log.String("project_data", req.ProjectData))
+	projectid, _ := util.ParseNodeIDstr(projectidstr)
+	log.Info(ctx, "[CreateProject] success",
+		log.String("project_id", projectidstr),
+		log.String("project_name", req.ProjectName),
+		log.String("project_data", req.ProjectData))
 	return &api.CreateProjectResp{ProjectId: projectid}, nil
 }
 
@@ -131,7 +134,7 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 		return nil, ecode.ErrReq
 	}
 	if e := name.SingleCheck(req.NewProjectName, false); e != nil {
-		log.Error(ctx, "[UpdateProject] project name format wrong", log.String("project_name", req.NewProjectName))
+		log.Error(ctx, "[UpdateProject] project name format wrong", log.String("new_project_name", req.NewProjectName))
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
@@ -149,16 +152,39 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 	}
 	projectid := common.Byte2str(buf)
 
-	if e := s.initializeDao.MongoUpdateProject(ctx, projectid, req.NewProjectName, req.NewProjectData); e != nil {
+	oldnode, e := s.initializeDao.MongoUpdateProject(ctx, projectid, req.NewProjectName, req.NewProjectData)
+	if e != nil {
 		log.Error(ctx, "[UpdateProject] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("new_name", req.NewProjectName),
-			log.String("new_data", req.NewProjectData),
+			log.String("new_project_name", req.NewProjectName),
+			log.String("new_project_data", req.NewProjectData),
 			log.CError(e))
 		return nil, e
 	}
-	log.Info(ctx, "[UpdateProject] success", log.String("project_id", projectid), log.String("project_name", req.NewProjectName), log.String("project_data", req.NewProjectData))
+	if oldnode.NodeName != req.NewProjectName && oldnode.NodeData != req.NewProjectData {
+		log.Info(ctx, "[UpdateProject] success",
+			log.String("project_id", projectid),
+			log.String("old_project_name", oldnode.NodeName),
+			log.String("new_project_name", req.NewProjectName),
+			log.String("old_project_data", oldnode.NodeData),
+			log.String("new_project_data", req.NewProjectData))
+	} else if oldnode.NodeName != req.NewProjectName {
+		log.Info(ctx, "[UpdateProject] success",
+			log.String("project_id", projectid),
+			log.String("old_project_name", oldnode.NodeName),
+			log.String("new_project_name", req.NewProjectName))
+	} else if oldnode.NodeData != req.NewProjectData {
+		log.Info(ctx, "[UpdateProject] success",
+			log.String("project_id", projectid),
+			log.String("old_project_data", oldnode.NodeData),
+			log.String("new_project_data", req.NewProjectData))
+	} else {
+		log.Info(ctx, "[UpdateProject] success,nothing changed",
+			log.String("project_id", projectid),
+			log.String("project_name", oldnode.NodeName),
+			log.String("project_data", oldnode.NodeData))
+	}
 	return &api.UpdateProjectResp{}, nil
 }
 
@@ -171,10 +197,7 @@ func (s *Service) GetProjectIdByName(ctx context.Context, req *api.GetProjectIdB
 	}
 	projectids, e := util.ParseNodeIDstr(projectid)
 	if e != nil {
-		log.Error(ctx, "[GetProjectIdByName] project's projectid format wrong",
-			log.String("project_name", req.ProjectName),
-			log.String("project_id", projectid),
-			log.CError(e))
+		log.Error(ctx, "[GetProjectIdByName] project's projectid format wrong", log.String("project_name", req.ProjectName), log.String("project_id", projectid))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.GetProjectIdByNameResp{ProjectId: projectids}, nil
@@ -192,7 +215,7 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 	if md["Token-User"] != primitive.NilObjectID.Hex() {
 		operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 		if e != nil {
-			log.Error(ctx, "[ListProject] operator's token format wrong", log.String("operator", md["Token-User"]), log.CError(e))
+			log.Error(ctx, "[ListProject] operator's token format wrong", log.String("operator", md["Token-User"]))
 			return nil, ecode.ErrToken
 		}
 		users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
@@ -213,7 +236,7 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 	for _, node := range nodes {
 		if user != nil {
 			find := false
-			for _, userprojectid := range user.ProjectIDs {
+			for userprojectid := range user.Projects {
 				if userprojectid == node.NodeId {
 					find = true
 					break
@@ -225,7 +248,7 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 		}
 		nodeid, e := util.ParseNodeIDstr(node.NodeId)
 		if e != nil {
-			log.Error(ctx, "[ListProject] project's projectid format wrong", log.String("project_id", node.NodeId), log.CError(e))
+			log.Error(ctx, "[ListProject] project's projectid format wrong", log.String("project_id", node.NodeId))
 			return nil, ecode.ErrSystem
 		}
 		resp.Projects = append(resp.Projects, &api.ProjectInfo{
@@ -258,12 +281,12 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 	}
 	projectid := common.Byte2str(buf)
 
-	projectname, e := s.initializeDao.MongoDelProject(ctx, projectid)
+	node, e := s.initializeDao.MongoDelProject(ctx, projectid)
 	if e != nil {
 		log.Error(ctx, "[DeleteProject] db op failed", log.String("operator", md["Token-User"]), log.String("project_id", projectid), log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	log.Info(ctx, "[DeleteProject] success", log.String("project_id", projectid), log.String("project_name", projectname))
+	log.Info(ctx, "[DeleteProject] success", log.String("project_id", projectid), log.String("project_name", node.NodeName), log.String("project_data", node.NodeData))
 	return &api.DeleteProjectResp{}, nil
 }
 

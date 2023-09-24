@@ -58,7 +58,6 @@ Success: httpcode:200
 user_info: {
 	"user_id":"str",
 	"user_name":"str",
-	"department":["str","str"],
 	//timestamp,uint:second
 	//uint32
 	"ctime":0,
@@ -180,7 +179,6 @@ Success: httpcode:200
 user_info: {
 	"user_id":"str",
 	"user_name":"str",
-	"department":["str","str"],
 	//timestamp,uint:second
 	//uint32
 	"ctime":0,
@@ -208,11 +206,7 @@ Content-Type: application/json
 	"user_id":"str",
 	//if didn't change,set this with the old value
 	//value length must != 0
-	"new_user_name":"str",
-	//if didn't change,set this with the old value
-	//element value length must != 0
-	//element num must != 0
-	"new_department":["str","str"]
+	"new_user_name":"str"
 }
 ------------------------------------------------------------------------------------------------------------
 ```

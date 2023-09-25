@@ -20,9 +20,21 @@ const range=ref<string>("This Project")
 const search=ref<string>("")
 
 const users=ref<userAPI.UserInfo[]>([])
-const userhover=ref<string>("")
+const userhover=ref<userAPI.UserInfo>(null)
+function user_bindstyle(user: userAPI.UserInfo){
+	let style={}
+	if(user==userhover.value&&invited(user)){
+		style["background-color"]="var(--va-shadow)"
+	}else{
+		style["background-color"]="var(--va-background-element)"
+	}
+	if(invited(user)){
+		style["cursor"]="pointer"
+	}
+	return style
+}
 const roles=ref<userAPI.RoleInfo[]>([])
-const rolehover=ref<string>("")
+const rolehover=ref<userAPI.RoleInfo>(null)
 const page=ref<number>(1)//start from 1
 const pagesize=ref<number>(0)
 const totalsize=ref<number>(0)
@@ -35,7 +47,13 @@ function invited(user: userAPI.UserInfo):boolean{
 		return false
 	}
 	for(let i=0;i<user!.project_roles!.length;i++){
-		if(user!.project_roles![i] && user!.project_roles[i]!.project_id && user!.project_roles[i]!.project_id![1]==state.project.info!.project_id![1]){
+		if(!user!.project_roles![i]){
+			return false
+		}
+		if(!user!.project_roles[i]!.project_id){
+			return false
+		}
+		if(user!.project_roles[i]!.project_id![1]==state.project.info!.project_id![1]){
 			return true
 		}
 	}
@@ -43,19 +61,24 @@ function invited(user: userAPI.UserInfo):boolean{
 }
 
 const cur_user=ref<userAPI.UserInfo|null>(null)
+function has_roles():boolean{
+	return cur_user.value.project_roles&&
+		cur_user.value.project_roles[0]&&
+		cur_user.value.project_roles[0].roles&&
+		cur_user.value.project_roles[0].roles.length!=0
+}
 const invite_kick_user=ref<userAPI.UserInfo|null>(null)
-
 const update_user=ref<userAPI.UserInfo|null>(null)
 const update_user_new_name=ref<string>("")
 
-const cur_role=ref<userAPI.RoleInfo|null>(null)
-
+//create role
 const create_role_name=ref<string>("")
 const create_role_comment=ref<string>("")
 
-const update_role_comment=ref<string>("")
-
+const cur_role=ref<userAPI.RoleInfo|null>(null)
 const del_role=ref<userAPI.RoleInfo|null>(null)
+const update_role=ref<userAPI.RoleInfo|null>(null)
+const update_role_comment=ref<string>("")
 
 const del_user_role_userid=ref<string>("")
 const del_user_role_username=ref<string>("")
@@ -65,8 +88,7 @@ const add_user_role_userid=ref<string>("")
 const add_user_role_username=ref<string>("")
 const add_user_role_rolename=ref<string>("")
 
-const role_permission_hover=ref<string|null>(null)
-const role_permission_select=ref<string|null>(null)
+const node_type=ref<string>("")//empty string means this is the current user's permission,else this is the role's permission
 const node=ref<permissionAPI.NodeInfo|null>(null)
 const update_node=ref<permissionAPI.NodeInfo|null>(null)
 const canread=ref<boolean>(false)
@@ -80,67 +102,67 @@ function op(){
 		return
 	}
 	switch(optype.value){
-		case "search":{
-			if(target.value=="User"){
-				let req = {
-					project_id:state.project.info!.project_id,
-					user_name:search.value,
-					only_project:range.value=="This Project",
-					page:page.value,
-				}
-				client.userClient.search_users({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
-					state.clear_load()
-					state.set_alert("error",e.code,e.msg)
-				},(resp :userAPI.SearchUsersResp)=>{
-					roles.value=[]
-					if(resp.users){
-						let tmp:userAPI.UserInfo[]=[]
-						for(let i=0;i<resp.users.length;i++){
-							if(resp.users[i]){
-								tmp.push(resp.users[i]!)
-							}
-						}
-						users.value=tmp
-					}else{
-						users.value=[]
-					}
-					page.value=resp.page
-					pagesize.value=resp.pagesize
-					totalsize.value=resp.totalsize
-					cur_user.value=null
-					cur_role.value=null
-					state.clear_load()
-				})
-			}else{
-				let req = {
-					project_id:state.project.info!.project_id,
-					role_name:search.value,
-					page:page.value,
-				}
-				client.userClient.search_roles({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
-					state.clear_load()
-					state.set_alert("error",e.code,e.msg)
-				},(resp :userAPI.SearchRolesResp)=>{
-					users.value=[]
-					if(resp.roles){
-						let tmp:userAPI.RoleInfo[]=[]
-						for(let i=0;i<resp.roles.length;i++){
-							if(resp.roles[i]){
-								tmp.push(resp.roles[i]!)
-							}
-						}
-						roles.value=tmp
-					}else{
-						roles.value=[]
-					}
-					page.value=resp.page
-					pagesize.value=resp.pagesize
-					totalsize.value=resp.totalsize
-					cur_role.value=null
-					cur_user.value=null
-					state.clear_load()
-				})
+		case "search_user":{
+			let req = {
+				project_id:state.project.info!.project_id,
+				user_name:search.value,
+				only_project:range.value=="This Project",
+				page:page.value,
 			}
+			client.userClient.search_users({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(resp :userAPI.SearchUsersResp)=>{
+				roles.value=[]
+				if(resp.users){
+					let tmp:userAPI.UserInfo[]=[]
+					for(let i=0;i<resp.users.length;i++){
+						if(resp.users[i]){
+							tmp.push(resp.users[i]!)
+						}
+					}
+					users.value=tmp
+				}else{
+					users.value=[]
+				}
+				page.value=resp.page
+				pagesize.value=resp.pagesize
+				totalsize.value=resp.totalsize
+				cur_user.value=null
+				cur_role.value=null
+				state.clear_load()
+			})
+			break
+		}
+		case "search_role":{
+			let req = {
+				project_id:state.project.info!.project_id,
+				role_name:search.value,
+				page:page.value,
+			}
+			client.userClient.search_roles({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(resp :userAPI.SearchRolesResp)=>{
+				users.value=[]
+				if(resp.roles){
+					let tmp:userAPI.RoleInfo[]=[]
+					for(let i=0;i<resp.roles.length;i++){
+						if(resp.roles[i]){
+							tmp.push(resp.roles[i]!)
+						}
+					}
+					roles.value=tmp
+				}else{
+					roles.value=[]
+				}
+				page.value=resp.page
+				pagesize.value=resp.pagesize
+				totalsize.value=resp.totalsize
+				cur_role.value=null
+				cur_user.value=null
+				state.clear_load()
+			})
 			break
 		}
 		case "invite":{
@@ -231,16 +253,17 @@ function op(){
 		case "update_role":{
 			let req = {
 				project_id:state.project.info!.project_id,
-				role_name:cur_role.value!.role_name,
+				role_name:update_role.value!.role_name,
 				new_comment:update_role_comment.value,
 			}
 			client.userClient.update_role({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: userAPI.UpdateRoleResp)=>{
-				cur_role.value!.comment=update_role_comment.value
+				update_role.value!.comment=update_role_comment.value
+				update_role_comment.value=""
+				ing.value=false
 				state.clear_load()
-				state.set_alert("info",0,"update role comment success")
 			})
 			break
 		}
@@ -326,47 +349,86 @@ function op(){
 			})
 			break
 		}
-		case "update_permission":{
-			if(role_permission_select.value==''){
-				let req = {
-					user_id:cur_user.value!.user_id,
-					node_id:update_node.value!.node_id,
-					admin:admin.value,
-					canread:canread.value,
-					canwrite:canwrite.value,
-				}
-				client.permissionClient.update_user_permission({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
-					state.clear_load()
-					state.set_alert("error",e.code,e.msg)
-				},(_resp :permissionAPI.UpdateUserPermissionResp)=>{
-					update_node.value!.canread=canread.value
-					update_node.value!.canwrite=canwrite.value
-					update_node.value!.admin=admin.value
-					update_node.value=null
-					ing.value=false
-					state.clear_load()
-				})
-			}else if(role_permission_select.value){
-				let req = {
-					project_id:state.project.info!.project_id,
-					role_name:role_permission_select.value,
-					node_id:update_node.value!.node_id,
-					admin:admin.value,
-					canread:canread.value,
-					canwrite:canwrite.value,
-				}
-				client.permissionClient.update_role_permission({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
-					state.clear_load()
-					state.set_alert("error",e.code,e.msg)
-				},(_resp :permissionAPI.UpdateRolePermissionResp)=>{
-					update_node.value!.canread=canread.value
-					update_node.value!.canwrite=canwrite.value
-					update_node.value!.admin=admin.value
-					update_node.value=null
-					ing.value=false
-					state.clear_load()
-				})
+		case "get_user_permission":{
+			let req = {
+				project_id:state.project.info!.project_id,
+				user_id:cur_user.value!.user_id,
+				need_user_role_node:false,
 			}
+			client.permissionClient.list_user_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(resp: permissionAPI.ListUserNodeResp)=>{
+				if(resp.node){
+					node.value=resp.node
+				}else{
+					node.value=null
+				}
+				node_type.value=""
+				state.clear_load()
+			})
+			break
+		}
+		case "update_user_permission":{
+			let req = {
+				user_id:cur_user.value!.user_id,
+				node_id:update_node.value!.node_id,
+				admin:admin.value,
+				canread:canread.value,
+				canwrite:canwrite.value,
+			}
+			client.permissionClient.update_user_permission({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(_resp :permissionAPI.UpdateUserPermissionResp)=>{
+				update_node.value!.canread=canread.value
+				update_node.value!.canwrite=canwrite.value
+				update_node.value!.admin=admin.value
+				update_node.value=null
+				ing.value=false
+				state.clear_load()
+			})
+			break
+		}
+		case "get_role_permission":{
+			let req = {
+				project_id:state.project.info!.project_id,
+				role_name:cur_role.value.role_name,
+			}
+			client.permissionClient.list_role_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(resp: permissionAPI.ListRoleNodeResp)=>{
+				if(resp.node){
+					node.value=resp.node
+				}else{
+					node.value=null
+				}
+				node_type.value=cur_role.value.role_name
+				state.clear_load()
+			})
+			break
+		}
+		case "update_role_permission":{
+			let req = {
+				project_id:state.project.info!.project_id,
+				role_name:cur_role.value!.role_name,
+				node_id:update_node.value!.node_id,
+				admin:admin.value,
+				canread:canread.value,
+				canwrite:canwrite.value,
+			}
+			client.permissionClient.update_role_permission({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
+				state.clear_load()
+				state.set_alert("error",e.code,e.msg)
+			},(_resp :permissionAPI.UpdateRolePermissionResp)=>{
+				update_node.value!.canread=canread.value
+				update_node.value!.canwrite=canwrite.value
+				update_node.value!.admin=admin.value
+				update_node.value=null
+				ing.value=false
+				state.clear_load()
+			})
 			break
 		}
 		default:{
@@ -453,49 +515,6 @@ function assign_search(part: string){
 function clear_assign_search(){
 	clearTimeout(timeid)
 }
-function get_user_permission(){
-	if(!state.set_load()){
-		return
-	}
-	let req = {
-		project_id:state.project.info!.project_id,
-		user_id:cur_user.value!.user_id,
-		need_user_role_node:false,
-	}
-	client.permissionClient.list_user_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
-		state.clear_load()
-		state.set_alert("error",e.code,e.msg)
-	},(resp: permissionAPI.ListUserNodeResp)=>{
-		role_permission_select.value=''
-		if(resp.node){
-			node.value=resp.node!
-		}else{
-			node.value=null
-		}
-		state.clear_load()
-	})
-}
-function get_role_permission(role:string){
-	if(!state.set_load()){
-		return
-	}
-	let req = {
-		project_id:state.project.info!.project_id,
-		role_name:role,
-	}
-	client.permissionClient.list_role_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.Error)=>{
-		state.clear_load()
-		state.set_alert("error",e.code,e.msg)
-	},(resp: permissionAPI.ListRoleNodeResp)=>{
-		role_permission_select.value=role
-		if(resp.node){
-			node.value=resp.node
-		}else{
-			node.value=null
-		}
-		state.clear_load()
-	})
-}
 function parsetime(timestamp :number):string{
 	let t=new Date(timestamp*1000)
 	let offset=Math.abs(t.getTimezoneOffset())
@@ -522,62 +541,73 @@ function parsetime(timestamp :number):string{
 }
 </script>
 <template>
-	<va-modal v-model="ing" attach-element="#app" max-width="1000px" max-height="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
+	<va-modal v-model="ing" attach-element="#app" max-width="800px" max-height="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
 		<template #default>
-			<div v-if="optype=='invite'">
-				<va-card color="primary" gradient style="margin:0 0 5px 0">
-					<va-card-title>Warning</va-card-title>
-					<va-card-content>
-						<p>You are inviting user: {{ invite_kick_user!.user_name }} join project: {{ state.project.info!.project_name}}.</p>
-						<p>Please confirm!</p>
+			<div v-if="optype=='invite'" style="display:flex;flex-direction:column">
+				<va-card  style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px">
+						<p><b>Invite user: {{ invite_kick_user!.user_name }} join project: {{ state.project.info!.project_name}}</b></p>
+						<p><b>Please confirm</b></p>
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Invite</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:10px 10px 0 0" @click="op" gradient>Invite</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
-			<div v-else-if="optype=='kick'">
-				<va-card color="primary" gradient style="margin:0 0 5px 0">
-					<va-card-title>Warning</va-card-title>
-					<va-card-content>
-						<p>You are kicking user: {{ invite_kick_user!.user_name }} out of project: {{ state.project.info!.project_name}}.</p>
-						<p>Please confirm!</p>
+			<div v-else-if="optype=='kick'" style="display:flex;flex-direction:column">
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px">
+						<p><b>Kick user: {{ invite_kick_user!.user_name }} out of project: {{ state.project.info!.project_name}}</b></p>
+						<p><b>Please confirm</b></p>
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Kick</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:10px 10px 0 0" @click="op" gradient>Kick</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
-			<div v-else-if="optype=='update_user'">
-				<va-input v-model.trim="update_user_new_name" label="New User Name" style="width:300px;margin:1px 0" />
-				<div style="width:300px;display:flex;margin:1px 0">
-				</div>
-				<div style="display:flex;justify-content:center;margin:1px 0">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient :disabled="update_user_new_name==update_user!.user_name">Update</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+			<div v-else-if="optype=='update_user'" style="display:flex;flex-direction:column">
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px"><b>Update user: {{ update_user!.user_name }}</b></va-card-content>
+				</va-card>
+				<va-input v-model.trim="update_user_new_name" label="New User Name*" style="margin-top:10px" />
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="update_user_new_name==update_user!.user_name" @click="op" gradient>Update</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='create_role'" style="display:flex;flex-direction:column">
-				<va-input v-model.trim="create_role_name" label="New Role Name" style="margin:1px 0;width:300px" />
-				<va-input v-model.trim="create_role_comment" label="New Role Comment" style="margin:1px 0;width:300px" />
-				<div style="display:flex;justify-content:center;margin:1px 0">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient :disabled="create_role_name==''">Create</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="create_role_name='';create_role_comment='';ing=false" gradient>Cancel</va-button>
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px"><b>Create Role</b></va-card-content>
+				</va-card>
+				<va-input v-model.trim="create_role_name" label="New Role Name*" style="margin-top:10px" />
+				<va-input v-model.trim="create_role_comment" label="New Role Comment" style="margin-top:10px" />
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:10px 10px 0 0" @click="op" gradient :disabled="create_role_name==''">Create</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="create_role_name='';create_role_comment='';ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
-			<div v-else-if="optype=='del_role'">
-				<va-card color="primary" gradient style="margin:0 0 5px 0">
-					<va-card-title>Warning</va-card-title>
-					<va-card-content>
-						<p>You are deleting role: {{ del_role!.role_name }}.</p>
-						<p>Please confirm!</p>
+			<div v-else-if="optype=='update_role'" style="display:flex;flex-direction:column">
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px"><b>Update Role: {{ update_role!.role_name }}</b></va-card-content>
+				</va-card>
+				<va-input v-model.trim="update_role_comment" label="New Role Comment" style="margin-top:10px" />
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="update_role_comment==update_role.comment" @click="op" gradient>Update</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="update_role=null;update_role_comment='';ing=false" gradient>Cancel</va-button>
+				</div>
+			</div>
+			<div v-else-if="optype=='del_role'" style="display:flex;flex-direction:column">
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px">
+						<p><b>Delete role: {{ del_role!.role_name }}</b></p>
+						<p><b>Please confirm</b></p>
 					</va-card-content>
 				</va-card>
-				<div style="display:flex;justify-content:center;margin:1px 0">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Del</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="del_role=null;ing=false" gradient>Cancel</va-button>
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:10px 10px 0 0" @click="op" gradient>Del</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="del_role=null;ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='add_user_role_missingrole'" style="display:flex;flex-direction:column;align-items:center">
@@ -638,45 +668,43 @@ function parsetime(timestamp :number):string{
 					</div>
 				</div>
 			</div>
-			<div v-else-if="optype=='del_user_role'">
-				<va-card color="primary" gradient style="margin:0 0 5px 0">
-					<va-card-title>Warning</va-card-title>
-					<va-card-content>
-						<p>You are discharging user: {{ del_user_role_username }}'s role: {{ del_user_role_rolename }}.</p>
-						<p>Please confirm!</p>
-					</va-card-content>
-				</va-card>
-				<div style="display:flex;justify-content:center;margin:1px 0">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Del</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
-				</div>
-			</div>
-			<div v-else-if="optype=='update_permission'" style="display:flex;flex-direction:column">
-				<va-card color="primary" gradient style="margin:0 0 5px 0">
-					<va-card-title>Warning</va-card-title>
-					<va-card-content>
-						<p v-if="role_permission_select==''">You are updating user: {{ cur_user!.user_name }}'s permission on node: {{ update_node!.node_name }}.</p>
-						<p v-else>You are updating role: {{ role_permission_select }}'s permission on node: {{ update_node!.node_name }}.</p>
-						<p>Please confirm!</p>
+			<div v-else-if="optype=='del_user_role'" style="display:flex;flex-direction:column">
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px">
+						<p><b>Remove user: {{ del_user_role_username }}'s role: {{ del_user_role_rolename }}</b></p>
+						<p><b>Please confirm</b></p>
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="op" gradient>Update</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:10px 10px 0 0" @click="op" gradient>Del</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+				</div>
+			</div>
+			<div v-else-if="optype=='update_role_permission'" style="display:flex;flex-direction:column">
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px">
+						<p><b>Update role: {{ cur_role.role_name }}'s permission on node: {{ update_node!.node_name }}</b></p>
+						<p><b>Please confirm</b></p>
+					</va-card-content>
+				</va-card>
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:10px 10px 0 0" @click="op" gradient>Update</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 		</template>
 	</va-modal>
-	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
+	<div style="flex:1;display:flex;flex-direction:column;align-items:center;margin:1px;overflow-y:auto">
 		<div style="display:flex;margin:1px">
-			<div style="flex:1"></div>
 			<va-select
 				v-model="target"
 				:options="targets"
-				label="Target"
 				dropdownIcon=""
 				style="width:100px;margin-right:1px"
 				outline
+				trigger="hover"
+				:hoverOverTimeout="0"
+				:hoverOutTimeout="100"
 			>
 				<template #option='{option,selectOption}'>
 					<va-hover stateful @click="()=>{
@@ -689,8 +717,8 @@ function parsetime(timestamp :number):string{
 								cur_user=null
 								cur_role=null
 								search=''
-								selectOption(option)
 							}
+							selectOption(option)
 						}">
 						<template #default="{hover}">
 							<div
@@ -707,10 +735,12 @@ function parsetime(timestamp :number):string{
 				v-if="target=='User'"
 				v-model="range"
 				:options="ranges"
-				label="Search Range"
 				dropdownIcon=""
-				style="width:130px;margin:0 1px"
+				style="width:150px;margin:0 1px"
 				outline
+				trigger="hover"
+				:hoverOverTimeout="0"
+				:hoverOutTimeout="100"
 			>
 				<template #option="{ option,selectOption }">
 					<va-hover stateful @click="()=>{
@@ -720,8 +750,8 @@ function parsetime(timestamp :number):string{
 								totalsize=0
 								users=[]
 								cur_user=null
-								selectOption(option)
 							}
+							selectOption(option)
 						}">
 						<template #default="{hover}">
 							<div
@@ -734,37 +764,55 @@ function parsetime(timestamp :number):string{
 					</va-hover>
 				</template>
 			</va-select>
-			<va-input :label="target=='User'?'User Name':'Role Name'" outline style="max-width:250px;margin:0 1px" v-model.trim="search" />
-			<va-button style="margin:0 1px" @click="optype='search';op()">Search</va-button>
-			<div style="flex:1"></div>
-			<va-button v-if="target=='Role'" style="margin-left:1px" @click="optype='create_role';ing=true">Create</va-button>
+			<va-input :placeholder="target=='User'?'User Name':'Role Name'" outline style="max-width:250px;margin:0 1px" v-model.trim="search" />
+			<va-button v-if="target=='User'" style="margin:0 1px" @click="optype='search_user';op()" gradient>Search</va-button>
+			<va-button v-if="target=='Role'" style="margin:0 1px" @click="optype='search_role';op()" gradient>Search</va-button>
+			<va-button v-if="target=='Role'" style="margin-left:1px" @click="optype='create_role';ing=true" gradient>Create</va-button>
 		</div>
-		<div v-if="target=='User'" style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
+		<div v-if="target=='User'" style="width:100%;flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
 			<template v-for="user of users">
 				<div
-					v-if="!Boolean(cur_user)||cur_user==user"
-					style="display:flex;margin:1px 0;align-items:center;cursor:pointer"
-					:style="{'background-color':userhover==user.user_id?'var(--va-shadow)':'var(--va-background-element)'}"
+					v-if="!cur_user||cur_user==user"
+					style="display:flex;align-items:center;margin:1px 0"
+					:style="user_bindstyle(user)"
 					@click="()=>{
 						if(!cur_user&&invited(user)){
 							cur_user=user
-							role_permission_hover=null
-							role_permission_select=null
+							optype='get_user_permission'
+							op()
 						}else{
 							cur_user=null
 						}
 					}"
-					@mouseover="userhover=user.user_id"
-					@mouseout="userhover=''"
+					@mouseover="userhover=user"
+					@mouseout="userhover=null"
 				>
-					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{cur_user==user?'-':'+' }}</span>
+					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{cur_user==user?'-':invited(user)?'+':' ' }}</span>
 					<span style="padding:12px 0px 12px 20px;color:var(--va-primary)">{{user.user_name}}</span>
-					<span style="flex:1;padding:12px;color:green">{{user.user_id}}</span>
+					<span style="padding:12px;color:green">{{user.user_id}}</span>
+					<span style="flex:1"></span>
 					<span style="padding:12px;color:green">Create Time: {{parsetime(user.ctime)}}</span>
 					<va-button
-						v-if="state.page.node!.canwrite||state.page.node!.admin"
+						v-if="state.page.node!.admin"
+						style="width:60px;height:30px;margin:0 10px"
 						size="small"
-						style="width:50px;height:30px;margin:0 10px"
+						gradient
+						@mouseover.stop=""
+						@mouseout.stop=""
+						@click.stop="
+							add_user_role_username=user.user_name;
+							add_user_role_userid=user.user_id;
+							add_user_role_rolename='';
+							roles=[];
+							optype='add_user_role_missingrole';
+							ing=true">
+						AddRole
+					</va-button>
+					<va-button
+						v-if="state.page.node!.canwrite||state.page.node!.admin"
+						style="width:60px;height:30px;margin:0 10px"
+						size="small"
+						gradient
 						@mouseover.stop=""
 						@mouseout.stop=""
 						@click.stop="()=>{
@@ -778,8 +826,9 @@ function parsetime(timestamp :number):string{
 					</va-button>
 					<va-button
 						v-if="state.page.node!.admin"
+						style="width:60px;height:30px;margin:0 10px"
 						size="small"
-						style="width:50px;height:30px;margin-right:10px"
+						gradient
 						@mouseover.stop=""
 						@mouseout.stop=""
 						@click.stop="()=>{
@@ -795,110 +844,120 @@ function parsetime(timestamp :number):string{
 						{{invited(user)?'Kick':'Invite'}}
 					</va-button>
 				</div>
-				<div v-if="cur_user==user&&invited(user)" style="margin:0 10px;display:flex;flex:1;overflow-y:auto;color:var(--va-primary)">
-					<!-- permission info -->
-					<div style="width:200px;margin:0 1px 1px 0;display:flex;flex-direction:column;overflow-y:auto">
-						<div
-							style="padding:12px 10px;margin:1px 0;cursor:pointer"
-							:style="{'background-color':role_permission_hover==''?'var(--va-shadow)':role_permission_select==''?'#b6d7a8':'#d9ead3'}"
-							@mouseover.stop="role_permission_hover=''"
-							@mouseout.stop="role_permission_hover=null"
-							@click="role_permission_select=null;get_user_permission()"
-						>
-							User Self Permissions
+				<va-split
+					v-if="cur_user==user"
+					style="margin:1px 10px;display:flex;flex:1;overflow-y:auto;color:var(--va-primary)"
+					stateful
+					:model-value='0'
+					:limits="['250px',50]">
+					<template #start>
+						<!-- permission list-->
+						<div style="height:100%;display:flex;flex-direction:column;align-items:center;overflow-y:auto">
+							<va-hover stateful style="width:100%;margin:2px 0">
+								<template #default="{hover}">
+									<div
+										style="padding:12px;cursor:pointer"
+										:style="{'background-color':hover?'var(--va-shadow)':node_type==''?'#b6d7a8':'var(--va-background-element)'}"
+										@click="optype='get_user_permission';op()">
+										User Self Permissions
+									</div>
+								</template>
+							</va-hover>
+							<va-hover v-for="rolename of user.project_roles![0]!.roles!" stateful style="width:100%;margin:2px 0">
+								<template #default="{hover}">
+									<div
+										style="display:flex;align-items:center;cursor:pointer"
+										:style="{'background-color':hover?'var(--va-shadow)':node_type==rolename?'#b6d7a8':'var(--va-background-element)'}"
+										@click="cur_role={role_name:rolename};optype='get_role_permission';op()">
+										<div style="flex:1;padding:12px;white-space:nowrap;overflow-x:scroll">Role Permissions: {{rolename}}</div>
+										<va-button
+											v-if="state.page.node!.admin"
+											size="small"
+											style="margin:0 2px"
+											@mouseover.stop=""
+											@mouseout.stop=""
+											@click.stop="
+												del_user_role_username=user.user_name;
+												del_user_role_userid=user.user_id;
+												del_user_role_rolename=rolename;
+												optype='del_user_role';
+												ing=true">
+											X
+										</va-button>
+									</div>
+								</template>
+							</va-hover>
 						</div>
-						<div style="display:flex;margin:1px 0;align-items:center;background-color:var(--va-background-element)">
-							<div style="flex:1;padding:12px 10px;white-space:nowrap;overflow-x:scroll"><b>Role Permissions</b></div>
-							<va-button
-								v-if="state.page.node!.admin"
-								size="small"
-								style="margin:0 2px"
-								@mouseover.stop=""
-								@mouseout.stop=""
-								@click.stop="
-									add_user_role_username=user.user_name;
-									add_user_role_userid=user.user_id;
-									add_user_role_rolename='';
-									roles=[];
-									optype='add_user_role_missingrole';
-									ing=true"
-							>
-								+
-							</va-button>
+					</template>
+					<template #end>
+						<!-- node tree -->
+						<!-- <div v-if="!node||!node.children||node.children.length==0" -->
+						<!-- 	style="flex:1;margin:1px 10px;display:flex;justify-content:center;align-items:center;background-color:var(--va-background-element)"> -->
+						<!-- 	<b>No permission</b> -->
+						<!-- </div> -->
+						<div v-if="node_type==''&&node"
+							style="height:100%;margin:2px 0;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
+							<!-- user permission -->
+							<nodetree
+								:pnode="null"
+								:node="node"
+								:deep="0"
+								@permissionevent="(updatenode,r,w,a)=>{
+									update_node=updatenode;
+									canread=r;
+									canwrite=w;
+									admin=a;
+									optype='update_user_permission';
+									ing=true
+								}"/>
 						</div>
-						<div
-							v-if="!Boolean(user.project_roles)||!Boolean(user.project_roles![0])||!Boolean(user.project_roles![0]!.roles)||user.project_roles![0]!.roles!.length==0"
-							style="padding:12px 10px;margin:1px 0;color:var(--va-shadow);background-color:#d9ead3"
-						>
-							No Roles
+						<div v-if="node_type==''&&!node"
+							style="height:100%;margin:2px 0;display:flex;justify-content:center;align-items:center;background-color:var(--va-background-element)">
+							<b>No permission</b>
 						</div>
-						<div
-							v-for="role of user.project_roles![0]!.roles!"
-							style="display:flex;margin:1px 0;align-items:center;cursor:pointer"
-							:style="{'background-color':role_permission_hover==role?'var(--va-shadow)':role_permission_select==role?'#b6d7a8':'#d9ead3'}"
-							@mouseover.stop="role_permission_hover=role"
-							@mouseout.stop="role_permission_hover=null"
-							@click="role_permission_select=null;get_role_permission(role)"
-						>
-							<div style="flex:1;padding:12px 10px;white-space:nowrap;overflow-x:scroll">{{role}}</div>
-							<va-button
-								v-if="state.page.node!.admin"
-								size="small"
-								style="margin:0 2px"
-								@mouseover.stop=""
-								@mouseout.stop=""
-								@click.stop="
-									del_user_role_username=user.user_name;
-									del_user_role_userid=user.user_id;
-									del_user_role_rolename=role;
-									optype='del_user_role';
-									ing=true"
-							>
-								X
-							</va-button>
+						<div v-if="node_type!=''&&node&&node.children&&node.children.length>0"
+							style="height:100%;margin:2px 0;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
+							<!-- role permission -->
+							<template v-for="child of node.children">
+								<nodetree v-if="child" :pnode="node" :node="child" :deep="0" disabled/>
+							</template>
 						</div>
-					</div>
-					<div style="flex:1;margin:1px 0 1px 1px;display:flex;background-color:var(--va-background-element);overflow:auto">
-						<nodetree v-if="role_permission_select!=null&&node!=null" :pnode="node" :deep="0" @permissionevent="(updatenode,r,w,a)=>{
-								update_node=updatenode;
-								canread=r;
-								canwrite=w;
-								admin=a;
-								optype='update_permission';
-								ing=true
-							}"
-						/>
-						<div v-else-if="role_permission_select!=null" style="flex:1;display:flex;justify-content:center;align-items:center"><b>No Permissions</b></div>
-					</div>
-				</div>
+						<div v-if="node_type!=''&&(!node||!node.children||node.children.length==0)"
+							style="height:100%;margin:2px 0;display:flex;justify-content:center;align-items:center;background-color:var(--va-background-element)">
+							<b>No permission</b>
+						</div>
+					</template>
+				</va-split>
+				<!-- </div> -->
 			</template>
 		</div>
-		<div v-if="target=='Role'" style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
+		<div v-if="target=='Role'" style="width:100%;flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
 			<template v-for="role of roles">
 				<div
 					v-if="!Boolean(cur_role)||cur_role==role"
-					style="display:flex;margin:1px 0;align-items:center;cursor:pointer"
-					:style="{'background-color':rolehover==role.role_name?'var(--va-shadow)':'var(--va-background-element)'}"
+					style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
+					:style="{'background-color':rolehover==role?'var(--va-shadow)':'var(--va-background-element)'}"
 					@click="()=>{
 						if(!cur_role){
 							cur_role=role
-							role_permission_select=null
-							update_role_comment=role.comment
-							get_role_permission(role.role_name)
+							optype='get_role_permission'
+							op()
 						}else{
 							cur_role=null
 						}
 					}"
-					@mouseover="rolehover=role.role_name"
-					@mouseout="rolehover=''"
+					@mouseover="rolehover=role"
+					@mouseout="rolehover=null"
 				>
 					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ cur_role==role?'-':'+' }}</span>
-					<span style="flex:1;padding:12px 20px;color:var(--va-primary)">{{role.role_name}}</span>
+					<span style="padding:12px 20px;color:var(--va-primary)">{{role.role_name}}</span>
+					<span style="flex:1"></span>
 					<span style="padding:12px;color:green">Create Time: {{parsetime(role.ctime)}}</span>
 					<va-button
 						v-if="state.page.node!.admin"
+						style="width:60px;height:30px;margin:0 10px"
 						size="small"
-						style="width:50px;height:30px;margin:0 10px"
+						gradient
 						@mouseover.stop=""
 						@mouseout.stop=""
 						@click.stop="
@@ -907,14 +966,25 @@ function parsetime(timestamp :number):string{
 							add_user_role_username='';
 							users=[];
 							optype='add_user_role_missinguser';
-							ing=true"
-					>
+							ing=true">
 						Assign
 					</va-button>
 					<va-button
-						v-if="state.page.node!.admin"
+						v-if="state.page.node!.canwrite||state.page.node!.admin"
+						style="width:60px;height:30px;margin:0 10px"
 						size="small"
-						style="width:50px;height:30px;margin-right:10px"
+						gradient
+						@mouseover.stop=""
+						@mouseout.stop=""
+						@click.stop="update_role=role;update_role_comment=role.comment;optype='update_role';ing=true"
+					>
+						Update
+					</va-button>
+					<va-button
+						v-if="state.page.node!.admin"
+						style="width:60px;height:30px;margin:0 10px"
+						size="small"
+						gradient
 						@mouseover.stop=""
 						@mouseout.stop=""
 						@click.stop="del_role=role;optype='del_role';ing=true"
@@ -922,21 +992,28 @@ function parsetime(timestamp :number):string{
 						Del
 					</va-button>
 				</div>
-				<div v-if="cur_role==role" style="display:flex;margin:1px 10px;align-items:center">
-					<va-input type="textarea" autosize :min-rows="2" label="Role Comment" outline v-model.trim="update_role_comment" style="flex:1" :readonly="!state.page.node!.canwrite&&!state.page.node!.admin" />
-					<va-button v-if="state.page.node!.canwrite||state.page.node!.admin" :disabled="update_role_comment==role.comment" style="margin-left:2px" @click="optype='update_role';op()">Update</va-button>
+				<va-textarea v-if="cur_role==role" style="margin:1px 10px" readonly autosize :resize="false" v-model="role.comment"/>
+				<div v-if="cur_role==role&&node&&node.children&&node.children.length>0"
+					style="flex:1;margin:1px 10px;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
+					<template v-for="child of node.children">
+						<nodetree
+							v-if="child"
+							:pnode="node"
+							:node="child"
+							:deep="0"
+							@permissionevent="(updatenode,r,w,a)=>{
+								update_node=updatenode;
+								canread=r;
+								canwrite=w;
+								admin=a;
+								optype='update_role_permission';
+								ing=true
+							}"/>
+					</template>
 				</div>
-				<div v-if="cur_role==role" style="flex:1;margin:1px 10px;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
-					<nodetree v-if="role_permission_select!=null&&node!=null" :pnode="node" :deep="0" @permissionevent="(updatenode,r,w,a)=>{
-							update_node=updatenode;
-							canread=r;
-							canwrite=w;
-							admin=a;
-							optype='update_permission';
-							ing=true
-						}"
-					/>
-					<div v-else-if="role_permission_select!=null" style="flex:1;display:flex;justify-content:center;align-items:center"><b>No Permissions</b></div>
+				<div v-else-if="cur_role==role"
+					style="flex:1;margin:1px 10px;display:flex;justify-content:center;align-items:center;background-color:var(--va-background-element);color:var(--va-primary)">
+					<b>No permission</b>
 				</div>
 			</template>
 		</div>

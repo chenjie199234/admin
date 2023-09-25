@@ -111,7 +111,7 @@ message update_role_permission_req {
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
 	//first element must be 0
-	repeated uint32 node_id=3[(pbex.map_repeated_len_gt)=1];
+	repeated uint32 node_id=3[(pbex.map_repeated_len_gt)=2];
 	//if admin is true,canread and canwrite will be ignore
 	bool admin=4;
 	//if admin is false,and canread is false too,means delete this user from this node

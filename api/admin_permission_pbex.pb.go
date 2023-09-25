@@ -36,7 +36,7 @@ func (m *UpdateRolePermissionReq) Validate() (errstr string) {
 	if len(m.GetRoleName()) == 0 {
 		return "field: role_name in object: update_role_permission_req check value str len not eq failed"
 	}
-	if len(m.GetNodeId()) <= 1 {
+	if len(m.GetNodeId()) <= 2 {
 		return "field: node_id in object: update_role_permission_req check len gt failed"
 	}
 	return ""

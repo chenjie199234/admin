@@ -10,8 +10,19 @@ defineProps<{
 }>()
 
 const open=ref<{[k:string]:boolean}>({})
-const hover=ref<string>("")
-
+const hovernode=ref<permissionAPI.NodeInfo>(null)
+function bindstyle(node :permissionAPI.NodeInfo){
+	let style={}
+	if(node==hovernode.value && jumpable(node)){
+		style["background-color"] = "var(--va-shadow)"
+	}else if(state.page.node==node){
+		style["background-color"] = "#b6d7a8"
+	}
+	if(jumpable(node)){
+		style["cursor"] = "pointer"
+	}
+	return style
+}
 function need_button(node: permissionAPI.NodeInfo|null|undefined):boolean{
 	if(!node){
 		return false
@@ -74,9 +85,9 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 				<div v-if="showable(node)" style="display:flex;align-items:center">
 					<div
 						style="flex:1;display:flex;align-items:center"
-						:style="{'background-color':hover==node!.node_id!.toString()?'var(--va-shadow)':state.page.node==node?'#b6d7a8':undefined,cursor:jumpable(node)?'pointer':'default'}"
-						@mouseover="hover=node!.node_id!.toString()"
-						@mouseout="hover=''"
+						:style="bindstyle(node)"
+						@mouseover="hovernode=node"
+						@mouseout="hovernode=null"
 						@click="()=>{
 							open[node!.node_id!.toString()]=!open[node!.node_id!.toString()]
 							if(jumpable(node)){
@@ -88,22 +99,29 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 							<span style="padding:7px 0">{{node!.node_name}}</span>
 							<span v-if="jumpable(node)" style="padding-left:5px;font-size:30px" :style="{color:state.page.node==node?'green':'black'}">☞</span>
 						</div>
-						<div v-if="has_children(node)" style="margin-right:5px;padding:5px;border-radius:2px">{{open[node!.node_id!.toString()]?'▲':'▼'}}</div>
-						<va-hover v-if="need_button(node)" stateful>
+						<va-hover v-if="has_children(node)" stateful>
 							<template #default="{hover}">
 								<div
-									v-if="!hover"
-									style="padding:5px 7px"
+									style="padding:5px;border-radius:2px"
+									:style="{'background-color':hover?'var(--va-shadow)':undefined}"
+									@click.stop="open[node!.node_id!.toString()]=!open[node!.node_id!.toString()]"
 									@mouseover.stop=""
 									@mouseout.stop=""
 								>
+									{{open[node!.node_id!.toString()]?'▲':'▼'}}
+								</div>
+							</template>
+						</va-hover>
+						<va-hover v-if="need_button(node)" stateful>
+							<template #default="{hover}">
+								<div v-if="!hover" style="padding:5px 7px" @mouseover.stop="" @mouseout.stop="">
 									•••
 								</div>
 								<va-popover v-if="hover" message="Update Menu" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
 									<va-hover stateful>
 										<template #default="{hover}">
 											<div
-												style="padding:5px 7px;cursor:pointer"
+												style="padding:5px 7px;border-radius:2px"
 												:style="{'background-color':hover?'var(--va-shadow)':undefined}"
 												@click.stop="$emit('nodeevent',pnode,node,'update')"
 												@mouseover.stop=""
@@ -118,7 +136,7 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 									<va-hover stateful>
 										<template #default="{hover}">
 											<div
-												style="padding:5px 7px;cursor:pointer"
+												style="padding:5px 9px;border-radius:2px"
 												:style="{'background-color':hover?'var(--va-shadow)':undefined}"
 												@click.stop="$emit('nodeevent',pnode,node,'del')"
 												@mouseover.stop=""
@@ -133,7 +151,7 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 									<va-hover stateful>
 										<template #default="{hover}">
 											<div
-												style="padding:5px 7px;cursor:pointer"
+												style="padding:5px 9px;border-radius:2px"
 												:style="{'background-color':hover?'var(--va-shadow)':undefined}"
 												@click.stop="$emit('nodeevent',pnode,node,'add')"
 												@mouseover.stop=""

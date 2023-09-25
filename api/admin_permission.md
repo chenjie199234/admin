@@ -92,7 +92,7 @@ Content-Type: application/json
 	"role_name":"str",
 	//first element must be 0
 	//uint32
-	//element num must > 1
+	//element num must > 2
 	"node_id":[1,2],
 	//if admin is true,canread and canwrite will be ignore
 	"admin":true,

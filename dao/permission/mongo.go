@@ -236,7 +236,7 @@ func (d *Dao) MongoGetUserNodes(ctx context.Context, userid primitive.ObjectID, 
 // if admin is false and canwrite is true,then canread must be tree too
 func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.ObjectID, projectid, rolename string, nodeid string, admin, canread, canwrite bool) (e error) {
 	//role belong's to project,so the nodeid must belong to this project
-	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 || strings.HasPrefix(projectid, nodeid) {
+	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 || strings.Count(nodeid, ",") < 2 || !strings.HasPrefix(nodeid+",", projectid+",") {
 		return ecode.ErrReq
 	}
 	if admin {

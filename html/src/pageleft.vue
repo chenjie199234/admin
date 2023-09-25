@@ -95,6 +95,10 @@ const optype=ref<string>("")
 
 const project_name=ref<string>("")
 
+function project_update_able():boolean{
+	return project_name.value!=state.project.info.project_name
+}
+
 function project_op(){
 	if(!state.set_load()){
 		return
@@ -160,6 +164,10 @@ const ptarget=ref<permissionAPI.NodeInfo|null>(null)
 const target=ref<permissionAPI.NodeInfo|null>(null)
 const node_name=ref<string>("")
 const node_url=ref<string>("")
+
+function node_update_able():boolean{
+	return node_name.value!=target.value.node_name || node_url.value!=target.value.node_data
+}
 
 function node_op(){
 	if(!state.project.info){
@@ -286,64 +294,76 @@ function same_node_id(a:number[],b:number[]):boolean{
 }
 </script>
 <template>
-	<va-modal v-model="project_ing" attach-element="#app" max-width="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
+	<va-modal v-model="project_ing" attach-element="#app" max-width="800px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
 		<template #default>
-			<div v-if="optype=='add'">
-				<va-input type="text" style="width:250px" label="New Project Name*" v-model="project_name" @keyup.enter="()=>{if(project_name!=''){project_op()}}"></va-input>
-				<va-button style="width:80px;margin:0 0 0 5px" :disabled="project_name==''" @click="project_op">Add</va-button>
-				<va-button style="width:80px;margin:0 0 0 5px" @click="project_name='';project_ing=false">Cancel</va-button>
+			<div v-if="optype=='add'" style="display:flex;flex-direction:column">
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px"><b>Create Project</b></va-card-content>
+				</va-card>
+				<va-input type="text" style="margin-top:10px" label="New Project Name*" v-model="project_name" />
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="project_name==''" @click="project_op" gradient>Add</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="project_name='';project_ing=false" gradient>Cancel</va-button>
+				</div>
 			</div>
-			<div v-else-if="optype=='update'">
-				<va-input type="text" style="width:250px" label="New Project Name*" v-model="project_name" @keyup.enter="()=>{if(project_name!=''){project_op()}}"></va-input>
-				<va-button style="width:80px;margin:0 0 0 5px" :disabled="project_name==''" @click="project_op">Update</va-button>
-				<va-button style="width:80px;margin:0 0 0 5px" @click="project_name='';project_ing=false">Cancel</va-button>
+			<div v-else-if="optype=='update'" style="display:flex;flex-direction:column">
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px"><b>Update Project</b></va-card-content>
+				</va-card>
+				<va-input type="text" style="margin-top:10px" label="New Project Name*" v-model="project_name" />
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="!project_update_able()" @click="project_op" gradient>Update</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="project_name='';project_ing=false" gradient>Cancel</va-button>
+				</div>
 			</div>
 			<div v-else-if="optype=='del'" style="display:flex;flex-direction:column">
-				<va-card color="primary" gradient style="margin:0 0 5px 0">
-					<va-card-title>Warning</va-card-title>
-					<va-card-content>
-						<p>You are deleting project: {{ state.project.info!.project_name}}.</p>
-						<p>All data in this project will be deleted.</p>
-						<p>Please confirm!</p>
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px">
+						<p><b>Delete project: {{ state.project.info!.project_name }}</b></p>
+						<p><b>Please confirm</b></p>
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="project_op" gradient>Del</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="project_ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:10px 10px 0 0" @click="project_op" gradient>Del</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="project_ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 		</template>
 	</va-modal>
-	<va-modal v-model="node_ing" attach-element="#app" max-width="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
+	<va-modal v-model="node_ing" attach-element="#app" max-width="800px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
 		<template #default>
 			<div v-if="optype=='del'" style="display:flex;flex-direction:column">
-				<va-card color="primary" gradient style="margin:0 0 5px 0">
-					<va-card-title>Warning</va-card-title>
-					<va-card-content>
-						<p>You are deleting node: {{ target!.node_name }}.</p>
-						<p>All data in this node will be deleted.</p>
-						<p>Please confirm!</p>
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px">
+						<p><b>Delete node: {{ target!.node_name }}</b></p>
+						<p><b>Please confirm</b></p>
 					</va-card-content>
 				</va-card>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:5px 10px 0 0" @click="node_op" gradient>Del</va-button>
-					<va-button style="width:80px;margin:5px 0 0 10px" @click="node_ing=false" gradient>Cancel</va-button>
+					<va-button style="width:80px;margin:10px 10px 0 0" @click="node_op" gradient>Del</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="node_ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='add'" style="display:flex;flex-direction:column">
-				<va-input style="width:400px;margin:3px 0" label="New Node Name*" v-model="node_name"></va-input>
-				<va-input style="width:400px;margin:3px 0" label="New Node Url?" v-model="node_url"></va-input>
-				<div>
-					<va-button style="width:80px;margin:3px 3px 0 234px" :disabled="node_name==''" @click="node_op">Add</va-button>
-					<va-button style="width:80px;margin:3px 0 0 3px" @click="node_ing=false">Cancel</va-button>
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px"><b>Create Node</b></va-card-content>
+				</va-card>
+				<va-input style="margin-top:10px" label="New Node Name*" v-model="node_name"></va-input>
+				<va-input style="margin-top:10px" label="New Node Url?" v-model="node_url"></va-input>
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="node_name==''" @click="node_op" gradient>Add</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="node_ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 			<div v-else-if="optype=='update'" style="display:flex;flex-direction:column">
-				<va-input style="width:400px;margin:3px 0" label="New Node Name*" v-model="node_name"></va-input>
-				<va-input style="width:400px;margin:3px 0" label="New Node Url?" v-model="node_url"></va-input>
-				<div>
-					<va-button style="width:80px;margin:3px 3px 0 234px" :disabled="node_name==''" @click="node_op">Update</va-button>
-					<va-button style="width:80px;margin:3px 0 0 3px" @click="node_ing=false">Cancel</va-button>
+				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<va-card-content style="font-size:20px"><b>Update Node</b></va-card-content>
+				</va-card>
+				<va-input style="margin-top:10px" label="New Node Name*" v-model="node_name"></va-input>
+				<va-input style="margin-top:10px" label="New Node Url?" v-model="node_url"></va-input>
+				<div style="display:flex;justify-content:center">
+					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="!node_update_able()" @click="node_op" gradient>Update</va-button>
+					<va-button style="width:80px;margin:10px 0 0 10px" @click="node_ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
 		</template>
@@ -355,16 +375,16 @@ function same_node_id(a:number[],b:number[]):boolean{
 				textBy="project_name"
 				:options="allprojects"
 				noOptionsText="NO Projects"
-				label="Select Project"
+				placeholder="Select Project*"
 				dropdownIcon=""
-				style="flex:1;margin:0 2px"
+				style="flex:1;padding-left:5px"
 				outline
+				trigger="hover"
+				:hoverOverTimeout="0"
+				:hoverOutTimeout="100"
 			>
 				<template #option='{option}'>
-					<va-hover stateful @click="
-						state.project.info=option;
-						select_project();
-					">
+					<va-hover stateful @click="state.project.info=option;select_project()">
 						<template #default="{hover}">
 							<div
 								style="padding:10px;cursor:pointer"
@@ -376,25 +396,25 @@ function same_node_id(a:number[],b:number[]):boolean{
 					</va-hover>
 				</template>
 			</va-select>
-			<va-popover message="Create New Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary" prevent-overflow>
-				<va-button v-if="state.user.root" style="width:36px;margin:0 3px" @click="optype='add';project_name='';project_ing=true">+</va-button>
+			<va-popover v-if="state.user.root" message="Create New Project" :hover-out-timeout="0" :hover-over-timeout="0" color="primary">
+				<va-button style="margin:0 3px" @click="optype='add';project_name='';project_ing=true">+</va-button>
 			</va-popover>
 		</div>
 		<div v-if="state.project.info" style="text-align:center;background-color:var(--va-background-element)">
-			<va-popover v-if="state.user.root&&!selfproject()" message="Update Project" color="primary" :hover-over-timeout="0" :hover-out-timeout="0" prevent-overflow>
+			<va-popover v-if="state.user.root&&!selfproject()" message="Update Project" color="primary" :hover-over-timeout="0" :hover-out-timeout="0">
 				<va-hover stateful>
 					<template #default="{hover}">
 						<div
 							style="padding:10px 15px;cursor:pointer"
 							:style="{'background-color':hover?'var(--va-shadow)':undefined}"
-							@click="optype='update';project_name='';project_ing=true"
+							@click="optype='update';project_name=state.project.info.project_name;project_ing=true"
 						>
 							<b>◉</b>
 						</div>
 					</template>
 				</va-hover>
 			</va-popover>
-			<va-popover v-if="state.user.root&&!selfproject()" message="Delete Project" color="primary" :hover-over-timeout="0" :hover-out-timeout="0" prevent-overflow>
+			<va-popover v-if="state.user.root&&!selfproject()" message="Delete Project" color="primary" :hover-over-timeout="0" :hover-out-timeout="0">
 				<va-hover stateful>
 					<template #default="{hover}">
 						<div
@@ -407,7 +427,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 					</template>
 				</va-hover>
 			</va-popover>
-			<va-popover v-if="create_main_menu_able()" message="Create Main Menu" color="primary" :hover-over-timeout="0" :hover-out-timeout="0" prevent-overflow>
+			<va-popover v-if="create_main_menu_able()" message="Create Main Menu" color="primary" :hover-over-timeout="0" :hover-out-timeout="0">
 				<va-hover stateful>
 					<template #default="{hover}">
 						<div
@@ -427,15 +447,19 @@ function same_node_id(a:number[],b:number[]):boolean{
 				:pnode="projectnodes!"
 				:deep="0"
 				@nodeevent="(pnode,node,type)=>{
-					node_name='';
-					node_url='';
+					if(type=='update'){
+						node_name=node.node_name;
+						node_url=node.node_data;
+					}else{
+						node_name='';
+						node_url='';
+					}
 					ptarget=pnode;
 					target=node;
 					optype=type;
-					node_ing=true
+					node_ing=true;
 				}"
 			/>
 		</div>
 	</div>
-
 </template>

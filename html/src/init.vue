@@ -49,11 +49,10 @@ function do_init(){
 </script>
 <template>
 	<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center">
-		<va-card style="width:400px;margin:10px" color="primary" gradient>
-			<va-card-title>Warning</va-card-title>
-			<va-card-content>System not initialized.</va-card-content>
+		<va-card style="min-width:350px;width:auto;margin:10px;text-align:center" color="primary" gradient>
+			<va-card-content style="font-size:20px"><b>Initialize Now</b></va-card-content>
 		</va-card>
-		<div style="display:flex;flex-direction:column">
+		<div style="display:flex;flex-direction:column;align-items:center">
 			<va-input :type="t_access_key?'text':'password'" label="Access Key*" v-model="access_key" style="width:400px;margin:5px 0">
 				<template #appendInner>
 					<va-icon :name="t_access_key?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_access_key=!t_access_key" />
@@ -64,7 +63,7 @@ function do_init(){
 					<va-icon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
 				</template>
 			</va-input>
-			<va-button style="width:100px;margin:5px 0 0 300px" :disabled="!init_able()" @click="do_init" gradient>Init</va-button>
+			<va-button style="width:100px;margin:5px 0 0 0" :disabled="!init_able()" @click="do_init" gradient>Init</va-button>
 		</div>
 	</div>
 </template>

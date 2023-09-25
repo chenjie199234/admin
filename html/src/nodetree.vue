@@ -1,18 +1,45 @@
 <script setup lang="ts">
-import { ref,onMounted } from 'vue'
+import { ref,onMounted,computed,watch } from 'vue'
 import * as permissionAPI from './api/admin_permission_browser_toc'
 const props=defineProps<{
-	pnode:permissionAPI.NodeInfo
+	pnode:permissionAPI.NodeInfo|null
+	node:permissionAPI.NodeInfo
 	deep:number
+	disabled:boolean
 }>()
 const new_canread=ref<boolean>(false)
 const new_canwrite=ref<boolean>(false)
 const new_admin=ref<boolean>(false)
-onMounted(()=>{
-	new_canread.value=props.pnode.canread
-	new_canwrite.value=props.pnode.canwrite
-	new_admin.value=props.pnode.admin
-})
+watch(()=>props.node.admin,(newval,oldval)=>{
+	new_canread.value=props.node.canread
+	new_canwrite.value=props.node.canwrite
+	new_admin.value=props.node.admin
+	if(newval){
+		if(!props.node.children){
+			return
+		}
+		for(let child of props.node.children){
+			if(!child){
+				continue
+			}
+			child.canread=true
+			child.canwrite=true
+			child.admin=true
+		}
+	}else if(oldval){
+		if(!props.node.children){
+			return
+		}
+		for(let child of props.node.children){
+			if(!child){
+				continue
+			}
+			child.canread=false
+			child.canwrite=false
+			child.admin=false
+		}
+	}
+},{immediate: true})
 const open=ref<boolean>(false)
 const hover=ref<boolean>(false)
 function permission_update(t :string){
@@ -42,47 +69,50 @@ function permission_update(t :string){
 	}
 }
 function permission_same():boolean{
-	return new_canread.value==props.pnode.canread&&new_canwrite.value==props.pnode.canwrite&&new_admin.value==props.pnode.admin
+	return new_canread.value==props.node.canread&&new_canwrite.value==props.node.canwrite&&new_admin.value==props.node.admin
 }
 </script>
 <template>
 	<div style="flex:1;display:flex;flex-direction:column;margin:0 15px">
 		<va-divider v-if="deep!=0" vertical style="height:50px;align-self:center;border-right-color:var(--va-primary)"/>
 		<div style="display:flex;flex-direction:column;align-items:center;padding:5px 15px 0px 15px;border:1px solid var(--va-primary);border-radius:5px">
-			<div style="margin:2px;min-width:100px;border:1px solid var(--va-primary);border-radius:3px;padding:10px;text-align:center">{{pnode.node_name}}</div>
+			<div style="margin:2px;min-width:100px;border:1px solid var(--va-primary);border-radius:3px;padding:10px;text-align:center">{{node.node_name}}</div>
 			<va-switch
+				:readonly="disabled||(pnode&&pnode.admin)"
 				off-color="shadow"
 				style="margin:2px"
 				v-model="new_canread"
 				true-inner-label="Read"
 				false-inner-label="Read"
-				@update:model-value="permission_update('read')"
+				@update:modelValue="permission_update('read')"
 			/>
 			<va-switch
+				:readonly="disabled||(pnode&&pnode.admin)"
 				off-color="shadow"
 				style="margin:2px"
 				v-model="new_canwrite"
 				true-inner-label="Write"
 				false-inner-label="Write"
-				@update:model-value="permission_update('write')"
+				@update:modelValue="permission_update('write')"
 			/>
 			<va-switch
+				:readonly="disabled||(pnode&&pnode.admin)"
 				off-color="shadow"
 				style="margin:2px"
 				v-model="new_admin"
 				true-inner-label="Admin"
 				false-inner-label="Admin"
-				@update:model-value="permission_update('admin')"
+				@update:modelValue="permission_update('admin')"
 			/>
 			<va-button
-				:disabled="permission_same()"
+				:disabled="disabled||(pnode&&pnode.admin)||permission_same()"
 				style="margin:2px"
-				@click="$emit('permissionevent',pnode,new_canread,new_canwrite,new_admin)"
+				@click="$emit('permissionevent',node,new_canread,new_canwrite,new_admin)"
 			>
 				Update
 			</va-button>
 			<div
-				v-if="Boolean(pnode.children)&&pnode.children!.length>0"
+				v-if="Boolean(node.children)&&node.children!.length>0"
 				style="padding:5px 10px;border-radius:3px;cursor:pointer"
 				:style="{'background-color':hover?'var(--va-shadow)':''}"
 				@mouseover="hover=true"
@@ -92,9 +122,14 @@ function permission_same():boolean{
 				{{open?'▲':'▼'}}
 			</div>
 		</div>
-		<div v-if="open&&Boolean(pnode.children)&&pnode.children!.length>0" style="flex:1;display:flex">
-			<template v-for="child of pnode.children">
-				<nodetree v-if="Boolean(child)" :pnode="child!" :deep="deep+1" @permissionevent="(updatenode,r,w,a)=>{$emit('permissionevent',updatenode,r,w,a)}"/>
+		<div v-if="open&&node.children&&node.children!.length>0" style="flex:1;display:flex">
+			<template v-for="child of node.children">
+				<nodetree v-if="child"
+					:pnode="node"
+					:node="child!"
+					:deep="deep+1"
+					:disabled="disabled"
+					@permissionevent="(updatenode,r,w,a)=>{$emit('permissionevent',updatenode,r,w,a)}"/>
 			</template>
 		</div>
 	</div>

@@ -120,6 +120,7 @@ collection: user
 use user;
 db.createCollection("user");
 db.user.createIndex({user_name:1});
+db.user.createIndex({"projects.$**":1});
 
 collection: role
 {

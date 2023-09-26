@@ -165,7 +165,7 @@ Fail:    httpcode:4xx/5xx
 Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 {
-	//key userid,value username
+	//key userid,value userinfo(only contains the required project's roles)
 	//object user_info
 	"users":[{},{}],
 	//uint32

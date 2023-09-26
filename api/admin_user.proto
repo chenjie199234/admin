@@ -143,7 +143,7 @@ message search_users_req {
 	uint32 page=4;//if page is 0,means return all result
 }
 message search_users_resp {
-	repeated user_info users=1;//key userid,value username
+	repeated user_info users=1;//key userid,value userinfo(only contains the required project's roles)
 	uint32 page=2;
 	uint32 pagesize=3;
 	uint32 totalsize=4;

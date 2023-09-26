@@ -4,7 +4,7 @@ import * as permissionAPI from './api/admin_permission_browser_toc'
 import * as initializeAPI from './api/admin_initialize_browser_toc'
 
 //-------------------------------------------------------------------------------
-export const inited = ref<boolean>(false)
+export const inited = ref<boolean|null>(null)
 
 //-------------------------------------------------------------------------------
 export const load = reactive<{

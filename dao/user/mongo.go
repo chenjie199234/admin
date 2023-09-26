@@ -259,11 +259,9 @@ func (d *Dao) MongoDelRoles(ctx context.Context, projectid string, rolenames []s
 	if _, e = d.mongo.Database("user").Collection("role").DeleteMany(sctx, bson.M{"project_id": projectid, "role_name": bson.M{"$in": rolenames}}); e != nil {
 		return
 	}
-	in := []string{}
-	for _, rolename := range rolenames {
-		in = append(in, projectid+":"+rolename)
-	}
-	if _, e = d.mongo.Database("user").Collection("user").UpdateMany(sctx, bson.M{"roles": bson.M{"$in": in}}, bson.M{"$pullAll": bson.M{"roles": in}}); e != nil {
+	filter := bson.M{"projects." + projectid: bson.M{"$exists": true}}
+	updater := bson.M{"$pullAll": bson.M{"projects." + projectid: rolenames}}
+	if _, e = d.mongo.Database("user").Collection("user").UpdateMany(sctx, filter, updater); e != nil {
 		return
 	}
 	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, bson.M{"project_id": projectid, "role_name": bson.M{"$in": rolenames}})

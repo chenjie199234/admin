@@ -657,7 +657,7 @@ type SearchUsersResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Users     []*UserInfo `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"` //key userid,value username
+	Users     []*UserInfo `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"` //key userid,value userinfo(only contains the required project's roles)
 	Page      uint32      `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
 	Pagesize  uint32      `protobuf:"varint,3,opt,name=pagesize,proto3" json:"pagesize,omitempty"`
 	Totalsize uint32      `protobuf:"varint,4,opt,name=totalsize,proto3" json:"totalsize,omitempty"`

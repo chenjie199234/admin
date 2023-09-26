@@ -635,7 +635,7 @@ function SearchUsersReqToJson(msg: SearchUsersReq): string{
 	return s
 }
 export interface SearchUsersResp{
-	users: Array<UserInfo|null|undefined>|null|undefined;//key userid,value username
+	users: Array<UserInfo|null|undefined>|null|undefined;//key userid,value userinfo(only contains the required project's roles)
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	page: number;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow

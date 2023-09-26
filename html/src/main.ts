@@ -14,6 +14,7 @@ import {
 	VaCardContent,
 	VaHover,
 	VaButton,
+	VaBadge,
 	VaSelect,
 	VaInput,
 	VaTextarea,
@@ -31,7 +32,7 @@ import {
 import 'vuestic-ui/css'
 
 createApp(main).use(createVuesticEssential({
-		components: { VaInnerLoading, VaSplit, VaModal, VaCard, VaCardTitle, VaCardContent, VaHover, VaButton, VaSelect, VaInput, VaTextarea, VaRadio, VaSwitch, VaImage, VaIcon, VaDivider, VaPagination, VaDropdown, VaDropdownContent, VaPopover },
+		components: { VaInnerLoading, VaSplit, VaModal, VaCard, VaCardTitle, VaCardContent, VaHover, VaButton, VaBadge, VaSelect, VaInput, VaTextarea, VaRadio, VaSwitch, VaImage, VaIcon, VaDivider, VaPagination, VaDropdown, VaDropdownContent, VaPopover },
 		plugins: { VaModalPlugin, VaDropdownPlugin },
 		config: {},
 })).mount('#app')

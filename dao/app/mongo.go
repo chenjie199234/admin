@@ -17,10 +17,26 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+func (d *Dao) MongoCheckSecret(ctx context.Context, projectid, gname, aname, secret string) error {
+	appsummary := &model.AppSummary{}
+	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
+	e := d.mongo.Database("app").Collection("config").FindOne(ctx, filter, options.FindOne().SetProjection(bson.M{"value": 1})).Decode(appsummary)
+	if e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrAppNotExist
+		}
+		return e
+	}
+	// check sign
+	return secure.SignCheck(secret, appsummary.Value)
+}
 func (d *Dao) MongoGetApp(ctx context.Context, projectid, gname, aname, secret string) (*model.AppSummary, error) {
 	appsummary := &model.AppSummary{}
 	e := d.mongo.Database("app").Collection("config").FindOne(ctx, bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}).Decode(appsummary)
 	if e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrAppNotExist
+		}
 		return nil, e
 	}
 	// check sign
@@ -46,7 +62,7 @@ func (d *Dao) MongoGetAppWithoutDecrypt(ctx context.Context, projectid, gname, a
 	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	if e := d.mongo.Database("app").Collection("config").FindOne(ctx, filter).Decode(app); e != nil {
 		if e == mongo.ErrNoDocuments {
-			return nil, nil
+			e = ecode.ErrAppNotExist
 		}
 		return nil, e
 	}

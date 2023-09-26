@@ -905,6 +905,16 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 	}
 	projectid := common.Byte2str(buf)
 
+	if e := s.appDao.MongoCheckSecret(ctx, projectid, req.GName, req.AName, req.Secret); e != nil {
+		log.Error(ctx, "[GetInstances] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("group", req.GName),
+			log.String("app", req.AName),
+			log.CError(e))
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+
 	addrs, e := config.Sdk.GetAppAddrsByProjectID(ctx, projectid, req.GName, req.AName)
 	if e != nil {
 		log.Error(ctx, "[GetInstances] get addrs failed",
@@ -976,10 +986,20 @@ func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoR
 	}
 	projectid := common.Byte2str(buf)
 
+	if e := s.appDao.MongoCheckSecret(ctx, projectid, req.GName, req.AName, req.Secret); e != nil {
+		log.Error(ctx, "[GetInstanceInfo] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("group", req.GName),
+			log.String("app", req.AName),
+			log.CError(e))
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+
 	reqdata, _ := proto.Marshal(&api.Pingreq{Timestamp: time.Now().UnixNano()})
 	respdata, e := config.Sdk.CallByPrjoectID(ctx, projectid, req.GName, req.AName, "/"+req.AName+".status/ping", reqdata, req.Addr, nil)
 	if e != nil {
-		log.Error(ctx, "[GetInstances] get info failed",
+		log.Error(ctx, "[GetInstanceInfo] get info failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
 			log.String("group", req.GName),
@@ -990,7 +1010,7 @@ func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoR
 	}
 	r := &api.Pingresp{}
 	if e := proto.Unmarshal(respdata, r); e != nil {
-		log.Error(ctx, "[GetInstances] response data broken",
+		log.Error(ctx, "[GetInstanceInfo] response data broken",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
 			log.String("group", req.GName),

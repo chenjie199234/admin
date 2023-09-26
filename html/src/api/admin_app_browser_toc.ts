@@ -5,6 +5,7 @@
 // source: api/admin_app.proto<br />
 
 import Axios from "axios";
+import Long from "long";
 
 export interface Error{
 	code: number;
@@ -402,6 +403,185 @@ function JsonToGetAppResp(jsonobj: { [k:string]:any }): GetAppResp{
 	}
 	return obj
 }
+export interface GetInstanceInfoReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
+	g_name: string;
+	a_name: string;
+	secret: string;
+	addr: string;
+}
+function GetInstanceInfoReqToJson(msg: GetInstanceInfoReq): string{
+	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in GetInstanceInfoReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in GetInstanceInfoReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'GetInstanceInfoReq.g_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
+	}
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'GetInstanceInfoReq.a_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'GetInstanceInfoReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
+	}
+	//addr
+	if(msg.addr==null||msg.addr==undefined){
+		throw 'GetInstanceInfoReq.addr must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.addr)
+		s+='"addr":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface GetInstanceInfoResp{
+	info: InstanceInfo|null|undefined;
+}
+function JsonToGetInstanceInfoResp(jsonobj: { [k:string]:any }): GetInstanceInfoResp{
+	let obj: GetInstanceInfoResp={
+		info:null,
+	}
+	//info
+	if(jsonobj['info']!=null&&jsonobj['info']!=undefined){
+		if(typeof jsonobj['info']!='object'){
+			throw 'GetInstanceInfoResp.info must be InstanceInfo'
+		}
+		obj['info']=JsonToInstanceInfo(jsonobj['info'])
+	}
+	return obj
+}
+export interface GetInstancesReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
+	g_name: string;
+	a_name: string;
+	secret: string;
+	with_info: boolean;
+}
+function GetInstancesReqToJson(msg: GetInstancesReq): string{
+	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in GetInstancesReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in GetInstancesReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'GetInstancesReq.g_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
+	}
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'GetInstancesReq.a_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'GetInstancesReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
+	}
+	//with_info
+	if(msg.with_info==null||msg.with_info==undefined){
+		throw 'GetInstancesReq.with_info must be boolean'
+	}else{
+		s+='"with_info":'+msg.with_info+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface GetInstancesResp{
+	instances: Map<string,InstanceInfo|null|undefined>|null|undefined;//key addr,value info,if with_info is false,value is empty
+}
+function JsonToGetInstancesResp(jsonobj: { [k:string]:any }): GetInstancesResp{
+	let obj: GetInstancesResp={
+		instances:null,
+	}
+	//instances
+	if(jsonobj['instances']!=null&&jsonobj['instances']!=undefined){
+		if(typeof jsonobj['instances']!='object'){
+			throw 'GetInstancesResp.instances must be Map<string,InstanceInfo|null|undefined>|null|undefined'
+		}
+		for(let key of Object.keys(jsonobj['instances'])){
+			let value=jsonobj['instances'][key]
+			let k: string=key
+			let v: InstanceInfo|null|undefined=null
+			if(typeof value==null||typeof value==undefined){
+				v=null
+			}else if(typeof value!='object'){
+				throw 'value in GetInstancesResp.instances must be InstanceInfo|null|undefined'
+			}else{
+				v=JsonToInstanceInfo(value)
+			}
+			if(obj['instances']==undefined){
+				obj['instances']=new Map<string,InstanceInfo|null|undefined>
+			}
+			obj['instances'].set(k,v)
+		}
+	}
+	return obj
+}
 export interface GetKeyConfigReq{
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
 	project_id: Array<number>|null|undefined;
@@ -552,6 +732,99 @@ function JsonToGetKeyConfigResp(jsonobj: { [k:string]:any }): GetKeyConfigResp{
 	}
 	return obj
 }
+export interface InstanceInfo{
+	//Warning!!!Type is uint64,be careful of sign(+)
+	total_men: Long;
+	//Warning!!!Type is uint64,be careful of sign(+)
+	cur_men_usage: Long;
+	cpu_num: number;
+	cur_cpu_usage: number;
+}
+function JsonToInstanceInfo(jsonobj: { [k:string]:any }): InstanceInfo{
+	let obj: InstanceInfo={
+		total_men:Long.ZERO,
+		cur_men_usage:Long.ZERO,
+		cpu_num:0,
+		cur_cpu_usage:0,
+	}
+	//total_men
+	if(jsonobj['total_men']!=null&&jsonobj['total_men']!=undefined){
+		if(typeof jsonobj['total_men']=='number'){
+			if(!Number.isInteger(jsonobj['total_men'])){
+				throw 'InstanceInfo.total_men must be integer'
+			}
+			if(jsonobj['total_men']<0){
+				throw 'InstanceInfo.total_men overflow'
+			}
+			let tmp: Long=Long.ZERO
+			try{
+				tmp=Long.fromNumber(jsonobj['total_men'],true)
+			}catch(e){
+				throw 'InstanceInfo.total_men must be integer'
+			}
+			obj['total_men']=tmp
+		}else if(typeof jsonobj['total_men']=='string'){
+			let tmp:Long=Long.ZERO
+			try{
+				tmp=Long.fromString(jsonobj['total_men'],true)
+			}catch(e){
+				throw 'InstanceInfo.total_men must be integer'
+			}
+			if(tmp.toString()!=jsonobj['total_men']){
+				throw 'InstanceInfo.total_men overflow'
+			}
+			obj['total_men']=tmp
+		}else{
+			throw 'format wrong!InstanceInfo.total_men must be integer'
+		}
+	}
+	//cur_men_usage
+	if(jsonobj['cur_men_usage']!=null&&jsonobj['cur_men_usage']!=undefined){
+		if(typeof jsonobj['cur_men_usage']=='number'){
+			if(!Number.isInteger(jsonobj['cur_men_usage'])){
+				throw 'InstanceInfo.cur_men_usage must be integer'
+			}
+			if(jsonobj['cur_men_usage']<0){
+				throw 'InstanceInfo.cur_men_usage overflow'
+			}
+			let tmp: Long=Long.ZERO
+			try{
+				tmp=Long.fromNumber(jsonobj['cur_men_usage'],true)
+			}catch(e){
+				throw 'InstanceInfo.cur_men_usage must be integer'
+			}
+			obj['cur_men_usage']=tmp
+		}else if(typeof jsonobj['cur_men_usage']=='string'){
+			let tmp:Long=Long.ZERO
+			try{
+				tmp=Long.fromString(jsonobj['cur_men_usage'],true)
+			}catch(e){
+				throw 'InstanceInfo.cur_men_usage must be integer'
+			}
+			if(tmp.toString()!=jsonobj['cur_men_usage']){
+				throw 'InstanceInfo.cur_men_usage overflow'
+			}
+			obj['cur_men_usage']=tmp
+		}else{
+			throw 'format wrong!InstanceInfo.cur_men_usage must be integer'
+		}
+	}
+	//cpu_num
+	if(jsonobj['cpu_num']!=null&&jsonobj['cpu_num']!=undefined){
+		if(typeof jsonobj['cpu_num']!='number'){
+			throw 'InstanceInfo.cpu_num must be number'
+		}
+		obj['cpu_num']=jsonobj['cpu_num']
+	}
+	//cur_cpu_usage
+	if(jsonobj['cur_cpu_usage']!=null&&jsonobj['cur_cpu_usage']!=undefined){
+		if(typeof jsonobj['cur_cpu_usage']!='number'){
+			throw 'InstanceInfo.cur_cpu_usage must be number'
+		}
+		obj['cur_cpu_usage']=jsonobj['cur_cpu_usage']
+	}
+	return obj
+}
 export interface KeyConfigInfo{
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	cur_index: number;
@@ -674,6 +947,7 @@ export interface ProxyReq{
 	a_name: string;
 	path: string;
 	data: string;
+	force_addr: string;
 }
 function ProxyReqToJson(msg: ProxyReq): string{
 	let s: string="{"
@@ -726,6 +1000,14 @@ function ProxyReqToJson(msg: ProxyReq): string{
 		//transfer the json escape
 		let vv=JSON.stringify(msg.data)
 		s+='"data":'+vv+','
+	}
+	//force_addr
+	if(msg.force_addr==null||msg.force_addr==undefined){
+		throw 'ProxyReq.force_addr must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.force_addr)
+		s+='"force_addr":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -1438,6 +1720,8 @@ const _WebPathAppGetKeyConfig: string ="/admin.app/get_key_config";
 const _WebPathAppSetKeyConfig: string ="/admin.app/set_key_config";
 const _WebPathAppRollback: string ="/admin.app/rollback";
 const _WebPathAppWatch: string ="/admin.app/watch";
+const _WebPathAppGetInstances: string ="/admin.app/get_instances";
+const _WebPathAppGetInstanceInfo: string ="/admin.app/get_instance_info";
 const _WebPathAppSetProxy: string ="/admin.app/set_proxy";
 const _WebPathAppDelProxy: string ="/admin.app/del_proxy";
 const _WebPathAppProxy: string ="/admin.app/proxy";
@@ -1895,6 +2179,110 @@ export class AppBrowserClientToC {
 		.then(function(response){
 			try{
 				let obj:WatchResp=JsonToWatchResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	get_instances(header: { [k: string]: string },req: GetInstancesReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GetInstancesResp)=>void){
+		if(!Number.isInteger(timeout)){
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=GetInstancesReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:''+e})
+			return
+		}
+		let config={
+			url:_WebPathAppGetInstances,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: body,
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:GetInstancesResp=JsonToGetInstancesResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	get_instance_info(header: { [k: string]: string },req: GetInstanceInfoReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GetInstanceInfoResp)=>void){
+		if(!Number.isInteger(timeout)){
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=GetInstanceInfoReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:''+e})
+			return
+		}
+		let config={
+			url:_WebPathAppGetInstanceInfo,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: body,
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:GetInstanceInfoResp=JsonToGetInstanceInfoResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

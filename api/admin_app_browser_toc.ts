@@ -408,6 +408,7 @@ export interface GetInstanceInfoReq{
 	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
+	secret: string;
 	addr: string;
 }
 function GetInstanceInfoReqToJson(msg: GetInstanceInfoReq): string{
@@ -446,6 +447,14 @@ function GetInstanceInfoReqToJson(msg: GetInstanceInfoReq): string{
 		let vv=JSON.stringify(msg.a_name)
 		s+='"a_name":'+vv+','
 	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'GetInstanceInfoReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
+	}
 	//addr
 	if(msg.addr==null||msg.addr==undefined){
 		throw 'GetInstanceInfoReq.addr must be string'
@@ -482,6 +491,7 @@ export interface GetInstancesReq{
 	project_id: Array<number>|null|undefined;
 	g_name: string;
 	a_name: string;
+	secret: string;
 	with_info: boolean;
 }
 function GetInstancesReqToJson(msg: GetInstancesReq): string{
@@ -519,6 +529,14 @@ function GetInstancesReqToJson(msg: GetInstancesReq): string{
 		//transfer the json escape
 		let vv=JSON.stringify(msg.a_name)
 		s+='"a_name":'+vv+','
+	}
+	//secret
+	if(msg.secret==null||msg.secret==undefined){
+		throw 'GetInstancesReq.secret must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.secret)
+		s+='"secret":'+vv+','
 	}
 	//with_info
 	if(msg.with_info==null||msg.with_info==undefined){

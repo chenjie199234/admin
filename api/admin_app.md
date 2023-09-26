@@ -429,6 +429,7 @@ Content-Type: application/json
 	"g_name":"str",
 	//value length must != 0
 	"a_name":"str",
+	"secret":"str",
 	"with_info":true
 }
 ------------------------------------------------------------------------------------------------------------
@@ -475,6 +476,7 @@ Content-Type: application/json
 	"g_name":"str",
 	//value length must != 0
 	"a_name":"str",
+	"secret":"str",
 	//value length must > 0
 	"addr":"str"
 }

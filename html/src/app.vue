@@ -143,7 +143,6 @@ function get_app(){
 		state.clear_load()
 	})
 }
-/*
 function get_instances(){
 	if(!get_app_status.value){
 		instances.value=[]
@@ -158,7 +157,7 @@ function get_instances(){
 		a_name:cura.value,
 		secret:secret.value,
 	}
-	client.appClient.get_app_instances({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+	client.appClient.get_instances({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetAppInstancesResp)=>{
@@ -176,7 +175,6 @@ function get_instances(){
 		state.clear_load()
 	})
 }
-*/
 
 const ing=ref<boolean>(false)
 const optype=ref<string>("")

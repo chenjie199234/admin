@@ -57,7 +57,7 @@ func (c *statusWebClient) Ping(ctx context.Context, req *Pingreq, header http.He
 		query = query[:len(query)-1]
 	}
 	querystr := common.Byte2str(query)
-	r, e := c.cc.Get(ctx, _WebPathStatusPing, querystr, header, metadata.GetMetadata(ctx))
+	r, e := c.cc.Get(ctx, _WebPathStatusPing, querystr, header, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}

@@ -51,7 +51,7 @@ func (c *permissionCGrpcClient) GetUserPermission(ctx context.Context, req *GetU
 		return nil, cerror.ErrReq
 	}
 	resp := new(GetUserPermissionResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionGetUserPermission, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionGetUserPermission, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -61,7 +61,7 @@ func (c *permissionCGrpcClient) UpdateUserPermission(ctx context.Context, req *U
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateUserPermissionResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateUserPermission, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateUserPermission, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -71,7 +71,7 @@ func (c *permissionCGrpcClient) UpdateRolePermission(ctx context.Context, req *U
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateRolePermissionResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateRolePermission, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateRolePermission, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -81,7 +81,7 @@ func (c *permissionCGrpcClient) AddNode(ctx context.Context, req *AddNodeReq) (*
 		return nil, cerror.ErrReq
 	}
 	resp := new(AddNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionAddNode, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionAddNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -91,7 +91,7 @@ func (c *permissionCGrpcClient) UpdateNode(ctx context.Context, req *UpdateNodeR
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateNode, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -101,7 +101,7 @@ func (c *permissionCGrpcClient) MoveNode(ctx context.Context, req *MoveNodeReq) 
 		return nil, cerror.ErrReq
 	}
 	resp := new(MoveNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionMoveNode, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionMoveNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -111,7 +111,7 @@ func (c *permissionCGrpcClient) DelNode(ctx context.Context, req *DelNodeReq) (*
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionDelNode, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionDelNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -121,7 +121,7 @@ func (c *permissionCGrpcClient) ListUserNode(ctx context.Context, req *ListUserN
 		return nil, cerror.ErrReq
 	}
 	resp := new(ListUserNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionListUserNode, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionListUserNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -131,7 +131,7 @@ func (c *permissionCGrpcClient) ListRoleNode(ctx context.Context, req *ListRoleN
 		return nil, cerror.ErrReq
 	}
 	resp := new(ListRoleNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionListRoleNode, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionListRoleNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -141,7 +141,7 @@ func (c *permissionCGrpcClient) ListProjectNode(ctx context.Context, req *ListPr
 		return nil, cerror.ErrReq
 	}
 	resp := new(ListProjectNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionListProjectNode, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathPermissionListProjectNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil

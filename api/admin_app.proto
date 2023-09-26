@@ -61,6 +61,17 @@ service app{
 		option (pbex.method)="post";
 	}
 
+	//instance
+
+	rpc get_instances(get_instances_req)returns(get_instances_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+	rpc get_instance_info(get_instance_info_req)returns(get_instance_info_resp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
 	//proxy
 
 	rpc set_proxy(set_proxy_req)returns(set_proxy_resp){
@@ -221,6 +232,32 @@ message watch_data{
 	uint32 version=4;
 }
 
+//instance
+message instance_info{
+	uint64 total_men=1;
+	uint64 cur_men_usage=2;
+	double cpu_num=3;
+	double cur_cpu_usage=4;
+}
+message get_instances_req{
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
+	bool with_info=4;
+}
+message get_instances_resp{
+	map<string,instance_info> instances=1;//key addr,value info,if with_info is false,value is empty
+}
+message get_instance_info_req{
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
+	string addr=4[(pbex.string_bytes_len_gt)=0];
+}
+message get_instance_info_resp{
+	instance_info info=1;
+}
+
 //proxy
 
 message set_proxy_req{
@@ -252,6 +289,7 @@ message proxy_req{
 	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
 	string path=4[(pbex.string_bytes_len_not_eq)=0];
 	string data=5[(pbex.string_bytes_len_gte)=2];
+	string force_addr=6;
 }
 message proxy_resp{
 	string data=1;

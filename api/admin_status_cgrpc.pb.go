@@ -34,7 +34,7 @@ func (c *statusCGrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, 
 		return nil, cerror.ErrReq
 	}
 	resp := new(Pingresp)
-	if e := c.cc.Call(ctx, _CGrpcPathStatusPing, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathStatusPing, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil

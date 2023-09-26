@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"
@@ -20,9 +21,11 @@ import (
 	"github.com/chenjie199234/Corelib/metadata"
 	"github.com/chenjie199234/Corelib/pool"
 	"github.com/chenjie199234/Corelib/util/common"
+	"github.com/chenjie199234/Corelib/util/egroup"
 	"github.com/chenjie199234/Corelib/util/graceful"
 	"github.com/chenjie199234/Corelib/util/name"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/protobuf/proto"
 	// "github.com/chenjie199234/Corelib/web"
 	// "github.com/chenjie199234/Corelib/cgrpc"
 )
@@ -889,6 +892,124 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 	}
 }
 
+func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*api.GetInstancesResp, error) {
+	md := metadata.GetMetadata(ctx)
+
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
+	addrs, e := config.Sdk.GetAppAddrsByProjectID(ctx, projectid, req.GName, req.AName)
+	if e != nil {
+		log.Error(ctx, "[GetInstances] get addrs failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("group", req.GName),
+			log.String("app", req.AName),
+			log.CError(e))
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	resp := &api.GetInstancesResp{
+		Instances: make(map[string]*api.InstanceInfo, len(addrs)),
+	}
+	for _, addr := range addrs {
+		resp.Instances[addr] = nil
+	}
+	if !req.WithInfo {
+		return resp, nil
+	}
+	eg := egroup.GetGroup(ctx)
+	reqdata, _ := proto.Marshal(&api.Pingreq{Timestamp: time.Now().UnixNano()})
+	for _, v := range addrs {
+		addr := v
+		eg.Go(func(gctx context.Context) error {
+			respdata, e := config.Sdk.CallByPrjoectID(gctx, projectid, req.GName, req.AName, "/"+req.AName+".status/ping", reqdata, addr, nil)
+			if e != nil {
+				log.Error(ctx, "[GetInstances] get info failed",
+					log.String("operator", md["Token-User"]),
+					log.String("project_id", projectid),
+					log.String("group", req.GName),
+					log.String("app", req.AName),
+					log.String("addr", addr),
+					log.CError(e))
+				return nil
+			}
+			r := &api.Pingresp{}
+			if e := proto.Unmarshal(respdata, r); e != nil {
+				log.Error(ctx, "[GetInstances] response data broken",
+					log.String("operator", md["Token-User"]),
+					log.String("project_id", projectid),
+					log.String("group", req.GName),
+					log.String("app", req.AName),
+					log.String("addr", addr),
+					log.CError(e))
+				return nil
+			}
+			resp.Instances[addr] = &api.InstanceInfo{
+				TotalMen:    r.TotalMem,
+				CurMenUsage: r.CurMemUsage,
+				CpuNum:      r.CpuNum,
+				CurCpuUsage: r.CurCpuUsage,
+			}
+			return nil
+		})
+	}
+	egroup.PutGroup(eg)
+	return resp, nil
+}
+func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoReq) (*api.GetInstanceInfoResp, error) {
+	md := metadata.GetMetadata(ctx)
+
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
+	reqdata, _ := proto.Marshal(&api.Pingreq{Timestamp: time.Now().UnixNano()})
+	respdata, e := config.Sdk.CallByPrjoectID(ctx, projectid, req.GName, req.AName, "/"+req.AName+".status/ping", reqdata, req.Addr, nil)
+	if e != nil {
+		log.Error(ctx, "[GetInstances] get info failed",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("group", req.GName),
+			log.String("app", req.AName),
+			log.String("addr", req.Addr),
+			log.CError(e))
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	r := &api.Pingresp{}
+	if e := proto.Unmarshal(respdata, r); e != nil {
+		log.Error(ctx, "[GetInstances] response data broken",
+			log.String("operator", md["Token-User"]),
+			log.String("project_id", projectid),
+			log.String("group", req.GName),
+			log.String("app", req.AName),
+			log.String("addr", req.Addr),
+			log.CError(e))
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	return &api.GetInstanceInfoResp{
+		Info: &api.InstanceInfo{
+			TotalMen:    r.TotalMem,
+			CurMenUsage: r.CurMemUsage,
+			CpuNum:      r.CpuNum,
+			CurCpuUsage: r.CurCpuUsage,
+		},
+	}, nil
+
+}
+
 func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetProxyResp, error) {
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
@@ -1083,7 +1204,7 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 		}
 		return nil
 	}
-	out, e := config.Sdk.CallByPrjoectID(ctx, projectid, req.GName, req.AName, req.Path, common.Str2byte(req.Data), pcheck)
+	out, e := config.Sdk.CallByPrjoectID(ctx, projectid, req.GName, req.AName, req.Path, common.Str2byte(req.Data), req.ForceAddr, pcheck)
 	if e != nil {
 		log.Error(ctx, "[Proxy] call server failed",
 			log.String("operator", md["Token-User"]),

@@ -28,6 +28,8 @@ var _WebPathAppGetKeyConfig = "/admin.app/get_key_config"
 var _WebPathAppSetKeyConfig = "/admin.app/set_key_config"
 var _WebPathAppRollback = "/admin.app/rollback"
 var _WebPathAppWatch = "/admin.app/watch"
+var _WebPathAppGetInstances = "/admin.app/get_instances"
+var _WebPathAppGetInstanceInfo = "/admin.app/get_instance_info"
 var _WebPathAppSetProxy = "/admin.app/set_proxy"
 var _WebPathAppDelProxy = "/admin.app/del_proxy"
 var _WebPathAppProxy = "/admin.app/proxy"
@@ -42,6 +44,8 @@ type AppWebClient interface {
 	SetKeyConfig(context.Context, *SetKeyConfigReq, http.Header) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq, http.Header) (*RollbackResp, error)
 	Watch(context.Context, *WatchReq, http.Header) (*WatchResp, error)
+	GetInstances(context.Context, *GetInstancesReq, http.Header) (*GetInstancesResp, error)
+	GetInstanceInfo(context.Context, *GetInstanceInfoReq, http.Header) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq, http.Header) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq, http.Header) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq, http.Header) (*ProxyResp, error)
@@ -65,7 +69,7 @@ func (c *appWebClient) GetApp(ctx context.Context, req *GetAppReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetApp, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppGetApp, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -97,7 +101,7 @@ func (c *appWebClient) SetApp(ctx context.Context, req *SetAppReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppSetApp, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppSetApp, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -129,7 +133,7 @@ func (c *appWebClient) DelApp(ctx context.Context, req *DelAppReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppDelApp, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppDelApp, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -161,7 +165,7 @@ func (c *appWebClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecret
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppUpdateAppSecret, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppUpdateAppSecret, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -193,7 +197,7 @@ func (c *appWebClient) DelKey(ctx context.Context, req *DelKeyReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppDelKey, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppDelKey, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -225,7 +229,7 @@ func (c *appWebClient) GetKeyConfig(ctx context.Context, req *GetKeyConfigReq, h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppGetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -257,7 +261,7 @@ func (c *appWebClient) SetKeyConfig(ctx context.Context, req *SetKeyConfigReq, h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppSetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppSetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -289,7 +293,7 @@ func (c *appWebClient) Rollback(ctx context.Context, req *RollbackReq, header ht
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppRollback, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppRollback, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -321,7 +325,7 @@ func (c *appWebClient) Watch(ctx context.Context, req *WatchReq, header http.Hea
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppWatch, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppWatch, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -331,6 +335,70 @@ func (c *appWebClient) Watch(ctx context.Context, req *WatchReq, header http.Hea
 		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(WatchResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *appWebClient) GetInstances(ctx context.Context, req *GetInstancesReq, header http.Header) (*GetInstancesResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathAppGetInstances, "", header, metadata.GetMetadata(ctx), reqd, "")
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(GetInstancesResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *appWebClient) GetInstanceInfo(ctx context.Context, req *GetInstanceInfoReq, header http.Header) (*GetInstanceInfoResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathAppGetInstanceInfo, "", header, metadata.GetMetadata(ctx), reqd, "")
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(GetInstanceInfoResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -353,7 +421,7 @@ func (c *appWebClient) SetProxy(ctx context.Context, req *SetProxyReq, header ht
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppSetProxy, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppSetProxy, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -385,7 +453,7 @@ func (c *appWebClient) DelProxy(ctx context.Context, req *DelProxyReq, header ht
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppDelProxy, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppDelProxy, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -417,7 +485,7 @@ func (c *appWebClient) Proxy(ctx context.Context, req *ProxyReq, header http.Hea
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppProxy, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppProxy, "", header, metadata.GetMetadata(ctx), reqd, "")
 	if e != nil {
 		return nil, e
 	}
@@ -450,6 +518,8 @@ type AppWebServer interface {
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
+	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
@@ -986,6 +1056,124 @@ func _App_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchResp,
 		}
 	}
 }
+func _App_GetInstances_WebHandler(handler func(context.Context, *GetInstancesReq) (*GetInstancesResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(GetInstancesReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				log.Error(ctx, "[/admin.app/get_instances] get body failed", log.CError(e))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_instances] unmarshal json body failed", log.CError(e))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				log.Error(ctx, "[/admin.app/get_instances] get body failed", log.CError(e))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_instances] unmarshal proto body failed", log.CError(e))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			log.Error(ctx, "[/admin.app/get_instances] Content-Type unknown,must be application/json or application/x-protobuf")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/get_instances] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(GetInstancesResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
+func _App_GetInstanceInfo_WebHandler(handler func(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(GetInstanceInfoReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				log.Error(ctx, "[/admin.app/get_instance_info] get body failed", log.CError(e))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_instance_info] unmarshal json body failed", log.CError(e))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				log.Error(ctx, "[/admin.app/get_instance_info] get body failed", log.CError(e))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_instance_info] unmarshal proto body failed", log.CError(e))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			log.Error(ctx, "[/admin.app/get_instance_info] Content-Type unknown,must be application/json or application/x-protobuf")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/get_instance_info] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(GetInstanceInfoResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
 func _App_SetProxy_WebHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
 		req := new(SetProxyReq)
@@ -1271,6 +1459,32 @@ func RegisterAppWebServer(router *web.Router, svc AppWebServer, allmids map[stri
 		router.Post(_WebPathAppRollback, mids...)
 	}
 	router.Post(_WebPathAppWatch, _App_Watch_WebHandler(svc.Watch))
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _App_GetInstances_WebHandler(svc.GetInstances))
+		router.Post(_WebPathAppGetInstances, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _App_GetInstanceInfo_WebHandler(svc.GetInstanceInfo))
+		router.Post(_WebPathAppGetInstanceInfo, mids...)
+	}
 	{
 		requiredMids := []string{"token"}
 		mids := make([]web.OutsideHandler, 0, 2)

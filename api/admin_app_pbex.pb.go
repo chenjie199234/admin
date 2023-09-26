@@ -187,6 +187,37 @@ func (m *WatchReq) Validate() (errstr string) {
 }
 
 // return empty means pass
+func (m *GetInstancesReq) Validate() (errstr string) {
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: get_instances_req check len eq failed"
+	}
+	if len(m.GetGName()) == 0 {
+		return "field: g_name in object: get_instances_req check value str len not eq failed"
+	}
+	if len(m.GetAName()) == 0 {
+		return "field: a_name in object: get_instances_req check value str len not eq failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *GetInstanceInfoReq) Validate() (errstr string) {
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: get_instance_info_req check len eq failed"
+	}
+	if len(m.GetGName()) == 0 {
+		return "field: g_name in object: get_instance_info_req check value str len not eq failed"
+	}
+	if len(m.GetAName()) == 0 {
+		return "field: a_name in object: get_instance_info_req check value str len not eq failed"
+	}
+	if len(m.GetAddr()) <= 0 {
+		return "field: addr in object: get_instance_info_req check value str len gt failed"
+	}
+	return ""
+}
+
+// return empty means pass
 func (m *SetProxyReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
 		return "field: project_id in object: set_proxy_req check len eq failed"

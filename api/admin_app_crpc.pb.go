@@ -25,6 +25,8 @@ var _CrpcPathAppGetKeyConfig = "/admin.app/get_key_config"
 var _CrpcPathAppSetKeyConfig = "/admin.app/set_key_config"
 var _CrpcPathAppRollback = "/admin.app/rollback"
 var _CrpcPathAppWatch = "/admin.app/watch"
+var _CrpcPathAppGetInstances = "/admin.app/get_instances"
+var _CrpcPathAppGetInstanceInfo = "/admin.app/get_instance_info"
 var _CrpcPathAppSetProxy = "/admin.app/set_proxy"
 var _CrpcPathAppDelProxy = "/admin.app/del_proxy"
 var _CrpcPathAppProxy = "/admin.app/proxy"
@@ -39,6 +41,8 @@ type AppCrpcClient interface {
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
+	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
@@ -57,7 +61,7 @@ func (c *appCrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppResp
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppGetApp, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetApp, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -79,7 +83,7 @@ func (c *appCrpcClient) SetApp(ctx context.Context, req *SetAppReq) (*SetAppResp
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppSetApp, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppSetApp, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -101,7 +105,7 @@ func (c *appCrpcClient) DelApp(ctx context.Context, req *DelAppReq) (*DelAppResp
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppDelApp, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppDelApp, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -123,7 +127,7 @@ func (c *appCrpcClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecre
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppUpdateAppSecret, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppUpdateAppSecret, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -145,7 +149,7 @@ func (c *appCrpcClient) DelKey(ctx context.Context, req *DelKeyReq) (*DelKeyResp
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppDelKey, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppDelKey, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -167,7 +171,7 @@ func (c *appCrpcClient) GetKeyConfig(ctx context.Context, req *GetKeyConfigReq) 
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppGetKeyConfig, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetKeyConfig, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -189,7 +193,7 @@ func (c *appCrpcClient) SetKeyConfig(ctx context.Context, req *SetKeyConfigReq) 
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppSetKeyConfig, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppSetKeyConfig, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -211,7 +215,7 @@ func (c *appCrpcClient) Rollback(ctx context.Context, req *RollbackReq) (*Rollba
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppRollback, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppRollback, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -233,11 +237,55 @@ func (c *appCrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp, e
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppWatch, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppWatch, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
 	resp := new(WatchResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *appCrpcClient) GetInstances(ctx context.Context, req *GetInstancesReq) (*GetInstancesResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetInstances, reqd, metadata.GetMetadata(ctx), "")
+	if e != nil {
+		return nil, e
+	}
+	resp := new(GetInstancesResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *appCrpcClient) GetInstanceInfo(ctx context.Context, req *GetInstanceInfoReq) (*GetInstanceInfoResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetInstanceInfo, reqd, metadata.GetMetadata(ctx), "")
+	if e != nil {
+		return nil, e
+	}
+	resp := new(GetInstanceInfoResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -255,7 +303,7 @@ func (c *appCrpcClient) SetProxy(ctx context.Context, req *SetProxyReq) (*SetPro
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppSetProxy, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppSetProxy, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -277,7 +325,7 @@ func (c *appCrpcClient) DelProxy(ctx context.Context, req *DelProxyReq) (*DelPro
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppDelProxy, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppDelProxy, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -299,7 +347,7 @@ func (c *appCrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, e
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppProxy, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathAppProxy, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -327,6 +375,8 @@ type AppCrpcServer interface {
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
+	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
@@ -764,6 +814,102 @@ func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp
 		}
 	}
 }
+func _App_GetInstances_CrpcHandler(handler func(context.Context, *GetInstancesReq) (*GetInstancesResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(GetInstancesReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_instances] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.app/get_instances] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/get_instances] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetInstancesResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
+func _App_GetInstanceInfo_CrpcHandler(handler func(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(GetInstanceInfoReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.app/get_instance_info] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.app/get_instance_info] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/get_instance_info] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetInstanceInfoResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
 func _App_SetProxy_CrpcHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
@@ -920,6 +1066,8 @@ func RegisterAppCrpcServer(engine *crpc.CrpcServer, svc AppCrpcServer, allmids m
 	engine.RegisterHandler("admin.app", "set_key_config", _App_SetKeyConfig_CrpcHandler(svc.SetKeyConfig))
 	engine.RegisterHandler("admin.app", "rollback", _App_Rollback_CrpcHandler(svc.Rollback))
 	engine.RegisterHandler("admin.app", "watch", _App_Watch_CrpcHandler(svc.Watch))
+	engine.RegisterHandler("admin.app", "get_instances", _App_GetInstances_CrpcHandler(svc.GetInstances))
+	engine.RegisterHandler("admin.app", "get_instance_info", _App_GetInstanceInfo_CrpcHandler(svc.GetInstanceInfo))
 	engine.RegisterHandler("admin.app", "set_proxy", _App_SetProxy_CrpcHandler(svc.SetProxy))
 	engine.RegisterHandler("admin.app", "del_proxy", _App_DelProxy_CrpcHandler(svc.DelProxy))
 	engine.RegisterHandler("admin.app", "proxy", _App_Proxy_CrpcHandler(svc.Proxy))

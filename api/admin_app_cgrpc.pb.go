@@ -23,6 +23,8 @@ var _CGrpcPathAppGetKeyConfig = "/admin.app/get_key_config"
 var _CGrpcPathAppSetKeyConfig = "/admin.app/set_key_config"
 var _CGrpcPathAppRollback = "/admin.app/rollback"
 var _CGrpcPathAppWatch = "/admin.app/watch"
+var _CGrpcPathAppGetInstances = "/admin.app/get_instances"
+var _CGrpcPathAppGetInstanceInfo = "/admin.app/get_instance_info"
 var _CGrpcPathAppSetProxy = "/admin.app/set_proxy"
 var _CGrpcPathAppDelProxy = "/admin.app/del_proxy"
 var _CGrpcPathAppProxy = "/admin.app/proxy"
@@ -37,6 +39,8 @@ type AppCGrpcClient interface {
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
+	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
@@ -55,7 +59,7 @@ func (c *appCGrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppRes
 		return nil, cerror.ErrReq
 	}
 	resp := new(GetAppResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppGetApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppGetApp, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -65,7 +69,7 @@ func (c *appCGrpcClient) SetApp(ctx context.Context, req *SetAppReq) (*SetAppRes
 		return nil, cerror.ErrReq
 	}
 	resp := new(SetAppResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppSetApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppSetApp, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -75,7 +79,7 @@ func (c *appCGrpcClient) DelApp(ctx context.Context, req *DelAppReq) (*DelAppRes
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelAppResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppDelApp, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppDelApp, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -85,7 +89,7 @@ func (c *appCGrpcClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecr
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateAppSecretResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppUpdateAppSecret, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppUpdateAppSecret, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -95,7 +99,7 @@ func (c *appCGrpcClient) DelKey(ctx context.Context, req *DelKeyReq) (*DelKeyRes
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelKeyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppDelKey, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppDelKey, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -105,7 +109,7 @@ func (c *appCGrpcClient) GetKeyConfig(ctx context.Context, req *GetKeyConfigReq)
 		return nil, cerror.ErrReq
 	}
 	resp := new(GetKeyConfigResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppGetKeyConfig, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppGetKeyConfig, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -115,7 +119,7 @@ func (c *appCGrpcClient) SetKeyConfig(ctx context.Context, req *SetKeyConfigReq)
 		return nil, cerror.ErrReq
 	}
 	resp := new(SetKeyConfigResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppSetKeyConfig, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppSetKeyConfig, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -125,7 +129,7 @@ func (c *appCGrpcClient) Rollback(ctx context.Context, req *RollbackReq) (*Rollb
 		return nil, cerror.ErrReq
 	}
 	resp := new(RollbackResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppRollback, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppRollback, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -135,7 +139,27 @@ func (c *appCGrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp, 
 		return nil, cerror.ErrReq
 	}
 	resp := new(WatchResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppWatch, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppWatch, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *appCGrpcClient) GetInstances(ctx context.Context, req *GetInstancesReq) (*GetInstancesResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(GetInstancesResp)
+	if e := c.cc.Call(ctx, _CGrpcPathAppGetInstances, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+func (c *appCGrpcClient) GetInstanceInfo(ctx context.Context, req *GetInstanceInfoReq) (*GetInstanceInfoResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(GetInstanceInfoResp)
+	if e := c.cc.Call(ctx, _CGrpcPathAppGetInstanceInfo, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -145,7 +169,7 @@ func (c *appCGrpcClient) SetProxy(ctx context.Context, req *SetProxyReq) (*SetPr
 		return nil, cerror.ErrReq
 	}
 	resp := new(SetProxyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppSetProxy, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppSetProxy, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -155,7 +179,7 @@ func (c *appCGrpcClient) DelProxy(ctx context.Context, req *DelProxyReq) (*DelPr
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelProxyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppDelProxy, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppDelProxy, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -165,7 +189,7 @@ func (c *appCGrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, 
 		return nil, cerror.ErrReq
 	}
 	resp := new(ProxyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppProxy, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathAppProxy, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -181,6 +205,8 @@ type AppCGrpcServer interface {
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
 	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
+	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
 	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
 	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
@@ -402,6 +428,54 @@ func _App_Watch_CGrpcHandler(handler func(context.Context, *WatchReq) (*WatchRes
 		ctx.Write(resp)
 	}
 }
+func _App_GetInstances_CGrpcHandler(handler func(context.Context, *GetInstancesReq) (*GetInstancesResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(GetInstancesReq)
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/get_instances] decode failed")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/get_instances] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetInstancesResp)
+		}
+		ctx.Write(resp)
+	}
+}
+func _App_GetInstanceInfo_CGrpcHandler(handler func(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(GetInstanceInfoReq)
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.app/get_instance_info] decode failed")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/get_instance_info] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetInstanceInfoResp)
+		}
+		ctx.Write(resp)
+	}
+}
 func _App_SetProxy_CGrpcHandler(handler func(context.Context, *SetProxyReq) (*SetProxyResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(SetProxyReq)
@@ -486,6 +560,8 @@ func RegisterAppCGrpcServer(engine *cgrpc.CGrpcServer, svc AppCGrpcServer, allmi
 	engine.RegisterHandler("admin.app", "set_key_config", _App_SetKeyConfig_CGrpcHandler(svc.SetKeyConfig))
 	engine.RegisterHandler("admin.app", "rollback", _App_Rollback_CGrpcHandler(svc.Rollback))
 	engine.RegisterHandler("admin.app", "watch", _App_Watch_CGrpcHandler(svc.Watch))
+	engine.RegisterHandler("admin.app", "get_instances", _App_GetInstances_CGrpcHandler(svc.GetInstances))
+	engine.RegisterHandler("admin.app", "get_instance_info", _App_GetInstanceInfo_CGrpcHandler(svc.GetInstanceInfo))
 	engine.RegisterHandler("admin.app", "set_proxy", _App_SetProxy_CGrpcHandler(svc.SetProxy))
 	engine.RegisterHandler("admin.app", "del_proxy", _App_DelProxy_CGrpcHandler(svc.DelProxy))
 	engine.RegisterHandler("admin.app", "proxy", _App_Proxy_CGrpcHandler(svc.Proxy))

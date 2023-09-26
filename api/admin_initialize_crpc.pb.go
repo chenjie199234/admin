@@ -57,7 +57,7 @@ func (c *initializeCrpcClient) InitStatus(ctx context.Context, req *InitStatusRe
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeInitStatus, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeInitStatus, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -79,7 +79,7 @@ func (c *initializeCrpcClient) Init(ctx context.Context, req *InitReq) (*InitRes
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeInit, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeInit, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -101,7 +101,7 @@ func (c *initializeCrpcClient) RootLogin(ctx context.Context, req *RootLoginReq)
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeRootLogin, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeRootLogin, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -123,7 +123,7 @@ func (c *initializeCrpcClient) UpdateRootPassword(ctx context.Context, req *Upda
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeUpdateRootPassword, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeUpdateRootPassword, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -145,7 +145,7 @@ func (c *initializeCrpcClient) CreateProject(ctx context.Context, req *CreatePro
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeCreateProject, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeCreateProject, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -167,7 +167,7 @@ func (c *initializeCrpcClient) UpdateProject(ctx context.Context, req *UpdatePro
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeUpdateProject, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeUpdateProject, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -189,7 +189,7 @@ func (c *initializeCrpcClient) ListProject(ctx context.Context, req *ListProject
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeListProject, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeListProject, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}
@@ -211,7 +211,7 @@ func (c *initializeCrpcClient) DeleteProject(ctx context.Context, req *DeletePro
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathInitializeDeleteProject, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathInitializeDeleteProject, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}

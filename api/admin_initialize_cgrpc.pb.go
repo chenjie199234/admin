@@ -55,7 +55,7 @@ func (c *initializeCGrpcClient) InitStatus(ctx context.Context, req *InitStatusR
 		return nil, cerror.ErrReq
 	}
 	resp := new(InitStatusResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeInitStatus, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeInitStatus, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -65,7 +65,7 @@ func (c *initializeCGrpcClient) Init(ctx context.Context, req *InitReq) (*InitRe
 		return nil, cerror.ErrReq
 	}
 	resp := new(InitResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeInit, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeInit, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -75,7 +75,7 @@ func (c *initializeCGrpcClient) RootLogin(ctx context.Context, req *RootLoginReq
 		return nil, cerror.ErrReq
 	}
 	resp := new(RootLoginResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeRootLogin, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeRootLogin, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -85,7 +85,7 @@ func (c *initializeCGrpcClient) UpdateRootPassword(ctx context.Context, req *Upd
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateRootPasswordResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeUpdateRootPassword, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeUpdateRootPassword, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -95,7 +95,7 @@ func (c *initializeCGrpcClient) CreateProject(ctx context.Context, req *CreatePr
 		return nil, cerror.ErrReq
 	}
 	resp := new(CreateProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeCreateProject, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeCreateProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -105,7 +105,7 @@ func (c *initializeCGrpcClient) UpdateProject(ctx context.Context, req *UpdatePr
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeUpdateProject, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeUpdateProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -115,7 +115,7 @@ func (c *initializeCGrpcClient) ListProject(ctx context.Context, req *ListProjec
 		return nil, cerror.ErrReq
 	}
 	resp := new(ListProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeListProject, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeListProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -125,7 +125,7 @@ func (c *initializeCGrpcClient) DeleteProject(ctx context.Context, req *DeletePr
 		return nil, cerror.ErrReq
 	}
 	resp := new(DeleteProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeDeleteProject, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathInitializeDeleteProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil

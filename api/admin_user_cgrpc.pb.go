@@ -55,7 +55,7 @@ func (c *userCGrpcClient) UserLogin(ctx context.Context, req *UserLoginReq) (*Us
 		return nil, cerror.ErrReq
 	}
 	resp := new(UserLoginResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserUserLogin, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserUserLogin, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -65,7 +65,7 @@ func (c *userCGrpcClient) LoginInfo(ctx context.Context, req *LoginInfoReq) (*Lo
 		return nil, cerror.ErrReq
 	}
 	resp := new(LoginInfoResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserLoginInfo, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserLoginInfo, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -75,7 +75,7 @@ func (c *userCGrpcClient) InviteProject(ctx context.Context, req *InviteProjectR
 		return nil, cerror.ErrReq
 	}
 	resp := new(InviteProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserInviteProject, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserInviteProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -85,7 +85,7 @@ func (c *userCGrpcClient) KickProject(ctx context.Context, req *KickProjectReq) 
 		return nil, cerror.ErrReq
 	}
 	resp := new(KickProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserKickProject, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserKickProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -95,7 +95,7 @@ func (c *userCGrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) 
 		return nil, cerror.ErrReq
 	}
 	resp := new(SearchUsersResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserSearchUsers, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserSearchUsers, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -105,7 +105,7 @@ func (c *userCGrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateUserResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateUser, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateUser, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -115,7 +115,7 @@ func (c *userCGrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq) (*
 		return nil, cerror.ErrReq
 	}
 	resp := new(CreateRoleResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserCreateRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserCreateRole, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -125,7 +125,7 @@ func (c *userCGrpcClient) SearchRoles(ctx context.Context, req *SearchRolesReq) 
 		return nil, cerror.ErrReq
 	}
 	resp := new(SearchRolesResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserSearchRoles, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserSearchRoles, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -135,7 +135,7 @@ func (c *userCGrpcClient) UpdateRole(ctx context.Context, req *UpdateRoleReq) (*
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateRoleResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateRole, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -145,7 +145,7 @@ func (c *userCGrpcClient) DelRoles(ctx context.Context, req *DelRolesReq) (*DelR
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelRolesResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserDelRoles, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserDelRoles, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -155,7 +155,7 @@ func (c *userCGrpcClient) AddUserRole(ctx context.Context, req *AddUserRoleReq) 
 		return nil, cerror.ErrReq
 	}
 	resp := new(AddUserRoleResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserAddUserRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserAddUserRole, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil
@@ -165,7 +165,7 @@ func (c *userCGrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) 
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelUserRoleResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserDelUserRole, req, resp, metadata.GetMetadata(ctx)); e != nil {
+	if e := c.cc.Call(ctx, _CGrpcPathUserDelUserRole, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
 		return nil, e
 	}
 	return resp, nil

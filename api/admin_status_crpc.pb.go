@@ -36,7 +36,7 @@ func (c *statusCrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, e
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathStatusPing, reqd, metadata.GetMetadata(ctx))
+	respd, e := c.cc.Call(ctx, _CrpcPathStatusPing, reqd, metadata.GetMetadata(ctx), "")
 	if e != nil {
 		return nil, e
 	}

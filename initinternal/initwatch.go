@@ -10,7 +10,6 @@ import (
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
 
-	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/crpc"
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/log"
@@ -478,7 +477,7 @@ func (s *InternalSdk) GetAppConfigByProjectName(pname, g, a string) (*model.AppS
 	return app.summary, nil
 }
 
-func (s *InternalSdk) GetAppIPsByProjectID(ctx context.Context, pid, g, a string) ([]string, error) {
+func (s *InternalSdk) GetAppAddrsByProjectID(ctx context.Context, pid, g, a string) ([]string, error) {
 	fullname := pid + "-" + g + "." + a
 	s.lker.RLock()
 	app, ok := s.appsIDIndex[fullname]
@@ -512,25 +511,16 @@ func (s *InternalSdk) GetAppIPsByProjectID(ctx context.Context, pid, g, a string
 	}
 	//copy the di pointer
 	di := app.di
+	app.diactive = time.Now().UnixNano()
 	app.Unlock()
-	ch, cancel := di.GetNotice()
-	defer cancel()
-	select {
-	case _, ok := <-ch:
-		if !ok {
-			return nil, cerror.ErrDiscoverStopped
-		}
-		tmp, _, _ := di.GetAddrs(discover.NotNeed)
-		addrs := make([]string, 0, len(tmp))
-		for addr := range tmp {
-			addrs = append(addrs, addr)
-		}
-		return addrs, nil
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	tmp, _, _ := di.GetAddrs(discover.NotNeed)
+	addrs := make([]string, 0, len(tmp))
+	for addr := range tmp {
+		addrs = append(addrs, addr)
 	}
+	return addrs, nil
 }
-func (s *InternalSdk) GetAppIPsByProjectName(ctx context.Context, pname, g, a string) ([]string, error) {
+func (s *InternalSdk) GetAppAddrsByProjectName(ctx context.Context, pname, g, a string) ([]string, error) {
 	fullname := pname + "-" + g + "." + a
 	s.lker.RLock()
 	app, ok := s.appsNameIndex[fullname]
@@ -564,28 +554,19 @@ func (s *InternalSdk) GetAppIPsByProjectName(ctx context.Context, pname, g, a st
 	}
 	//copy the di pointer
 	di := app.di
+	app.diactive = time.Now().UnixNano()
 	app.Unlock()
-	ch, cancel := di.GetNotice()
-	defer cancel()
-	select {
-	case _, ok := <-ch:
-		if !ok {
-			return nil, cerror.ErrDiscoverStopped
-		}
-		tmp, _, _ := di.GetAddrs(discover.NotNeed)
-		addrs := make([]string, 0, len(tmp))
-		for addr := range tmp {
-			addrs = append(addrs, addr)
-		}
-		return addrs, nil
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	tmp, _, _ := di.GetAddrs(discover.NotNeed)
+	addrs := make([]string, 0, len(tmp))
+	for addr := range tmp {
+		addrs = append(addrs, addr)
 	}
+	return addrs, nil
 }
 
 type PermissionCheckHandler func(ctx context.Context, nodeid string, read, write, admin bool) error
 
-func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, path string, reqdata []byte, pcheck PermissionCheckHandler) ([]byte, error) {
+func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, path string, reqdata []byte, forceaddr string, pcheck PermissionCheckHandler) ([]byte, error) {
 	fullname := pid + "-" + g + "." + a
 	s.lker.RLock()
 	app, ok := s.appsIDIndex[fullname]
@@ -641,10 +622,10 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 	//copy the client pointer
 	client := app.client
 	app.Unlock()
-	return client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx))
+	return client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx), forceaddr)
 }
 
-func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string, path string, reqdata []byte, pcheck PermissionCheckHandler) ([]byte, error) {
+func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string, path string, reqdata []byte, forceaddr string, pcheck PermissionCheckHandler) ([]byte, error) {
 	fullname := pname + "-" + g + "." + a
 	s.lker.RLock()
 	app, ok := s.appsNameIndex[fullname]
@@ -700,5 +681,5 @@ func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string,
 	//copy the client pointer
 	client := app.client
 	app.Unlock()
-	return client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx))
+	return client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx), forceaddr)
 }

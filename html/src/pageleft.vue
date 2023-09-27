@@ -58,7 +58,13 @@ function get_projects(){
 }
 
 function selfproject():boolean{
-	return state.project.info&&state.project.info.project_id![0]==0&&state.project.info.project_id![1]==1
+	if(!state.project.info){
+		return false
+	}
+	if(!state.project.info.project_id){
+		return false
+	}
+	return state.project.info!.project_id![0]==0&&state.project.info!.project_id![1]==1
 }
 
 const projectnodes=ref<permissionAPI.NodeInfo|null>(null)
@@ -96,7 +102,7 @@ const optype=ref<string>("")
 const project_name=ref<string>("")
 
 function project_update_able():boolean{
-	return project_name.value!=state.project.info.project_name
+	return project_name.value!=state.project.info!.project_name
 }
 
 function project_op(){
@@ -166,7 +172,10 @@ const node_name=ref<string>("")
 const node_url=ref<string>("")
 
 function node_update_able():boolean{
-	return node_name.value!=target.value.node_name || node_url.value!=target.value.node_data
+	if(!target.value){
+		return false
+	}
+	return node_name.value!=target.value!.node_name || node_url.value!=target.value!.node_data
 }
 
 function node_op(){

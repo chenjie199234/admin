@@ -48,7 +48,7 @@ function do_init(){
 }
 </script>
 <template>
-	<div v-if="state.inited==false" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center">
+	<div v-if="state.inited.value==false" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center">
 		<va-card style="min-width:350px;width:auto;margin:10px;text-align:center" color="primary" gradient>
 			<va-card-content style="font-size:20px"><b>Initialize Now</b></va-card-content>
 		</va-card>

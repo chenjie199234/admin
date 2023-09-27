@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref,computed,watch } from 'vue'
+import { ref,watch } from 'vue'
 import * as permissionAPI from './api/admin_permission_browser_toc'
 const props=defineProps<{
 	pnode:permissionAPI.NodeInfo|null
@@ -78,7 +78,7 @@ function permission_same():boolean{
 		<div style="display:flex;flex-direction:column;align-items:center;padding:5px 15px 0px 15px;border:1px solid var(--va-primary);border-radius:5px">
 			<div style="margin:2px;min-width:100px;border:1px solid var(--va-primary);border-radius:3px;padding:10px;text-align:center">{{node.node_name}}</div>
 			<va-switch
-				:disabled="disabled||(pnode&&pnode.admin)"
+				:disabled="disabled||(pnode!=null&&pnode.admin)"
 				off-color="shadow"
 				style="margin:2px"
 				v-model="new_canread"
@@ -87,7 +87,7 @@ function permission_same():boolean{
 				@update:modelValue="permission_update('read')"
 			/>
 			<va-switch
-				:disabled="disabled||(pnode&&pnode.admin)"
+				:disabled="disabled||(pnode!=null&&pnode.admin)"
 				off-color="shadow"
 				style="margin:2px"
 				v-model="new_canwrite"
@@ -96,7 +96,7 @@ function permission_same():boolean{
 				@update:modelValue="permission_update('write')"
 			/>
 			<va-switch
-				:disabled="disabled||(pnode&&pnode.admin)"
+				:disabled="disabled||(pnode!=null&&pnode.admin)"
 				off-color="shadow"
 				style="margin:2px"
 				v-model="new_admin"
@@ -105,7 +105,7 @@ function permission_same():boolean{
 				@update:modelValue="permission_update('admin')"
 			/>
 			<va-button
-				:disabled="disabled||(pnode&&pnode.admin)||permission_same()"
+				:disabled="disabled||(pnode!=null&&pnode.admin)||permission_same()"
 				style="margin:2px"
 				@click="$emit('permissionevent',node,new_canread,new_canwrite,new_admin)"
 			>

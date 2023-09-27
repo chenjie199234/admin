@@ -148,7 +148,7 @@ function get_instances(withinfo: boolean){
 		return
 	}
 	let req = {
-		project_id:state.project.info.project_id,
+		project_id:state.project.info!.project_id,
 		g_name:curg.value,
 		a_name:cura.value,
 		secret:secret.value,
@@ -162,7 +162,11 @@ function get_instances(withinfo: boolean){
 			instances.value=new Map()
 			let tmp = [...resp.instances.entries()].sort()
 			for(let i=0;i<tmp.length;i++){
-				instances.value.set(tmp[i][0],tmp[i][1])
+				if(tmp[i][1]){
+					instances.value.set(tmp[i][0],tmp[i][1]!)
+				}else{
+					instances.value.set(tmp[i][0],null)
+				}
 			}
 		}else{
 			instances.value=new Map()
@@ -175,7 +179,7 @@ function get_instance(addr: string){
 		return
 	}
 	let req = {
-		project_id:state.project.info.project_id,
+		project_id:state.project.info!.project_id,
 		g_name:curg.value,
 		a_name:cura.value,
 		secret:secret.value,
@@ -1359,11 +1363,13 @@ function is_json_obj(str :string):boolean{
 											forceaddr=option
 										}
 									}">
-										<div
-											style="padding:10px;cursor:pointer"
-											:style="{'background-color':hover?'var(--va-background-border)':'',color:forceaddr==option?'green':'black'}">
-											{{option}}{{forceaddr==option?"    (click to cancel)":""}}
-										</div>
+										<template #default="{hover}">
+											<div
+												style="padding:10px;cursor:pointer"
+												:style="{'background-color':hover?'var(--va-background-border)':'',color:forceaddr==option?'green':'black'}">
+												{{option}}{{forceaddr==option?"    (click to cancel)":""}}
+											</div>
+										</template>
 									</va-hover>
 								</template>
 							</va-select>
@@ -1478,37 +1484,37 @@ function is_json_obj(str :string):boolean{
 			</div>
 			<div v-for="instanceaddr of instances.keys()"
 				style="position:relative;width:300px;height:150px;margin:5px;border:1px solid var(--va-primary);border-radius:5px">
-				<va-button style="position:absolute;right:0px" size="small" gradient @click="get_instance(instanceaddr)">refresh</va-button>
+				<va-button style="position:absolute;right:1px;top:1px" size="small" gradient @click="get_instance(instanceaddr)">refresh</va-button>
 				<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-around">
 					<div style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">Addr</span>
 						<va-divider vertical />
 						<span>{{instanceaddr}}</span>
 					</div>
-					<div v-if="!instances.get(instanceaddr)||instances.get(instanceaddr).cpu_num==0" style="margin:1px;display:flex">
+					<div v-if="!instances.get(instanceaddr)||instances.get(instanceaddr)!.cpu_num==0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">SysInfo</span>
 						<va-divider vertical />
 						<span>get failed</span>
 					</div>
-					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr).cpu_num!=0" style="margin:1px;display:flex">
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuNum</span>
 						<va-divider vertical />
-						<span>{{instances.get(instanceaddr).cpu_num}}</span>
+						<span>{{instances.get(instanceaddr)!.cpu_num}}</span>
 					</div>
-					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr).cpu_num!=0" style="margin:1px;display:flex">
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuUsage</span>
 						<va-divider vertical />
-						<span>{{(instances.get(instanceaddr).cur_cpu_usage*100).toFixed(2)}}%</span>
+						<span>{{(instances.get(instanceaddr)!.cur_cpu_usage*100).toFixed(2)}}%</span>
 					</div>
-					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr).cpu_num!=0" style="margin:1px;display:flex">
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemTotal</span>
 						<va-divider vertical />
-						<span>{{(instances.get(instanceaddr).total_mem.toNumber()/1024/1024).toFixed(2)}}MB</span>
+						<span>{{(instances.get(instanceaddr)!.total_mem.toNumber()/1024/1024).toFixed(2)}}MB</span>
 					</div>
-					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr).cpu_num!=0" style="margin:1px;display:flex">
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemUsage</span>
 						<va-divider vertical />
-						<span>{{(instances.get(instanceaddr).cur_mem_usage.toNumber()/instances.get(instanceaddr).total_mem.toNumber()*100).toFixed(2)}}%</span>
+						<span>{{(instances.get(instanceaddr)!.cur_mem_usage.toNumber()/instances.get(instanceaddr)!.total_mem.toNumber()*100).toFixed(2)}}%</span>
 					</div>
 				</div>
 			</div>

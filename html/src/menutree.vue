@@ -10,7 +10,7 @@ defineProps<{
 }>()
 
 const open=ref<{[k:string]:boolean}>({})
-const hovernode=ref<permissionAPI.NodeInfo>(null)
+const hovernode=ref<permissionAPI.NodeInfo|null>(null)
 function bindstyle(node :permissionAPI.NodeInfo){
 	let style={}
 	if(node==hovernode.value && jumpable(node)){
@@ -85,8 +85,8 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 				<div v-if="showable(node)" style="display:flex;align-items:center">
 					<div
 						style="flex:1;display:flex;align-items:center"
-						:style="bindstyle(node)"
-						@mouseover="hovernode=node"
+						:style="bindstyle(node!)"
+						@mouseover="hovernode=node!"
 						@mouseout="hovernode=null"
 						@click="()=>{
 							open[node!.node_id!.toString()]=!open[node!.node_id!.toString()]

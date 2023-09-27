@@ -62,8 +62,8 @@ const proxys=ref<Map<string,appAPI.ProxyPathInfo>>(new Map())
 const t_proxys_hover=ref<boolean>(false)
 const proxyhover=ref<string>("")
 
-//const instances=ref<appAPI.InstanceInfo[]>([])
-//const t_instances_hover=ref<boolean>(false)
+const instances=ref<Map<string,appAPI.InstanceInfo|null>>(new Map())
+const t_instances_hover=ref<boolean>(false)
 
 const get_app_status=ref<boolean>(false)
 
@@ -143,11 +143,7 @@ function get_app(){
 		state.clear_load()
 	})
 }
-function get_instances(){
-	if(!get_app_status.value){
-		instances.value=[]
-		return
-	}
+function get_instances(withinfo: boolean){
 	if(!state.set_load()){
 		return
 	}
@@ -156,21 +152,44 @@ function get_instances(){
 		g_name:curg.value,
 		a_name:cura.value,
 		secret:secret.value,
+		with_info:withinfo,
 	}
 	client.appClient.get_instances({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
-	},(resp: appAPI.GetAppInstancesResp)=>{
+	},(resp: appAPI.GetInstancesResp)=>{
 		if(resp.instances){
-			let tmp:appAPI.InstanceInfo[]=[]
-			for(let i=0;i<resp.instances.length;i++){
-				if(resp.instances[i]){
-					tmp.push(resp.instances[i]!)
-				}
+			instances.value=new Map()
+			let tmp = [...resp.instances.entries()].sort()
+			for(let i=0;i<tmp.length;i++){
+				instances.value.set(tmp[i][0],tmp[i][1])
 			}
-			instances.value=tmp
 		}else{
-			instances.value=[]
+			instances.value=new Map()
+		}
+		state.clear_load()
+	})
+}
+function get_instance(addr: string){
+	if(!state.set_load()){
+		return
+	}
+	let req = {
+		project_id:state.project.info.project_id,
+		g_name:curg.value,
+		a_name:cura.value,
+		secret:secret.value,
+		addr:addr,
+	}
+	client.appClient.get_instance_info({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+		state.clear_load()
+		state.set_alert("error",e.code,e.msg)
+	},(resp: appAPI.GetInstanceInfoResp)=>{
+		if(resp.info){
+			if(!instances.value){
+				instances.value=new Map()
+			}
+			instances.value.set(addr,resp.info)
 		}
 		state.clear_load()
 	})
@@ -366,6 +385,7 @@ function update_proxy_able():boolean{
 //proxy
 const reqdata=ref<string>("")
 const respdata=ref<string>("")
+const forceaddr=ref<string>("")
 
 function app_op(){
 	if(!state.set_load()){
@@ -705,6 +725,7 @@ function app_op(){
 				a_name:cura.value,
 				path:cur_proxy.value,
 				data:data,
+				force_addr:forceaddr.value,
 			}
 			client.appClient.proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
 				state.clear_load()
@@ -1292,10 +1313,11 @@ function is_json_obj(str :string):boolean{
 						if(cur_proxy==''){
 							cur_proxy=proxy
 							reqdata='{\n}'
+							respdata=''
+							forceaddr=''
 							update_proxy_permission_read=proxys.get(proxy)!.read
 							update_proxy_permission_write=proxys.get(proxy)!.write
 							update_proxy_permission_admin=proxys.get(proxy)!.admin
-							respdata=''
 						}else{
 							cur_proxy=''
 						}
@@ -1307,7 +1329,7 @@ function is_json_obj(str :string):boolean{
 				<div v-if="cur_proxy==proxy" style="flex:1;display:flex;margin:1px 20px;overflow-y:auto">
 					<div style="flex:1;display:flex;flex-direction:column">
 						<va-textarea style="flex:1" v-model.trim="reqdata" :readonly="respdata!=''" autosize :resize="false" />
-						<div style="width:100%;display:flex">
+						<div style="width:100%;display:flex;align-items:center">
 							<va-button
 								style="width:60px;height:30px;margin:2px 0"
 								size="small"
@@ -1317,7 +1339,34 @@ function is_json_obj(str :string):boolean{
 							>
 								Proxy
 							</va-button>
-							<div style="flex:1"></div>
+							<va-select
+								:disabled="respdata!=''"
+								v-model="forceaddr"
+								:options="[...instances.keys()]"
+								noOptionsText="No Servers"
+								style="margin:2px 10px"
+								placeholder="Specific Server(random when empty)"
+								dropdownIcon=""
+								outline
+								@click="get_instances(false)">
+								<template #option="{option,selectOption}">
+									<va-hover stateful @click="()=>{
+										if(forceaddr==option){
+											selectOption(option)
+											forceaddr=''
+										}else{
+											selectOption(option)
+											forceaddr=option
+										}
+									}">
+										<div
+											style="padding:10px;cursor:pointer"
+											:style="{'background-color':hover?'var(--va-background-border)':'',color:forceaddr==option?'green':'black'}">
+											{{option}}{{forceaddr==option?"    (click to cancel)":""}}
+										</div>
+									</va-hover>
+								</template>
+							</va-select>
 							<va-switch
 								:disabled="respdata!=''||!canwrite()"
 								style="margin:2px 10px"
@@ -1388,78 +1437,81 @@ function is_json_obj(str :string):boolean{
 				</div>
 			</template>
 		</div>
-		<div style="width:100%" v-if="get_app_status&&config_proxy_instance=='proxy'&&proxys.size==0">
+		<div v-if="get_app_status&&config_proxy_instance=='proxy'&&proxys.size==0" style="width:100%">
 			<p style="margin:1px 10px;padding:12px;background-color:var(--va-background-element);color:var(--va-primary)">No Proxy Paths</p>
 		</div>
 		<!-- instances -->
-		<!-- <div -->
-		<!-- 	v-if="get_app_status&&(config_proxy_instance=='instance'||config_proxy_instance=='')" -->
-		<!-- 	style="display:flex;align-items:center;margin:1px 0;cursor:pointer" -->
-		<!-- 	:style="{'background-color':t_instances_hover?'var(--va-shadow)':'var(--va-background-element)'}" -->
-		<!-- 	@click="()=>{ -->
-		<!-- 		if(config_proxy_instance==''){ -->
-		<!-- 			instances=[] -->
-		<!-- 			config_proxy_instance='instance' -->
-		<!-- 			get_instances() -->
-		<!-- 		}else{ -->
-		<!-- 			config_proxy_instance='' -->
-		<!-- 		} -->
-		<!-- 	}" -->
-		<!-- 	@mouseover="t_instances_hover=true" -->
-		<!-- 	@mouseout="t_instances_hover=false" -->
-		<!-- > -->
-		<!-- 	<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='instance'?'-':'+' }}</span> -->
-		<!-- 	<span style="flex:1;padding:12px;color:var(--va-primary)">Instances</span> -->
-		<!-- 	<va-button -->
-		<!-- 		v-if="config_proxy_instance=='instance'" -->
-		<!-- 		style="width:60px;height:30px" -->
-		<!-- 		size="small" -->
-		<!-- 		@mouseover.stop="" -->
-		<!-- 		@mouseout.stop="" -->
-		<!-- 		@click.stop="get_instances" -->
-		<!-- 	> -->
-		<!-- 		refresh -->
-		<!-- 	</va-button> -->
-		<!-- 	<span style="width:60px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance?'▲':'▼' }}</span> -->
-		<!-- </div> -->
-		<!-- <div v-if="config_proxy_instance=='instance'&&instances.length>0" style="display:flex;flex-wrap:wrap"> -->
-		<!-- 	<div v-for="instance of instances" style="border:1px solid var(--va-primary);border-radius:5px;margin:5px;display:flex;flex-direction:column;align-items:center"> -->
-		<!-- 		<div style="margin:1px;display:flex"> -->
-		<!-- 			<span style="width:85px">Host IP</span> -->
-		<!-- 			<va-divider vertical /> -->
-		<!-- 			<span style="width:200px;word-break:break-all">{{instance.host_ip}}</span> -->
-		<!-- 		</div> -->
-		<!-- 		<div style="margin:1px;display:flex"> -->
-		<!-- 			<span style="width:85px">Host Name</span> -->
-		<!-- 			<va-divider vertical /> -->
-		<!-- 			<span style="width:200px;word-break:break-all">{{instance.host_name}}</span> -->
-		<!-- 		</div> -->
-		<!-- 		<div style="margin:1px;display:flex"> -->
-		<!-- 			<span style="width:85px">CPU Num</span> -->
-		<!-- 			<va-divider vertical /> -->
-		<!-- 			<span style="width:200px">{{instance.cpu_num}}</span> -->
-		<!-- 		</div> -->
-		<!-- 		<div style="margin:1px;display:flex"> -->
-		<!-- 			<span style="width:85px">CPU Use</span> -->
-		<!-- 			<va-divider vertical /> -->
-		<!-- 			<span style="width:200px">{{(instance.cpu_usage*100).toFixed(2)}}%</span> -->
-		<!-- 		</div> -->
-		<!-- 		<div style="margin:1px;display:flex"> -->
-		<!-- 			<span style="width:85px">Mem Total</span> -->
-		<!-- 			<va-divider vertical /> -->
-		<!-- 			<span style="width:200px">{{instance.mem_total.toFixed(2)}}MB</span> -->
-		<!-- 		</div> -->
-		<!-- 		<div style="margin:1px;display:flex"> -->
-		<!-- 			<span style="width:85px">Mem Use</span> -->
-		<!-- 			<va-divider vertical /> -->
-		<!-- 			<span style="width:200px">{{(instance.mem_usage*100).toFixed(2)}}%</span> -->
-		<!-- 		</div> -->
-		<!-- 		<va-divider style="width:100%"/> -->
-		<!-- 		<va-button style="margin-bottom:3px" @click="get_pprof(instance.host_ip)">PPROF</va-button> -->
-		<!-- 	</div> -->
-		<!-- </div> -->
-		<!-- <div v-if="config_proxy_instance=='instance'&&instances.length==0"> -->
-		<!-- 	<div style="border:1px solid var(--va-primary);border-radius:5px;margin:5px;width:300px;height:150px;display:flex;justify-content:center;align-items:center">No Instances</div> -->
-		<!-- </div> -->
+		<div
+			v-if="get_app_status&&(config_proxy_instance=='instance'||config_proxy_instance=='')"
+			style="width:100%;display:flex;align-items:center;margin:1px 0;cursor:pointer"
+			:style="{'background-color':t_instances_hover?'var(--va-shadow)':'var(--va-background-element)'}"
+			@click="()=>{
+				if(config_proxy_instance==''){
+					instances=new Map()
+					config_proxy_instance='instance'
+					get_instances(true)
+				}else{
+					config_proxy_instance=''
+				}
+			}"
+			@mouseover="t_instances_hover=true"
+			@mouseout="t_instances_hover=false"
+		>
+			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='instance'?'-':'+' }}</span>
+			<span style="flex:1;padding:12px;color:var(--va-primary)">Instances</span>
+			<va-button
+				v-if="config_proxy_instance=='instance'"
+				style="width:60px;height:30px;margin-right:20px"
+				size="small"
+				gradient
+				@mouseover.stop=""
+				@mouseout.stop=""
+				@click.stop="get_instances(true)"
+			>
+				refresh
+			</va-button>
+		</div>
+		<div v-if="get_app_status&&config_proxy_instance=='instance'" style="width:100%;overflow-y:auto;flex:1;display:flex;flex-wrap:wrap">
+			<div v-if="instances.size==0"
+				style="width:300px;height:150px;border:1px solid var(--va-primary);border-radius:5px;margin:5px;display:flex;justify-content:center;align-items:center">
+				No Instances
+			</div>
+			<div v-for="instanceaddr of instances.keys()"
+				style="position:relative;width:300px;height:150px;margin:5px;border:1px solid var(--va-primary);border-radius:5px">
+				<va-button style="position:absolute;right:0px" size="small" gradient @click="get_instance(instanceaddr)">refresh</va-button>
+				<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-around">
+					<div style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">Addr</span>
+						<va-divider vertical />
+						<span>{{instanceaddr}}</span>
+					</div>
+					<div v-if="!instances.get(instanceaddr)||instances.get(instanceaddr).cpu_num==0" style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">SysInfo</span>
+						<va-divider vertical />
+						<span>get failed</span>
+					</div>
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr).cpu_num!=0" style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">CpuNum</span>
+						<va-divider vertical />
+						<span>{{instances.get(instanceaddr).cpu_num}}</span>
+					</div>
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr).cpu_num!=0" style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">CpuUsage</span>
+						<va-divider vertical />
+						<span>{{(instances.get(instanceaddr).cur_cpu_usage*100).toFixed(2)}}%</span>
+					</div>
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr).cpu_num!=0" style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">MemTotal</span>
+						<va-divider vertical />
+						<span>{{(instances.get(instanceaddr).total_mem.toNumber()/1024/1024).toFixed(2)}}MB</span>
+					</div>
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr).cpu_num!=0" style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">MemUsage</span>
+						<va-divider vertical />
+						<span>{{(instances.get(instanceaddr).cur_mem_usage.toNumber()/instances.get(instanceaddr).total_mem.toNumber()*100).toFixed(2)}}%</span>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 </template>

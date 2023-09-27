@@ -234,10 +234,11 @@ message watch_data{
 
 //instance
 message instance_info{
-	uint64 total_men=1;
-	uint64 cur_men_usage=2;
-	double cpu_num=3;
-	double cur_cpu_usage=4;
+	string name=1;
+	uint64 total_mem=2;
+	uint64 cur_mem_usage=3;
+	double cpu_num=4;
+	double cur_cpu_usage=5;
 }
 message get_instances_req{
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];

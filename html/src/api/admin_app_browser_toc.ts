@@ -733,80 +733,89 @@ function JsonToGetKeyConfigResp(jsonobj: { [k:string]:any }): GetKeyConfigResp{
 	return obj
 }
 export interface InstanceInfo{
+	name: string;
 	//Warning!!!Type is uint64,be careful of sign(+)
-	total_men: Long;
+	total_mem: Long;
 	//Warning!!!Type is uint64,be careful of sign(+)
-	cur_men_usage: Long;
+	cur_mem_usage: Long;
 	cpu_num: number;
 	cur_cpu_usage: number;
 }
 function JsonToInstanceInfo(jsonobj: { [k:string]:any }): InstanceInfo{
 	let obj: InstanceInfo={
-		total_men:Long.ZERO,
-		cur_men_usage:Long.ZERO,
+		name:'',
+		total_mem:Long.ZERO,
+		cur_mem_usage:Long.ZERO,
 		cpu_num:0,
 		cur_cpu_usage:0,
 	}
-	//total_men
-	if(jsonobj['total_men']!=null&&jsonobj['total_men']!=undefined){
-		if(typeof jsonobj['total_men']=='number'){
-			if(!Number.isInteger(jsonobj['total_men'])){
-				throw 'InstanceInfo.total_men must be integer'
+	//name
+	if(jsonobj['name']!=null&&jsonobj['name']!=undefined){
+		if(typeof jsonobj['name']!='string'){
+			throw 'InstanceInfo.name must be string'
+		}
+		obj['name']=jsonobj['name']
+	}
+	//total_mem
+	if(jsonobj['total_mem']!=null&&jsonobj['total_mem']!=undefined){
+		if(typeof jsonobj['total_mem']=='number'){
+			if(!Number.isInteger(jsonobj['total_mem'])){
+				throw 'InstanceInfo.total_mem must be integer'
 			}
-			if(jsonobj['total_men']<0){
-				throw 'InstanceInfo.total_men overflow'
+			if(jsonobj['total_mem']<0){
+				throw 'InstanceInfo.total_mem overflow'
 			}
 			let tmp: Long=Long.ZERO
 			try{
-				tmp=Long.fromNumber(jsonobj['total_men'],true)
+				tmp=Long.fromNumber(jsonobj['total_mem'],true)
 			}catch(e){
-				throw 'InstanceInfo.total_men must be integer'
+				throw 'InstanceInfo.total_mem must be integer'
 			}
-			obj['total_men']=tmp
-		}else if(typeof jsonobj['total_men']=='string'){
+			obj['total_mem']=tmp
+		}else if(typeof jsonobj['total_mem']=='string'){
 			let tmp:Long=Long.ZERO
 			try{
-				tmp=Long.fromString(jsonobj['total_men'],true)
+				tmp=Long.fromString(jsonobj['total_mem'],true)
 			}catch(e){
-				throw 'InstanceInfo.total_men must be integer'
+				throw 'InstanceInfo.total_mem must be integer'
 			}
-			if(tmp.toString()!=jsonobj['total_men']){
-				throw 'InstanceInfo.total_men overflow'
+			if(tmp.toString()!=jsonobj['total_mem']){
+				throw 'InstanceInfo.total_mem overflow'
 			}
-			obj['total_men']=tmp
+			obj['total_mem']=tmp
 		}else{
-			throw 'format wrong!InstanceInfo.total_men must be integer'
+			throw 'format wrong!InstanceInfo.total_mem must be integer'
 		}
 	}
-	//cur_men_usage
-	if(jsonobj['cur_men_usage']!=null&&jsonobj['cur_men_usage']!=undefined){
-		if(typeof jsonobj['cur_men_usage']=='number'){
-			if(!Number.isInteger(jsonobj['cur_men_usage'])){
-				throw 'InstanceInfo.cur_men_usage must be integer'
+	//cur_mem_usage
+	if(jsonobj['cur_mem_usage']!=null&&jsonobj['cur_mem_usage']!=undefined){
+		if(typeof jsonobj['cur_mem_usage']=='number'){
+			if(!Number.isInteger(jsonobj['cur_mem_usage'])){
+				throw 'InstanceInfo.cur_mem_usage must be integer'
 			}
-			if(jsonobj['cur_men_usage']<0){
-				throw 'InstanceInfo.cur_men_usage overflow'
+			if(jsonobj['cur_mem_usage']<0){
+				throw 'InstanceInfo.cur_mem_usage overflow'
 			}
 			let tmp: Long=Long.ZERO
 			try{
-				tmp=Long.fromNumber(jsonobj['cur_men_usage'],true)
+				tmp=Long.fromNumber(jsonobj['cur_mem_usage'],true)
 			}catch(e){
-				throw 'InstanceInfo.cur_men_usage must be integer'
+				throw 'InstanceInfo.cur_mem_usage must be integer'
 			}
-			obj['cur_men_usage']=tmp
-		}else if(typeof jsonobj['cur_men_usage']=='string'){
+			obj['cur_mem_usage']=tmp
+		}else if(typeof jsonobj['cur_mem_usage']=='string'){
 			let tmp:Long=Long.ZERO
 			try{
-				tmp=Long.fromString(jsonobj['cur_men_usage'],true)
+				tmp=Long.fromString(jsonobj['cur_mem_usage'],true)
 			}catch(e){
-				throw 'InstanceInfo.cur_men_usage must be integer'
+				throw 'InstanceInfo.cur_mem_usage must be integer'
 			}
-			if(tmp.toString()!=jsonobj['cur_men_usage']){
-				throw 'InstanceInfo.cur_men_usage overflow'
+			if(tmp.toString()!=jsonobj['cur_mem_usage']){
+				throw 'InstanceInfo.cur_mem_usage overflow'
 			}
-			obj['cur_men_usage']=tmp
+			obj['cur_mem_usage']=tmp
 		}else{
-			throw 'format wrong!InstanceInfo.cur_men_usage must be integer'
+			throw 'format wrong!InstanceInfo.cur_mem_usage must be integer'
 		}
 	}
 	//cpu_num

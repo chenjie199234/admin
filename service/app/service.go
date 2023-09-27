@@ -962,8 +962,9 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 				return nil
 			}
 			resp.Instances[addr] = &api.InstanceInfo{
-				TotalMen:    r.TotalMem,
-				CurMenUsage: r.CurMemUsage,
+				Name:        r.Host,
+				TotalMem:    r.TotalMem,
+				CurMemUsage: r.CurMemUsage,
 				CpuNum:      r.CpuNum,
 				CurCpuUsage: r.CurCpuUsage,
 			}
@@ -1021,8 +1022,9 @@ func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoR
 	}
 	return &api.GetInstanceInfoResp{
 		Info: &api.InstanceInfo{
-			TotalMen:    r.TotalMem,
-			CurMenUsage: r.CurMemUsage,
+			Name:        r.Host,
+			TotalMem:    r.TotalMem,
+			CurMemUsage: r.CurMemUsage,
 			CpuNum:      r.CpuNum,
 			CurCpuUsage: r.CurCpuUsage,
 		},

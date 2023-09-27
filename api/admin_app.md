@@ -449,10 +449,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 instance_info: {
+	"name":"str",
 	//uint64 use string to avoid overflow
-	"total_men":"0",
+	"total_mem":"0",
 	//uint64 use string to avoid overflow
-	"cur_men_usage":"0",
+	"cur_mem_usage":"0",
 	//float64
 	"cpu_num":0.1,
 	//float64
@@ -496,10 +497,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 instance_info: {
+	"name":"str",
 	//uint64 use string to avoid overflow
-	"total_men":"0",
+	"total_mem":"0",
 	//uint64 use string to avoid overflow
-	"cur_men_usage":"0",
+	"cur_mem_usage":"0",
 	//float64
 	"cpu_num":0.1,
 	//float64

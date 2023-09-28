@@ -11,7 +11,7 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	cgrpc "github.com/chenjie199234/Corelib/cgrpc"
 	log "github.com/chenjie199234/Corelib/log"
-	metadata "github.com/chenjie199234/Corelib/metadata"
+	grpc "google.golang.org/grpc"
 )
 
 var _CGrpcPathInitializeInitStatus = "/admin.initialize/init_status"
@@ -25,107 +25,107 @@ var _CGrpcPathInitializeDeleteProject = "/admin.initialize/delete_project"
 
 type InitializeCGrpcClient interface {
 	// 初始化状态
-	InitStatus(context.Context, *InitStatusReq) (*InitStatusResp, error)
+	InitStatus(context.Context, *InitStatusReq, ...grpc.CallOption) (*InitStatusResp, error)
 	// 初始化
-	Init(context.Context, *InitReq) (*InitResp, error)
+	Init(context.Context, *InitReq, ...grpc.CallOption) (*InitResp, error)
 	// 登录
-	RootLogin(context.Context, *RootLoginReq) (*RootLoginResp, error)
+	RootLogin(context.Context, *RootLoginReq, ...grpc.CallOption) (*RootLoginResp, error)
 	// 更新密码
-	UpdateRootPassword(context.Context, *UpdateRootPasswordReq) (*UpdateRootPasswordResp, error)
+	UpdateRootPassword(context.Context, *UpdateRootPasswordReq, ...grpc.CallOption) (*UpdateRootPasswordResp, error)
 	// 创建项目
-	CreateProject(context.Context, *CreateProjectReq) (*CreateProjectResp, error)
+	CreateProject(context.Context, *CreateProjectReq, ...grpc.CallOption) (*CreateProjectResp, error)
 	// 更新项目
-	UpdateProject(context.Context, *UpdateProjectReq) (*UpdateProjectResp, error)
+	UpdateProject(context.Context, *UpdateProjectReq, ...grpc.CallOption) (*UpdateProjectResp, error)
 	// 获取项目列表
-	ListProject(context.Context, *ListProjectReq) (*ListProjectResp, error)
+	ListProject(context.Context, *ListProjectReq, ...grpc.CallOption) (*ListProjectResp, error)
 	// 删除项目
-	DeleteProject(context.Context, *DeleteProjectReq) (*DeleteProjectResp, error)
+	DeleteProject(context.Context, *DeleteProjectReq, ...grpc.CallOption) (*DeleteProjectResp, error)
 }
 
 type initializeCGrpcClient struct {
-	cc *cgrpc.CGrpcClient
+	cc grpc.ClientConnInterface
 }
 
-func NewInitializeCGrpcClient(c *cgrpc.CGrpcClient) InitializeCGrpcClient {
-	return &initializeCGrpcClient{cc: c}
+func NewInitializeCGrpcClient(cc grpc.ClientConnInterface) InitializeCGrpcClient {
+	return &initializeCGrpcClient{cc: cc}
 }
 
-func (c *initializeCGrpcClient) InitStatus(ctx context.Context, req *InitStatusReq) (*InitStatusResp, error) {
+func (c *initializeCGrpcClient) InitStatus(ctx context.Context, req *InitStatusReq, opts ...grpc.CallOption) (*InitStatusResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(InitStatusResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeInitStatus, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathInitializeInitStatus, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *initializeCGrpcClient) Init(ctx context.Context, req *InitReq) (*InitResp, error) {
+func (c *initializeCGrpcClient) Init(ctx context.Context, req *InitReq, opts ...grpc.CallOption) (*InitResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(InitResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeInit, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathInitializeInit, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *initializeCGrpcClient) RootLogin(ctx context.Context, req *RootLoginReq) (*RootLoginResp, error) {
+func (c *initializeCGrpcClient) RootLogin(ctx context.Context, req *RootLoginReq, opts ...grpc.CallOption) (*RootLoginResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(RootLoginResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeRootLogin, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathInitializeRootLogin, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *initializeCGrpcClient) UpdateRootPassword(ctx context.Context, req *UpdateRootPasswordReq) (*UpdateRootPasswordResp, error) {
+func (c *initializeCGrpcClient) UpdateRootPassword(ctx context.Context, req *UpdateRootPasswordReq, opts ...grpc.CallOption) (*UpdateRootPasswordResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateRootPasswordResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeUpdateRootPassword, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathInitializeUpdateRootPassword, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *initializeCGrpcClient) CreateProject(ctx context.Context, req *CreateProjectReq) (*CreateProjectResp, error) {
+func (c *initializeCGrpcClient) CreateProject(ctx context.Context, req *CreateProjectReq, opts ...grpc.CallOption) (*CreateProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(CreateProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeCreateProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathInitializeCreateProject, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *initializeCGrpcClient) UpdateProject(ctx context.Context, req *UpdateProjectReq) (*UpdateProjectResp, error) {
+func (c *initializeCGrpcClient) UpdateProject(ctx context.Context, req *UpdateProjectReq, opts ...grpc.CallOption) (*UpdateProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeUpdateProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathInitializeUpdateProject, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *initializeCGrpcClient) ListProject(ctx context.Context, req *ListProjectReq) (*ListProjectResp, error) {
+func (c *initializeCGrpcClient) ListProject(ctx context.Context, req *ListProjectReq, opts ...grpc.CallOption) (*ListProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(ListProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeListProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathInitializeListProject, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *initializeCGrpcClient) DeleteProject(ctx context.Context, req *DeleteProjectReq) (*DeleteProjectResp, error) {
+func (c *initializeCGrpcClient) DeleteProject(ctx context.Context, req *DeleteProjectReq, opts ...grpc.CallOption) (*DeleteProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(DeleteProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathInitializeDeleteProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathInitializeDeleteProject, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil

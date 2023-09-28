@@ -11,7 +11,7 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	cgrpc "github.com/chenjie199234/Corelib/cgrpc"
 	log "github.com/chenjie199234/Corelib/log"
-	metadata "github.com/chenjie199234/Corelib/metadata"
+	grpc "google.golang.org/grpc"
 )
 
 var _CGrpcPathPermissionGetUserPermission = "/admin.permission/get_user_permission"
@@ -26,122 +26,122 @@ var _CGrpcPathPermissionListRoleNode = "/admin.permission/list_role_node"
 var _CGrpcPathPermissionListProjectNode = "/admin.permission/list_project_node"
 
 type PermissionCGrpcClient interface {
-	GetUserPermission(context.Context, *GetUserPermissionReq) (*GetUserPermissionResp, error)
-	UpdateUserPermission(context.Context, *UpdateUserPermissionReq) (*UpdateUserPermissionResp, error)
-	UpdateRolePermission(context.Context, *UpdateRolePermissionReq) (*UpdateRolePermissionResp, error)
-	AddNode(context.Context, *AddNodeReq) (*AddNodeResp, error)
-	UpdateNode(context.Context, *UpdateNodeReq) (*UpdateNodeResp, error)
-	MoveNode(context.Context, *MoveNodeReq) (*MoveNodeResp, error)
-	DelNode(context.Context, *DelNodeReq) (*DelNodeResp, error)
-	ListUserNode(context.Context, *ListUserNodeReq) (*ListUserNodeResp, error)
-	ListRoleNode(context.Context, *ListRoleNodeReq) (*ListRoleNodeResp, error)
-	ListProjectNode(context.Context, *ListProjectNodeReq) (*ListProjectNodeResp, error)
+	GetUserPermission(context.Context, *GetUserPermissionReq, ...grpc.CallOption) (*GetUserPermissionResp, error)
+	UpdateUserPermission(context.Context, *UpdateUserPermissionReq, ...grpc.CallOption) (*UpdateUserPermissionResp, error)
+	UpdateRolePermission(context.Context, *UpdateRolePermissionReq, ...grpc.CallOption) (*UpdateRolePermissionResp, error)
+	AddNode(context.Context, *AddNodeReq, ...grpc.CallOption) (*AddNodeResp, error)
+	UpdateNode(context.Context, *UpdateNodeReq, ...grpc.CallOption) (*UpdateNodeResp, error)
+	MoveNode(context.Context, *MoveNodeReq, ...grpc.CallOption) (*MoveNodeResp, error)
+	DelNode(context.Context, *DelNodeReq, ...grpc.CallOption) (*DelNodeResp, error)
+	ListUserNode(context.Context, *ListUserNodeReq, ...grpc.CallOption) (*ListUserNodeResp, error)
+	ListRoleNode(context.Context, *ListRoleNodeReq, ...grpc.CallOption) (*ListRoleNodeResp, error)
+	ListProjectNode(context.Context, *ListProjectNodeReq, ...grpc.CallOption) (*ListProjectNodeResp, error)
 }
 
 type permissionCGrpcClient struct {
-	cc *cgrpc.CGrpcClient
+	cc grpc.ClientConnInterface
 }
 
-func NewPermissionCGrpcClient(c *cgrpc.CGrpcClient) PermissionCGrpcClient {
-	return &permissionCGrpcClient{cc: c}
+func NewPermissionCGrpcClient(cc grpc.ClientConnInterface) PermissionCGrpcClient {
+	return &permissionCGrpcClient{cc: cc}
 }
 
-func (c *permissionCGrpcClient) GetUserPermission(ctx context.Context, req *GetUserPermissionReq) (*GetUserPermissionResp, error) {
+func (c *permissionCGrpcClient) GetUserPermission(ctx context.Context, req *GetUserPermissionReq, opts ...grpc.CallOption) (*GetUserPermissionResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(GetUserPermissionResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionGetUserPermission, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionGetUserPermission, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) UpdateUserPermission(ctx context.Context, req *UpdateUserPermissionReq) (*UpdateUserPermissionResp, error) {
+func (c *permissionCGrpcClient) UpdateUserPermission(ctx context.Context, req *UpdateUserPermissionReq, opts ...grpc.CallOption) (*UpdateUserPermissionResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateUserPermissionResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateUserPermission, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionUpdateUserPermission, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) UpdateRolePermission(ctx context.Context, req *UpdateRolePermissionReq) (*UpdateRolePermissionResp, error) {
+func (c *permissionCGrpcClient) UpdateRolePermission(ctx context.Context, req *UpdateRolePermissionReq, opts ...grpc.CallOption) (*UpdateRolePermissionResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateRolePermissionResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateRolePermission, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionUpdateRolePermission, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) AddNode(ctx context.Context, req *AddNodeReq) (*AddNodeResp, error) {
+func (c *permissionCGrpcClient) AddNode(ctx context.Context, req *AddNodeReq, opts ...grpc.CallOption) (*AddNodeResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(AddNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionAddNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionAddNode, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) UpdateNode(ctx context.Context, req *UpdateNodeReq) (*UpdateNodeResp, error) {
+func (c *permissionCGrpcClient) UpdateNode(ctx context.Context, req *UpdateNodeReq, opts ...grpc.CallOption) (*UpdateNodeResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionUpdateNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionUpdateNode, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) MoveNode(ctx context.Context, req *MoveNodeReq) (*MoveNodeResp, error) {
+func (c *permissionCGrpcClient) MoveNode(ctx context.Context, req *MoveNodeReq, opts ...grpc.CallOption) (*MoveNodeResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(MoveNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionMoveNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionMoveNode, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) DelNode(ctx context.Context, req *DelNodeReq) (*DelNodeResp, error) {
+func (c *permissionCGrpcClient) DelNode(ctx context.Context, req *DelNodeReq, opts ...grpc.CallOption) (*DelNodeResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionDelNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionDelNode, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) ListUserNode(ctx context.Context, req *ListUserNodeReq) (*ListUserNodeResp, error) {
+func (c *permissionCGrpcClient) ListUserNode(ctx context.Context, req *ListUserNodeReq, opts ...grpc.CallOption) (*ListUserNodeResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(ListUserNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionListUserNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionListUserNode, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) ListRoleNode(ctx context.Context, req *ListRoleNodeReq) (*ListRoleNodeResp, error) {
+func (c *permissionCGrpcClient) ListRoleNode(ctx context.Context, req *ListRoleNodeReq, opts ...grpc.CallOption) (*ListRoleNodeResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(ListRoleNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionListRoleNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionListRoleNode, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *permissionCGrpcClient) ListProjectNode(ctx context.Context, req *ListProjectNodeReq) (*ListProjectNodeResp, error) {
+func (c *permissionCGrpcClient) ListProjectNode(ctx context.Context, req *ListProjectNodeReq, opts ...grpc.CallOption) (*ListProjectNodeResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(ListProjectNodeResp)
-	if e := c.cc.Call(ctx, _CGrpcPathPermissionListProjectNode, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathPermissionListProjectNode, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil

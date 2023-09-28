@@ -3,10 +3,11 @@ module github.com/chenjie199234/admin
 go 1.21
 
 require (
-	github.com/chenjie199234/Corelib v0.0.81-0.20230926171529-3ca19e86cbf7
+	github.com/chenjie199234/Corelib v0.0.81-0.20230928111934-57103ab6c099
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/redis/go-redis/v9 v9.1.0
 	go.mongodb.org/mongo-driver v1.12.1
+	google.golang.org/grpc v1.58.2
 	google.golang.org/protobuf v1.31.0
 )
 
@@ -56,7 +57,6 @@ require (
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
-	google.golang.org/grpc v1.58.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -11,7 +11,6 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	crpc "github.com/chenjie199234/Corelib/crpc"
 	log "github.com/chenjie199234/Corelib/log"
-	metadata "github.com/chenjie199234/Corelib/metadata"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
 )
@@ -53,7 +52,7 @@ func (c *permissionCrpcClient) GetUserPermission(ctx context.Context, req *GetUs
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionGetUserPermission, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionGetUserPermission, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -75,7 +74,7 @@ func (c *permissionCrpcClient) UpdateUserPermission(ctx context.Context, req *Up
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionUpdateUserPermission, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionUpdateUserPermission, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -97,7 +96,7 @@ func (c *permissionCrpcClient) UpdateRolePermission(ctx context.Context, req *Up
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionUpdateRolePermission, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionUpdateRolePermission, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -119,7 +118,7 @@ func (c *permissionCrpcClient) AddNode(ctx context.Context, req *AddNodeReq) (*A
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionAddNode, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionAddNode, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -141,7 +140,7 @@ func (c *permissionCrpcClient) UpdateNode(ctx context.Context, req *UpdateNodeRe
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionUpdateNode, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionUpdateNode, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -163,7 +162,7 @@ func (c *permissionCrpcClient) MoveNode(ctx context.Context, req *MoveNodeReq) (
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionMoveNode, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionMoveNode, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -185,7 +184,7 @@ func (c *permissionCrpcClient) DelNode(ctx context.Context, req *DelNodeReq) (*D
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionDelNode, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionDelNode, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -207,7 +206,7 @@ func (c *permissionCrpcClient) ListUserNode(ctx context.Context, req *ListUserNo
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListUserNode, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListUserNode, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -229,7 +228,7 @@ func (c *permissionCrpcClient) ListRoleNode(ctx context.Context, req *ListRoleNo
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListRoleNode, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListRoleNode, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -251,7 +250,7 @@ func (c *permissionCrpcClient) ListProjectNode(ctx context.Context, req *ListPro
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListProjectNode, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathPermissionListProjectNode, reqd)
 	if e != nil {
 		return nil, e
 	}

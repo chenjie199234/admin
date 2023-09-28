@@ -11,30 +11,30 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	cgrpc "github.com/chenjie199234/Corelib/cgrpc"
 	log "github.com/chenjie199234/Corelib/log"
-	metadata "github.com/chenjie199234/Corelib/metadata"
+	grpc "google.golang.org/grpc"
 )
 
 var _CGrpcPathStatusPing = "/admin.status/ping"
 
 type StatusCGrpcClient interface {
 	// ping check server's health
-	Ping(context.Context, *Pingreq) (*Pingresp, error)
+	Ping(context.Context, *Pingreq, ...grpc.CallOption) (*Pingresp, error)
 }
 
 type statusCGrpcClient struct {
-	cc *cgrpc.CGrpcClient
+	cc grpc.ClientConnInterface
 }
 
-func NewStatusCGrpcClient(c *cgrpc.CGrpcClient) StatusCGrpcClient {
-	return &statusCGrpcClient{cc: c}
+func NewStatusCGrpcClient(cc grpc.ClientConnInterface) StatusCGrpcClient {
+	return &statusCGrpcClient{cc: cc}
 }
 
-func (c *statusCGrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, error) {
+func (c *statusCGrpcClient) Ping(ctx context.Context, req *Pingreq, opts ...grpc.CallOption) (*Pingresp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(Pingresp)
-	if e := c.cc.Call(ctx, _CGrpcPathStatusPing, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathStatusPing, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil

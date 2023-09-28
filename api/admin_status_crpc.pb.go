@@ -11,7 +11,6 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	crpc "github.com/chenjie199234/Corelib/crpc"
 	log "github.com/chenjie199234/Corelib/log"
-	metadata "github.com/chenjie199234/Corelib/metadata"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
 )
@@ -36,7 +35,7 @@ func (c *statusCrpcClient) Ping(ctx context.Context, req *Pingreq) (*Pingresp, e
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathStatusPing, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathStatusPing, reqd)
 	if e != nil {
 		return nil, e
 	}

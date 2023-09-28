@@ -11,7 +11,7 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	cgrpc "github.com/chenjie199234/Corelib/cgrpc"
 	log "github.com/chenjie199234/Corelib/log"
-	metadata "github.com/chenjie199234/Corelib/metadata"
+	grpc "google.golang.org/grpc"
 )
 
 var _CGrpcPathAppGetApp = "/admin.app/get_app"
@@ -30,166 +30,166 @@ var _CGrpcPathAppDelProxy = "/admin.app/del_proxy"
 var _CGrpcPathAppProxy = "/admin.app/proxy"
 
 type AppCGrpcClient interface {
-	GetApp(context.Context, *GetAppReq) (*GetAppResp, error)
-	SetApp(context.Context, *SetAppReq) (*SetAppResp, error)
-	DelApp(context.Context, *DelAppReq) (*DelAppResp, error)
-	UpdateAppSecret(context.Context, *UpdateAppSecretReq) (*UpdateAppSecretResp, error)
-	DelKey(context.Context, *DelKeyReq) (*DelKeyResp, error)
-	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
-	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
-	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	Watch(context.Context, *WatchReq) (*WatchResp, error)
-	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
-	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
-	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
-	DelProxy(context.Context, *DelProxyReq) (*DelProxyResp, error)
-	Proxy(context.Context, *ProxyReq) (*ProxyResp, error)
+	GetApp(context.Context, *GetAppReq, ...grpc.CallOption) (*GetAppResp, error)
+	SetApp(context.Context, *SetAppReq, ...grpc.CallOption) (*SetAppResp, error)
+	DelApp(context.Context, *DelAppReq, ...grpc.CallOption) (*DelAppResp, error)
+	UpdateAppSecret(context.Context, *UpdateAppSecretReq, ...grpc.CallOption) (*UpdateAppSecretResp, error)
+	DelKey(context.Context, *DelKeyReq, ...grpc.CallOption) (*DelKeyResp, error)
+	GetKeyConfig(context.Context, *GetKeyConfigReq, ...grpc.CallOption) (*GetKeyConfigResp, error)
+	SetKeyConfig(context.Context, *SetKeyConfigReq, ...grpc.CallOption) (*SetKeyConfigResp, error)
+	Rollback(context.Context, *RollbackReq, ...grpc.CallOption) (*RollbackResp, error)
+	Watch(context.Context, *WatchReq, ...grpc.CallOption) (*WatchResp, error)
+	GetInstances(context.Context, *GetInstancesReq, ...grpc.CallOption) (*GetInstancesResp, error)
+	GetInstanceInfo(context.Context, *GetInstanceInfoReq, ...grpc.CallOption) (*GetInstanceInfoResp, error)
+	SetProxy(context.Context, *SetProxyReq, ...grpc.CallOption) (*SetProxyResp, error)
+	DelProxy(context.Context, *DelProxyReq, ...grpc.CallOption) (*DelProxyResp, error)
+	Proxy(context.Context, *ProxyReq, ...grpc.CallOption) (*ProxyResp, error)
 }
 
 type appCGrpcClient struct {
-	cc *cgrpc.CGrpcClient
+	cc grpc.ClientConnInterface
 }
 
-func NewAppCGrpcClient(c *cgrpc.CGrpcClient) AppCGrpcClient {
-	return &appCGrpcClient{cc: c}
+func NewAppCGrpcClient(cc grpc.ClientConnInterface) AppCGrpcClient {
+	return &appCGrpcClient{cc: cc}
 }
 
-func (c *appCGrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppResp, error) {
+func (c *appCGrpcClient) GetApp(ctx context.Context, req *GetAppReq, opts ...grpc.CallOption) (*GetAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(GetAppResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppGetApp, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppGetApp, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) SetApp(ctx context.Context, req *SetAppReq) (*SetAppResp, error) {
+func (c *appCGrpcClient) SetApp(ctx context.Context, req *SetAppReq, opts ...grpc.CallOption) (*SetAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(SetAppResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppSetApp, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppSetApp, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) DelApp(ctx context.Context, req *DelAppReq) (*DelAppResp, error) {
+func (c *appCGrpcClient) DelApp(ctx context.Context, req *DelAppReq, opts ...grpc.CallOption) (*DelAppResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelAppResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppDelApp, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppDelApp, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecretReq) (*UpdateAppSecretResp, error) {
+func (c *appCGrpcClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecretReq, opts ...grpc.CallOption) (*UpdateAppSecretResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateAppSecretResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppUpdateAppSecret, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppUpdateAppSecret, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) DelKey(ctx context.Context, req *DelKeyReq) (*DelKeyResp, error) {
+func (c *appCGrpcClient) DelKey(ctx context.Context, req *DelKeyReq, opts ...grpc.CallOption) (*DelKeyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelKeyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppDelKey, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppDelKey, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) GetKeyConfig(ctx context.Context, req *GetKeyConfigReq) (*GetKeyConfigResp, error) {
+func (c *appCGrpcClient) GetKeyConfig(ctx context.Context, req *GetKeyConfigReq, opts ...grpc.CallOption) (*GetKeyConfigResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(GetKeyConfigResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppGetKeyConfig, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppGetKeyConfig, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) SetKeyConfig(ctx context.Context, req *SetKeyConfigReq) (*SetKeyConfigResp, error) {
+func (c *appCGrpcClient) SetKeyConfig(ctx context.Context, req *SetKeyConfigReq, opts ...grpc.CallOption) (*SetKeyConfigResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(SetKeyConfigResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppSetKeyConfig, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppSetKeyConfig, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) Rollback(ctx context.Context, req *RollbackReq) (*RollbackResp, error) {
+func (c *appCGrpcClient) Rollback(ctx context.Context, req *RollbackReq, opts ...grpc.CallOption) (*RollbackResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(RollbackResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppRollback, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppRollback, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp, error) {
+func (c *appCGrpcClient) Watch(ctx context.Context, req *WatchReq, opts ...grpc.CallOption) (*WatchResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(WatchResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppWatch, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppWatch, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) GetInstances(ctx context.Context, req *GetInstancesReq) (*GetInstancesResp, error) {
+func (c *appCGrpcClient) GetInstances(ctx context.Context, req *GetInstancesReq, opts ...grpc.CallOption) (*GetInstancesResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(GetInstancesResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppGetInstances, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppGetInstances, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) GetInstanceInfo(ctx context.Context, req *GetInstanceInfoReq) (*GetInstanceInfoResp, error) {
+func (c *appCGrpcClient) GetInstanceInfo(ctx context.Context, req *GetInstanceInfoReq, opts ...grpc.CallOption) (*GetInstanceInfoResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(GetInstanceInfoResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppGetInstanceInfo, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppGetInstanceInfo, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) SetProxy(ctx context.Context, req *SetProxyReq) (*SetProxyResp, error) {
+func (c *appCGrpcClient) SetProxy(ctx context.Context, req *SetProxyReq, opts ...grpc.CallOption) (*SetProxyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(SetProxyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppSetProxy, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppSetProxy, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) DelProxy(ctx context.Context, req *DelProxyReq) (*DelProxyResp, error) {
+func (c *appCGrpcClient) DelProxy(ctx context.Context, req *DelProxyReq, opts ...grpc.CallOption) (*DelProxyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelProxyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppDelProxy, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppDelProxy, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *appCGrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, error) {
+func (c *appCGrpcClient) Proxy(ctx context.Context, req *ProxyReq, opts ...grpc.CallOption) (*ProxyResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(ProxyResp)
-	if e := c.cc.Call(ctx, _CGrpcPathAppProxy, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathAppProxy, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil

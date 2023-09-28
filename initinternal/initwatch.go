@@ -13,7 +13,6 @@ import (
 	"github.com/chenjie199234/Corelib/crpc"
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/log"
-	"github.com/chenjie199234/Corelib/metadata"
 	"github.com/chenjie199234/Corelib/util/common"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -622,7 +621,7 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 	//copy the client pointer
 	client := app.client
 	app.Unlock()
-	return client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx), forceaddr)
+	return client.Call(crpc.WithForceAddr(ctx, forceaddr), path, reqdata)
 }
 
 func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string, path string, reqdata []byte, forceaddr string, pcheck PermissionCheckHandler) ([]byte, error) {
@@ -681,5 +680,5 @@ func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string,
 	//copy the client pointer
 	client := app.client
 	app.Unlock()
-	return client.Call(ctx, path, reqdata, metadata.GetMetadata(ctx), forceaddr)
+	return client.Call(crpc.WithForceAddr(ctx, forceaddr), path, reqdata)
 }

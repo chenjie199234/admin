@@ -69,7 +69,7 @@ func (c *appWebClient) GetApp(ctx context.Context, req *GetAppReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetApp, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppGetApp, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -101,7 +101,7 @@ func (c *appWebClient) SetApp(ctx context.Context, req *SetAppReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppSetApp, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppSetApp, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -133,7 +133,7 @@ func (c *appWebClient) DelApp(ctx context.Context, req *DelAppReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppDelApp, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppDelApp, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -165,7 +165,7 @@ func (c *appWebClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecret
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppUpdateAppSecret, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppUpdateAppSecret, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -197,7 +197,7 @@ func (c *appWebClient) DelKey(ctx context.Context, req *DelKeyReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppDelKey, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppDelKey, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -229,7 +229,7 @@ func (c *appWebClient) GetKeyConfig(ctx context.Context, req *GetKeyConfigReq, h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppGetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -261,7 +261,7 @@ func (c *appWebClient) SetKeyConfig(ctx context.Context, req *SetKeyConfigReq, h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppSetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppSetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -293,7 +293,7 @@ func (c *appWebClient) Rollback(ctx context.Context, req *RollbackReq, header ht
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppRollback, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppRollback, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -325,7 +325,7 @@ func (c *appWebClient) Watch(ctx context.Context, req *WatchReq, header http.Hea
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppWatch, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppWatch, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -357,7 +357,7 @@ func (c *appWebClient) GetInstances(ctx context.Context, req *GetInstancesReq, h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetInstances, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppGetInstances, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -389,7 +389,7 @@ func (c *appWebClient) GetInstanceInfo(ctx context.Context, req *GetInstanceInfo
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetInstanceInfo, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppGetInstanceInfo, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -421,7 +421,7 @@ func (c *appWebClient) SetProxy(ctx context.Context, req *SetProxyReq, header ht
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppSetProxy, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppSetProxy, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -453,7 +453,7 @@ func (c *appWebClient) DelProxy(ctx context.Context, req *DelProxyReq, header ht
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppDelProxy, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppDelProxy, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -485,7 +485,7 @@ func (c *appWebClient) Proxy(ctx context.Context, req *ProxyReq, header http.Hea
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppProxy, "", header, metadata.GetMetadata(ctx), reqd, "")
+	r, e := c.cc.Post(ctx, _WebPathAppProxy, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}

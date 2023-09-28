@@ -11,7 +11,6 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	crpc "github.com/chenjie199234/Corelib/crpc"
 	log "github.com/chenjie199234/Corelib/log"
-	metadata "github.com/chenjie199234/Corelib/metadata"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
 )
@@ -61,7 +60,7 @@ func (c *appCrpcClient) GetApp(ctx context.Context, req *GetAppReq) (*GetAppResp
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppGetApp, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetApp, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -83,7 +82,7 @@ func (c *appCrpcClient) SetApp(ctx context.Context, req *SetAppReq) (*SetAppResp
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppSetApp, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppSetApp, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -105,7 +104,7 @@ func (c *appCrpcClient) DelApp(ctx context.Context, req *DelAppReq) (*DelAppResp
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppDelApp, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppDelApp, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -127,7 +126,7 @@ func (c *appCrpcClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecre
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppUpdateAppSecret, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppUpdateAppSecret, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -149,7 +148,7 @@ func (c *appCrpcClient) DelKey(ctx context.Context, req *DelKeyReq) (*DelKeyResp
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppDelKey, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppDelKey, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -171,7 +170,7 @@ func (c *appCrpcClient) GetKeyConfig(ctx context.Context, req *GetKeyConfigReq) 
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppGetKeyConfig, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetKeyConfig, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -193,7 +192,7 @@ func (c *appCrpcClient) SetKeyConfig(ctx context.Context, req *SetKeyConfigReq) 
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppSetKeyConfig, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppSetKeyConfig, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -215,7 +214,7 @@ func (c *appCrpcClient) Rollback(ctx context.Context, req *RollbackReq) (*Rollba
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppRollback, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppRollback, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -237,7 +236,7 @@ func (c *appCrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp, e
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppWatch, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppWatch, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -259,7 +258,7 @@ func (c *appCrpcClient) GetInstances(ctx context.Context, req *GetInstancesReq) 
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppGetInstances, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetInstances, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -281,7 +280,7 @@ func (c *appCrpcClient) GetInstanceInfo(ctx context.Context, req *GetInstanceInf
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppGetInstanceInfo, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppGetInstanceInfo, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -303,7 +302,7 @@ func (c *appCrpcClient) SetProxy(ctx context.Context, req *SetProxyReq) (*SetPro
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppSetProxy, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppSetProxy, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -325,7 +324,7 @@ func (c *appCrpcClient) DelProxy(ctx context.Context, req *DelProxyReq) (*DelPro
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppDelProxy, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppDelProxy, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -347,7 +346,7 @@ func (c *appCrpcClient) Proxy(ctx context.Context, req *ProxyReq) (*ProxyResp, e
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppProxy, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathAppProxy, reqd)
 	if e != nil {
 		return nil, e
 	}

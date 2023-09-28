@@ -11,7 +11,7 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	cgrpc "github.com/chenjie199234/Corelib/cgrpc"
 	log "github.com/chenjie199234/Corelib/log"
-	metadata "github.com/chenjie199234/Corelib/metadata"
+	grpc "google.golang.org/grpc"
 )
 
 var _CGrpcPathUserUserLogin = "/admin.user/user_login"
@@ -28,144 +28,144 @@ var _CGrpcPathUserAddUserRole = "/admin.user/add_user_role"
 var _CGrpcPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserCGrpcClient interface {
-	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
-	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
-	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
-	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
-	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
-	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
-	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
-	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
-	DelRoles(context.Context, *DelRolesReq) (*DelRolesResp, error)
-	AddUserRole(context.Context, *AddUserRoleReq) (*AddUserRoleResp, error)
-	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
+	UserLogin(context.Context, *UserLoginReq, ...grpc.CallOption) (*UserLoginResp, error)
+	LoginInfo(context.Context, *LoginInfoReq, ...grpc.CallOption) (*LoginInfoResp, error)
+	InviteProject(context.Context, *InviteProjectReq, ...grpc.CallOption) (*InviteProjectResp, error)
+	KickProject(context.Context, *KickProjectReq, ...grpc.CallOption) (*KickProjectResp, error)
+	SearchUsers(context.Context, *SearchUsersReq, ...grpc.CallOption) (*SearchUsersResp, error)
+	UpdateUser(context.Context, *UpdateUserReq, ...grpc.CallOption) (*UpdateUserResp, error)
+	CreateRole(context.Context, *CreateRoleReq, ...grpc.CallOption) (*CreateRoleResp, error)
+	SearchRoles(context.Context, *SearchRolesReq, ...grpc.CallOption) (*SearchRolesResp, error)
+	UpdateRole(context.Context, *UpdateRoleReq, ...grpc.CallOption) (*UpdateRoleResp, error)
+	DelRoles(context.Context, *DelRolesReq, ...grpc.CallOption) (*DelRolesResp, error)
+	AddUserRole(context.Context, *AddUserRoleReq, ...grpc.CallOption) (*AddUserRoleResp, error)
+	DelUserRole(context.Context, *DelUserRoleReq, ...grpc.CallOption) (*DelUserRoleResp, error)
 }
 
 type userCGrpcClient struct {
-	cc *cgrpc.CGrpcClient
+	cc grpc.ClientConnInterface
 }
 
-func NewUserCGrpcClient(c *cgrpc.CGrpcClient) UserCGrpcClient {
-	return &userCGrpcClient{cc: c}
+func NewUserCGrpcClient(cc grpc.ClientConnInterface) UserCGrpcClient {
+	return &userCGrpcClient{cc: cc}
 }
 
-func (c *userCGrpcClient) UserLogin(ctx context.Context, req *UserLoginReq) (*UserLoginResp, error) {
+func (c *userCGrpcClient) UserLogin(ctx context.Context, req *UserLoginReq, opts ...grpc.CallOption) (*UserLoginResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(UserLoginResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserUserLogin, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserUserLogin, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) LoginInfo(ctx context.Context, req *LoginInfoReq) (*LoginInfoResp, error) {
+func (c *userCGrpcClient) LoginInfo(ctx context.Context, req *LoginInfoReq, opts ...grpc.CallOption) (*LoginInfoResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(LoginInfoResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserLoginInfo, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserLoginInfo, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) InviteProject(ctx context.Context, req *InviteProjectReq) (*InviteProjectResp, error) {
+func (c *userCGrpcClient) InviteProject(ctx context.Context, req *InviteProjectReq, opts ...grpc.CallOption) (*InviteProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(InviteProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserInviteProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserInviteProject, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) KickProject(ctx context.Context, req *KickProjectReq) (*KickProjectResp, error) {
+func (c *userCGrpcClient) KickProject(ctx context.Context, req *KickProjectReq, opts ...grpc.CallOption) (*KickProjectResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(KickProjectResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserKickProject, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserKickProject, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) (*SearchUsersResp, error) {
+func (c *userCGrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq, opts ...grpc.CallOption) (*SearchUsersResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(SearchUsersResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserSearchUsers, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserSearchUsers, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*UpdateUserResp, error) {
+func (c *userCGrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq, opts ...grpc.CallOption) (*UpdateUserResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateUserResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateUser, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserUpdateUser, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq) (*CreateRoleResp, error) {
+func (c *userCGrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq, opts ...grpc.CallOption) (*CreateRoleResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(CreateRoleResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserCreateRole, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserCreateRole, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) SearchRoles(ctx context.Context, req *SearchRolesReq) (*SearchRolesResp, error) {
+func (c *userCGrpcClient) SearchRoles(ctx context.Context, req *SearchRolesReq, opts ...grpc.CallOption) (*SearchRolesResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(SearchRolesResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserSearchRoles, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserSearchRoles, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) UpdateRole(ctx context.Context, req *UpdateRoleReq) (*UpdateRoleResp, error) {
+func (c *userCGrpcClient) UpdateRole(ctx context.Context, req *UpdateRoleReq, opts ...grpc.CallOption) (*UpdateRoleResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(UpdateRoleResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserUpdateRole, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserUpdateRole, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) DelRoles(ctx context.Context, req *DelRolesReq) (*DelRolesResp, error) {
+func (c *userCGrpcClient) DelRoles(ctx context.Context, req *DelRolesReq, opts ...grpc.CallOption) (*DelRolesResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelRolesResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserDelRoles, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserDelRoles, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) AddUserRole(ctx context.Context, req *AddUserRoleReq) (*AddUserRoleResp, error) {
+func (c *userCGrpcClient) AddUserRole(ctx context.Context, req *AddUserRoleReq, opts ...grpc.CallOption) (*AddUserRoleResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(AddUserRoleResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserAddUserRole, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserAddUserRole, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) (*DelUserRoleResp, error) {
+func (c *userCGrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq, opts ...grpc.CallOption) (*DelUserRoleResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	resp := new(DelUserRoleResp)
-	if e := c.cc.Call(ctx, _CGrpcPathUserDelUserRole, req, resp, metadata.GetMetadata(ctx), ""); e != nil {
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserDelUserRole, req, resp, opts...); e != nil {
 		return nil, e
 	}
 	return resp, nil

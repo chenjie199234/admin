@@ -11,7 +11,6 @@ import (
 	cerror "github.com/chenjie199234/Corelib/cerror"
 	crpc "github.com/chenjie199234/Corelib/crpc"
 	log "github.com/chenjie199234/Corelib/log"
-	metadata "github.com/chenjie199234/Corelib/metadata"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	proto "google.golang.org/protobuf/proto"
 )
@@ -57,7 +56,7 @@ func (c *userCrpcClient) UserLogin(ctx context.Context, req *UserLoginReq) (*Use
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserUserLogin, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserUserLogin, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -79,7 +78,7 @@ func (c *userCrpcClient) LoginInfo(ctx context.Context, req *LoginInfoReq) (*Log
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserLoginInfo, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserLoginInfo, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -101,7 +100,7 @@ func (c *userCrpcClient) InviteProject(ctx context.Context, req *InviteProjectRe
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserInviteProject, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserInviteProject, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -123,7 +122,7 @@ func (c *userCrpcClient) KickProject(ctx context.Context, req *KickProjectReq) (
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserKickProject, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserKickProject, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -145,7 +144,7 @@ func (c *userCrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) (
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserSearchUsers, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserSearchUsers, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -167,7 +166,7 @@ func (c *userCrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*U
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserUpdateUser, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserUpdateUser, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -189,7 +188,7 @@ func (c *userCrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq) (*C
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserCreateRole, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserCreateRole, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -211,7 +210,7 @@ func (c *userCrpcClient) SearchRoles(ctx context.Context, req *SearchRolesReq) (
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserSearchRoles, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserSearchRoles, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -233,7 +232,7 @@ func (c *userCrpcClient) UpdateRole(ctx context.Context, req *UpdateRoleReq) (*U
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserUpdateRole, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserUpdateRole, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -255,7 +254,7 @@ func (c *userCrpcClient) DelRoles(ctx context.Context, req *DelRolesReq) (*DelRo
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserDelRoles, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserDelRoles, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -277,7 +276,7 @@ func (c *userCrpcClient) AddUserRole(ctx context.Context, req *AddUserRoleReq) (
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserAddUserRole, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserAddUserRole, reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -299,7 +298,7 @@ func (c *userCrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) (
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserDelUserRole, reqd, metadata.GetMetadata(ctx), "")
+	respd, e := c.cc.Call(ctx, _CrpcPathUserDelUserRole, reqd)
 	if e != nil {
 		return nil, e
 	}

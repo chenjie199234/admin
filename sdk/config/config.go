@@ -19,7 +19,7 @@ import (
 	"github.com/chenjie199234/Corelib/web"
 )
 
-type Sdk struct {
+type ConfigSdk struct {
 	client     api.AppWebClient
 	secret     string
 	wait       chan *struct{}
@@ -49,27 +49,27 @@ var (
 // REMOTE_CONFIG_SERVICE_WEB_HOST
 // REMOTE_CONFIG_SERVICE_WEB_PORT
 // REMOTE_CONFIG_SECRET
-func NewConfigSdk(selfprojectname, selfappgroup, selfappname string, tlsc *tls.Config) (*Sdk, error) {
-	serverprojectname, group, host, port, secret, e := env()
+func NewConfigSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*ConfigSdk, error) {
+	project, group, host, port, secret, e := env()
 	if e != nil {
 		return nil, e
 	}
-	di, e := discover.NewStaticDiscover(serverprojectname, group, "admin", []string{host}, 0, 0, port)
+	di, e := discover.NewStaticDiscover(project, group, "admin", []string{host}, 0, 0, port)
 	if e != nil {
 		return nil, e
 	}
-	tmpclient, e := web.NewWebClient(nil, di, selfprojectname, selfappgroup, selfappname, serverprojectname, group, "admin", tlsc)
+	tmpclient, e := web.NewWebClient(nil, di, selfproject, selfgroup, selfapp, project, group, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}
-	instance := &Sdk{
+	instance := &ConfigSdk{
 		client:     api.NewAppWebClient(tmpclient),
 		secret:     secret,
 		wait:       make(chan *struct{}, 1),
 		keys:       make(map[string]*api.WatchData),
 		keysnotice: make(map[string]NoticeHandler),
 	}
-	go instance.watch(selfprojectname, selfappgroup, selfappname)
+	go instance.watch(selfproject, selfgroup, selfapp)
 	return instance, nil
 }
 func env() (projectname string, group string, host string, port int, secret string, e error) {
@@ -103,7 +103,7 @@ func env() (projectname string, group string, host string, port int, secret stri
 	}
 	return
 }
-func (instance *Sdk) watch(selfprojectname, selfappgroup, selfappname string) {
+func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname string) {
 	for {
 		instance.lker.Lock()
 		keys := make(map[string]uint32)
@@ -117,13 +117,13 @@ func (instance *Sdk) watch(selfprojectname, selfappgroup, selfappname string) {
 		}
 		instance.ctx, instance.cancel = context.WithCancel(context.Background())
 		instance.lker.Unlock()
-		resp, e := instance.client.Watch(instance.ctx, &api.WatchReq{ProjectName: selfprojectname, GName: selfappgroup, AName: selfappname, Keys: keys}, nil)
+		resp, e := instance.client.WatchConfig(instance.ctx, &api.WatchConfigReq{ProjectName: selfprojectname, GName: selfappgroup, AName: selfappname, Keys: keys}, nil)
 		if e != nil {
 			if !cerror.Equal(e, cerror.ErrCanceled) {
-				log.Error(nil, "[config.sdk.watch] failed", log.Any("watch_keys", keys), log.CError(e))
+				log.Error(nil, "[ConfigSdk.watch] failed", log.Any("watch_keys", keys), log.CError(e))
 				time.Sleep(time.Millisecond * 100)
-				instance.cancel()
 			}
+			instance.cancel()
 			continue
 		}
 		broken := false
@@ -139,14 +139,15 @@ func (instance *Sdk) watch(selfprojectname, selfappgroup, selfappname string) {
 				continue
 			}
 			if data.Version == 0 {
-				log.Error(nil, "[config.sdk.watch] key's value's version == 0", log.String("key", data.Key))
+				broken = true
+				log.Error(nil, "[ConfigSdk.watch] key's value's version == 0", log.String("key", data.Key))
 				continue
 			}
 			if instance.secret != "" {
 				plaintext, e := secure.AesDecrypt(instance.secret, data.Value)
 				if e != nil {
 					broken = true
-					log.Error(nil, "[config.sdk.watch] decrypt keys's value failed", log.String("key", data.Key), log.CError(e))
+					log.Error(nil, "[ConfigSdk.watch] decrypt keys's value failed", log.String("key", data.Key), log.CError(e))
 					continue
 				}
 				data.Value = common.Byte2str(plaintext)
@@ -169,7 +170,7 @@ func (instance *Sdk) watch(selfprojectname, selfappgroup, selfappname string) {
 // Warning!!!Don't block in notice function
 // watch the same key will overwrite the old one's notice function
 // but the old's cancel function can still work
-func (instance *Sdk) Watch(key string, notice NoticeHandler) (cancel func()) {
+func (instance *ConfigSdk) Watch(key string, notice NoticeHandler) (cancel func()) {
 	instance.lker.Lock()
 	defer instance.lker.Unlock()
 	if _, ok := instance.keys[key]; ok {

@@ -57,7 +57,10 @@ service app{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-	rpc watch(watch_req)returns(watch_resp){
+	rpc watch_config(watch_config_req)returns(watch_config_resp){
+		option (pbex.method)="post";
+	}
+	rpc watch_discover(watch_discover_req)returns(watch_discover_resp){
 		option (pbex.method)="post";
 	}
 
@@ -107,11 +110,15 @@ message get_app_resp{
 	string discover_mode=1;//can be one of "kubernetes" / "dns" / "static"
 	string kubernetes_namespace=2;//when discover_mode == "kubernetes"
 	string kubernetes_labelselector=3;//when discover_mode == "kubernetes"
-	string dns_host=4;//when discover_mode == "dns"
-	uint32 dns_interval=5;//when discover_mode == "dns",unit second
-	repeated string static_addrs=6;//when discover_mode == "static"
-	map<string,key_config_info> keys=7;
-	map<string,proxy_path_info> paths=8;
+	string kubernetes_fieldselector=4;//when discover_mode == "kubernetes"
+	string dns_host=5;//when discover_mode == "dns"
+	uint32 dns_interval=6;//when discover_mode == "dns",unit second
+	repeated string static_addrs=7;//when discover_mode == "static"
+	uint32 crpc_port=8;
+	uint32 cgrpc_port=9;
+	uint32 web_port=10;
+	map<string,key_config_info> keys=11;
+	map<string,proxy_path_info> paths=12;
 }
 message proxy_path_info{
 	repeated uint32 node_id=1;
@@ -135,12 +142,16 @@ message set_app_req {
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
 	string secret=4[(pbex.string_bytes_len_lt)=32];
 	string discover_mode=5[(pbex.string_bytes_in)="kubernetes",(pbex.string_bytes_in)="dns",(pbex.string_bytes_in)="static"];
-	string kubernetes_namespace=6;//when discover_mode == "kubernetes",this need to be set
-	string kubernetes_labelselector=7;//when discover_mode == "kubernetes",this need to be set
-	string dns_host=8;//when discover_mode == "dns",this need to be set
-	uint32 dns_interval=9;//when discover_mode == "dns",this need to be set,unit is second
-	repeated string static_addrs=10;//when discover_mode == "static",this need to be set
-	bool new_app=11;//true: create a new app. false: update the already exist app
+	string kubernetes_namespace=6;//when discover_mode == "kubernetes"
+	string kubernetes_labelselector=7;//when discover_mode == "kubernetes"
+	string kubernetes_fieldselector=8;//when discover_mode == "kubernetes"
+	string dns_host=9;//when discover_mode == "dns"
+	uint32 dns_interval=10;//when discover_mode == "dns"
+	repeated string static_addrs=11;//when discover_mode == "static"
+	uint32 crpc_port=12[(pbex.uint_gt)=0,(pbex.uint_lt)=65536];
+	uint32 cgrpc_port=13[(pbex.uint_gt)=0,(pbex.uint_lt)=65536];
+	uint32 web_port=14[(pbex.uint_gt)=0,(pbex.uint_lt)=65536];
+	bool new_app=15;//true: create a new app. false: update the already exist app
 }
 message set_app_resp {
 	repeated uint32 node_id=1;
@@ -212,7 +223,7 @@ message rollback_req{
 }
 message rollback_resp{
 }
-message watch_req{
+message watch_config_req{
 	string project_name=1[(pbex.string_bytes_len_gt)=0];
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
@@ -222,7 +233,7 @@ message watch_req{
 	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
 	map<string,uint32> keys=4[(pbex.map_repeated_len_gt)=0];//can't contain '.' in key
 }
-message watch_resp{
+message watch_config_resp{
 	map<string,watch_data> datas=1;
 }
 message watch_data{
@@ -230,6 +241,27 @@ message watch_data{
 	string value=2;
 	string value_type=3;
 	uint32 version=4;
+}
+message watch_discover_req{
+	string project_name=1[(pbex.string_bytes_len_gt)=0];
+	string g_name=2[(pbex.string_bytes_len_gt)=0];
+	string a_name=3[(pbex.string_bytes_len_gt)=0];
+	string cur_discover_mode=4[(pbex.string_bytes_in)="kubernetes",(pbex.string_bytes_in)="dns",(pbex.string_bytes_in)="static",(pbex.string_bytes_in)=""];
+	string cur_dns_host=5;//when discover_mode == "dns"
+	uint32 cur_dns_interval=6;//when discover_mode == "dns"
+	repeated string cur_addrs=7;//when discover_mode == "static" or "kubernetes"
+	uint32 crpc_port=8[(pbex.uint_lt)=65536];
+	uint32 cgrpc_port=9[(pbex.uint_lt)=65536];
+	uint32 web_port=10[(pbex.uint_lt)=65536];
+}
+message watch_discover_resp{
+	string discover_mode=1;
+	string dns_host=2;//when discover_mode == "dns"
+	uint32 dns_interval=3;//when discover_mode == "dns"
+	repeated string addrs=4;//when discover_mode == "static"
+	uint32 crpc_port=5[(pbex.uint_lt)=65536];
+	uint32 cgrpc_port=6[(pbex.uint_lt)=65536];
+	uint32 web_port=7[(pbex.uint_lt)=65536];
 }
 
 //instance

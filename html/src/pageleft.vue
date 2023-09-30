@@ -309,7 +309,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
 					<va-card-content style="font-size:20px"><b>Create Project</b></va-card-content>
 				</va-card>
-				<va-input type="text" style="margin-top:10px" label="New Project Name*" v-model="project_name" />
+				<va-input type="text" style="margin-top:10px" label="New Project Name*" v-model.trim="project_name" />
 				<div style="display:flex;justify-content:center">
 					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="project_name==''" @click="project_op" gradient>Add</va-button>
 					<va-button style="width:80px;margin:10px 0 0 10px" @click="project_name='';project_ing=false" gradient>Cancel</va-button>
@@ -319,7 +319,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
 					<va-card-content style="font-size:20px"><b>Update Project</b></va-card-content>
 				</va-card>
-				<va-input type="text" style="margin-top:10px" label="New Project Name*" v-model="project_name" />
+				<va-input type="text" style="margin-top:10px" label="New Project Name*" v-model.trim="project_name" />
 				<div style="display:flex;justify-content:center">
 					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="!project_update_able()" @click="project_op" gradient>Update</va-button>
 					<va-button style="width:80px;margin:10px 0 0 10px" @click="project_name='';project_ing=false" gradient>Cancel</va-button>
@@ -357,8 +357,8 @@ function same_node_id(a:number[],b:number[]):boolean{
 				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
 					<va-card-content style="font-size:20px"><b>Create Node</b></va-card-content>
 				</va-card>
-				<va-input style="margin-top:10px" label="New Node Name*" v-model="node_name"></va-input>
-				<va-input style="margin-top:10px" label="New Node Url?" v-model="node_url"></va-input>
+				<va-input style="margin-top:10px" label="New Node Name*" v-model.trim="node_name" />
+				<va-input style="margin-top:10px" label="New Node Url?" v-model.trim="node_url" />
 				<div style="display:flex;justify-content:center">
 					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="node_name==''" @click="node_op" gradient>Add</va-button>
 					<va-button style="width:80px;margin:10px 0 0 10px" @click="node_ing=false" gradient>Cancel</va-button>
@@ -368,8 +368,8 @@ function same_node_id(a:number[],b:number[]):boolean{
 				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
 					<va-card-content style="font-size:20px"><b>Update Node</b></va-card-content>
 				</va-card>
-				<va-input style="margin-top:10px" label="New Node Name*" v-model="node_name"></va-input>
-				<va-input style="margin-top:10px" label="New Node Url?" v-model="node_url"></va-input>
+				<va-input style="margin-top:10px" label="New Node Name*" v-model.trim="node_name" />
+				<va-input style="margin-top:10px" label="New Node Url?" v-model.trim="node_url" />
 				<div style="display:flex;justify-content:center">
 					<va-button style="width:80px;margin:10px 10px 0 0" :disabled="!node_update_able()" @click="node_op" gradient>Update</va-button>
 					<va-button style="width:80px;margin:10px 0 0 10px" @click="node_ing=false" gradient>Cancel</va-button>

@@ -53,8 +53,13 @@ collection: config
     "discover_mode":"",
     "kubernetes_ns":"",
     "kubernetes_ls":"",
+    "kubernetes_fs":"",
     "dns_host":"",
     "dns_interval":0,
+    "static_addrs":[],
+    "crpc_port":0,
+    "cgrpc_port":0,
+    "web_port":0,
 	"paths":{
 		"base64(/path1)":{
 			"permission_node_id":"",

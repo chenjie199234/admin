@@ -23,7 +23,8 @@ var _CrpcPathAppDelKey = "/admin.app/del_key"
 var _CrpcPathAppGetKeyConfig = "/admin.app/get_key_config"
 var _CrpcPathAppSetKeyConfig = "/admin.app/set_key_config"
 var _CrpcPathAppRollback = "/admin.app/rollback"
-var _CrpcPathAppWatch = "/admin.app/watch"
+var _CrpcPathAppWatchConfig = "/admin.app/watch_config"
+var _CrpcPathAppWatchDiscover = "/admin.app/watch_discover"
 var _CrpcPathAppGetInstances = "/admin.app/get_instances"
 var _CrpcPathAppGetInstanceInfo = "/admin.app/get_instance_info"
 var _CrpcPathAppSetProxy = "/admin.app/set_proxy"
@@ -39,7 +40,8 @@ type AppCrpcClient interface {
 	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	WatchConfig(context.Context, *WatchConfigReq) (*WatchConfigResp, error)
+	WatchDiscover(context.Context, *WatchDiscoverReq) (*WatchDiscoverResp, error)
 	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
 	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
@@ -231,16 +233,38 @@ func (c *appCrpcClient) Rollback(ctx context.Context, req *RollbackReq) (*Rollba
 	}
 	return resp, nil
 }
-func (c *appCrpcClient) Watch(ctx context.Context, req *WatchReq) (*WatchResp, error) {
+func (c *appCrpcClient) WatchConfig(ctx context.Context, req *WatchConfigReq) (*WatchConfigResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
 	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathAppWatch, reqd)
+	respd, e := c.cc.Call(ctx, _CrpcPathAppWatchConfig, reqd)
 	if e != nil {
 		return nil, e
 	}
-	resp := new(WatchResp)
+	resp := new(WatchConfigResp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *appCrpcClient) WatchDiscover(ctx context.Context, req *WatchDiscoverReq) (*WatchDiscoverResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathAppWatchDiscover, reqd)
+	if e != nil {
+		return nil, e
+	}
+	resp := new(WatchDiscoverResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -373,7 +397,8 @@ type AppCrpcServer interface {
 	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	WatchConfig(context.Context, *WatchConfigReq) (*WatchConfigResp, error)
+	WatchDiscover(context.Context, *WatchDiscoverReq) (*WatchDiscoverResp, error)
 	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
 	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
@@ -765,16 +790,16 @@ func _App_Rollback_CrpcHandler(handler func(context.Context, *RollbackReq) (*Rol
 		}
 	}
 }
-func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp, error)) crpc.OutsideHandler {
+func _App_WatchConfig_CrpcHandler(handler func(context.Context, *WatchConfigReq) (*WatchConfigResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
-		req := new(WatchReq)
+		req := new(WatchConfigReq)
 		reqbody := ctx.GetBody()
 		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
 				req.Reset()
 				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.app/watch] json and proto format decode both failed")
+					log.Error(ctx, "[/admin.app/watch_config] json and proto format decode both failed")
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -784,7 +809,7 @@ func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp
 		} else if e := proto.Unmarshal(reqbody, req); e != nil {
 			req.Reset()
 			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.app/watch] json and proto format decode both failed")
+				log.Error(ctx, "[/admin.app/watch_config] json and proto format decode both failed")
 				ctx.Abort(cerror.ErrReq)
 				return
 			} else {
@@ -792,7 +817,7 @@ func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp
 			}
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/watch] validate failed", log.String("validate", errstr))
+			log.Error(ctx, "[/admin.app/watch_config] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -802,7 +827,55 @@ func _App_Watch_CrpcHandler(handler func(context.Context, *WatchReq) (*WatchResp
 			return
 		}
 		if resp == nil {
-			resp = new(WatchResp)
+			resp = new(WatchConfigResp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
+func _App_WatchDiscover_CrpcHandler(handler func(context.Context, *WatchDiscoverReq) (*WatchDiscoverResp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(WatchDiscoverReq)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.app/watch_discover] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.app/watch_discover] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/watch_discover] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(WatchDiscoverResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
@@ -1064,7 +1137,8 @@ func RegisterAppCrpcServer(engine *crpc.CrpcServer, svc AppCrpcServer, allmids m
 	engine.RegisterHandler("admin.app", "get_key_config", _App_GetKeyConfig_CrpcHandler(svc.GetKeyConfig))
 	engine.RegisterHandler("admin.app", "set_key_config", _App_SetKeyConfig_CrpcHandler(svc.SetKeyConfig))
 	engine.RegisterHandler("admin.app", "rollback", _App_Rollback_CrpcHandler(svc.Rollback))
-	engine.RegisterHandler("admin.app", "watch", _App_Watch_CrpcHandler(svc.Watch))
+	engine.RegisterHandler("admin.app", "watch_config", _App_WatchConfig_CrpcHandler(svc.WatchConfig))
+	engine.RegisterHandler("admin.app", "watch_discover", _App_WatchDiscover_CrpcHandler(svc.WatchDiscover))
 	engine.RegisterHandler("admin.app", "get_instances", _App_GetInstances_CrpcHandler(svc.GetInstances))
 	engine.RegisterHandler("admin.app", "get_instance_info", _App_GetInstanceInfo_CrpcHandler(svc.GetInstanceInfo))
 	engine.RegisterHandler("admin.app", "set_proxy", _App_SetProxy_CrpcHandler(svc.SetProxy))

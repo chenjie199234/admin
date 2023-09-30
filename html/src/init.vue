@@ -53,7 +53,7 @@ function do_init(){
 			<va-card-content style="font-size:20px"><b>Initialize Now</b></va-card-content>
 		</va-card>
 		<div style="display:flex;flex-direction:column;align-items:center">
-			<va-input :type="t_access_key?'text':'password'" label="Access Key*" v-model="access_key" style="width:400px;margin:5px 0">
+			<va-input :type="t_access_key?'text':'password'" label="Access Key*" v-model.trim="access_key" style="width:400px;margin:5px 0">
 				<template #appendInner>
 					<va-icon :name="t_access_key?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_access_key=!t_access_key" />
 				</template>

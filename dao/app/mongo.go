@@ -83,7 +83,22 @@ func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, projectid, gname, an
 	}
 	return appsummary.PermissionNodeID, nil
 }
-func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secret, discovermode, kubernetesns, kubernetesls, dnshost string, dnsinterval uint32, staticaddrs []string) (nodeid string, e error) {
+func (d *Dao) MongoCreateApp(
+	ctx context.Context,
+	projectid,
+	gname,
+	aname,
+	secret,
+	discovermode,
+	kubernetesns,
+	kubernetesls,
+	kubernetesfs,
+	dnshost string,
+	dnsinterval uint32,
+	staticaddrs []string,
+	crpcport,
+	cgrpcport,
+	webport uint32) (nodeid string, e error) {
 	var sign string
 	sign, e = secure.SignMake(secret)
 	if e != nil {
@@ -139,9 +154,13 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 		DiscoverMode:     discovermode,
 		KubernetesNs:     kubernetesns,
 		KubernetesLS:     kubernetesls,
+		KubernetesFS:     kubernetesfs,
 		DnsHost:          dnshost,
 		DnsInterval:      dnsinterval,
 		StaticAddrs:      staticaddrs,
+		CrpcPort:         crpcport,
+		CGrpcPort:        cgrpcport,
+		WebPort:          webport,
 		Paths:            map[string]*model.ProxyPath{},
 		Keys:             map[string]*model.KeySummary{},
 		Value:            sign,
@@ -151,16 +170,35 @@ func (d *Dao) MongoCreateApp(ctx context.Context, projectid, gname, aname, secre
 	}
 	return
 }
-func (d *Dao) MongoUpdateApp(ctx context.Context, projectid, gname, aname, secret, discovermode, kubernetesns, kubernetesls, dnshost string, dnsinterval uint32, staticaddrs []string) (nodeid string, e error) {
+func (d *Dao) MongoUpdateApp(
+	ctx context.Context,
+	projectid,
+	gname,
+	aname,
+	secret,
+	discovermode,
+	kubernetesns,
+	kubernetesls,
+	kubernetesfs,
+	dnshost string,
+	dnsinterval uint32,
+	staticaddrs []string,
+	crpcport,
+	cgrpcport,
+	webport uint32) (nodeid string, e error) {
 	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	updater := bson.M{
 		"$set": bson.M{
 			"discover_mode": discovermode,
 			"kubernetes_ns": kubernetesns,
 			"kubernetes_ls": kubernetesls,
+			"kubernetes_fs": kubernetesfs,
 			"dns_host":      dnshost,
 			"dns_interval":  dnsinterval,
 			"static_addrs":  staticaddrs,
+			"crpc_port":     crpcport,
+			"cgrpc_port":    cgrpcport,
+			"web_port":      webport,
 		},
 	}
 	app := &model.AppSummary{}

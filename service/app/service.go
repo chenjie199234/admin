@@ -118,9 +118,13 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 		DiscoverMode:            app.DiscoverMode,
 		KubernetesNamespace:     app.KubernetesNs,
 		KubernetesLabelselector: app.KubernetesLS,
+		KubernetesFieldselector: app.KubernetesFS,
 		DnsHost:                 app.DnsHost,
 		DnsInterval:             app.DnsInterval,
 		StaticAddrs:             app.StaticAddrs,
+		CrpcPort:                app.CrpcPort,
+		CgrpcPort:               app.CGrpcPort,
+		WebPort:                 app.WebPort,
 		Keys:                    make(map[string]*api.KeyConfigInfo),
 		Paths:                   make(map[string]*api.ProxyPathInfo),
 	}
@@ -261,9 +265,39 @@ func (s *Service) SetApp(ctx context.Context, req *api.SetAppReq) (*api.SetAppRe
 	//logic
 	var nodeidstr string
 	if req.NewApp {
-		nodeidstr, e = s.appDao.MongoCreateApp(ctx, projectid, req.GName, req.AName, req.Secret, req.DiscoverMode, req.KubernetesNamespace, req.KubernetesLabelselector, req.DnsHost, req.DnsInterval, req.StaticAddrs)
+		nodeidstr, e = s.appDao.MongoCreateApp(
+			ctx,
+			projectid,
+			req.GName,
+			req.AName,
+			req.Secret,
+			req.DiscoverMode,
+			req.KubernetesNamespace,
+			req.KubernetesLabelselector,
+			req.KubernetesFieldselector,
+			req.DnsHost,
+			req.DnsInterval,
+			req.StaticAddrs,
+			req.CrpcPort,
+			req.CgrpcPort,
+			req.WebPort)
 	} else {
-		nodeidstr, e = s.appDao.MongoUpdateApp(ctx, projectid, req.GName, req.AName, req.Secret, req.DiscoverMode, req.KubernetesNamespace, req.KubernetesLabelselector, req.DnsHost, req.DnsInterval, req.StaticAddrs)
+		nodeidstr, e = s.appDao.MongoUpdateApp(
+			ctx,
+			projectid,
+			req.GName,
+			req.AName,
+			req.Secret,
+			req.DiscoverMode,
+			req.KubernetesNamespace,
+			req.KubernetesLabelselector,
+			req.KubernetesFieldselector,
+			req.DnsHost,
+			req.DnsInterval,
+			req.StaticAddrs,
+			req.CrpcPort,
+			req.CgrpcPort,
+			req.WebPort)
 	}
 	if e != nil {
 		log.Error(ctx, "[SetApp] db op failed",
@@ -822,22 +856,15 @@ func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.Roll
 	return &api.RollbackResp{}, nil
 }
 
-func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp, error) {
+func (s *Service) WatchConfig(ctx context.Context, req *api.WatchConfigReq) (*api.WatchConfigResp, error) {
 	for k := range req.Keys {
 		if strings.Contains(k, ".") {
 			return nil, ecode.ErrReq
 		}
 	}
-	if e := s.stop.Add(1); e != nil {
-		if e == graceful.ErrClosing {
-			return nil, ecode.ErrServerClosing
-		}
-		return nil, ecode.ErrBusy
-	}
-	defer s.stop.DoneOne()
 	ch, cancel, e := config.Sdk.GetNoticeByProjectName(req.ProjectName, req.GName, req.AName)
 	if e != nil {
-		log.Error(ctx, "[Watch] get notice failed",
+		log.Error(ctx, "[WatchConfig] get notice failed",
 			log.String("project_name", req.ProjectName),
 			log.String("group", req.GName),
 			log.String("app", req.AName),
@@ -852,14 +879,16 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 		case <-ch:
 			app, e := config.Sdk.GetAppConfigByProjectName(req.ProjectName, req.GName, req.AName)
 			if e != nil {
-				log.Error(ctx, "[Watch] get config failed",
-					log.String("project_name", req.ProjectName),
-					log.String("group", req.GName),
-					log.String("app", req.AName),
-					log.CError(e))
+				if e != ecode.ErrServerClosing {
+					log.Error(ctx, "[WatchConfig] get config failed",
+						log.String("project_name", req.ProjectName),
+						log.String("group", req.GName),
+						log.String("app", req.AName),
+						log.CError(e))
+				}
 				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 			}
-			resp := &api.WatchResp{
+			resp := &api.WatchConfigResp{
 				Datas: make(map[string]*api.WatchData, len(req.Keys)+3),
 			}
 			needreturn := false
@@ -890,6 +919,31 @@ func (s *Service) Watch(ctx context.Context, req *api.WatchReq) (*api.WatchResp,
 			}
 		}
 	}
+}
+
+func (s *Service) WatchDiscover(ctx context.Context, req *api.WatchDiscoverReq) (*api.WatchDiscoverResp, error) {
+	if req.CurDiscoverMode == "dns" && (req.CurDnsHost == "" || req.CurDnsInterval == 0) {
+		return nil, ecode.ErrReq
+	}
+	resp := &api.WatchDiscoverResp{
+		DiscoverMode: req.CurDiscoverMode,
+		DnsHost:      req.CurDnsHost,
+		DnsInterval:  req.CurDnsInterval,
+		Addrs:        req.CurAddrs,
+		CrpcPort:     req.CrpcPort,
+		CgrpcPort:    req.CgrpcPort,
+		WebPort:      req.WebPort,
+	}
+	e := config.Sdk.WatchDiscover(ctx, req.ProjectName, req.GName, req.AName, resp)
+	if e != nil {
+		log.Error(ctx, "[WatchDiscover] failed",
+			log.String("project_name", req.ProjectName),
+			log.String("group", req.GName),
+			log.String("app", req.AName),
+			log.CError(e))
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	return resp, nil
 }
 
 func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*api.GetInstancesResp, error) {
@@ -1029,7 +1083,6 @@ func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoR
 			CurCpuUsage: r.CurCpuUsage,
 		},
 	}, nil
-
 }
 
 func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetProxyResp, error) {

@@ -27,7 +27,8 @@ var _WebPathAppDelKey = "/admin.app/del_key"
 var _WebPathAppGetKeyConfig = "/admin.app/get_key_config"
 var _WebPathAppSetKeyConfig = "/admin.app/set_key_config"
 var _WebPathAppRollback = "/admin.app/rollback"
-var _WebPathAppWatch = "/admin.app/watch"
+var _WebPathAppWatchConfig = "/admin.app/watch_config"
+var _WebPathAppWatchDiscover = "/admin.app/watch_discover"
 var _WebPathAppGetInstances = "/admin.app/get_instances"
 var _WebPathAppGetInstanceInfo = "/admin.app/get_instance_info"
 var _WebPathAppSetProxy = "/admin.app/set_proxy"
@@ -43,7 +44,8 @@ type AppWebClient interface {
 	GetKeyConfig(context.Context, *GetKeyConfigReq, http.Header) (*GetKeyConfigResp, error)
 	SetKeyConfig(context.Context, *SetKeyConfigReq, http.Header) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq, http.Header) (*RollbackResp, error)
-	Watch(context.Context, *WatchReq, http.Header) (*WatchResp, error)
+	WatchConfig(context.Context, *WatchConfigReq, http.Header) (*WatchConfigResp, error)
+	WatchDiscover(context.Context, *WatchDiscoverReq, http.Header) (*WatchDiscoverResp, error)
 	GetInstances(context.Context, *GetInstancesReq, http.Header) (*GetInstancesResp, error)
 	GetInstanceInfo(context.Context, *GetInstanceInfoReq, http.Header) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq, http.Header) (*SetProxyResp, error)
@@ -315,7 +317,7 @@ func (c *appWebClient) Rollback(ctx context.Context, req *RollbackReq, header ht
 	}
 	return resp, nil
 }
-func (c *appWebClient) Watch(ctx context.Context, req *WatchReq, header http.Header) (*WatchResp, error) {
+func (c *appWebClient) WatchConfig(ctx context.Context, req *WatchConfigReq, header http.Header) (*WatchConfigResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
 	}
@@ -325,7 +327,7 @@ func (c *appWebClient) Watch(ctx context.Context, req *WatchReq, header http.Hea
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppWatch, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppWatchConfig, "", header, metadata.GetMetadata(ctx), reqd)
 	if e != nil {
 		return nil, e
 	}
@@ -334,7 +336,39 @@ func (c *appWebClient) Watch(ctx context.Context, req *WatchReq, header http.Hea
 	if e != nil {
 		return nil, cerror.ConvertStdError(e)
 	}
-	resp := new(WatchResp)
+	resp := new(WatchConfigResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
+func (c *appWebClient) WatchDiscover(ctx context.Context, req *WatchDiscoverReq, header http.Header) (*WatchDiscoverResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathAppWatchDiscover, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(WatchDiscoverResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -517,7 +551,8 @@ type AppWebServer interface {
 	GetKeyConfig(context.Context, *GetKeyConfigReq) (*GetKeyConfigResp, error)
 	SetKeyConfig(context.Context, *SetKeyConfigReq) (*SetKeyConfigResp, error)
 	Rollback(context.Context, *RollbackReq) (*RollbackResp, error)
-	Watch(context.Context, *WatchReq) (*WatchResp, error)
+	WatchConfig(context.Context, *WatchConfigReq) (*WatchConfigResp, error)
+	WatchDiscover(context.Context, *WatchDiscoverReq) (*WatchDiscoverResp, error)
 	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
 	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
 	SetProxy(context.Context, *SetProxyReq) (*SetProxyResp, error)
@@ -997,19 +1032,19 @@ func _App_Rollback_WebHandler(handler func(context.Context, *RollbackReq) (*Roll
 		}
 	}
 }
-func _App_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchResp, error)) web.OutsideHandler {
+func _App_WatchConfig_WebHandler(handler func(context.Context, *WatchConfigReq) (*WatchConfigResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
-		req := new(WatchReq)
+		req := new(WatchConfigReq)
 		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/watch] get body failed", log.CError(e))
+				log.Error(ctx, "[/admin.app/watch_config] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/watch] unmarshal json body failed", log.CError(e))
+					log.Error(ctx, "[/admin.app/watch_config] unmarshal json body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
@@ -1017,24 +1052,24 @@ func _App_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchResp,
 		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
 			data, e := ctx.GetBody()
 			if e != nil {
-				log.Error(ctx, "[/admin.app/watch] get body failed", log.CError(e))
+				log.Error(ctx, "[/admin.app/watch_config] get body failed", log.CError(e))
 				ctx.Abort(e)
 				return
 			}
 			if len(data) > 0 {
 				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.app/watch] unmarshal proto body failed", log.CError(e))
+					log.Error(ctx, "[/admin.app/watch_config] unmarshal proto body failed", log.CError(e))
 					ctx.Abort(cerror.ErrReq)
 					return
 				}
 			}
 		} else {
-			log.Error(ctx, "[/admin.app/watch] Content-Type unknown,must be application/json or application/x-protobuf")
+			log.Error(ctx, "[/admin.app/watch_config] Content-Type unknown,must be application/json or application/x-protobuf")
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
 		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.app/watch] validate failed", log.String("validate", errstr))
+			log.Error(ctx, "[/admin.app/watch_config] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1045,7 +1080,66 @@ func _App_Watch_WebHandler(handler func(context.Context, *WatchReq) (*WatchResp,
 			return
 		}
 		if resp == nil {
-			resp = new(WatchResp)
+			resp = new(WatchConfigResp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
+func _App_WatchDiscover_WebHandler(handler func(context.Context, *WatchDiscoverReq) (*WatchDiscoverResp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(WatchDiscoverReq)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				log.Error(ctx, "[/admin.app/watch_discover] get body failed", log.CError(e))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/watch_discover] unmarshal json body failed", log.CError(e))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				log.Error(ctx, "[/admin.app/watch_discover] get body failed", log.CError(e))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.app/watch_discover] unmarshal proto body failed", log.CError(e))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			log.Error(ctx, "[/admin.app/watch_discover] Content-Type unknown,must be application/json or application/x-protobuf")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.app/watch_discover] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(WatchDiscoverResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1458,7 +1552,8 @@ func RegisterAppWebServer(router *web.Router, svc AppWebServer, allmids map[stri
 		mids = append(mids, _App_Rollback_WebHandler(svc.Rollback))
 		router.Post(_WebPathAppRollback, mids...)
 	}
-	router.Post(_WebPathAppWatch, _App_Watch_WebHandler(svc.Watch))
+	router.Post(_WebPathAppWatchConfig, _App_WatchConfig_WebHandler(svc.WatchConfig))
+	router.Post(_WebPathAppWatchDiscover, _App_WatchDiscover_WebHandler(svc.WatchDiscover))
 	{
 		requiredMids := []string{"token"}
 		mids := make([]web.OutsideHandler, 0, 2)

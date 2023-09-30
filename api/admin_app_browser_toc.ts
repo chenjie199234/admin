@@ -287,10 +287,17 @@ export interface GetAppResp{
 	discover_mode: string;//can be one of "kubernetes" / "dns" / "static"
 	kubernetes_namespace: string;//when discover_mode == "kubernetes"
 	kubernetes_labelselector: string;//when discover_mode == "kubernetes"
+	kubernetes_fieldselector: string;//when discover_mode == "kubernetes"
 	dns_host: string;//when discover_mode == "dns"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	dns_interval: number;//when discover_mode == "dns",unit second
 	static_addrs: Array<string>|null|undefined;//when discover_mode == "static"
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	crpc_port: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	cgrpc_port: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	web_port: number;
 	keys: Map<string,KeyConfigInfo|null|undefined>|null|undefined;
 	paths: Map<string,ProxyPathInfo|null|undefined>|null|undefined;
 }
@@ -299,9 +306,13 @@ function JsonToGetAppResp(jsonobj: { [k:string]:any }): GetAppResp{
 		discover_mode:'',
 		kubernetes_namespace:'',
 		kubernetes_labelselector:'',
+		kubernetes_fieldselector:'',
 		dns_host:'',
 		dns_interval:0,
 		static_addrs:null,
+		crpc_port:0,
+		cgrpc_port:0,
+		web_port:0,
 		keys:null,
 		paths:null,
 	}
@@ -325,6 +336,13 @@ function JsonToGetAppResp(jsonobj: { [k:string]:any }): GetAppResp{
 			throw 'GetAppResp.kubernetes_labelselector must be string'
 		}
 		obj['kubernetes_labelselector']=jsonobj['kubernetes_labelselector']
+	}
+	//kubernetes_fieldselector
+	if(jsonobj['kubernetes_fieldselector']!=null&&jsonobj['kubernetes_fieldselector']!=undefined){
+		if(typeof jsonobj['kubernetes_fieldselector']!='string'){
+			throw 'GetAppResp.kubernetes_fieldselector must be string'
+		}
+		obj['kubernetes_fieldselector']=jsonobj['kubernetes_fieldselector']
 	}
 	//dns_host
 	if(jsonobj['dns_host']!=null&&jsonobj['dns_host']!=undefined){
@@ -356,6 +374,33 @@ function JsonToGetAppResp(jsonobj: { [k:string]:any }): GetAppResp{
 			}
 			obj['static_addrs'].push(element)
 		}
+	}
+	//crpc_port
+	if(jsonobj['crpc_port']!=null&&jsonobj['crpc_port']!=undefined){
+		if(typeof jsonobj['crpc_port']!='number'||!Number.isInteger(jsonobj['crpc_port'])){
+			throw 'GetAppResp.crpc_port must be integer'
+		}else if(jsonobj['crpc_port']>4294967295||jsonobj['crpc_port']<0){
+			throw 'GetAppResp.crpc_port overflow'
+		}
+		obj['crpc_port']=jsonobj['crpc_port']
+	}
+	//cgrpc_port
+	if(jsonobj['cgrpc_port']!=null&&jsonobj['cgrpc_port']!=undefined){
+		if(typeof jsonobj['cgrpc_port']!='number'||!Number.isInteger(jsonobj['cgrpc_port'])){
+			throw 'GetAppResp.cgrpc_port must be integer'
+		}else if(jsonobj['cgrpc_port']>4294967295||jsonobj['cgrpc_port']<0){
+			throw 'GetAppResp.cgrpc_port overflow'
+		}
+		obj['cgrpc_port']=jsonobj['cgrpc_port']
+	}
+	//web_port
+	if(jsonobj['web_port']!=null&&jsonobj['web_port']!=undefined){
+		if(typeof jsonobj['web_port']!='number'||!Number.isInteger(jsonobj['web_port'])){
+			throw 'GetAppResp.web_port must be integer'
+		}else if(jsonobj['web_port']>4294967295||jsonobj['web_port']<0){
+			throw 'GetAppResp.web_port overflow'
+		}
+		obj['web_port']=jsonobj['web_port']
 	}
 	//keys
 	if(jsonobj['keys']!=null&&jsonobj['keys']!=undefined){
@@ -1132,12 +1177,19 @@ export interface SetAppReq{
 	a_name: string;
 	secret: string;
 	discover_mode: string;
-	kubernetes_namespace: string;//when discover_mode == "kubernetes",this need to be set
-	kubernetes_labelselector: string;//when discover_mode == "kubernetes",this need to be set
-	dns_host: string;//when discover_mode == "dns",this need to be set
+	kubernetes_namespace: string;//when discover_mode == "kubernetes"
+	kubernetes_labelselector: string;//when discover_mode == "kubernetes"
+	kubernetes_fieldselector: string;//when discover_mode == "kubernetes"
+	dns_host: string;//when discover_mode == "dns"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	dns_interval: number;//when discover_mode == "dns",this need to be set,unit is second
-	static_addrs: Array<string>|null|undefined;//when discover_mode == "static",this need to be set
+	dns_interval: number;//when discover_mode == "dns"
+	static_addrs: Array<string>|null|undefined;//when discover_mode == "static"
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	crpc_port: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	cgrpc_port: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	web_port: number;
 	new_app: boolean;//true: create a new app. false: update the already exist app
 }
 function SetAppReqToJson(msg: SetAppReq): string{
@@ -1208,6 +1260,14 @@ function SetAppReqToJson(msg: SetAppReq): string{
 		let vv=JSON.stringify(msg.kubernetes_labelselector)
 		s+='"kubernetes_labelselector":'+vv+','
 	}
+	//kubernetes_fieldselector
+	if(msg.kubernetes_fieldselector==null||msg.kubernetes_fieldselector==undefined){
+		throw 'SetAppReq.kubernetes_fieldselector must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.kubernetes_fieldselector)
+		s+='"kubernetes_fieldselector":'+vv+','
+	}
 	//dns_host
 	if(msg.dns_host==null||msg.dns_host==undefined){
 		throw 'SetAppReq.dns_host must be string'
@@ -1240,6 +1300,30 @@ function SetAppReqToJson(msg: SetAppReq): string{
 			s+=vv+','
 		}
 		s=s.substr(0,s.length-1)+'],'
+	}
+	//crpc_port
+	if(msg.crpc_port==null||msg.crpc_port==undefined||!Number.isInteger(msg.crpc_port)){
+		throw 'SetAppReq.crpc_port must be integer'
+	}else if(msg.crpc_port>4294967295||msg.crpc_port<0){
+		throw 'SetAppReq.crpc_port overflow'
+	}else{
+		s+='"crpc_port":'+msg.crpc_port+','
+	}
+	//cgrpc_port
+	if(msg.cgrpc_port==null||msg.cgrpc_port==undefined||!Number.isInteger(msg.cgrpc_port)){
+		throw 'SetAppReq.cgrpc_port must be integer'
+	}else if(msg.cgrpc_port>4294967295||msg.cgrpc_port<0){
+		throw 'SetAppReq.cgrpc_port overflow'
+	}else{
+		s+='"cgrpc_port":'+msg.cgrpc_port+','
+	}
+	//web_port
+	if(msg.web_port==null||msg.web_port==undefined||!Number.isInteger(msg.web_port)){
+		throw 'SetAppReq.web_port must be integer'
+	}else if(msg.web_port>4294967295||msg.web_port<0){
+		throw 'SetAppReq.web_port overflow'
+	}else{
+		s+='"web_port":'+msg.web_port+','
 	}
 	//new_app
 	if(msg.new_app==null||msg.new_app==undefined){
@@ -1576,6 +1660,104 @@ function JsonToUpdateAppSecretResp(_jsonobj: { [k:string]:any }): UpdateAppSecre
 	}
 	return obj
 }
+export interface WatchConfigReq{
+	project_name: string;
+	g_name: string;
+	a_name: string;
+	//map's key is config's keyname,map's value is config's cur version
+	//if cur version == 0 means return current active config
+	//if all cur version is the newest,the request will block until a new version come
+	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
+	//Warning!!!map's value's type is uint32,be careful of sign(+) and overflow
+	keys: Map<string,number>|null|undefined;//can't contain '.' in key
+}
+function WatchConfigReqToJson(msg: WatchConfigReq): string{
+	let s: string="{"
+	//project_name
+	if(msg.project_name==null||msg.project_name==undefined){
+		throw 'WatchConfigReq.project_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.project_name)
+		s+='"project_name":'+vv+','
+	}
+	//g_name
+	if(msg.g_name==null||msg.g_name==undefined){
+		throw 'WatchConfigReq.g_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.g_name)
+		s+='"g_name":'+vv+','
+	}
+	//a_name
+	if(msg.a_name==null||msg.a_name==undefined){
+		throw 'WatchConfigReq.a_name must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.a_name)
+		s+='"a_name":'+vv+','
+	}
+	//keys
+	if(msg.keys==null||msg.keys==undefined){
+		s+='"keys":null,'
+	}else if (msg.keys.size==0){
+		s+='"keys":{},'
+	}else{
+		s+='"keys":{'
+		for(let kv of msg.keys.entries()){
+			if(kv[0]==null||kv[0]==undefined){
+				throw "map's key in WatchConfigReq.keys must be string"
+			}
+			//transfer the json escape
+			let vv=JSON.stringify(kv[0])
+			s+=vv+':'
+			if(kv[1]==null||kv[1]==undefined||!Number.isInteger(kv[1])){
+				throw "map's value in WatchConfigReq.keys must be integer"
+			}else if(kv[1]>4294967295||kv[1]<0){
+				throw "map's value in WatchConfigReq.keys overflow"
+			}
+			s+=kv[1]+','
+		}
+		s=s.substr(0,s.length-1)+'},'
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface WatchConfigResp{
+	datas: Map<string,WatchData|null|undefined>|null|undefined;
+}
+function JsonToWatchConfigResp(jsonobj: { [k:string]:any }): WatchConfigResp{
+	let obj: WatchConfigResp={
+		datas:null,
+	}
+	//datas
+	if(jsonobj['datas']!=null&&jsonobj['datas']!=undefined){
+		if(typeof jsonobj['datas']!='object'){
+			throw 'WatchConfigResp.datas must be Map<string,WatchData|null|undefined>|null|undefined'
+		}
+		for(let key of Object.keys(jsonobj['datas'])){
+			let value=jsonobj['datas'][key]
+			let k: string=key
+			let v: WatchData|null|undefined=null
+			if(typeof value==null||typeof value==undefined){
+				v=null
+			}else if(typeof value!='object'){
+				throw 'value in WatchConfigResp.datas must be WatchData|null|undefined'
+			}else{
+				v=JsonToWatchData(value)
+			}
+			if(obj['datas']==undefined){
+				obj['datas']=new Map<string,WatchData|null|undefined>
+			}
+			obj['datas'].set(k,v)
+		}
+	}
+	return obj
+}
 export interface WatchData{
 	key: string;
 	value: string;
@@ -1622,22 +1804,27 @@ function JsonToWatchData(jsonobj: { [k:string]:any }): WatchData{
 	}
 	return obj
 }
-export interface WatchReq{
+export interface WatchDiscoverReq{
 	project_name: string;
 	g_name: string;
 	a_name: string;
-	//map's key is config's keyname,map's value is config's cur version
-	//if cur version == 0 means return current active config
-	//if all cur version is the newest,the request will block until a new version come
-	//if some keys' version is the newest,and some keys' version is old,then the keys with old version will return newest version and datas,the newest's keys will only return version
-	//Warning!!!map's value's type is uint32,be careful of sign(+) and overflow
-	keys: Map<string,number>|null|undefined;//can't contain '.' in key
+	cur_discover_mode: string;
+	cur_dns_host: string;//when discover_mode == "dns"
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	cur_dns_interval: number;//when discover_mode == "dns"
+	cur_addrs: Array<string>|null|undefined;//when discover_mode == "static" or "kubernetes"
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	crpc_port: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	cgrpc_port: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	web_port: number;
 }
-function WatchReqToJson(msg: WatchReq): string{
+function WatchDiscoverReqToJson(msg: WatchDiscoverReq): string{
 	let s: string="{"
 	//project_name
 	if(msg.project_name==null||msg.project_name==undefined){
-		throw 'WatchReq.project_name must be string'
+		throw 'WatchDiscoverReq.project_name must be string'
 	}else{
 		//transfer the json escape
 		let vv=JSON.stringify(msg.project_name)
@@ -1645,7 +1832,7 @@ function WatchReqToJson(msg: WatchReq): string{
 	}
 	//g_name
 	if(msg.g_name==null||msg.g_name==undefined){
-		throw 'WatchReq.g_name must be string'
+		throw 'WatchDiscoverReq.g_name must be string'
 	}else{
 		//transfer the json escape
 		let vv=JSON.stringify(msg.g_name)
@@ -1653,34 +1840,76 @@ function WatchReqToJson(msg: WatchReq): string{
 	}
 	//a_name
 	if(msg.a_name==null||msg.a_name==undefined){
-		throw 'WatchReq.a_name must be string'
+		throw 'WatchDiscoverReq.a_name must be string'
 	}else{
 		//transfer the json escape
 		let vv=JSON.stringify(msg.a_name)
 		s+='"a_name":'+vv+','
 	}
-	//keys
-	if(msg.keys==null||msg.keys==undefined){
-		s+='"keys":null,'
-	}else if (msg.keys.size==0){
-		s+='"keys":{},'
+	//cur_discover_mode
+	if(msg.cur_discover_mode==null||msg.cur_discover_mode==undefined){
+		throw 'WatchDiscoverReq.cur_discover_mode must be string'
 	}else{
-		s+='"keys":{'
-		for(let kv of msg.keys.entries()){
-			if(kv[0]==null||kv[0]==undefined){
-				throw "map's key in WatchReq.keys must be string"
+		//transfer the json escape
+		let vv=JSON.stringify(msg.cur_discover_mode)
+		s+='"cur_discover_mode":'+vv+','
+	}
+	//cur_dns_host
+	if(msg.cur_dns_host==null||msg.cur_dns_host==undefined){
+		throw 'WatchDiscoverReq.cur_dns_host must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.cur_dns_host)
+		s+='"cur_dns_host":'+vv+','
+	}
+	//cur_dns_interval
+	if(msg.cur_dns_interval==null||msg.cur_dns_interval==undefined||!Number.isInteger(msg.cur_dns_interval)){
+		throw 'WatchDiscoverReq.cur_dns_interval must be integer'
+	}else if(msg.cur_dns_interval>4294967295||msg.cur_dns_interval<0){
+		throw 'WatchDiscoverReq.cur_dns_interval overflow'
+	}else{
+		s+='"cur_dns_interval":'+msg.cur_dns_interval+','
+	}
+	//cur_addrs
+	if(msg.cur_addrs==null||msg.cur_addrs==undefined){
+		s+='"cur_addrs":null,'
+	}else if(msg.cur_addrs.length==0){
+		s+='"cur_addrs":[],'
+	}else{
+		s+='"cur_addrs":['
+		for(let element of msg.cur_addrs){
+			if(element==null||element==undefined){
+				throw 'element in WatchDiscoverReq.cur_addrs must be string'
 			}
 			//transfer the json escape
-			let vv=JSON.stringify(kv[0])
-			s+=vv+':'
-			if(kv[1]==null||kv[1]==undefined||!Number.isInteger(kv[1])){
-				throw "map's value in WatchReq.keys must be integer"
-			}else if(kv[1]>4294967295||kv[1]<0){
-				throw "map's value in WatchReq.keys overflow"
-			}
-			s+=kv[1]+','
+			let vv=JSON.stringify(element)
+			s+=vv+','
 		}
-		s=s.substr(0,s.length-1)+'},'
+		s=s.substr(0,s.length-1)+'],'
+	}
+	//crpc_port
+	if(msg.crpc_port==null||msg.crpc_port==undefined||!Number.isInteger(msg.crpc_port)){
+		throw 'WatchDiscoverReq.crpc_port must be integer'
+	}else if(msg.crpc_port>4294967295||msg.crpc_port<0){
+		throw 'WatchDiscoverReq.crpc_port overflow'
+	}else{
+		s+='"crpc_port":'+msg.crpc_port+','
+	}
+	//cgrpc_port
+	if(msg.cgrpc_port==null||msg.cgrpc_port==undefined||!Number.isInteger(msg.cgrpc_port)){
+		throw 'WatchDiscoverReq.cgrpc_port must be integer'
+	}else if(msg.cgrpc_port>4294967295||msg.cgrpc_port<0){
+		throw 'WatchDiscoverReq.cgrpc_port overflow'
+	}else{
+		s+='"cgrpc_port":'+msg.cgrpc_port+','
+	}
+	//web_port
+	if(msg.web_port==null||msg.web_port==undefined||!Number.isInteger(msg.web_port)){
+		throw 'WatchDiscoverReq.web_port must be integer'
+	}else if(msg.web_port>4294967295||msg.web_port<0){
+		throw 'WatchDiscoverReq.web_port overflow'
+	}else{
+		s+='"web_port":'+msg.web_port+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -1689,34 +1918,93 @@ function WatchReqToJson(msg: WatchReq): string{
 	}
 	return s
 }
-export interface WatchResp{
-	datas: Map<string,WatchData|null|undefined>|null|undefined;
+export interface WatchDiscoverResp{
+	discover_mode: string;
+	dns_host: string;//when discover_mode == "dns"
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	dns_interval: number;//when discover_mode == "dns"
+	addrs: Array<string>|null|undefined;//when discover_mode == "static"
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	crpc_port: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	cgrpc_port: number;
+	//Warning!!!Type is uint32,be careful of sign(+) and overflow
+	web_port: number;
 }
-function JsonToWatchResp(jsonobj: { [k:string]:any }): WatchResp{
-	let obj: WatchResp={
-		datas:null,
+function JsonToWatchDiscoverResp(jsonobj: { [k:string]:any }): WatchDiscoverResp{
+	let obj: WatchDiscoverResp={
+		discover_mode:'',
+		dns_host:'',
+		dns_interval:0,
+		addrs:null,
+		crpc_port:0,
+		cgrpc_port:0,
+		web_port:0,
 	}
-	//datas
-	if(jsonobj['datas']!=null&&jsonobj['datas']!=undefined){
-		if(typeof jsonobj['datas']!='object'){
-			throw 'WatchResp.datas must be Map<string,WatchData|null|undefined>|null|undefined'
+	//discover_mode
+	if(jsonobj['discover_mode']!=null&&jsonobj['discover_mode']!=undefined){
+		if(typeof jsonobj['discover_mode']!='string'){
+			throw 'WatchDiscoverResp.discover_mode must be string'
 		}
-		for(let key of Object.keys(jsonobj['datas'])){
-			let value=jsonobj['datas'][key]
-			let k: string=key
-			let v: WatchData|null|undefined=null
-			if(typeof value==null||typeof value==undefined){
-				v=null
-			}else if(typeof value!='object'){
-				throw 'value in WatchResp.datas must be WatchData|null|undefined'
-			}else{
-				v=JsonToWatchData(value)
-			}
-			if(obj['datas']==undefined){
-				obj['datas']=new Map<string,WatchData|null|undefined>
-			}
-			obj['datas'].set(k,v)
+		obj['discover_mode']=jsonobj['discover_mode']
+	}
+	//dns_host
+	if(jsonobj['dns_host']!=null&&jsonobj['dns_host']!=undefined){
+		if(typeof jsonobj['dns_host']!='string'){
+			throw 'WatchDiscoverResp.dns_host must be string'
 		}
+		obj['dns_host']=jsonobj['dns_host']
+	}
+	//dns_interval
+	if(jsonobj['dns_interval']!=null&&jsonobj['dns_interval']!=undefined){
+		if(typeof jsonobj['dns_interval']!='number'||!Number.isInteger(jsonobj['dns_interval'])){
+			throw 'WatchDiscoverResp.dns_interval must be integer'
+		}else if(jsonobj['dns_interval']>4294967295||jsonobj['dns_interval']<0){
+			throw 'WatchDiscoverResp.dns_interval overflow'
+		}
+		obj['dns_interval']=jsonobj['dns_interval']
+	}
+	//addrs
+	if(jsonobj['addrs']!=null&&jsonobj['addrs']!=undefined){
+		if(!(jsonobj['addrs'] instanceof Array)){
+			throw 'WatchDiscoverResp.addrs must be Array<string>|null|undefined'
+		}
+		for(let element of jsonobj['addrs']){
+			if(typeof element!='string'){
+				throw 'element in WatchDiscoverResp.addrs must be string'
+			}
+			if(obj['addrs']==null){
+				obj['addrs']=new Array<string>
+			}
+			obj['addrs'].push(element)
+		}
+	}
+	//crpc_port
+	if(jsonobj['crpc_port']!=null&&jsonobj['crpc_port']!=undefined){
+		if(typeof jsonobj['crpc_port']!='number'||!Number.isInteger(jsonobj['crpc_port'])){
+			throw 'WatchDiscoverResp.crpc_port must be integer'
+		}else if(jsonobj['crpc_port']>4294967295||jsonobj['crpc_port']<0){
+			throw 'WatchDiscoverResp.crpc_port overflow'
+		}
+		obj['crpc_port']=jsonobj['crpc_port']
+	}
+	//cgrpc_port
+	if(jsonobj['cgrpc_port']!=null&&jsonobj['cgrpc_port']!=undefined){
+		if(typeof jsonobj['cgrpc_port']!='number'||!Number.isInteger(jsonobj['cgrpc_port'])){
+			throw 'WatchDiscoverResp.cgrpc_port must be integer'
+		}else if(jsonobj['cgrpc_port']>4294967295||jsonobj['cgrpc_port']<0){
+			throw 'WatchDiscoverResp.cgrpc_port overflow'
+		}
+		obj['cgrpc_port']=jsonobj['cgrpc_port']
+	}
+	//web_port
+	if(jsonobj['web_port']!=null&&jsonobj['web_port']!=undefined){
+		if(typeof jsonobj['web_port']!='number'||!Number.isInteger(jsonobj['web_port'])){
+			throw 'WatchDiscoverResp.web_port must be integer'
+		}else if(jsonobj['web_port']>4294967295||jsonobj['web_port']<0){
+			throw 'WatchDiscoverResp.web_port overflow'
+		}
+		obj['web_port']=jsonobj['web_port']
 	}
 	return obj
 }
@@ -1728,7 +2016,8 @@ const _WebPathAppDelKey: string ="/admin.app/del_key";
 const _WebPathAppGetKeyConfig: string ="/admin.app/get_key_config";
 const _WebPathAppSetKeyConfig: string ="/admin.app/set_key_config";
 const _WebPathAppRollback: string ="/admin.app/rollback";
-const _WebPathAppWatch: string ="/admin.app/watch";
+const _WebPathAppWatchConfig: string ="/admin.app/watch_config";
+const _WebPathAppWatchDiscover: string ="/admin.app/watch_discover";
 const _WebPathAppGetInstances: string ="/admin.app/get_instances";
 const _WebPathAppGetInstanceInfo: string ="/admin.app/get_instance_info";
 const _WebPathAppSetProxy: string ="/admin.app/set_proxy";
@@ -2160,7 +2449,7 @@ export class AppBrowserClientToC {
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
-	watch(header: { [k: string]: string },req: WatchReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: WatchResp)=>void){
+	watch_config(header: { [k: string]: string },req: WatchConfigReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: WatchConfigResp)=>void){
 		if(!Number.isInteger(timeout)){
 			errorf({code:-2,msg:'timeout must be integer'})
 			return
@@ -2171,13 +2460,13 @@ export class AppBrowserClientToC {
 		header["Content-Type"] = "application/json"
 		let body: string=''
 		try{
-			body=WatchReqToJson(req)
+			body=WatchConfigReqToJson(req)
 		}catch(e){
 			errorf({code:-2,msg:''+e})
 			return
 		}
 		let config={
-			url:_WebPathAppWatch,
+			url:_WebPathAppWatchConfig,
 			method: "post",
 			baseURL: this.host,
 			headers: header,
@@ -2187,7 +2476,59 @@ export class AppBrowserClientToC {
 		Axios.request(config)
 		.then(function(response){
 			try{
-				let obj:WatchResp=JsonToWatchResp(response.data)
+				let obj:WatchConfigResp=JsonToWatchConfigResp(response.data)
+				successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'response error'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	watch_discover(header: { [k: string]: string },req: WatchDiscoverReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: WatchDiscoverResp)=>void){
+		if(!Number.isInteger(timeout)){
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=WatchDiscoverReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:''+e})
+			return
+		}
+		let config={
+			url:_WebPathAppWatchDiscover,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: body,
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			try{
+				let obj:WatchDiscoverResp=JsonToWatchDiscoverResp(response.data)
 				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'response error'}

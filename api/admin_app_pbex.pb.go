@@ -40,6 +40,24 @@ func (m *SetAppReq) Validate() (errstr string) {
 	if m.GetDiscoverMode() != "kubernetes" && m.GetDiscoverMode() != "dns" && m.GetDiscoverMode() != "static" {
 		return "field: discover_mode in object: set_app_req check value str in failed"
 	}
+	if m.GetCrpcPort() <= 0 {
+		return "field: crpc_port in object: set_app_req check value uint gt failed"
+	}
+	if m.GetCrpcPort() >= 65536 {
+		return "field: crpc_port in object: set_app_req check value uint lt failed"
+	}
+	if m.GetCgrpcPort() <= 0 {
+		return "field: cgrpc_port in object: set_app_req check value uint gt failed"
+	}
+	if m.GetCgrpcPort() >= 65536 {
+		return "field: cgrpc_port in object: set_app_req check value uint lt failed"
+	}
+	if m.GetWebPort() <= 0 {
+		return "field: web_port in object: set_app_req check value uint gt failed"
+	}
+	if m.GetWebPort() >= 65536 {
+		return "field: web_port in object: set_app_req check value uint lt failed"
+	}
 	return ""
 }
 
@@ -170,18 +188,58 @@ func (m *RollbackReq) Validate() (errstr string) {
 }
 
 // return empty means pass
-func (m *WatchReq) Validate() (errstr string) {
+func (m *WatchConfigReq) Validate() (errstr string) {
 	if len(m.GetProjectName()) <= 0 {
-		return "field: project_name in object: watch_req check value str len gt failed"
+		return "field: project_name in object: watch_config_req check value str len gt failed"
 	}
 	if len(m.GetGName()) <= 0 {
-		return "field: g_name in object: watch_req check value str len gt failed"
+		return "field: g_name in object: watch_config_req check value str len gt failed"
 	}
 	if len(m.GetAName()) <= 0 {
-		return "field: a_name in object: watch_req check value str len gt failed"
+		return "field: a_name in object: watch_config_req check value str len gt failed"
 	}
 	if len(m.GetKeys()) <= 0 {
-		return "field: keys in object: watch_req check len gt failed"
+		return "field: keys in object: watch_config_req check len gt failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *WatchDiscoverReq) Validate() (errstr string) {
+	if len(m.GetProjectName()) <= 0 {
+		return "field: project_name in object: watch_discover_req check value str len gt failed"
+	}
+	if len(m.GetGName()) <= 0 {
+		return "field: g_name in object: watch_discover_req check value str len gt failed"
+	}
+	if len(m.GetAName()) <= 0 {
+		return "field: a_name in object: watch_discover_req check value str len gt failed"
+	}
+	if m.GetCurDiscoverMode() != "kubernetes" && m.GetCurDiscoverMode() != "dns" && m.GetCurDiscoverMode() != "static" && m.GetCurDiscoverMode() != "" {
+		return "field: cur_discover_mode in object: watch_discover_req check value str in failed"
+	}
+	if m.GetCrpcPort() >= 65536 {
+		return "field: crpc_port in object: watch_discover_req check value uint lt failed"
+	}
+	if m.GetCgrpcPort() >= 65536 {
+		return "field: cgrpc_port in object: watch_discover_req check value uint lt failed"
+	}
+	if m.GetWebPort() >= 65536 {
+		return "field: web_port in object: watch_discover_req check value uint lt failed"
+	}
+	return ""
+}
+
+// return empty means pass
+func (m *WatchDiscoverResp) Validate() (errstr string) {
+	if m.GetCrpcPort() >= 65536 {
+		return "field: crpc_port in object: watch_discover_resp check value uint lt failed"
+	}
+	if m.GetCgrpcPort() >= 65536 {
+		return "field: cgrpc_port in object: watch_discover_resp check value uint lt failed"
+	}
+	if m.GetWebPort() >= 65536 {
+		return "field: web_port in object: watch_discover_resp check value uint lt failed"
 	}
 	return ""
 }

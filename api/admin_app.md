@@ -41,6 +41,8 @@ Success: httpcode:200
 	"kubernetes_namespace":"str",
 	//when discover_mode == "kubernetes"
 	"kubernetes_labelselector":"str",
+	//when discover_mode == "kubernetes"
+	"kubernetes_fieldselector":"str",
 	//when discover_mode == "dns"
 	"dns_host":"str",
 	//when discover_mode == "dns",unit second
@@ -48,6 +50,12 @@ Success: httpcode:200
 	"dns_interval":0,
 	//when discover_mode == "static"
 	"static_addrs":["str","str"],
+	//uint32
+	"crpc_port":0,
+	//uint32
+	"cgrpc_port":0,
+	//uint32
+	"web_port":0,
 	//kv map,value-object key_config_info
 	"keys":{"str":{},"str":{}},
 	//kv map,value-object proxy_path_info
@@ -97,17 +105,31 @@ Content-Type: application/json
 	"secret":"str",
 	//value must in ["kubernetes","dns","static"]
 	"discover_mode":"str",
-	//when discover_mode == "kubernetes",this need to be set
+	//when discover_mode == "kubernetes"
 	"kubernetes_namespace":"str",
-	//when discover_mode == "kubernetes",this need to be set
+	//when discover_mode == "kubernetes"
 	"kubernetes_labelselector":"str",
-	//when discover_mode == "dns",this need to be set
+	//when discover_mode == "kubernetes"
+	"kubernetes_fieldselector":"str",
+	//when discover_mode == "dns"
 	"dns_host":"str",
-	//when discover_mode == "dns",this need to be set,unit is second
+	//when discover_mode == "dns"
 	//uint32
 	"dns_interval":0,
-	//when discover_mode == "static",this need to be set
+	//when discover_mode == "static"
 	"static_addrs":["str","str"],
+	//uint32
+	//value must > 0
+	//value must < 65536
+	"crpc_port":0,
+	//uint32
+	//value must > 0
+	//value must < 65536
+	"cgrpc_port":0,
+	//uint32
+	//value must > 0
+	//value must < 65536
+	"web_port":0,
 	//true: create a new app. false: update the already exist app
 	"new_app":true
 }
@@ -365,11 +387,11 @@ Success: httpcode:200
 }
 ------------------------------------------------------------------------------------------------------------
 ```
-### watch
+### watch_config
 
 #### Req:
 ```
-Path:         /admin.app/watch
+Path:         /admin.app/watch_config
 Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
@@ -410,6 +432,68 @@ watch_data: {
 	"value_type":"str",
 	//uint32
 	"version":0
+}
+------------------------------------------------------------------------------------------------------------
+```
+### watch_discover
+
+#### Req:
+```
+Path:         /admin.app/watch_discover
+Method:       POST
+Content-Type: application/json
+------------------------------------------------------------------------------------------------------------
+{
+	//value length must > 0
+	"project_name":"str",
+	//value length must > 0
+	"g_name":"str",
+	//value length must > 0
+	"a_name":"str",
+	//value must in ["kubernetes","dns","static",""]
+	"cur_discover_mode":"str",
+	//when discover_mode == "dns"
+	"cur_dns_host":"str",
+	//when discover_mode == "dns"
+	//uint32
+	"cur_dns_interval":0,
+	//when discover_mode == "static" or "kubernetes"
+	"cur_addrs":["str","str"],
+	//uint32
+	//value must < 65536
+	"crpc_port":0,
+	//uint32
+	//value must < 65536
+	"cgrpc_port":0,
+	//uint32
+	//value must < 65536
+	"web_port":0
+}
+------------------------------------------------------------------------------------------------------------
+```
+#### Resp:
+```
+Fail:    httpcode:4xx/5xx
+------------------------------------------------------------------------------------------------------------
+{"code":123,"msg":"error message"}
+------------------------------------------------------------------------------------------------------------
+Success: httpcode:200
+------------------------------------------------------------------------------------------------------------
+{
+	"discover_mode":"str",
+	//when discover_mode == "dns"
+	"dns_host":"str",
+	//when discover_mode == "dns"
+	//uint32
+	"dns_interval":0,
+	//when discover_mode == "static"
+	"addrs":["str","str"],
+	//uint32
+	"crpc_port":0,
+	//uint32
+	"cgrpc_port":0,
+	//uint32
+	"web_port":0
 }
 ------------------------------------------------------------------------------------------------------------
 ```

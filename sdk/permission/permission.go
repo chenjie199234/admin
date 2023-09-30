@@ -14,7 +14,7 @@ import (
 	"github.com/chenjie199234/Corelib/web"
 )
 
-type Sdk struct {
+type PermissionSdk struct {
 	client api.PermissionWebClient
 }
 
@@ -31,20 +31,20 @@ var (
 // PERMISSION_SERVICE_GROUP
 // PERMISSION_SERVICE_WEB_HOST
 // PERMISSION_SERVICE_WEB_PORT
-func NewPermissionSdk(selfprojectname, selfappgroup, selfappname string, tlsc *tls.Config) (*Sdk, error) {
-	serverprojectname, group, host, port, e := env()
+func NewPermissionSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*PermissionSdk, error) {
+	project, group, host, port, e := env()
 	if e != nil {
 		return nil, e
 	}
-	di, e := discover.NewStaticDiscover(serverprojectname, group, "admin", []string{host}, 0, 0, port)
+	di, e := discover.NewStaticDiscover(project, group, "admin", []string{host}, 0, 0, port)
 	if e != nil {
 		return nil, e
 	}
-	tmpclient, e := web.NewWebClient(nil, di, selfprojectname, selfappgroup, selfappname, serverprojectname, group, "admin", tlsc)
+	tmpclient, e := web.NewWebClient(nil, di, selfproject, selfgroup, selfapp, project, group, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}
-	return &Sdk{client: api.NewPermissionWebClient(tmpclient)}, nil
+	return &PermissionSdk{client: api.NewPermissionWebClient(tmpclient)}, nil
 }
 func env() (projectname, group string, host string, port int, e error) {
 	if str, ok := os.LookupEnv("PERMISSION_SERVICE_PROJECT"); ok && str != "<PERMISSION_SERVICE_PROJECT>" && str != "" {
@@ -72,7 +72,7 @@ func env() (projectname, group string, host string, port int, e error) {
 	return
 }
 
-func (s *Sdk) CheckMulti(ctx context.Context, userid string, readNodeIDs [][]uint32, writeNodeIDs [][]uint32, adminNodeIDs [][]uint32) (bool, error) {
+func (s *PermissionSdk) CheckMulti(ctx context.Context, userid string, readNodeIDs [][]uint32, writeNodeIDs [][]uint32, adminNodeIDs [][]uint32) (bool, error) {
 	pass := true
 	eg := egroup.GetGroup(ctx)
 	for _, v := range readNodeIDs {
@@ -118,7 +118,7 @@ func (s *Sdk) CheckMulti(ctx context.Context, userid string, readNodeIDs [][]uin
 	return pass, e
 }
 
-func (s *Sdk) CheckAdmin(ctx context.Context, userid string, nodeid []uint32) (bool, error) {
+func (s *PermissionSdk) CheckAdmin(ctx context.Context, userid string, nodeid []uint32) (bool, error) {
 	req := &api.GetUserPermissionReq{
 		UserId: userid,
 		NodeId: nodeid,
@@ -130,7 +130,7 @@ func (s *Sdk) CheckAdmin(ctx context.Context, userid string, nodeid []uint32) (b
 	return resp.GetAdmin(), nil
 }
 
-func (s *Sdk) CheckRead(ctx context.Context, userid string, nodeid []uint32) (bool, error) {
+func (s *PermissionSdk) CheckRead(ctx context.Context, userid string, nodeid []uint32) (bool, error) {
 	req := &api.GetUserPermissionReq{
 		UserId: userid,
 		NodeId: nodeid,
@@ -142,7 +142,7 @@ func (s *Sdk) CheckRead(ctx context.Context, userid string, nodeid []uint32) (bo
 	return resp.GetCanread() || resp.GetAdmin(), nil
 }
 
-func (s *Sdk) CheckWrite(ctx context.Context, userid string, nodeid []uint32) (bool, error) {
+func (s *PermissionSdk) CheckWrite(ctx context.Context, userid string, nodeid []uint32) (bool, error) {
 	req := &api.GetUserPermissionReq{
 		UserId: userid,
 		NodeId: nodeid,

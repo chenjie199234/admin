@@ -20,9 +20,13 @@ type AppSummary struct {
 	DiscoverMode     string                 `bson:"discover_mode"` //kubernetes,dns,static
 	KubernetesNs     string                 `bson:"kubernetes_ns"`
 	KubernetesLS     string                 `bson:"kubernetes_ls"`
+	KubernetesFS     string                 `bson:"kubernetes_fs"`
 	DnsHost          string                 `bson:"dns_host"`
 	DnsInterval      uint32                 `bson:"dns_interval"` //unit second
 	StaticAddrs      []string               `bson:"static_addrs"`
+	CrpcPort         uint32                 `bson:"crpc_port"`
+	CGrpcPort        uint32                 `bson:"cgrpc_port"`
+	WebPort          uint32                 `bson:"web_port"`
 	Paths            map[string]*ProxyPath  `bson:"paths"` //map's key is the base64(proxy path)
 	Keys             map[string]*KeySummary `bson:"keys"`  //map's key is config's key name
 	Value            string                 `bson:"value"`

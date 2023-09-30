@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/initinternal"
 	"github.com/chenjie199234/admin/model"
 
@@ -52,19 +53,20 @@ func Init(notice func(c *AppConfig)) {
 	sourcech := make(chan *struct{}, 1)
 	go func() {
 		var appversion, sourceversion uint32
-		ch, _, e := Sdk.GetNoticeByProjectID(model.AdminProjectID, model.Group, model.Name)
+		ch, cancel, e := Sdk.GetNoticeByProjectID(model.AdminProjectID, model.Group, model.Name)
 		if e != nil {
 			log.Error(nil, "[config.Init] get notice failed", log.CError(e))
 			Close()
 			os.Exit(1)
 		}
+		defer cancel()
 		for {
-			_, ok := <-ch
-			if !ok {
-				return
-			}
+			<-ch
 			app, e := Sdk.GetAppConfigByProjectID(model.AdminProjectID, model.Group, model.Name)
 			if e != nil {
+				if e == ecode.ErrServerClosing {
+					return
+				}
 				log.Error(nil, "[config.Init] get app config failed", log.CError(e))
 				continue
 			}

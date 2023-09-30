@@ -29,7 +29,6 @@ const all=computed(()=>{
 	return tmp
 })
 
-
 const curg=ref<string>("")
 const cura=ref<string>("")
 const secret=ref<string>("")
@@ -50,9 +49,13 @@ const config_proxy_instance=ref<string>("")
 const discovermode=ref<string>("")
 const kubernetesns=ref<string>("")
 const kubernetesls=ref<string>("")
+const kubernetesfs=ref<string>("")
 const dnshost=ref<string>("")
 const dnsinterval=ref<number>(0)
 const staticaddrs=ref<string[]>([])
+const crpc_port=ref<number>(0)
+const cgrpc_port=ref<number>(0)
+const web_port=ref<number>(0)
 
 const keys=ref<Map<string,appAPI.KeyConfigInfo>>(new Map())
 const t_keys_hover=ref<boolean>(false)
@@ -75,6 +78,7 @@ function get_app(){
 		discovermode.value=""
 		kubernetesns.value=""
 		kubernetesls.value=""
+		kubernetesfs.value=""
 		dnshost.value=""
 		dnsinterval.value=0
 		staticaddrs.value=[]
@@ -88,6 +92,7 @@ function get_app(){
 		discovermode.value=""
 		kubernetesns.value=""
 		kubernetesls.value=""
+		kubernetesfs.value=""
 		dnshost.value=""
 		dnsinterval.value=0
 		staticaddrs.value=[]
@@ -132,6 +137,7 @@ function get_app(){
 		discovermode.value=resp.discover_mode
 		kubernetesns.value=resp.kubernetes_namespace
 		kubernetesls.value=resp.kubernetes_labelselector
+		kubernetesfs.value=resp.kubernetes_fieldselector
 	      	dnshost.value=resp.dns_host
 	      	dnsinterval.value=resp.dns_interval
 		if(resp.static_addrs){
@@ -139,6 +145,9 @@ function get_app(){
 		}else{
 			staticaddrs.value=[]
 		}
+		crpc_port.value=resp.crpc_port
+		cgrpc_port.value=resp.cgrpc_port
+		web_port.value=resp.web_port
 		get_app_status.value=true
 		state.clear_load()
 	})
@@ -209,17 +218,25 @@ const new_secret=ref<string>("")
 const new_discovermode=ref<string>("")
 const new_kubernetesns=ref<string>("")
 const new_kubernetesls=ref<string>("")
+const new_kubernetesfs=ref<string>("")
 const new_dnshost=ref<string>("")
 const new_dnsinterval=ref<number>(0)
 const new_staticaddrs=ref<string[]>([])
 const new_staticaddr=ref<string>("")
+const new_crpc_port=ref<number>(0)
+const new_cgrpc_port=ref<number>(0)
+const new_web_port=ref<number>(0)
 function reset_new_app(){
 	new_kubernetesns.value=''
 	new_kubernetesls.value=''
+	new_kubernetesfs.value=''
 	new_dnshost.value=''
 	new_dnsinterval.value=0
 	new_staticaddrs.value=[]
 	new_staticaddr.value=''
+	new_crpc_port.value=0
+	new_cgrpc_port.value=0
+	new_web_port.value=0
 }
 function add_app_able() :boolean{
 	if(new_g.value==''){
@@ -231,13 +248,22 @@ function add_app_able() :boolean{
 	if(new_discovermode.value==''){
 		return false
 	}
-	if(new_discovermode.value=='kubernetes'&&(new_kubernetesns.value==''||new_kubernetesls.value=='')){
+	if(new_discovermode.value=='kubernetes'&&(new_kubernetesns.value==''||(new_kubernetesls.value==''&&new_kubernetesfs.value==''))){
 		return false
 	}
 	if(new_discovermode.value=='dns'&&new_dnshost.value==''){
 		return false
 	}
 	if(new_discovermode.value=='static'&&new_staticaddrs.value.length==0){
+		return false
+	}
+	if(new_crpc_port.value==0){
+		return false
+	}
+	if(new_cgrpc_port.value==0){
+		return false
+	}
+	if(new_web_port.value==0){
 		return false
 	}
 	return true
@@ -248,10 +274,14 @@ const update_new_secret=ref<string>("")
 const update_new_discovermode=ref<string>("")
 const update_new_kubernetesns=ref<string>("")
 const update_new_kubernetesls=ref<string>("")
+const update_new_kubernetesfs=ref<string>("")
 const update_new_dnshost=ref<string>("")
 const update_new_dnsinterval=ref<number>(0)
 const update_new_staticaddrs=ref<string[]>([])
 const update_new_staticaddr=ref<string>("")
+const update_new_crpc_port=ref<number>(0)
+const update_new_cgrpc_port=ref<number>(0)
+const update_new_web_port=ref<number>(0)
 function update_secret_able():boolean{
 	return update_new_secret.value != secret.value
 }
@@ -261,13 +291,18 @@ function reset_update_discover(dname:string){
 	}
 	update_new_kubernetesns.value=''
 	update_new_kubernetesls.value=''
+	update_new_kubernetesfs.value=''
 	update_new_dnshost.value=''
 	update_new_dnsinterval.value=0
 	update_new_staticaddrs.value=[]
 	update_new_staticaddr.value=''
+	update_new_crpc_port.value=crpc_port.value
+	update_new_cgrpc_port.value=cgrpc_port.value
+	update_new_web_port.value=web_port.value
 	if(update_new_discovermode.value=="kubernetes"){
 		update_new_kubernetesns.value=kubernetesns.value
 		update_new_kubernetesls.value=kubernetesls.value
+		update_new_kubernetesfs.value=kubernetesfs.value
 	}else if(update_new_discovermode.value=="dns"){
 		update_new_dnshost.value=dnshost.value
 		update_new_dnsinterval.value=dnsinterval.value
@@ -279,31 +314,43 @@ function update_discover_able():boolean{
 	if(update_new_discovermode.value==''){
 		return false
 	}
+	if(update_new_crpc_port.value==0){
+		return false
+	}
+	if(update_new_cgrpc_port.value==0){
+		return false
+	}
+	if(update_new_web_port.value==0){
+		return false
+	}
+	let sameport = update_new_crpc_port.value==crpc_port.value&&update_new_cgrpc_port.value==cgrpc_port.value&&update_new_web_port.value==web_port.value
 	if(update_new_discovermode.value=='kubernetes'){
-		if(update_new_kubernetesns.value==''||update_new_kubernetesls.value==''){
+		if(update_new_kubernetesns.value==''||(update_new_kubernetesls.value==''&&update_new_kubernetesfs.value=='')){
 			return false
 		}
-		if(update_new_kubernetesns.value==kubernetesns.value&&update_new_kubernetesls.value==kubernetesls.value){
-			return false
-		}
+		let samekubernetes = update_new_kubernetesns.value==kubernetesns.value&&
+			update_new_kubernetesls.value==kubernetesls.value&&
+			update_new_kubernetesfs.value==kubernetesfs.value
+		return !sameport || !samekubernetes
 	}
 	if(update_new_discovermode.value=='dns'){
 		if(update_new_dnshost.value==''){
 			return false
 		}
-		if(update_new_dnshost.value==dnshost.value&&update_new_dnsinterval.value==dnsinterval.value){
-			return false
-		}
+		let samedns = update_new_dnshost.value==dnshost.value&&update_new_dnsinterval.value==dnsinterval.value
+		return !sameport || !samedns
 	}
 	if(update_new_discovermode.value=='static'){
 		if(update_new_staticaddrs.value.length==0){
 			return false
 		}
-		if(update_new_staticaddrs.value.length==staticaddrs.value.length){
-			if(staticaddrs.value.every(function(v,i){return v==update_new_staticaddrs.value[i]})){
-				return false
-			}
+		let sameaddr = update_new_staticaddrs.value.length==staticaddrs.value.length
+		if(sameaddr){
+			sameaddr = staticaddrs.value.every(function(v,i){return v==update_new_staticaddrs.value[i]})
 		}
+		console.log(sameport)
+		console.log(sameaddr)
+		return !sameport || !sameaddr
 	}
 	return true
 }
@@ -441,6 +488,9 @@ function app_op(){
 	      			dns_host:new_dnshost.value,
 	      			dns_interval:new_dnsinterval.value,
 	      			static_addrs:new_staticaddrs.value,
+				crpc_port:new_crpc_port.value,
+				cgrpc_port:new_cgrpc_port.value,
+				web_port:new_web_port.value,
 	      			new_app:true,
 			}
 			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
@@ -492,6 +542,9 @@ function app_op(){
 	      			dns_host:update_new_dnshost.value,
 	      			dns_interval:update_new_dnsinterval.value,
 	      			static_addrs:update_new_staticaddrs.value,
+				crpc_port:update_new_crpc_port.value,
+				cgrpc_port:update_new_cgrpc_port.value,
+				web_port:update_new_web_port.value,
 	      			new_app:false,
 			}
 			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
@@ -505,6 +558,9 @@ function app_op(){
 				dnsinterval.value=update_new_dnsinterval.value
 				staticaddrs.value=update_new_staticaddrs.value
 				update_new_discovermode.value=""
+				crpc_port.value=update_new_crpc_port.value,
+				cgrpc_port.value=update_new_cgrpc_port.value,
+				web_port.value=update_new_web_port.value,
 				ing.value=false
 				state.clear_load()
 			})
@@ -793,10 +849,15 @@ function is_json_obj(str :string):boolean{
 					:options='["dns","kubernetes","static"]'
 					@update:modelValue="reset_new_app()" />
 				<va-input v-if="new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin-top:10px" v-model.trim="new_kubernetesns" />
-				<va-input v-if="new_discovermode=='kubernetes'" type="text" label="Kubernetes Label Selector*" style="margin-top:10px" v-model.trim="new_kubernetesls" />
+				<b v-if="new_discovermode=='kubernetes'" style="color:var(--va-primary);margin-top:10px;font-size:12px">KUBERNETES SELECTOR*</b>
+				<div v-if="new_discovermode=='kubernetes'" style="display:flex;justify-content:space-between">
+					<va-input type="text" label="Label Selector" style="width:170px" v-model.trim="new_kubernetesls" />
+					<va-input type="text" label="Field Selector" style="width:170px" v-model.trim="new_kubernetesfs" />
+				</div>
 				<va-input v-if="new_discovermode=='dns'" type="text" label="Dns Host*" style="margin-top:10px" v-model.trim="new_dnshost" />
-				<va-input v-if="new_discovermode=='dns'" type="text" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="new_dnsinterval" />
-				<div v-if="new_discovermode=='static'" v-for="(addr,index) in new_staticaddrs" style="display:flex;align-items:end;margin-top:10px">
+				<va-input v-if="new_discovermode=='dns'" type="number" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="new_dnsinterval" />
+				<b v-if="new_discovermode=='static'&&new_staticaddrs.length>0" style="color:var(--va-primary);margin-top:10px;font-size:12px">CURRENT ADDRS*</b>
+				<div v-if="new_discovermode=='static'" v-for="(addr,index) in new_staticaddrs" style="display:flex;align-items:end;margin-top:4px">
 					<va-input v-if="addr!=''" style="flex:1;margin-right:5px" readonly type="text" v-model="new_staticaddrs[index]" />
 					<va-button v-if="addr!=''" @click="new_staticaddrs.splice(index,1)" gradient>X</va-button>
 				</div>
@@ -807,6 +868,11 @@ function is_json_obj(str :string):boolean{
 						@click="new_staticaddrs.push(new_staticaddr);new_staticaddr=''"
 						gradient
 					>+</va-button>
+				</div>
+				<div style="display:flex;justify-content:space-around;margin-top:10px">
+					<va-input v-if="new_discovermode!=''" type="number" label="Crpc Port*" style="width:100px" v-model.number="new_crpc_port"/>
+					<va-input v-if="new_discovermode!=''" type="number" label="CGrpc Port*" style="width:100px" v-model.number="new_cgrpc_port"/>
+					<va-input v-if="new_discovermode!=''" type="number" label="Web Port*" style="width:100px" v-model.number="new_web_port"/>
 				</div>
 				<div style="display:flex;justify-content:center">
 					<va-button @click="app_op" style="margin:10px 10px 0 0" :disabled="!add_app_able()" gradient>Add</va-button>
@@ -832,10 +898,15 @@ function is_json_obj(str :string):boolean{
 					:options='["dns","kubernetes","static"]'
 					@update:modelValue="reset_update_discover('')"/>
 				<va-input v-if="update_new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin-top:10px" v-model.trim="update_new_kubernetesns" />
-				<va-input v-if="update_new_discovermode=='kubernetes'" type="text" label="Kubernetes Label Selector*" style="margin-top:10px" v-model.trim="update_new_kubernetesls" />
+				<b v-if="update_new_discovermode=='kubernetes'" style="color:var(--va-primary);margin-top:10px;font-size:12px">KUBERNETES SELECTOR*</b>
+				<div v-if="update_new_discovermode=='kubernetes'" style="display:flex;justify-content:space-between">
+					<va-input type="text" label="Label Selector" style="width:170px" v-model.trim="update_new_kubernetesls" />
+					<va-input type="text" label="Field Selector" style="width:170px" v-model.trim="update_new_kubernetesfs" />
+				</div>
 				<va-input v-if="update_new_discovermode=='dns'" type="text" label="Dns Host*" style="margin-top:10px" v-model.trim="update_new_dnshost" />
-				<va-input v-if="update_new_discovermode=='dns'" type="text" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="update_new_dnsinterval" />
-				<div v-if="update_new_discovermode=='static'" v-for="(addr,index) in update_new_staticaddrs" style="display:flex;align-items:end;margin-top:10px">
+				<va-input v-if="update_new_discovermode=='dns'" type="number" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="update_new_dnsinterval" />
+				<b v-if="update_new_discovermode=='static'&&update_new_staticaddrs.length>0" style="color:var(--va-primary);margin-top:10px;font-size:12px">CURRENT ADDRS*</b>
+				<div v-if="update_new_discovermode=='static'" v-for="(addr,index) in update_new_staticaddrs" style="display:flex;align-items:end;margin-top:4px">
 					<va-input v-if="addr!=''" style="flex:1;margin-right:5px" readonly type="text" v-model="update_new_staticaddrs[index]" />
 					<va-button v-if="addr!=''" @click="update_new_staticaddrs.splice(index,1)" gradient>X</va-button>
 				</div>
@@ -846,6 +917,11 @@ function is_json_obj(str :string):boolean{
 						@click="update_new_staticaddrs.push(update_new_staticaddr);update_new_staticaddr=''"
 						gradient
 					>+</va-button>
+				</div>
+				<div style="display:flex;justify-content:space-around;margin-top:10px">
+					<va-input v-if="update_new_discovermode!=''" type="number" label="Crpc Port*" style="width:100px" v-model.number="update_new_crpc_port"/>
+					<va-input v-if="update_new_discovermode!=''" type="number" label="CGrpc Port*" style="width:100px" v-model.number="update_new_cgrpc_port"/>
+					<va-input v-if="update_new_discovermode!=''" type="number" label="Web Port*" style="width:100px" v-model.number="update_new_web_port"/>
 				</div>
 				<div style="display:flex;justify-content:center">
 					<va-button @click="app_op" style="margin:10px 10px 0 0" :disabled="!update_discover_able()" gradient>Update</va-button>

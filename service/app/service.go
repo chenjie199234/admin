@@ -1288,6 +1288,7 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 			log.String("app", req.AName),
 			log.String("path", req.Path),
 			log.String("reqdata", req.Data),
+			log.String("forceaddr", req.ForceAddr),
 			log.CError(e))
 		return nil, e
 	}
@@ -1297,6 +1298,7 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 		log.String("group", req.GName),
 		log.String("app", req.AName),
 		log.String("path", req.Path),
+		log.String("forceaddr", req.ForceAddr),
 		log.String("reqdata", req.Data),
 		log.String("respdata", common.Byte2str(out)))
 	return &api.ProxyResp{Data: common.Byte2str(out)}, nil

@@ -19,18 +19,18 @@ type PermissionSdk struct {
 }
 
 var (
-	ErrMissingEnvProject = errors.New("missing env PERMISSION_SERVICE_PROJECT")
-	ErrMissingEnvGroup   = errors.New("missing env PERMISSION_SERVICE_GROUP")
-	ErrMissingEnvHost    = errors.New("missing env PERMISSION_SERVICE_WEB_HOST")
-	ErrWrongEnvPort      = errors.New("env PERMISSION_SERVICE_WEB_PORT must be number <= 65535")
+	ErrMissingEnvProject = errors.New("missing env ADMIN_SERVICE_PROJECT")
+	ErrMissingEnvGroup   = errors.New("missing env ADMIN_SERVICE_GROUP")
+	ErrMissingEnvHost    = errors.New("missing env ADMIN_SERVICE_WEB_HOST")
+	ErrWrongEnvPort      = errors.New("env ADMIN_SERVICE_WEB_PORT must be number <= 65535")
 )
 
 // if tlsc is not nil,the tls will be actived
-// must set below env:
-// PERMISSION_SERVICE_PROJECT
-// PERMISSION_SERVICE_GROUP
-// PERMISSION_SERVICE_WEB_HOST
-// PERMISSION_SERVICE_WEB_PORT
+// required env:
+// ADMIN_SERVICE_PROJECT
+// ADMIN_SERVICE_GROUP
+// ADMIN_SERVICE_WEB_HOST
+// ADMIN_SERVICE_WEB_PORT
 func NewPermissionSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*PermissionSdk, error) {
 	project, group, host, port, e := env()
 	if e != nil {
@@ -47,22 +47,22 @@ func NewPermissionSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) 
 	return &PermissionSdk{client: api.NewPermissionWebClient(tmpclient)}, nil
 }
 func env() (projectname, group string, host string, port int, e error) {
-	if str, ok := os.LookupEnv("PERMISSION_SERVICE_PROJECT"); ok && str != "<PERMISSION_SERVICE_PROJECT>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_PROJECT"); ok && str != "<ADMIN_SERVICE_PROJECT>" && str != "" {
 		projectname = str
 	} else {
 		return "", "", "", 0, ErrMissingEnvProject
 	}
-	if str, ok := os.LookupEnv("PERMISSION_SERVICE_GROUP"); ok && str != "<PERMISSION_SERVICE_GROUP>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_GROUP"); ok && str != "<ADMIN_SERVICE_GROUP>" && str != "" {
 		group = str
 	} else {
 		return "", "", "", 0, ErrMissingEnvGroup
 	}
-	if str, ok := os.LookupEnv("PERMISSION_SERVICE_WEB_HOST"); ok && str != "<PERMISSION_SERVICE_WEB_HOST>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_HOST"); ok && str != "<ADMIN_SERVICE_WEB_HOST>" && str != "" {
 		host = str
 	} else {
 		return "", "", "", 0, ErrMissingEnvHost
 	}
-	if str, ok := os.LookupEnv("PERMISSION_SERVICE_WEB_PORT"); ok && str != "<PERMISSION_SERVICE_WEB_PORT>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_PORT"); ok && str != "<ADMIN_SERVICE_WEB_PORT>" && str != "" {
 		var e error
 		port, e = strconv.Atoi(str)
 		if e != nil || port < 0 || port > 65535 {

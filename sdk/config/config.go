@@ -35,19 +35,20 @@ type ConfigSdk struct {
 type NoticeHandler func(key, keyvalue, keytype string)
 
 var (
-	ErrMissingEnvPROJECT = errors.New("missing env REMOTE_CONFIG_SERVICE_PROJECT")
-	ErrMissingEnvGroup   = errors.New("missing env REMOTE_CONFIG_SERVICE_GROUP")
-	ErrMissingEnvHost    = errors.New("missing env REMOTE_CONFIG_SERVICE_WEB_HOST")
-	ErrWrongEnvPort      = errors.New("env REMOTE_CONFIG_SERVICE_WEB_PORT must be number <= 65535")
+	ErrMissingEnvPROJECT = errors.New("missing env ADMIN_SERVICE_PROJECT")
+	ErrMissingEnvGroup   = errors.New("missing env ADMIN_SERVICE_GROUP")
+	ErrMissingEnvHost    = errors.New("missing env ADMIN_SERVICE_WEB_HOST")
+	ErrWrongEnvPort      = errors.New("env ADMIN_SERVICE_WEB_PORT must be number <= 65535")
 	ErrWrongEnvSecret    = errors.New("env REMOTE_CONFIG_SECRET too long")
 )
 
 // if tlsc is not nil,the tls will be actived
-// must set below env:
-// REMOTE_CONFIG_SERVICE_PROJECT
-// REMOTE_CONFIG_SERVICE_GROUP
-// REMOTE_CONFIG_SERVICE_WEB_HOST
-// REMOTE_CONFIG_SERVICE_WEB_PORT
+// required env:
+// ADMIN_SERVICE_PROJECT
+// ADMIN_SERVICE_GROUP
+// ADMIN_SERVICE_WEB_HOST
+// ADMIN_SERVICE_WEB_PORT
+// option env:
 // REMOTE_CONFIG_SECRET
 func NewConfigSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*ConfigSdk, error) {
 	project, group, host, port, secret, e := env()
@@ -73,22 +74,22 @@ func NewConfigSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*Co
 	return instance, nil
 }
 func env() (projectname string, group string, host string, port int, secret string, e error) {
-	if str, ok := os.LookupEnv("REMOTE_CONFIG_SERVICE_PROJECT"); ok && str != "<REMOTE_CONFIG_SERVICE_PROJECT>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_PROJECT"); ok && str != "<ADMIN_SERVICE_PROJECT>" && str != "" {
 		projectname = str
 	} else {
 		return "", "", "", 0, "", ErrMissingEnvPROJECT
 	}
-	if str, ok := os.LookupEnv("REMOTE_CONFIG_SERVICE_GROUP"); ok && str != "<REMOTE_CONFIG_SERVICE_GROUP>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_GROUP"); ok && str != "<ADMIN_SERVICE_GROUP>" && str != "" {
 		group = str
 	} else {
 		return "", "", "", 0, "", ErrMissingEnvGroup
 	}
-	if str, ok := os.LookupEnv("REMOTE_CONFIG_SERVICE_WEB_HOST"); ok && str != "<REMOTE_CONFIG_SERVICE_WEB_HOST>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_HOST"); ok && str != "<ADMIN_SERVICE_WEB_HOST>" && str != "" {
 		host = str
 	} else {
 		return "", "", "", 0, "", ErrMissingEnvHost
 	}
-	if str, ok := os.LookupEnv("REMOTE_CONFIG_SERVICE_WEB_PORT"); ok && str != "<REMOTE_CONFIG_SERVICE_WEB_PORT>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_PORT"); ok && str != "<ADMIN_SERVICE_WEB_PORT>" && str != "" {
 		var e error
 		port, e = strconv.Atoi(str)
 		if e != nil || port < 0 || port > 65535 {

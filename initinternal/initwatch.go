@@ -3,6 +3,8 @@ package initinternal
 import (
 	"context"
 	"encoding/base64"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -836,12 +838,6 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 		app.Unlock()
 		return nil, ecode.ErrProxyPathNotExist
 	}
-	if pcheck != nil {
-		if e := pcheck(ctx, pathinfo.PermissionNodeID, pathinfo.PermissionRead, pathinfo.PermissionWrite, pathinfo.PermissionAdmin); e != nil {
-			app.Unlock()
-			return nil, e
-		}
-	}
 	if app.client == nil {
 		if app.di == nil {
 			app.Unlock()
@@ -855,9 +851,21 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 		}
 	}
 	app.clientactive = time.Now().UnixNano()
+	if strings.Contains(forceaddr, ":") {
+		//ipv6
+		forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)
+	} else {
+		//ipv4 or host
+		forceaddr = forceaddr + ":" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)
+	}
 	//copy the client pointer
 	client := app.client
 	app.Unlock()
+	if pcheck != nil {
+		if e := pcheck(ctx, pathinfo.PermissionNodeID, pathinfo.PermissionRead, pathinfo.PermissionWrite, pathinfo.PermissionAdmin); e != nil {
+			return nil, e
+		}
+	}
 	return client.Call(crpc.WithForceAddr(ctx, forceaddr), path, reqdata)
 }
 
@@ -903,6 +911,13 @@ func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string,
 		}
 	}
 	app.clientactive = time.Now().UnixNano()
+	if strings.Contains(forceaddr, ":") {
+		//ipv6
+		forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)
+	} else {
+		//ipv4 or host
+		forceaddr = forceaddr + ":" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)
+	}
 	//copy the client pointer
 	client := app.client
 	app.Unlock()

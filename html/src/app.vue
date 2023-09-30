@@ -1160,7 +1160,9 @@ function is_json_obj(str :string):boolean{
 			<va-button style="margin:0 5px" :disabled="curg==''||cura==''" @click="get_app" gradient>Search</va-button>
 			<va-button v-if="state.page.node!.admin" style="margin:0 5px" @click="reset_new_app();optype='add_app';ing=true" gradient>Add</va-button>
 		</div>
-		<div v-else style="display:flex;margin:1px 0;align-self:center">
+		<div v-else style="display:flex;align-items:center;margin:1px 0">
+			<va-input readonly v-model="curg" style="width:150px;margin-right:1px"/>
+			<va-input readonly v-model="cura" style="width:150px;margin-left:1px"/>
 			<va-button v-if="mustadmin()" style="margin:0 5px" @click="optype='update_secret';ing=true" gradient>UpdateSecret</va-button>
 			<va-button v-if="mustadmin()" style="margin:0 5px" @click="reset_update_discover(discovermode);optype='update_discover';ing=true" gradient>UpdateDiscover</va-button>
 			<va-button v-if="state.page.node!.admin&&!selfapp()" style="margin:0 5px" @click="optype='del_app';ing=true" gradient>Delete</va-button>
@@ -1222,7 +1224,7 @@ function is_json_obj(str :string):boolean{
 					<div style="flex:1;display:flex;flex-direction:column;overflow-y:auto">
 						<va-textarea
 							:modelValue="JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)"
-							style="flex:1"
+							style="flex:1;overflow-y:auto"
 							readonly
 							autosize
 							:resize='false'/>
@@ -1286,17 +1288,17 @@ function is_json_obj(str :string):boolean{
 						</div>
 					</div>
 					<va-divider v-if="rollback_key_index!=0||edit_key_value_type!=''" vertical style="margin:0 4px" />
-					<div v-if="rollback_key_index!=0||edit_key_value_type!=''" style="flex:1;display:flex;flex-direction:column">
+					<div v-if="rollback_key_index!=0||edit_key_value_type!=''" style="flex:1;display:flex;flex-direction:column;overflow-y:auto">
 						<va-textarea
 							v-if="rollback_key_index!=0"
-							style="flex:1"
+							style="flex:1;overflow-y:auto"
 							:modelValue="rollback_key_value_type=='json'?JSON.stringify(JSON.parse(rollback_key_value),null,4):rollback_key_value"
 							readonly
 							autosize
 							:resize="false"/>
 						<va-textarea
 							v-if="edit_key_value_type!=''"
-							style="flex:1"
+							style="flex:1;overflow-y:auto"
 							v-model.trim="edit_key_value"
 							autosize
 							:resize="false">
@@ -1410,8 +1412,8 @@ function is_json_obj(str :string):boolean{
 				</div>
 				<div v-if="cur_proxy==proxy" style="flex:1;display:flex;margin:1px 20px;overflow-y:auto">
 					<div style="flex:1;display:flex;flex-direction:column">
-						<va-textarea style="flex:1" v-model.trim="reqdata" :readonly="respdata!=''" autosize :resize="false" />
-						<div style="width:100%;display:flex;align-items:center">
+						<va-textarea style="flex:1;overflow-y:auto" v-model.trim="reqdata" :readonly="respdata!=''" autosize :resize="false" />
+						<div style="display:flex;align-items:center">
 							<va-button
 								style="width:60px;height:30px;margin:2px 0"
 								size="small"
@@ -1514,8 +1516,8 @@ function is_json_obj(str :string):boolean{
 						</div>
 					</div>
 					<va-divider v-if="respdata!=''" vertical style="margin:0 4px" />
-					<div v-if="respdata!=''" style="flex:1;display:flex;flex-direction:column">
-						<va-textarea style="flex:1" v-model="respdata" readonly autosize :resize="false" />
+					<div v-if="respdata!=''" style="flex:1;display:flex;flex-direction:column;overflow-y:auto">
+						<va-textarea style="flex:1;overflow-y:auto" v-model="respdata" readonly autosize :resize="false" />
 						<va-button style="align-self:center;width:60px;height:30px;margin:2px" size="small" gradient @click="respdata=''">OK</va-button>
 					</div>
 				</div>

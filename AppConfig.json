@@ -10,6 +10,11 @@
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
+		"/admin.app/watch_discover":{
+			"POST":"0s",
+			"CRPC":"0s",
+			"GRPC":"0s"
+		},
 		"/admin.initialize/delete_project":{
 			"POST":"0s",
 			"CRPC":"0s",

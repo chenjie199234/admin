@@ -17,6 +17,7 @@ import (
 	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/util"
 
+	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	"github.com/chenjie199234/Corelib/pool"
@@ -875,7 +876,7 @@ func (s *Service) WatchConfig(ctx context.Context, req *api.WatchConfigReq) (*ap
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, ecode.ReturnEcode(ctx.Err(), ecode.ErrSystem)
+			return nil, cerror.ConvertStdError(ctx.Err())
 		case <-ch:
 			app, e := config.Sdk.GetAppConfigByProjectName(req.ProjectName, req.GName, req.AName)
 			if e != nil {
@@ -1084,7 +1085,6 @@ func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoR
 		},
 	}, nil
 }
-
 func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetProxyResp, error) {
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])

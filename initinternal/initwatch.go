@@ -693,7 +693,7 @@ func (s *InternalSdk) WatchDiscover(ctx context.Context, pname, g, a string, inf
 				select {
 				case <-ctx.Done():
 					cancel()
-					return ctx.Err()
+					return cerror.ConvertStdError(ctx.Err())
 				case _, ok := <-notice:
 					closed = !ok
 				}
@@ -768,6 +768,8 @@ func (s *InternalSdk) WatchDiscover(ctx context.Context, pname, g, a string, inf
 			for {
 				select {
 				case <-ctx.Done():
+					cancel()
+					return cerror.ConvertStdError(ctx.Err())
 				case _, ok := <-notice:
 					closed = !ok
 				}

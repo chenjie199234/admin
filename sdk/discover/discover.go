@@ -216,7 +216,7 @@ func (s *DiscoverSdk) run() {
 		}
 		tmer.Reset(dnsinterval)
 		addrs, e := net.DefaultResolver.LookupHost(s.ctx, dnshost)
-		if e != nil && cerror.Equal(e, cerror.ErrCanceled) {
+		if e != nil && cerror.Equal(errors.Unwrap(e), cerror.ErrCanceled) {
 			log.Info(nil, "[discover.admin] discover stopped", log.String("target", s.target))
 			s.lasterror = cerror.ErrDiscoverStopped
 			return

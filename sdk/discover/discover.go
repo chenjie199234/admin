@@ -23,10 +23,10 @@ import (
 )
 
 var (
-	ErrMissingEnvProject = errors.New("missing env DISCOVER_SERVICE_PROJECT")
-	ErrMissingEnvGroup   = errors.New("missing env DISCOVER_SERVICE_GROUP")
-	ErrMissingEnvHost    = errors.New("missing env DISCOVER_SERVICE_WEB_HOST")
-	ErrWrongEnvPort      = errors.New("env DISCOVER_SERVICE_WEB_PORT must be number <= 65535")
+	ErrMissingEnvProject = errors.New("missing env ADMIN_DISCOVER_SERVICE_PROJECT")
+	ErrMissingEnvGroup   = errors.New("missing env ADMIN_DISCOVER_SERVICE_GROUP")
+	ErrMissingEnvHost    = errors.New("missing env ADMIN_DISCOVER_SERVICE_WEB_HOST")
+	ErrWrongEnvPort      = errors.New("env ADMIN_DISCOVER_SERVICE_WEB_PORT must be number <= 65535")
 )
 
 type DiscoverSdk struct {
@@ -95,22 +95,22 @@ func (s *DiscoverSdk) Stop() {
 	s.cancel()
 }
 func env() (projectname, group string, host string, port int, e error) {
-	if str, ok := os.LookupEnv("DISCOVER_SERVICE_PROJECT"); ok && str != "<PERMISSION_SERVICE_PROJECT>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_DISCOVER_SERVICE_PROJECT"); ok && str != "<ADMIN_DISCOVER_SERVICE_PROJECT>" && str != "" {
 		projectname = str
 	} else {
 		return "", "", "", 0, ErrMissingEnvProject
 	}
-	if str, ok := os.LookupEnv("DISCOVER_SERVICE_GROUP"); ok && str != "<PERMISSION_SERVICE_GROUP>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_DISCOVER_SERVICE_GROUP"); ok && str != "<ADMIN_DISCOVER_SERVICE_GROUP>" && str != "" {
 		group = str
 	} else {
 		return "", "", "", 0, ErrMissingEnvGroup
 	}
-	if str, ok := os.LookupEnv("DISCOVER_SERVICE_WEB_HOST"); ok && str != "<PERMISSION_SERVICE_WEB_HOST>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_DISCOVER_SERVICE_WEB_HOST"); ok && str != "<ADMIN_DISCOVER_SERVICE_WEB_HOST>" && str != "" {
 		host = str
 	} else {
 		return "", "", "", 0, ErrMissingEnvHost
 	}
-	if str, ok := os.LookupEnv("DISCOVER_SERVICE_WEB_PORT"); ok && str != "<PERMISSION_SERVICE_WEB_PORT>" && str != "" {
+	if str, ok := os.LookupEnv("ADMIN_DISCOVER_SERVICE_WEB_PORT"); ok && str != "<ADMIN_DISCOVER_SERVICE_WEB_PORT>" && str != "" {
 		var e error
 		port, e = strconv.Atoi(str)
 		if e != nil || port < 0 || port > 65535 {

@@ -83,7 +83,7 @@ func env() (projectname, group string, host string, port int, accesskey string, 
 }
 
 // if pass will return nil
-// if not pass will reutrn ecode.ErrPermission
+// if not pass will reutrn ecode.ErrPermission(use cerror.Equal to check)(https://github.com/chenjie199234/Corelib/tree/main/cerror)
 func (s *PermissionSdk) CheckMulti(ctx context.Context, userid string, readNodeIDs [][]uint32, writeNodeIDs [][]uint32, adminNodeIDs [][]uint32) error {
 	eg := egroup.GetGroup(ctx)
 	for _, v := range readNodeIDs {
@@ -108,7 +108,7 @@ func (s *PermissionSdk) CheckMulti(ctx context.Context, userid string, readNodeI
 }
 
 // if pass will return nil
-// if not pass will reutrn ecode.ErrPermission
+// if not pass will reutrn ecode.ErrPermission(use cerror.Equal to check)(https://github.com/chenjie199234/Corelib/tree/main/cerror)
 func (s *PermissionSdk) CheckAdmin(ctx context.Context, userid string, nodeid []uint32) error {
 	req := &api.GetUserPermissionReq{
 		UserId: userid,
@@ -127,7 +127,7 @@ func (s *PermissionSdk) CheckAdmin(ctx context.Context, userid string, nodeid []
 }
 
 // if pass will return nil
-// if not pass will reutrn ecode.ErrPermission
+// if not pass will reutrn ecode.ErrPermission(use cerror.Equal to check)(https://github.com/chenjie199234/Corelib/tree/main/cerror)
 func (s *PermissionSdk) CheckRead(ctx context.Context, userid string, nodeid []uint32) error {
 	req := &api.GetUserPermissionReq{
 		UserId: userid,
@@ -146,7 +146,7 @@ func (s *PermissionSdk) CheckRead(ctx context.Context, userid string, nodeid []u
 }
 
 // if pass will return nil
-// if not pass will reutrn ecode.ErrPermission
+// if not pass will reutrn ecode.ErrPermission(use cerror.Equal to check)(https://github.com/chenjie199234/Corelib/tree/main/cerror)
 func (s *PermissionSdk) CheckWrite(ctx context.Context, userid string, nodeid []uint32) error {
 	req := &api.GetUserPermissionReq{
 		UserId: userid,

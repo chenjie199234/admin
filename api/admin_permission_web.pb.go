@@ -978,7 +978,19 @@ func _Permission_ListProjectNode_WebHandler(handler func(context.Context, *ListP
 func RegisterPermissionWebServer(router *web.Router, svc PermissionWebServer, allmids map[string]web.OutsideHandler) {
 	// avoid lint
 	_ = allmids
-	router.Post(_WebPathPermissionGetUserPermission, _Permission_GetUserPermission_WebHandler(svc.GetUserPermission))
+	{
+		requiredMids := []string{"accesskey"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _Permission_GetUserPermission_WebHandler(svc.GetUserPermission))
+		router.Post(_WebPathPermissionGetUserPermission, mids...)
+	}
 	{
 		requiredMids := []string{"token"}
 		mids := make([]web.OutsideHandler, 0, 2)

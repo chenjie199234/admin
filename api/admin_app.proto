@@ -59,9 +59,11 @@ service app{
 	}
 	rpc watch_config(watch_config_req)returns(watch_config_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="accesskey";
 	}
 	rpc watch_discover(watch_discover_req)returns(watch_discover_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="accesskey";
 	}
 
 	//instance

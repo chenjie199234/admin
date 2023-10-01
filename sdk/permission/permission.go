@@ -4,10 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/chenjie199234/admin/api"
+	"github.com/chenjie199234/admin/ecode"
 
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/util/egroup"
@@ -15,14 +17,16 @@ import (
 )
 
 type PermissionSdk struct {
-	client api.PermissionWebClient
+	client    api.PermissionWebClient
+	accesskey string
 }
 
 var (
-	ErrMissingEnvProject = errors.New("missing env ADMIN_SERVICE_PROJECT")
-	ErrMissingEnvGroup   = errors.New("missing env ADMIN_SERVICE_GROUP")
-	ErrMissingEnvHost    = errors.New("missing env ADMIN_SERVICE_WEB_HOST")
-	ErrWrongEnvPort      = errors.New("env ADMIN_SERVICE_WEB_PORT must be number <= 65535")
+	ErrMissingEnvProject   = errors.New("missing env ADMIN_SERVICE_PROJECT")
+	ErrMissingEnvGroup     = errors.New("missing env ADMIN_SERVICE_GROUP")
+	ErrMissingEnvHost      = errors.New("missing env ADMIN_SERVICE_WEB_HOST")
+	ErrMissingEnvAccessKey = errors.New("missing env ADMIN_SERVICE_PERMISSION_ACCESS_KEY")
+	ErrWrongEnvPort        = errors.New("env ADMIN_SERVICE_WEB_PORT must be number <= 65535")
 )
 
 // if tlsc is not nil,the tls will be actived
@@ -31,8 +35,9 @@ var (
 // ADMIN_SERVICE_GROUP
 // ADMIN_SERVICE_WEB_HOST
 // ADMIN_SERVICE_WEB_PORT
+// ADMIN_SERVICE_PERMISSION_ACCESS_KEY
 func NewPermissionSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*PermissionSdk, error) {
-	project, group, host, port, e := env()
+	project, group, host, port, accesskey, e := env()
 	if e != nil {
 		return nil, e
 	}
@@ -44,112 +49,117 @@ func NewPermissionSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) 
 	if e != nil {
 		return nil, e
 	}
-	return &PermissionSdk{client: api.NewPermissionWebClient(tmpclient)}, nil
+	return &PermissionSdk{client: api.NewPermissionWebClient(tmpclient), accesskey: accesskey}, nil
 }
-func env() (projectname, group string, host string, port int, e error) {
+func env() (projectname, group string, host string, port int, accesskey string, e error) {
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_PROJECT"); ok && str != "<ADMIN_SERVICE_PROJECT>" && str != "" {
 		projectname = str
 	} else {
-		return "", "", "", 0, ErrMissingEnvProject
+		return "", "", "", 0, "", ErrMissingEnvProject
 	}
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_GROUP"); ok && str != "<ADMIN_SERVICE_GROUP>" && str != "" {
 		group = str
 	} else {
-		return "", "", "", 0, ErrMissingEnvGroup
+		return "", "", "", 0, "", ErrMissingEnvGroup
 	}
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_HOST"); ok && str != "<ADMIN_SERVICE_WEB_HOST>" && str != "" {
 		host = str
 	} else {
-		return "", "", "", 0, ErrMissingEnvHost
+		return "", "", "", 0, "", ErrMissingEnvHost
 	}
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_PORT"); ok && str != "<ADMIN_SERVICE_WEB_PORT>" && str != "" {
 		var e error
 		port, e = strconv.Atoi(str)
 		if e != nil || port < 0 || port > 65535 {
-			return "", "", "", 0, ErrWrongEnvPort
+			return "", "", "", 0, "", ErrWrongEnvPort
 		}
+	}
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_PERMISSION_ACCESS_KEY"); ok && str != "<ADMIN_SERVICE_PERMISSION_ACCESS_KEY>" && str != "" {
+		accesskey = str
+	} else {
+		return "", "", "", 0, "", ErrMissingEnvAccessKey
 	}
 	return
 }
 
-func (s *PermissionSdk) CheckMulti(ctx context.Context, userid string, readNodeIDs [][]uint32, writeNodeIDs [][]uint32, adminNodeIDs [][]uint32) (bool, error) {
-	pass := true
+// if pass will return nil
+// if not pass will reutrn ecode.ErrPermission
+func (s *PermissionSdk) CheckMulti(ctx context.Context, userid string, readNodeIDs [][]uint32, writeNodeIDs [][]uint32, adminNodeIDs [][]uint32) error {
 	eg := egroup.GetGroup(ctx)
 	for _, v := range readNodeIDs {
 		nodeid := v
 		eg.Go(func(gctx context.Context) error {
-			singlepass, e := s.CheckRead(gctx, userid, nodeid)
-			if e != nil {
-				return e
-			}
-			if !singlepass {
-				pass = false
-			}
-			return nil
+			return s.CheckRead(gctx, userid, nodeid)
 		})
 	}
 	for _, v := range writeNodeIDs {
 		nodeid := v
 		eg.Go(func(gctx context.Context) error {
-			singlepass, e := s.CheckWrite(gctx, userid, nodeid)
-			if e != nil {
-				return e
-			}
-			if !singlepass {
-				pass = false
-			}
-			return nil
+			return s.CheckWrite(gctx, userid, nodeid)
 		})
 	}
 	for _, v := range adminNodeIDs {
 		nodeid := v
 		eg.Go(func(gctx context.Context) error {
-			singlepass, e := s.CheckAdmin(gctx, userid, nodeid)
-			if e != nil {
-				return e
-			}
-			if !singlepass {
-				pass = false
-			}
-			return nil
+			return s.CheckAdmin(gctx, userid, nodeid)
 		})
 	}
-	e := egroup.PutGroup(eg)
-	return pass, e
+	return egroup.PutGroup(eg)
 }
 
-func (s *PermissionSdk) CheckAdmin(ctx context.Context, userid string, nodeid []uint32) (bool, error) {
+// if pass will return nil
+// if not pass will reutrn ecode.ErrPermission
+func (s *PermissionSdk) CheckAdmin(ctx context.Context, userid string, nodeid []uint32) error {
 	req := &api.GetUserPermissionReq{
 		UserId: userid,
 		NodeId: nodeid,
 	}
-	resp, e := s.client.GetUserPermission(ctx, req, nil)
+	header := make(http.Header)
+	header.Set("Access-Key", s.accesskey)
+	resp, e := s.client.GetUserPermission(ctx, req, header)
 	if e != nil {
-		return false, e
+		return e
 	}
-	return resp.GetAdmin(), nil
+	if resp.GetAdmin() {
+		return nil
+	}
+	return ecode.ErrPermission
 }
 
-func (s *PermissionSdk) CheckRead(ctx context.Context, userid string, nodeid []uint32) (bool, error) {
+// if pass will return nil
+// if not pass will reutrn ecode.ErrPermission
+func (s *PermissionSdk) CheckRead(ctx context.Context, userid string, nodeid []uint32) error {
 	req := &api.GetUserPermissionReq{
 		UserId: userid,
 		NodeId: nodeid,
 	}
-	resp, e := s.client.GetUserPermission(ctx, req, nil)
+	header := make(http.Header)
+	header.Set("Access-Key", s.accesskey)
+	resp, e := s.client.GetUserPermission(ctx, req, header)
 	if e != nil {
-		return false, e
+		return e
 	}
-	return resp.GetCanread() || resp.GetAdmin(), nil
+	if resp.GetCanread() || resp.GetAdmin() {
+		return nil
+	}
+	return ecode.ErrPermission
 }
 
-func (s *PermissionSdk) CheckWrite(ctx context.Context, userid string, nodeid []uint32) (bool, error) {
+// if pass will return nil
+// if not pass will reutrn ecode.ErrPermission
+func (s *PermissionSdk) CheckWrite(ctx context.Context, userid string, nodeid []uint32) error {
 	req := &api.GetUserPermissionReq{
 		UserId: userid,
 		NodeId: nodeid,
 	}
-	resp, e := s.client.GetUserPermission(ctx, req, nil)
+	header := make(http.Header)
+	header.Set("Access-Key", s.accesskey)
+	resp, e := s.client.GetUserPermission(ctx, req, header)
 	if e != nil {
-		return false, e
+		return e
 	}
-	return resp.GetCanread() && resp.GetCanwrite(), nil
+	if resp.GetCanread() && resp.GetCanwrite() {
+		return nil
+	}
+	return ecode.ErrPermission
 }

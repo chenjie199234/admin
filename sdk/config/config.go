@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"net/http"
 	"os"
 	"strconv"
 	"sync"
@@ -21,6 +22,7 @@ import (
 
 type ConfigSdk struct {
 	client     api.AppWebClient
+	accesskey  string
 	secret     string
 	wait       chan *struct{}
 	lker       sync.Mutex
@@ -35,11 +37,12 @@ type ConfigSdk struct {
 type NoticeHandler func(key, keyvalue, keytype string)
 
 var (
-	ErrMissingEnvPROJECT = errors.New("missing env ADMIN_SERVICE_PROJECT")
-	ErrMissingEnvGroup   = errors.New("missing env ADMIN_SERVICE_GROUP")
-	ErrMissingEnvHost    = errors.New("missing env ADMIN_SERVICE_WEB_HOST")
-	ErrWrongEnvPort      = errors.New("env ADMIN_SERVICE_WEB_PORT must be number <= 65535")
-	ErrWrongEnvSecret    = errors.New("env REMOTE_CONFIG_SECRET too long")
+	ErrMissingEnvPROJECT   = errors.New("missing env ADMIN_SERVICE_PROJECT")
+	ErrMissingEnvGroup     = errors.New("missing env ADMIN_SERVICE_GROUP")
+	ErrMissingEnvHost      = errors.New("missing env ADMIN_SERVICE_WEB_HOST")
+	ErrMissingEnvAccessKey = errors.New("missing env ADMIN_SERVICE_CONFIG_ACCESS_KEY")
+	ErrWrongEnvPort        = errors.New("env ADMIN_SERVICE_WEB_PORT must be number <= 65535")
+	ErrWrongEnvSecret      = errors.New("env REMOTE_CONFIG_SECRET too long")
 )
 
 // if tlsc is not nil,the tls will be actived
@@ -48,10 +51,11 @@ var (
 // ADMIN_SERVICE_GROUP
 // ADMIN_SERVICE_WEB_HOST
 // ADMIN_SERVICE_WEB_PORT
+// ADMIN_SERVICE_CONFIG_ACCESS_KEY
 // option env:
 // REMOTE_CONFIG_SECRET
 func NewConfigSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*ConfigSdk, error) {
-	project, group, host, port, secret, e := env()
+	project, group, host, port, secret, accesskey, e := env()
 	if e != nil {
 		return nil, e
 	}
@@ -65,6 +69,7 @@ func NewConfigSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*Co
 	}
 	instance := &ConfigSdk{
 		client:     api.NewAppWebClient(tmpclient),
+		accesskey:  accesskey,
 		secret:     secret,
 		wait:       make(chan *struct{}, 1),
 		keys:       make(map[string]*api.WatchData),
@@ -73,34 +78,39 @@ func NewConfigSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*Co
 	go instance.watch(selfproject, selfgroup, selfapp)
 	return instance, nil
 }
-func env() (projectname string, group string, host string, port int, secret string, e error) {
+func env() (projectname string, group string, host string, port int, secret string, accesskey string, e error) {
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_PROJECT"); ok && str != "<ADMIN_SERVICE_PROJECT>" && str != "" {
 		projectname = str
 	} else {
-		return "", "", "", 0, "", ErrMissingEnvPROJECT
+		return "", "", "", 0, "", "", ErrMissingEnvPROJECT
 	}
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_GROUP"); ok && str != "<ADMIN_SERVICE_GROUP>" && str != "" {
 		group = str
 	} else {
-		return "", "", "", 0, "", ErrMissingEnvGroup
+		return "", "", "", 0, "", "", ErrMissingEnvGroup
 	}
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_HOST"); ok && str != "<ADMIN_SERVICE_WEB_HOST>" && str != "" {
 		host = str
 	} else {
-		return "", "", "", 0, "", ErrMissingEnvHost
+		return "", "", "", 0, "", "", ErrMissingEnvHost
 	}
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_PORT"); ok && str != "<ADMIN_SERVICE_WEB_PORT>" && str != "" {
 		var e error
 		port, e = strconv.Atoi(str)
 		if e != nil || port < 0 || port > 65535 {
-			return "", "", "", 0, "", ErrWrongEnvPort
+			return "", "", "", 0, "", "", ErrWrongEnvPort
 		}
 	}
 	if str, ok := os.LookupEnv("REMOTE_CONFIG_SECRET"); ok && str != "<REMOTE_CONFIG_SECRET>" && str != "" {
 		secret = str
 	}
 	if len(secret) >= 32 {
-		return "", "", "", 0, "", ErrWrongEnvSecret
+		return "", "", "", 0, "", "", ErrWrongEnvSecret
+	}
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_CONFIG_ACCESS_KEY"); ok && str != "<ADMIN_SERVICE_CONFIG_ACCESS_KEY>" && str != "" {
+		accesskey = str
+	} else {
+		return "", "", "", 0, "", "", ErrMissingEnvAccessKey
 	}
 	return
 }
@@ -118,7 +128,9 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 		}
 		instance.ctx, instance.cancel = context.WithCancel(context.Background())
 		instance.lker.Unlock()
-		resp, e := instance.client.WatchConfig(instance.ctx, &api.WatchConfigReq{ProjectName: selfprojectname, GName: selfappgroup, AName: selfappname, Keys: keys}, nil)
+		header := make(http.Header)
+		header.Set("Access-Key", instance.accesskey)
+		resp, e := instance.client.WatchConfig(instance.ctx, &api.WatchConfigReq{ProjectName: selfprojectname, GName: selfappgroup, AName: selfappname, Keys: keys}, header)
 		if e != nil {
 			if !cerror.Equal(e, cerror.ErrCanceled) {
 				log.Error(nil, "[ConfigSdk.watch] failed", log.Any("watch_keys", keys), log.CError(e))

@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -23,17 +24,19 @@ import (
 )
 
 var (
-	ErrMissingEnvProject = errors.New("missing env ADMIN_SERVICE_PROJECT")
-	ErrMissingEnvGroup   = errors.New("missing env ADMIN_SERVICE_GROUP")
-	ErrMissingEnvHost    = errors.New("missing env ADMIN_SERVICE_WEB_HOST")
-	ErrWrongEnvPort      = errors.New("env ADMIN_SERVICE_WEB_PORT must be number <= 65535")
+	ErrMissingEnvProject   = errors.New("missing env ADMIN_SERVICE_PROJECT")
+	ErrMissingEnvGroup     = errors.New("missing env ADMIN_SERVICE_GROUP")
+	ErrMissingEnvHost      = errors.New("missing env ADMIN_SERVICE_WEB_HOST")
+	ErrMissingEnvAccessKey = errors.New("missing env ADMIN_SERVICE_DISCOVER_ACCESS_KEY")
+	ErrWrongEnvPort        = errors.New("env ADMIN_SERVICE_WEB_PORT must be number <= 65535")
 )
 
 type DiscoverSdk struct {
-	target string
-	client api.AppWebClient
-	status int32 //0 idle,1 discovering
-	triger chan *struct{}
+	target    string
+	client    api.AppWebClient
+	accesskey string
+	status    int32 //0 idle,1 discovering
+	triger    chan *struct{}
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -57,12 +60,13 @@ type DiscoverSdk struct {
 // ADMIN_SERVICE_GROUP
 // ADMIN_SERVICE_WEB_HOST
 // ADMIN_SERVICE_WEB_PORT
+// ADMIN_SERVICE_DISCOVER_ACCESS_KEY
 func NewAdminDiscover(selfproject, selfgroup, selfapp string, targetproject, targetgroup, targetapp string, tlsc *tls.Config) (cdiscover.DI, error) {
 	targetfullname, e := name.MakeFullName(targetproject, targetgroup, targetapp)
 	if e != nil {
 		return nil, e
 	}
-	project, group, host, port, e := env()
+	project, group, host, port, accesskey, e := env()
 	if e != nil {
 		return nil, e
 	}
@@ -75,12 +79,13 @@ func NewAdminDiscover(selfproject, selfgroup, selfapp string, targetproject, tar
 		return nil, e
 	}
 	sdk := &DiscoverSdk{
-		target:  targetfullname,
-		client:  api.NewAppWebClient(tmpclient),
-		status:  1,
-		triger:  make(chan *struct{}, 1),
-		lker:    &sync.RWMutex{},
-		notices: make(map[chan *struct{}]*struct{}, 10),
+		target:    targetfullname,
+		client:    api.NewAppWebClient(tmpclient),
+		accesskey: accesskey,
+		status:    1,
+		triger:    make(chan *struct{}, 1),
+		lker:      &sync.RWMutex{},
+		notices:   make(map[chan *struct{}]*struct{}, 10),
 	}
 	sdk.ctx, sdk.cancel = context.WithCancel(context.Background())
 	go sdk.watch(targetproject, targetgroup, targetapp)
@@ -100,33 +105,40 @@ func (s *DiscoverSdk) Now() {
 func (s *DiscoverSdk) Stop() {
 	s.cancel()
 }
-func env() (projectname, group string, host string, port int, e error) {
+func env() (projectname, group string, host string, port int, accesskey string, e error) {
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_PROJECT"); ok && str != "<ADMIN_SERVICE_PROJECT>" && str != "" {
 		projectname = str
 	} else {
-		return "", "", "", 0, ErrMissingEnvProject
+		return "", "", "", 0, "", ErrMissingEnvProject
 	}
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_GROUP"); ok && str != "<ADMIN_SERVICE_GROUP>" && str != "" {
 		group = str
 	} else {
-		return "", "", "", 0, ErrMissingEnvGroup
+		return "", "", "", 0, "", ErrMissingEnvGroup
 	}
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_HOST"); ok && str != "<ADMIN_SERVICE_WEB_HOST>" && str != "" {
 		host = str
 	} else {
-		return "", "", "", 0, ErrMissingEnvHost
+		return "", "", "", 0, "", ErrMissingEnvHost
 	}
 	if str, ok := os.LookupEnv("ADMIN_SERVICE_WEB_PORT"); ok && str != "<ADMIN_SERVICE_WEB_PORT>" && str != "" {
 		var e error
 		port, e = strconv.Atoi(str)
 		if e != nil || port < 0 || port > 65535 {
-			return "", "", "", 0, ErrWrongEnvPort
+			return "", "", "", 0, "", ErrWrongEnvPort
 		}
+	}
+	if str, ok := os.LookupEnv("ADMIN_SERVICE_DISCOVER_ACCESS_KEY"); ok && str != "<ADMIN_SERVICE_DISCOVER_ACCESS_KEY>" && str != "" {
+		accesskey = str
+	} else {
+		return "", "", "", 0, "", ErrMissingEnvAccessKey
 	}
 	return
 }
 func (s *DiscoverSdk) watch(project, group, app string) {
 	for {
+		header := make(http.Header)
+		header.Set("Access-Key", s.accesskey)
 		resp, e := s.client.WatchDiscover(s.ctx, &api.WatchDiscoverReq{
 			ProjectName:     project,
 			GName:           group,
@@ -138,7 +150,7 @@ func (s *DiscoverSdk) watch(project, group, app string) {
 			CrpcPort:        s.crpcport,
 			CgrpcPort:       s.cgrpcport,
 			WebPort:         s.webport,
-		}, nil)
+		}, header)
 		if e != nil {
 			if cerror.Equal(e, cerror.ErrCanceled) {
 				return

@@ -1552,8 +1552,32 @@ func RegisterAppWebServer(router *web.Router, svc AppWebServer, allmids map[stri
 		mids = append(mids, _App_Rollback_WebHandler(svc.Rollback))
 		router.Post(_WebPathAppRollback, mids...)
 	}
-	router.Post(_WebPathAppWatchConfig, _App_WatchConfig_WebHandler(svc.WatchConfig))
-	router.Post(_WebPathAppWatchDiscover, _App_WatchDiscover_WebHandler(svc.WatchDiscover))
+	{
+		requiredMids := []string{"accesskey"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _App_WatchConfig_WebHandler(svc.WatchConfig))
+		router.Post(_WebPathAppWatchConfig, mids...)
+	}
+	{
+		requiredMids := []string{"accesskey"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _App_WatchDiscover_WebHandler(svc.WatchDiscover))
+		router.Post(_WebPathAppWatchDiscover, mids...)
+	}
 	{
 		requiredMids := []string{"token"}
 		mids := make([]web.OutsideHandler, 0, 2)

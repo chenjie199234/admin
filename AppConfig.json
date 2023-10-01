@@ -84,7 +84,25 @@
 		"/admin.initialize/init":[{
 			"methods":["POST","GRPC","CRPC"],
 			"accesses":{
-				"accessid":"accesskey"
+				"accessid":"accesskey_init"
+			}
+		}],
+		"/admin.app/watch_config":[{
+			"methods":["POST"],
+			"accesses":{
+				"examplecaller":"accesskey_watch_config"
+			}
+		}],
+		"/admin.app/watch_discover":[{
+			"methods":["POST"],
+			"accesses":{
+				"examplecaller":"accesskey_watch_discover"
+			}
+		}],
+		"/admin.permission/get_user_permission":[{
+			"methods":["POST"],
+			"accesses":{
+				"examplecaller":"accesskey_get_user_permission"
 			}
 		}]
 	},

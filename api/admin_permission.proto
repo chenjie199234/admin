@@ -24,6 +24,7 @@ service permission{
 
 	rpc get_user_permission(get_user_permission_req)returns(get_user_permission_resp){
 		option (pbex.method)="post";
+		option (pbex.web_midwares)="accesskey";
 	}
 
 	rpc update_user_permission(update_user_permission_req)returns(update_user_permission_resp){

@@ -57,9 +57,8 @@ function do_login_root(){
 	})
 }
 
-const oauth2 = ref("")
-const oauth2s = ref(["Oauth2 Service Name 1","Oauth2 Service Name 2"])
-const oauth2img = ref("")
+const oauth2 = ref<string>("")
+const oauth2s = ref<Map<string,string>>(new Map([["Oauth2 Service Name 1","url1"],["Oauth2 Service Name 2","url2"]]))
 /* TODO
 function do_login_user(){
 
@@ -69,35 +68,42 @@ function do_login_user(){
 <template>
 	<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center">
 		<div v-if="!state.user.root">
-			<va-select
-				v-model="oauth2"
-				:options="oauth2s"
-				noOptionsText="NO Oauth2 Login"
-				label="Select Oauth2 Login*"
-				dropdownIcon=""
-				style="width:400px"
-				trigger="hover"
-				:hoverOverTimeout="0"
-				:hoverOutTimeout="100"
-			>
-				<template #option='{option,selectOption}'>
-					<va-hover stateful @click="selectOption(option)">
-						<template #default="{hover}">
-							<div
-								style="padding:10px;cursor:pointer"
-								:style="{'background-color':hover?'var(--va-background-border)':'',color:oauth2==option?'green':'black'}"
-							>
-								{{option}}
-							</div>
-						</template>
-					</va-hover>
-				</template>
-			</va-select>
-			<va-image style="width:400px;height:400px;margin:5px 0" :src="oauth2img" />
-			<va-button style="width:400px;margin:0" @click="state.user.root=true">Switch To Root User Login</va-button>
+			<va-card style="text-align:center" color="primary" gradient>
+				<va-card-content style="font-size:20px"><b>Normal User Login</b></va-card-content>
+			</va-card>
+			<div style="display:flex;align-items:end;margin-top:20px">
+				<va-select
+					v-model="oauth2"
+					:options="[...oauth2s.keys()]"
+					noOptionsText="NO Oauth2 Login"
+					label="Select Oauth2 Login*"
+					dropdownIcon=""
+					trigger="hover"
+					:hoverOverTimeout="0"
+					:hoverOutTimeout="100"
+				>
+					<template #option='{option,selectOption}'>
+						<va-hover stateful @click="selectOption(option)">
+							<template #default="{hover}">
+								<div
+									style="padding:10px;cursor:pointer"
+									:style="{'background-color':hover?'var(--va-background-border)':'',color:oauth2==option?'green':'black'}"
+								>
+									{{option}}
+								</div>
+							</template>
+						</va-hover>
+					</template>
+				</va-select>
+				<va-button style="width:90px;margin-left:10px" :disabled="oauth2==''" @click="">Login</va-button>
+			</div>
+			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=true;oauth2=''">Switch To Root User Login</va-button>
 		</div>
 		<div v-else>
-			<div style="display:flex;align-items:end">
+			<va-card style="text-align:center" color="primary" gradient>
+				<va-card-content style="font-size:20px"><b>Root User Login</b></va-card-content>
+			</va-card>
+			<div style="display:flex;align-items:end;margin-top:20px">
 				<va-input :type="t_password?'text':'password'" style="width:300px" label="Root Password*" v-model="password">
 					<template #appendInner>
 						<va-icon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
@@ -105,7 +111,7 @@ function do_login_user(){
 				</va-input>
 				<va-button style="width:90px;margin-left:10px" :disabled="!login_root_able()" @click="do_login_root">Login</va-button>
 			</div>
-			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=false">Switch To Normal User Login</va-button>
+			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=false;oauth2=''">Switch To Normal User Login</va-button>
 		</div>
 	</div>
 </template>

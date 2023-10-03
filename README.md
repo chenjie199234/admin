@@ -44,12 +44,12 @@ database: app
 
 collection: config
 {
-	"_id":ObjectId("xxxx"),
+    "_id":ObjectId("xxxx"),
     "project_id":"",
-	"group":"",
-	"app":"",
-	"key":"",//always empty
-	"index":0,//always be 0
+    "group":"",
+    "app":"",
+    "key":"",//always empty
+    "index":0,//always be 0
     "discover_mode":"",
     "kubernetes_ns":"",
     "kubernetes_ls":"",
@@ -60,45 +60,45 @@ collection: config
     "crpc_port":0,
     "cgrpc_port":0,
     "web_port":0,
-	"paths":{
-		"base64(/path1)":{
-			"permission_node_id":"",
-			"permission_read":true,
-			"permission_write":true,
-			"permission_admin":true
-		},
-		"base64(/path2)":{
-			"permission_node_id":"",
-			"permission_read":true,
-			"permission_write":true,
-			"permission_admin":true
-		}
-	},
-	"keys":{
-		"config_key1":{
-			"cur_index":0,
-			"max_index":0,//auto increment(every time insert a new config log)
-			"cur_version":0,//auto increment(every time insert or rollback)
-			"cur_value":"xxx"
-		},
-		"config_key2":{
-			"cur_index":0,
-			"max_index":0,//auto increment(every time insert a new config log)
-			"cur_version":0,//auto increment(every time insert or rollback)
-			"cur_value":"xxx"
-		}
-	},
-	"value":"",//this is a random str + it's sha512 sign,this is used to check the secret
-	"permission_node_id":"",
+    "paths":{
+        "base64(/path1)":{
+            "permission_node_id":"",
+            "permission_read":true,
+            "permission_write":true,
+            "permission_admin":true
+        },
+        "base64(/path2)":{
+            "permission_node_id":"",
+            "permission_read":true,
+            "permission_write":true,
+            "permission_admin":true
+        }
+    },
+    "keys":{
+        "config_key1":{
+            "cur_index":0,
+            "max_index":0,//auto increment(every time insert a new config log)
+            "cur_version":0,//auto increment(every time insert or rollback)
+            "cur_value":"xxx"
+        },
+        "config_key2":{
+            "cur_index":0,
+            "max_index":0,//auto increment(every time insert a new config log)
+            "cur_version":0,//auto increment(every time insert or rollback)
+            "cur_value":"xxx"
+        }
+    },
+    "value":"",//this is a random str + it's sha512 sign,this is used to check the secret
+    "permission_node_id":"",
 }//summary
 {
     "project_id":"",
-	"group":"",
-	"app":"",
-	"_id":ObjectId("xxx"),
-	"key":"config_key1",//always not empty
-	"index":1,//always > 0
-	"value":""
+    "group":"",
+    "app":"",
+    "_id":ObjectId("xxx"),
+    "key":"config_key1",//always not empty
+    "index":1,//always > 0
+    "value":""
 }//log
 //手动创建数据库
 use app;
@@ -113,9 +113,13 @@ database: user
 
 collection: user
 {
-	"_id":ObjectId("xxx"),//userid,if this is empty,means this is the super admin user
-	"user_name":"",
-	"password":"",
+    "_id":ObjectId("xxx"),//userid,if this is empty,means this is the super admin user
+    "oauth2_user_id":"",
+    "oauth2_tel":"",
+    "oauth2_user_name":"",
+    "oauth2_department":"",
+    "oauth2_type":"",//DingTalk,WeCom,Lark
+    "password":"",//only root user use this,normal user use oauth2
     "projects":{
         "project_id1":["role_name1","role_name2"],
         "project_id2":[]
@@ -124,14 +128,15 @@ collection: user
 //手动创建数据库
 use user;
 db.createCollection("user");
-db.user.createIndex({user_name:1});
+db.user.createIndex({oauth2_user_name:1});
+db.user.createIndex({oauth2_user_id:1},{unique:true});
 db.user.createIndex({"projects.$**":1});
 
 collection: role
 {
-	"project_id":"",
-	"role_name":"",
-	"comment":"",
+    "project_id":"",
+    "role_name":"",
+    "comment":"",
 }
 //手动创建数据库
 use user;
@@ -144,10 +149,10 @@ database: permission
 
 collection: node
 {
-	"node_id":"",
-	"node_name":"",
-	"node_data":"",
-	"cur_node_index":0,
+    "node_id":"",
+    "node_name":"",
+    "node_data":"",
+    "cur_node_index":0,
 }
 //手动创建数据库
 use permission;
@@ -167,11 +172,11 @@ db.projectindex.createIndex({project_id:1},{unique:true});
 
 collection: usernode
 {
-	"user_id":ObjectId("xxx"),
-	"node_id":"",
-	"r":true,//can read
-	"w":true,//can write
-	"x":true,//admin
+    "user_id":ObjectId("xxx"),
+    "node_id":"",
+    "r":true,//can read
+    "w":true,//can write
+    "x":true,//admin
 }
 //手动创建数据库
 use permission;
@@ -181,12 +186,12 @@ db.usernode.createIndex({node_id:1});
 
 collection: rolenode
 {
-	"project_id":"",
-	"role_name":"",
-	"node_id":"",
-	"r":true,//can read
-	"w":true,//can write
-	"x":true,//admin
+    "project_id":"",
+    "role_name":"",
+    "node_id":"",
+    "r":true,//can read
+    "w":true,//can write
+    "x":true,//admin
 }
 //手动mongo创建数据库
 use permission;

@@ -15,9 +15,32 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func (d *Dao) MongoUserLogin(ctx context.Context) (userid primitive.ObjectID, e error) {
-	// TODO
-	return primitive.NewObjectID(), nil
+func (d *Dao) MongoUserLogin(ctx context.Context, oauth2userid string) (userid primitive.ObjectID, e error) {
+	user := &model.User{}
+	if e = d.mongo.Database("user").Collection("user").FindOne(ctx, bson.M{"oauth2_user_id": oauth2userid}).Decode(user); e != nil {
+		if e == mongo.ErrNoDocuments {
+			e = ecode.ErrUserNotExist
+		}
+		return
+	}
+	return user.ID, nil
+}
+func (d *Dao) MongoCreateUser(ctx context.Context, oauth2userid, oauth2tel, oauth2username, oauth2department, oauth2type string) (primitive.ObjectID, error) {
+	r, e := d.mongo.Database("user").Collection("user").InsertOne(ctx, &model.User{
+		OAuth2UserID:     oauth2userid,
+		OAuth2Tel:        oauth2tel,
+		OAuth2UserName:   oauth2username,
+		OAuth2Department: oauth2department,
+		OAuth2Type:       oauth2type,
+		Projects:         map[string][]string{},
+	})
+	if e != nil {
+		if mongo.IsDuplicateKeyError(e) {
+			return d.MongoUserLogin(ctx, oauth2userid)
+		}
+		return primitive.NilObjectID, e
+	}
+	return r.InsertedID.(primitive.ObjectID), nil
 }
 
 func (d *Dao) MongoInvite(ctx context.Context, operator primitive.ObjectID, projectid string, target primitive.ObjectID) error {
@@ -94,7 +117,7 @@ func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (
 func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, pagesize, page int64) (map[primitive.ObjectID]*model.User, int64, int64, error) {
 	filter := bson.M{}
 	if name != "" {
-		filter["user_name"] = bson.M{"$regex": name}
+		filter["oauth2_user_name"] = bson.M{"$regex": name}
 	}
 	if projectid != "" {
 		filter["projects."+projectid] = bson.M{"$exists": true}
@@ -135,10 +158,10 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, page
 	return result, page, totalsize, cursor.Err()
 }
 
-func (d *Dao) MongoUpdateUser(ctx context.Context, userid primitive.ObjectID, newname string) (*model.User, error) {
+func (d *Dao) MongoUpdateUser(ctx context.Context, userid primitive.ObjectID, newtel, newname, newdepartment string) (*model.User, error) {
 	user := &model.User{}
 	filter := bson.M{"_id": userid}
-	updater := bson.M{"$set": bson.M{"user_name": newname}}
+	updater := bson.M{"$set": bson.M{"oauth2_tel": newtel, "oauth2_user_name": newname, "oauth2_department": newdepartment}}
 	e := d.mongo.Database("user").Collection("user").FindOneAndUpdate(ctx, filter, updater).Decode(user)
 	if e == mongo.ErrNoDocuments {
 		e = ecode.ErrUserNotExist

@@ -22,6 +22,10 @@ service user{
 	//	option (pbex.cgrpc_midwares)="a";//this function on grpc protocol has 3 midwares,it's order is b,c,a
 	//}
 
+	rpc get_oauth2(get_oauth2_req)returns(get_oauth2_resp){
+		option (pbex.method)="post";
+	}
+
 	rpc user_login(user_login_req)returns(user_login_resp){
 		option (pbex.method)="post";
 	}
@@ -90,11 +94,19 @@ service user{
 	//int64 example_resp=1;
 //}
 
+message get_oauth2_req{
+	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="WeCom",(pbex.string_bytes_in)="Lark"];
+}
+message get_oauth2_resp{
+	string url=1;
+}
+
 message user_info {
 	string user_id=1;
-	string user_name=2;
-	uint32 ctime=3;//timestamp,uint:second
-	repeated project_roles project_roles=4;
+	string oauth2_user_name=2;
+	string oauth2_department=3;
+	uint32 ctime=4;//timestamp,uint:second
+	repeated project_roles project_roles=5;
 }
 message project_roles{
 	repeated uint32 project_id=1;
@@ -108,6 +120,8 @@ message role_info {
 }
 
 message user_login_req {
+	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="WeCom",(pbex.string_bytes_in)="Lark"];
+	string code=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message user_login_resp {
 	string token=1;
@@ -149,10 +163,11 @@ message search_users_resp {
 	uint32 totalsize=4;
 }
 message update_user_req{
-	string user_id=1[(pbex.string_bytes_len_not_eq)=0];
-	string new_user_name=2[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message update_user_resp{
+	user_info info=1;
 }
 message create_role_req {
 	//first element must be 0

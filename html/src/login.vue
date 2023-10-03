@@ -9,9 +9,10 @@ import * as client from './client'
 onMounted(()=>{
 	let localtoken=localStorage.getItem("token")
 	if(localtoken){
-		var obj = JSON.parse(localtoken)
+		let obj = JSON.parse(localtoken)
 		if(!obj.root){
-			if(state.set_load()){
+			state.user.root=false
+			if(!state.set_load()){
 				return
 			}
 			client.userClient.login_info({"Token":obj.token},{},client.timeout,(e :userAPI.Error)=>{
@@ -27,8 +28,29 @@ onMounted(()=>{
 				state.clear_load()
 			})
 		}else{
-			state.user.root=obj.root
+			state.user.root=true
 			state.user.token=obj.token
+		}
+	}else if(window.location.search){
+		let querys = new URLSearchParams(window.location.search)
+		let state = querys.get("state")
+		switch(state){
+		case "DingTalk":
+			let code=querys.get("authCode")
+			if(code){
+				oauth2.value=state
+				oauth2code.value=code
+				do_login_user()
+			}else{
+				state.set_alert("error",-2,"missng authCode in redirect url")
+			}
+			break
+		case "WeCom":
+			break
+		case "Lark":
+			break
+		default:
+			state.set_alert("error",-2,"unknown oauth2 state in redirect url")
 		}
 	}
 })
@@ -39,10 +61,6 @@ function login_root_able():boolean{
 	return password.value.length>=10&&password.value.length<32
 }
 function do_login_root(){
-	if(!login_root_able()){
-		state.set_alert("error",-2,"Root Password length must in [10,32)!")
-		return
-	}
 	if(!state.set_load()){
 		return
 	}
@@ -50,7 +68,6 @@ function do_login_root(){
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.RootLoginResp)=>{
-		//clear loading in get_projects function
 		password.value=""
 		state.login(resp.token)
 		state.clear_load()
@@ -58,13 +75,42 @@ function do_login_root(){
 }
 
 const oauth2 = ref<string>("")
-const oauth2s = ref<Map<string,string>>(new Map([["Oauth2 Service Name 1","url1"],["Oauth2 Service Name 2","url2"]]))
-/* TODO
-function do_login_user(){
-
+const oauth2code = ref<string>("")
+const oauth2s = ref<string[]>(["DingTalk","WeCom","Lark"])
+function doauth(){
+	if(!state.set_load()){
+		return
+	}
+	let req={
+		src_type:oauth2.value,
+	}
+	client.userClient.get_oauth2({},req,client.timeout,(e :userAPI.Error)=>{
+		state.clear_load()
+		state.set_alert("error",e.code,e.msg)
+	},(resp :userAPI.SearchUsersResp)=>{
+		state.clear_load()
+		window.location.href = resp.url
+	})
 }
-*/
+function do_login_user(){
+	if(!state.set_load()){
+		return
+	}
+	let req = {
+		src_type:oauth2.value,
+		code:oauth2code.value,
+	}
+	client.userClient.user_login({},req,client.timeout,(e :userAPI.Error)=>{
+		state.clear_load()
+		state.set_alert("error",e.code,e.msg)
+	},(resp :userAPI.UserLoginResp)=>{
+		state.login(resp.token)
+		state.clear_load()
+		window.location.href = window.location.href.slice(0,window.location.href.indexOf("?"))
+	})
+}
 </script>
+
 <template>
 	<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center">
 		<div v-if="!state.user.root">
@@ -74,7 +120,7 @@ function do_login_user(){
 			<div style="display:flex;align-items:end;margin-top:20px">
 				<va-select
 					v-model="oauth2"
-					:options="[...oauth2s.keys()]"
+					:options="oauth2s"
 					noOptionsText="NO Oauth2 Login"
 					label="Select Oauth2 Login*"
 					dropdownIcon=""
@@ -95,11 +141,11 @@ function do_login_user(){
 						</va-hover>
 					</template>
 				</va-select>
-				<va-button style="width:90px;margin-left:10px" :disabled="oauth2==''" @click="">Login</va-button>
+				<va-button style="width:90px;margin-left:10px" :disabled="oauth2==''" @click="doauth">Login</va-button>
 			</div>
 			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=true;oauth2=''">Switch To Root User Login</va-button>
 		</div>
-		<div v-else>
+		<div v-if="state.user.root">
 			<va-card style="text-align:center" color="primary" gradient>
 				<va-card-content style="font-size:20px"><b>Root User Login</b></va-card-content>
 			</va-card>

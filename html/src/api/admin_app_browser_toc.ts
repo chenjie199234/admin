@@ -2059,11 +2059,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:GetAppResp
 			try{
-				let obj:GetAppResp=JsonToGetAppResp(response.data)
-				successf(obj)
+				obj=JsonToGetAppResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2111,11 +2118,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:SetAppResp
 			try{
-				let obj:SetAppResp=JsonToSetAppResp(response.data)
-				successf(obj)
+				obj=JsonToSetAppResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2163,11 +2177,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:DelAppResp
 			try{
-				let obj:DelAppResp=JsonToDelAppResp(response.data)
-				successf(obj)
+				obj=JsonToDelAppResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2215,11 +2236,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:UpdateAppSecretResp
 			try{
-				let obj:UpdateAppSecretResp=JsonToUpdateAppSecretResp(response.data)
-				successf(obj)
+				obj=JsonToUpdateAppSecretResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2267,11 +2295,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:DelKeyResp
 			try{
-				let obj:DelKeyResp=JsonToDelKeyResp(response.data)
-				successf(obj)
+				obj=JsonToDelKeyResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2319,11 +2354,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:GetKeyConfigResp
 			try{
-				let obj:GetKeyConfigResp=JsonToGetKeyConfigResp(response.data)
-				successf(obj)
+				obj=JsonToGetKeyConfigResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2371,11 +2413,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:SetKeyConfigResp
 			try{
-				let obj:SetKeyConfigResp=JsonToSetKeyConfigResp(response.data)
-				successf(obj)
+				obj=JsonToSetKeyConfigResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2423,11 +2472,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:RollbackResp
 			try{
-				let obj:RollbackResp=JsonToRollbackResp(response.data)
-				successf(obj)
+				obj=JsonToRollbackResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2475,11 +2531,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:WatchConfigResp
 			try{
-				let obj:WatchConfigResp=JsonToWatchConfigResp(response.data)
-				successf(obj)
+				obj=JsonToWatchConfigResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2527,11 +2590,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:WatchDiscoverResp
 			try{
-				let obj:WatchDiscoverResp=JsonToWatchDiscoverResp(response.data)
-				successf(obj)
+				obj=JsonToWatchDiscoverResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2579,11 +2649,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:GetInstancesResp
 			try{
-				let obj:GetInstancesResp=JsonToGetInstancesResp(response.data)
-				successf(obj)
+				obj=JsonToGetInstancesResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2631,11 +2708,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:GetInstanceInfoResp
 			try{
-				let obj:GetInstanceInfoResp=JsonToGetInstanceInfoResp(response.data)
-				successf(obj)
+				obj=JsonToGetInstanceInfoResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2683,11 +2767,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:SetProxyResp
 			try{
-				let obj:SetProxyResp=JsonToSetProxyResp(response.data)
-				successf(obj)
+				obj=JsonToSetProxyResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2735,11 +2826,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:DelProxyResp
 			try{
-				let obj:DelProxyResp=JsonToDelProxyResp(response.data)
-				successf(obj)
+				obj=JsonToDelProxyResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -2787,11 +2885,18 @@ export class AppBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:ProxyResp
 			try{
-				let obj:ProxyResp=JsonToProxyResp(response.data)
-				successf(obj)
+				obj=JsonToProxyResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})

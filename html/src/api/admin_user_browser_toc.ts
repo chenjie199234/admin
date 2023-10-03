@@ -239,6 +239,42 @@ function JsonToDelUserRoleResp(_jsonobj: { [k:string]:any }): DelUserRoleResp{
 	}
 	return obj
 }
+export interface GetOauth2Req{
+	src_type: string;
+}
+function GetOauth2ReqToJson(msg: GetOauth2Req): string{
+	let s: string="{"
+	//src_type
+	if(msg.src_type==null||msg.src_type==undefined){
+		throw 'GetOauth2Req.src_type must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.src_type)
+		s+='"src_type":'+vv+','
+	}
+	if(s.length==1){
+		s+="}"
+	}else{
+		s=s.substr(0,s.length-1)+'}'
+	}
+	return s
+}
+export interface GetOauth2Resp{
+	url: string;
+}
+function JsonToGetOauth2Resp(jsonobj: { [k:string]:any }): GetOauth2Resp{
+	let obj: GetOauth2Resp={
+		url:'',
+	}
+	//url
+	if(jsonobj['url']!=null&&jsonobj['url']!=undefined){
+		if(typeof jsonobj['url']!='string'){
+			throw 'GetOauth2Resp.url must be string'
+		}
+		obj['url']=jsonobj['url']
+	}
+	return obj
+}
 export interface InviteProjectReq{
 	//first element must be 0
 	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
@@ -752,11 +788,30 @@ function JsonToUpdateRoleResp(_jsonobj: { [k:string]:any }): UpdateRoleResp{
 	return obj
 }
 export interface UpdateUserReq{
+	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
+	project_id: Array<number>|null|undefined;
 	user_id: string;
-	new_user_name: string;//if didn't change,set this with the old value
 }
 function UpdateUserReqToJson(msg: UpdateUserReq): string{
 	let s: string="{"
+	//project_id
+	if(msg.project_id==null||msg.project_id==undefined){
+		s+='"project_id":null,'
+	}else if(msg.project_id.length==0){
+		s+='"project_id":[],'
+	}else{
+		s+='"project_id":['
+		for(let element of msg.project_id){
+			if(element==null||element==undefined||!Number.isInteger(element)){
+				throw 'element in UpdateUserReq.project_id must be integer'
+			}
+			if(element>4294967295||element<0){
+				throw 'element in UpdateUserReq.project_id overflow'
+			}
+			s+=element+','
+		}
+		s=s.substr(0,s.length-1)+'],'
+	}
 	//user_id
 	if(msg.user_id==null||msg.user_id==undefined){
 		throw 'UpdateUserReq.user_id must be string'
@@ -764,14 +819,6 @@ function UpdateUserReqToJson(msg: UpdateUserReq): string{
 		//transfer the json escape
 		let vv=JSON.stringify(msg.user_id)
 		s+='"user_id":'+vv+','
-	}
-	//new_user_name
-	if(msg.new_user_name==null||msg.new_user_name==undefined){
-		throw 'UpdateUserReq.new_user_name must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.new_user_name)
-		s+='"new_user_name":'+vv+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -781,15 +828,25 @@ function UpdateUserReqToJson(msg: UpdateUserReq): string{
 	return s
 }
 export interface UpdateUserResp{
+	info: UserInfo|null|undefined;
 }
-function JsonToUpdateUserResp(_jsonobj: { [k:string]:any }): UpdateUserResp{
+function JsonToUpdateUserResp(jsonobj: { [k:string]:any }): UpdateUserResp{
 	let obj: UpdateUserResp={
+		info:null,
+	}
+	//info
+	if(jsonobj['info']!=null&&jsonobj['info']!=undefined){
+		if(typeof jsonobj['info']!='object'){
+			throw 'UpdateUserResp.info must be UserInfo'
+		}
+		obj['info']=JsonToUserInfo(jsonobj['info'])
 	}
 	return obj
 }
 export interface UserInfo{
 	user_id: string;
-	user_name: string;
+	oauth2_user_name: string;
+	oauth2_department: string;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	ctime: number;//timestamp,uint:second
 	project_roles: Array<ProjectRoles|null|undefined>|null|undefined;
@@ -797,7 +854,8 @@ export interface UserInfo{
 function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 	let obj: UserInfo={
 		user_id:'',
-		user_name:'',
+		oauth2_user_name:'',
+		oauth2_department:'',
 		ctime:0,
 		project_roles:null,
 	}
@@ -808,12 +866,19 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 		}
 		obj['user_id']=jsonobj['user_id']
 	}
-	//user_name
-	if(jsonobj['user_name']!=null&&jsonobj['user_name']!=undefined){
-		if(typeof jsonobj['user_name']!='string'){
-			throw 'UserInfo.user_name must be string'
+	//oauth2_user_name
+	if(jsonobj['oauth2_user_name']!=null&&jsonobj['oauth2_user_name']!=undefined){
+		if(typeof jsonobj['oauth2_user_name']!='string'){
+			throw 'UserInfo.oauth2_user_name must be string'
 		}
-		obj['user_name']=jsonobj['user_name']
+		obj['oauth2_user_name']=jsonobj['oauth2_user_name']
+	}
+	//oauth2_department
+	if(jsonobj['oauth2_department']!=null&&jsonobj['oauth2_department']!=undefined){
+		if(typeof jsonobj['oauth2_department']!='string'){
+			throw 'UserInfo.oauth2_department must be string'
+		}
+		obj['oauth2_department']=jsonobj['oauth2_department']
 	}
 	//ctime
 	if(jsonobj['ctime']!=null&&jsonobj['ctime']!=undefined){
@@ -842,9 +907,27 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 	return obj
 }
 export interface UserLoginReq{
+	src_type: string;
+	code: string;
 }
-function UserLoginReqToJson(_msg: UserLoginReq): string{
+function UserLoginReqToJson(msg: UserLoginReq): string{
 	let s: string="{"
+	//src_type
+	if(msg.src_type==null||msg.src_type==undefined){
+		throw 'UserLoginReq.src_type must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.src_type)
+		s+='"src_type":'+vv+','
+	}
+	//code
+	if(msg.code==null||msg.code==undefined){
+		throw 'UserLoginReq.code must be string'
+	}else{
+		//transfer the json escape
+		let vv=JSON.stringify(msg.code)
+		s+='"code":'+vv+','
+	}
 	if(s.length==1){
 		s+="}"
 	}else{
@@ -868,6 +951,7 @@ function JsonToUserLoginResp(jsonobj: { [k:string]:any }): UserLoginResp{
 	}
 	return obj
 }
+const _WebPathUserGetOauth2: string ="/admin.user/get_oauth2";
 const _WebPathUserUserLogin: string ="/admin.user/user_login";
 const _WebPathUserLoginInfo: string ="/admin.user/login_info";
 const _WebPathUserInviteProject: string ="/admin.user/invite_project";
@@ -887,6 +971,65 @@ export class UserBrowserClientToC {
 			throw "UserBrowserClientToC's host missing"
 		}
 		this.host=host
+	}
+	//timeout must be integer,timeout's unit is millisecond
+	//don't set Content-Type in header
+	get_oauth2(header: { [k: string]: string },req: GetOauth2Req,timeout: number,errorf: (arg: Error)=>void,successf: (arg: GetOauth2Resp)=>void){
+		if(!Number.isInteger(timeout)){
+			errorf({code:-2,msg:'timeout must be integer'})
+			return
+		}
+		if(header==null||header==undefined){
+			header={}
+		}
+		header["Content-Type"] = "application/json"
+		let body: string=''
+		try{
+			body=GetOauth2ReqToJson(req)
+		}catch(e){
+			errorf({code:-2,msg:''+e})
+			return
+		}
+		let config={
+			url:_WebPathUserGetOauth2,
+			method: "post",
+			baseURL: this.host,
+			headers: header,
+			data: body,
+			timeout: timeout,
+		}
+		Axios.request(config)
+		.then(function(response){
+			let obj:GetOauth2Resp
+			try{
+				obj=JsonToGetOauth2Resp(response.data)
+			}catch(e){
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
+				errorf(err)
+			}
+		})
+		.catch(function(error){
+			if(error.response==undefined){
+				errorf({code:-2,msg:error.message})
+				return
+			}
+			let respdata=error.response.data
+			let err:Error={code:-1,msg:''}
+			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
+				err.msg=respdata
+			}else{
+				err.code=respdata.code
+				err.msg=respdata.msg
+			}
+			errorf(err)
+		})
 	}
 	//timeout must be integer,timeout's unit is millisecond
 	//don't set Content-Type in header
@@ -916,11 +1059,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:UserLoginResp
 			try{
-				let obj:UserLoginResp=JsonToUserLoginResp(response.data)
-				successf(obj)
+				obj=JsonToUserLoginResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -968,11 +1118,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:LoginInfoResp
 			try{
-				let obj:LoginInfoResp=JsonToLoginInfoResp(response.data)
-				successf(obj)
+				obj=JsonToLoginInfoResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1020,11 +1177,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:InviteProjectResp
 			try{
-				let obj:InviteProjectResp=JsonToInviteProjectResp(response.data)
-				successf(obj)
+				obj=JsonToInviteProjectResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1072,11 +1236,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:KickProjectResp
 			try{
-				let obj:KickProjectResp=JsonToKickProjectResp(response.data)
-				successf(obj)
+				obj=JsonToKickProjectResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1124,11 +1295,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:SearchUsersResp
 			try{
-				let obj:SearchUsersResp=JsonToSearchUsersResp(response.data)
-				successf(obj)
+				obj=JsonToSearchUsersResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1176,11 +1354,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:UpdateUserResp
 			try{
-				let obj:UpdateUserResp=JsonToUpdateUserResp(response.data)
-				successf(obj)
+				obj=JsonToUpdateUserResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1228,11 +1413,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:CreateRoleResp
 			try{
-				let obj:CreateRoleResp=JsonToCreateRoleResp(response.data)
-				successf(obj)
+				obj=JsonToCreateRoleResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1280,11 +1472,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:SearchRolesResp
 			try{
-				let obj:SearchRolesResp=JsonToSearchRolesResp(response.data)
-				successf(obj)
+				obj=JsonToSearchRolesResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1332,11 +1531,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:UpdateRoleResp
 			try{
-				let obj:UpdateRoleResp=JsonToUpdateRoleResp(response.data)
-				successf(obj)
+				obj=JsonToUpdateRoleResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1384,11 +1590,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:DelRolesResp
 			try{
-				let obj:DelRolesResp=JsonToDelRolesResp(response.data)
-				successf(obj)
+				obj=JsonToDelRolesResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1436,11 +1649,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:AddUserRoleResp
 			try{
-				let obj:AddUserRoleResp=JsonToAddUserRoleResp(response.data)
-				successf(obj)
+				obj=JsonToAddUserRoleResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -1488,11 +1708,18 @@ export class UserBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:DelUserRoleResp
 			try{
-				let obj:DelUserRoleResp=JsonToDelUserRoleResp(response.data)
-				successf(obj)
+				obj=JsonToDelUserRoleResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})

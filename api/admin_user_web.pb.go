@@ -19,6 +19,7 @@ import (
 	strings "strings"
 )
 
+var _WebPathUserGetOauth2 = "/admin.user/get_oauth2"
 var _WebPathUserUserLogin = "/admin.user/user_login"
 var _WebPathUserLoginInfo = "/admin.user/login_info"
 var _WebPathUserInviteProject = "/admin.user/invite_project"
@@ -33,6 +34,7 @@ var _WebPathUserAddUserRole = "/admin.user/add_user_role"
 var _WebPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserWebClient interface {
+	GetOauth2(context.Context, *GetOauth2Req, http.Header) (*GetOauth2Resp, error)
 	UserLogin(context.Context, *UserLoginReq, http.Header) (*UserLoginResp, error)
 	LoginInfo(context.Context, *LoginInfoReq, http.Header) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq, http.Header) (*InviteProjectResp, error)
@@ -55,6 +57,38 @@ func NewUserWebClient(c *web.WebClient) UserWebClient {
 	return &userWebClient{cc: c}
 }
 
+func (c *userWebClient) GetOauth2(ctx context.Context, req *GetOauth2Req, header http.Header) (*GetOauth2Resp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathUserGetOauth2, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		return nil, cerror.ConvertStdError(e)
+	}
+	resp := new(GetOauth2Resp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 func (c *userWebClient) UserLogin(ctx context.Context, req *UserLoginReq, header http.Header) (*UserLoginResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -441,6 +475,7 @@ func (c *userWebClient) DelUserRole(ctx context.Context, req *DelUserRoleReq, he
 }
 
 type UserWebServer interface {
+	GetOauth2(context.Context, *GetOauth2Req) (*GetOauth2Resp, error)
 	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
 	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
@@ -455,6 +490,65 @@ type UserWebServer interface {
 	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
 }
 
+func _User_GetOauth2_WebHandler(handler func(context.Context, *GetOauth2Req) (*GetOauth2Resp, error)) web.OutsideHandler {
+	return func(ctx *web.Context) {
+		req := new(GetOauth2Req)
+		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				log.Error(ctx, "[/admin.user/get_oauth2] get body failed", log.CError(e))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/get_oauth2] unmarshal json body failed", log.CError(e))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
+			data, e := ctx.GetBody()
+			if e != nil {
+				log.Error(ctx, "[/admin.user/get_oauth2] get body failed", log.CError(e))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					log.Error(ctx, "[/admin.user/get_oauth2] unmarshal proto body failed", log.CError(e))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			log.Error(ctx, "[/admin.user/get_oauth2] Content-Type unknown,must be application/json or application/x-protobuf")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/get_oauth2] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.ConvertStdError(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if resp == nil {
+			resp = new(GetOauth2Resp)
+		}
+		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write("application/x-protobuf", respd)
+		} else {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write("application/json", respd)
+		}
+	}
+}
 func _User_UserLogin_WebHandler(handler func(context.Context, *UserLoginReq) (*UserLoginResp, error)) web.OutsideHandler {
 	return func(ctx *web.Context) {
 		req := new(UserLoginReq)
@@ -488,6 +582,11 @@ func _User_UserLogin_WebHandler(handler func(context.Context, *UserLoginReq) (*U
 			}
 		} else {
 			log.Error(ctx, "[/admin.user/user_login] Content-Type unknown,must be application/json or application/x-protobuf")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/user_login] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -1156,6 +1255,7 @@ func _User_DelUserRole_WebHandler(handler func(context.Context, *DelUserRoleReq)
 func RegisterUserWebServer(router *web.Router, svc UserWebServer, allmids map[string]web.OutsideHandler) {
 	// avoid lint
 	_ = allmids
+	router.Post(_WebPathUserGetOauth2, _User_GetOauth2_WebHandler(svc.GetOauth2))
 	router.Post(_WebPathUserUserLogin, _User_UserLogin_WebHandler(svc.UserLogin))
 	{
 		requiredMids := []string{"token"}

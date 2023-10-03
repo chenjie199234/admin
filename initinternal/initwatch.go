@@ -853,7 +853,7 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 		}
 	}
 	app.clientactive = time.Now().UnixNano()
-	if forceaddr != "" {
+	if forceaddr != "" && app.summary.CrpcPort != 0 {
 		if strings.Contains(forceaddr, ":") {
 			//ipv6
 			forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)
@@ -915,7 +915,7 @@ func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string,
 		}
 	}
 	app.clientactive = time.Now().UnixNano()
-	if forceaddr != "" {
+	if forceaddr != "" && app.summary.CrpcPort != 0 {
 		if strings.Contains(forceaddr, ":") {
 			//ipv6
 			forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)

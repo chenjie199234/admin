@@ -461,11 +461,18 @@ export class InitializeBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:InitStatusResp
 			try{
-				let obj:InitStatusResp=JsonToInitStatusResp(response.data)
-				successf(obj)
+				obj=JsonToInitStatusResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -513,11 +520,18 @@ export class InitializeBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:InitResp
 			try{
-				let obj:InitResp=JsonToInitResp(response.data)
-				successf(obj)
+				obj=JsonToInitResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -565,11 +579,18 @@ export class InitializeBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:RootLoginResp
 			try{
-				let obj:RootLoginResp=JsonToRootLoginResp(response.data)
-				successf(obj)
+				obj=JsonToRootLoginResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -617,11 +638,18 @@ export class InitializeBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:UpdateRootPasswordResp
 			try{
-				let obj:UpdateRootPasswordResp=JsonToUpdateRootPasswordResp(response.data)
-				successf(obj)
+				obj=JsonToUpdateRootPasswordResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -669,11 +697,18 @@ export class InitializeBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:CreateProjectResp
 			try{
-				let obj:CreateProjectResp=JsonToCreateProjectResp(response.data)
-				successf(obj)
+				obj=JsonToCreateProjectResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -721,11 +756,18 @@ export class InitializeBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:UpdateProjectResp
 			try{
-				let obj:UpdateProjectResp=JsonToUpdateProjectResp(response.data)
-				successf(obj)
+				obj=JsonToUpdateProjectResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -773,11 +815,18 @@ export class InitializeBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:ListProjectResp
 			try{
-				let obj:ListProjectResp=JsonToListProjectResp(response.data)
-				successf(obj)
+				obj=JsonToListProjectResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})
@@ -825,11 +874,18 @@ export class InitializeBrowserClientToC {
 		}
 		Axios.request(config)
 		.then(function(response){
+			let obj:DeleteProjectResp
 			try{
-				let obj:DeleteProjectResp=JsonToDeleteProjectResp(response.data)
-				successf(obj)
+				obj=JsonToDeleteProjectResp(response.data)
 			}catch(e){
-				let err:Error={code:-1,msg:'response error'}
+				let err:Error={code:-1,msg:'response body decode failed'}
+				errorf(err)
+				return
+			}
+			try{
+			successf(obj)
+			}catch(e){
+				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
 			}
 		})

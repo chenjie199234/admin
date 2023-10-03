@@ -40,12 +40,7 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		}
 	}()
 	sign, _ := secure.SignMake(password)
-	if _, e = d.mongo.Database("user").Collection("user").InsertOne(sctx, &model.User{
-		ID:       primitive.NilObjectID,
-		UserName: "superadmin",
-		Password: sign,
-		Projects: map[string][]string{},
-	}); e != nil && !mongo.IsDuplicateKeyError(e) {
+	if _, e = d.mongo.Database("user").Collection("user").InsertOne(sctx, bson.M{"_id": primitive.NilObjectID, "password": sign, "projects": map[string][]string{}}); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	} else if e != nil {
 		e = ecode.ErrAlreadyInited

@@ -15,6 +15,7 @@ import (
 	proto "google.golang.org/protobuf/proto"
 )
 
+var _CrpcPathUserGetOauth2 = "/admin.user/get_oauth2"
 var _CrpcPathUserUserLogin = "/admin.user/user_login"
 var _CrpcPathUserLoginInfo = "/admin.user/login_info"
 var _CrpcPathUserInviteProject = "/admin.user/invite_project"
@@ -29,6 +30,7 @@ var _CrpcPathUserAddUserRole = "/admin.user/add_user_role"
 var _CrpcPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserCrpcClient interface {
+	GetOauth2(context.Context, *GetOauth2Req) (*GetOauth2Resp, error)
 	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
 	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
@@ -51,6 +53,28 @@ func NewUserCrpcClient(c *crpc.CrpcClient) UserCrpcClient {
 	return &userCrpcClient{cc: c}
 }
 
+func (c *userCrpcClient) GetOauth2(ctx context.Context, req *GetOauth2Req) (*GetOauth2Resp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	reqd, _ := proto.Marshal(req)
+	respd, e := c.cc.Call(ctx, _CrpcPathUserGetOauth2, reqd)
+	if e != nil {
+		return nil, e
+	}
+	resp := new(GetOauth2Resp)
+	if len(respd) == 0 {
+		return resp, nil
+	}
+	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
+		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
+			return nil, cerror.ErrResp
+		}
+	} else if e := proto.Unmarshal(respd, resp); e != nil {
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 func (c *userCrpcClient) UserLogin(ctx context.Context, req *UserLoginReq) (*UserLoginResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -317,6 +341,7 @@ func (c *userCrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq) (
 }
 
 type UserCrpcServer interface {
+	GetOauth2(context.Context, *GetOauth2Req) (*GetOauth2Resp, error)
 	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
 	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
@@ -331,6 +356,54 @@ type UserCrpcServer interface {
 	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
 }
 
+func _User_GetOauth2_CrpcHandler(handler func(context.Context, *GetOauth2Req) (*GetOauth2Resp, error)) crpc.OutsideHandler {
+	return func(ctx *crpc.Context) {
+		var preferJSON bool
+		req := new(GetOauth2Req)
+		reqbody := ctx.GetBody()
+		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				req.Reset()
+				if e := proto.Unmarshal(reqbody, req); e != nil {
+					log.Error(ctx, "[/admin.user/get_oauth2] json and proto format decode both failed")
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			} else {
+				preferJSON = true
+			}
+		} else if e := proto.Unmarshal(reqbody, req); e != nil {
+			req.Reset()
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
+				log.Error(ctx, "[/admin.user/get_oauth2] json and proto format decode both failed")
+				ctx.Abort(cerror.ErrReq)
+				return
+			} else {
+				preferJSON = true
+			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/get_oauth2] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetOauth2Resp)
+		}
+		if preferJSON {
+			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
+			ctx.Write(respd)
+		} else {
+			respd, _ := proto.Marshal(resp)
+			ctx.Write(respd)
+		}
+	}
+}
 func _User_UserLogin_CrpcHandler(handler func(context.Context, *UserLoginReq) (*UserLoginResp, error)) crpc.OutsideHandler {
 	return func(ctx *crpc.Context) {
 		var preferJSON bool
@@ -356,6 +429,11 @@ func _User_UserLogin_CrpcHandler(handler func(context.Context, *UserLoginReq) (*
 			} else {
 				preferJSON = true
 			}
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/user_login] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
 		}
 		resp, e := handler(ctx, req)
 		if e != nil {
@@ -900,6 +978,7 @@ func _User_DelUserRole_CrpcHandler(handler func(context.Context, *DelUserRoleReq
 func RegisterUserCrpcServer(engine *crpc.CrpcServer, svc UserCrpcServer, allmids map[string]crpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
+	engine.RegisterHandler("admin.user", "get_oauth2", _User_GetOauth2_CrpcHandler(svc.GetOauth2))
 	engine.RegisterHandler("admin.user", "user_login", _User_UserLogin_CrpcHandler(svc.UserLogin))
 	engine.RegisterHandler("admin.user", "login_info", _User_LoginInfo_CrpcHandler(svc.LoginInfo))
 	engine.RegisterHandler("admin.user", "invite_project", _User_InviteProject_CrpcHandler(svc.InviteProject))

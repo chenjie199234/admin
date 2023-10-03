@@ -285,6 +285,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 		DiscoverMode: "",
 		KubernetesNs: "",
 		KubernetesLS: "",
+		KubernetesFS: "",
 		DnsHost:      "",
 		DnsInterval:  0,
 		StaticAddrs:  nil,

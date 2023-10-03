@@ -52,8 +52,6 @@ var (
 	ErrUserNotExist       = cerror.MakeError(20104, http.StatusBadRequest, "user not exist")
 	ErrUserAlreadyInvited = cerror.MakeError(20105, http.StatusBadRequest, "user already invited")
 	ErrUserNotInProject   = cerror.MakeError(20106, http.StatusBadRequest, "user not in project")
-
-	ErrPageOverflow = cerror.MakeError(30001, http.StatusBadRequest, "page overflow")
 )
 
 func ReturnEcode(originerror error, defaulterror *cerror.Error) error {

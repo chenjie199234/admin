@@ -74,7 +74,7 @@ export function avatar():string{
 		return "R"
 	}
 	if(user.info){
-		return user.info.user_name.substr(0,1)
+		return user.info.oauth2_user_name.substr(0,1)
 	}
 	return ""
 }

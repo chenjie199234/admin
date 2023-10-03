@@ -1,22 +1,41 @@
 package dao
 
 import (
+	"crypto/tls"
+
 	"github.com/chenjie199234/admin/config"
-	// "github.com/chenjie199234/admin/model"
-	// "github.com/chenjie199234/Corelib/discover"
+	"github.com/chenjie199234/admin/model"
+
+	"github.com/chenjie199234/Corelib/discover"
+	"github.com/chenjie199234/Corelib/web"
 	// "github.com/chenjie199234/Corelib/cgrpc"
 	// "github.com/chenjie199234/Corelib/crpc"
-	// "github.com/chenjie199234/Corelib/web"
 )
 
-//var ExampleCGrpcApi example.ExampleCGrpcClient
-//var ExampleCrpcApi example.ExampleCrpcClient
-//var ExampleWebApi  example.ExampleWebClient
+// var ExampleCGrpcApi example.ExampleCGrpcClient
+// var ExampleCrpcApi example.ExampleCrpcClient
+// var ExampleWebApi  example.ExampleWebClient
+var DingTalkWebClient *web.WebClient
 
 // NewApi create all dependent service's api we need in this program
 func NewApi() error {
-	//init discover for example server
-	//examplediscover, e := discover.NewDNSDiscover("exampleproject", "examplegroup", "examplename", "exampleproject-examplegroup.examplename-headless", time.Second * 10, 9000, 10000, 8000)
+	var e error
+	_ = e //avoid unuse
+
+	//init dns discover for example server
+	//exampleDnsDiscover, e := discover.NewDNSDiscover("exampleproject", "examplegroup", "examplename", "dnshost", time.Second*10, 9000, 10000, 8000)
+	//if e != nil {
+	//	return e
+	//}
+	//
+	//init static discover for example server
+	//exampleStaticDiscover, e := discover.NewStaticDiscover("exampleproject", "examplegroup", "examplename", []string{"addr1","addr2"}, 9000, 10000, 8000)
+	//if e != nil {
+	//	return e
+	//}
+	//
+	//init kubernetes discover for example server
+	//exampleKubeDiscover, e := discover.NewKubernetesDiscover("exampleproject", "examplegroup", "examplename", "namespace", "fieldselector", "labelselector", 9000, 10000, 8000)
 	//if e != nil {
 	//	return e
 	//}
@@ -51,9 +70,21 @@ func NewApi() error {
 	//}
 	//ExampleWebApi = example.NewExampleWebClient(exampleweb)
 
+	DingTalkStaticDiscover, e := discover.NewStaticDiscover("ali", "dingtalk", "oauth2", []string{"api.dingtalk.com", "oapi.dingtalk.com"}, 0, 0, 0)
+	if e != nil {
+		return e
+	}
+	DingTalkWebClient, e = web.NewWebClient(webc, DingTalkStaticDiscover, model.Project, model.Group, model.Name, "ali", "dingtalk", "oauth2", &tls.Config{})
+	if e != nil {
+		return e
+	}
+	initDingTalk()
 	return nil
 }
 
-func UpdateAPI(ac *config.AppConfig) {
-
+func UpdateAppConfig(ac *config.AppConfig) {
+	select {
+	case trigerDingTalk <- nil:
+	default:
+	}
 }

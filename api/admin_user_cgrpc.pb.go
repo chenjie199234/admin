@@ -14,6 +14,7 @@ import (
 	grpc "google.golang.org/grpc"
 )
 
+var _CGrpcPathUserGetOauth2 = "/admin.user/get_oauth2"
 var _CGrpcPathUserUserLogin = "/admin.user/user_login"
 var _CGrpcPathUserLoginInfo = "/admin.user/login_info"
 var _CGrpcPathUserInviteProject = "/admin.user/invite_project"
@@ -28,6 +29,7 @@ var _CGrpcPathUserAddUserRole = "/admin.user/add_user_role"
 var _CGrpcPathUserDelUserRole = "/admin.user/del_user_role"
 
 type UserCGrpcClient interface {
+	GetOauth2(context.Context, *GetOauth2Req, ...grpc.CallOption) (*GetOauth2Resp, error)
 	UserLogin(context.Context, *UserLoginReq, ...grpc.CallOption) (*UserLoginResp, error)
 	LoginInfo(context.Context, *LoginInfoReq, ...grpc.CallOption) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq, ...grpc.CallOption) (*InviteProjectResp, error)
@@ -50,6 +52,16 @@ func NewUserCGrpcClient(cc grpc.ClientConnInterface) UserCGrpcClient {
 	return &userCGrpcClient{cc: cc}
 }
 
+func (c *userCGrpcClient) GetOauth2(ctx context.Context, req *GetOauth2Req, opts ...grpc.CallOption) (*GetOauth2Resp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	resp := new(GetOauth2Resp)
+	if e := c.cc.Invoke(ctx, _CGrpcPathUserGetOauth2, req, resp, opts...); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
 func (c *userCGrpcClient) UserLogin(ctx context.Context, req *UserLoginReq, opts ...grpc.CallOption) (*UserLoginResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -172,6 +184,7 @@ func (c *userCGrpcClient) DelUserRole(ctx context.Context, req *DelUserRoleReq, 
 }
 
 type UserCGrpcServer interface {
+	GetOauth2(context.Context, *GetOauth2Req) (*GetOauth2Resp, error)
 	UserLogin(context.Context, *UserLoginReq) (*UserLoginResp, error)
 	LoginInfo(context.Context, *LoginInfoReq) (*LoginInfoResp, error)
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
@@ -186,11 +199,40 @@ type UserCGrpcServer interface {
 	DelUserRole(context.Context, *DelUserRoleReq) (*DelUserRoleResp, error)
 }
 
+func _User_GetOauth2_CGrpcHandler(handler func(context.Context, *GetOauth2Req) (*GetOauth2Resp, error)) cgrpc.OutsideHandler {
+	return func(ctx *cgrpc.Context) {
+		req := new(GetOauth2Req)
+		if e := ctx.DecodeReq(req); e != nil {
+			log.Error(ctx, "[/admin.user/get_oauth2] decode failed")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/get_oauth2] validate failed", log.String("validate", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		if e != nil {
+			ctx.Abort(e)
+			return
+		}
+		if resp == nil {
+			resp = new(GetOauth2Resp)
+		}
+		ctx.Write(resp)
+	}
+}
 func _User_UserLogin_CGrpcHandler(handler func(context.Context, *UserLoginReq) (*UserLoginResp, error)) cgrpc.OutsideHandler {
 	return func(ctx *cgrpc.Context) {
 		req := new(UserLoginReq)
 		if e := ctx.DecodeReq(req); e != nil {
 			log.Error(ctx, "[/admin.user/user_login] decode failed")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			log.Error(ctx, "[/admin.user/user_login] validate failed", log.String("validate", errstr))
 			ctx.Abort(cerror.ErrReq)
 			return
 		}
@@ -467,6 +509,7 @@ func _User_DelUserRole_CGrpcHandler(handler func(context.Context, *DelUserRoleRe
 func RegisterUserCGrpcServer(engine *cgrpc.CGrpcServer, svc UserCGrpcServer, allmids map[string]cgrpc.OutsideHandler) {
 	// avoid lint
 	_ = allmids
+	engine.RegisterHandler("admin.user", "get_oauth2", _User_GetOauth2_CGrpcHandler(svc.GetOauth2))
 	engine.RegisterHandler("admin.user", "user_login", _User_UserLogin_CGrpcHandler(svc.UserLogin))
 	engine.RegisterHandler("admin.user", "login_info", _User_LoginInfo_CGrpcHandler(svc.LoginInfo))
 	engine.RegisterHandler("admin.user", "invite_project", _User_InviteProject_CGrpcHandler(svc.InviteProject))

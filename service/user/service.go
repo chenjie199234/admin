@@ -44,22 +44,80 @@ func Start() *Service {
 	}
 }
 
+func (s *Service) GetOauth2(ctx context.Context, req *api.GetOauth2Req) (*api.GetOauth2Resp, error) {
+	switch req.SrcType {
+	case "DingTalk":
+		if config.AC.Service.DingTalkOauth2 == "" {
+			log.Error(ctx, "[GetOauth2] missing DingTalk oauth2 setting")
+			return nil, ecode.ErrSystem
+		}
+		return &api.GetOauth2Resp{Url: config.AC.Service.DingTalkOauth2}, nil
+	case "WeCom":
+		if config.AC.Service.WeComOauth2 == "" {
+			log.Error(ctx, "[GetOauth2] missing WeCom oauth2 setting")
+			return nil, ecode.ErrSystem
+		}
+		return &api.GetOauth2Resp{Url: config.AC.Service.WeComOauth2}, nil
+	case "Lark":
+		if config.AC.Service.LarkOauth2 == "" {
+			log.Error(ctx, "[GetOauth2] missing Lark oauth2 setting")
+			return nil, ecode.ErrSystem
+		}
+		return &api.GetOauth2Resp{Url: config.AC.Service.LarkOauth2}, nil
+	}
+	log.Error(ctx, "[GetOauth2] unsupported oauth2 type", log.String("type", req.SrcType))
+	return nil, ecode.ErrReq
+}
 func (s *Service) UserLogin(ctx context.Context, req *api.UserLoginReq) (*api.UserLoginResp, error) {
-	var userid string
-	//TODO login and get userid
-	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, userid, "")
+	var userid primitive.ObjectID
+	var e error
+	var oauth2userid string
+	var oauth2mobile string
+	var oauth2name string
+	var oauth2department string
+	switch req.SrcType {
+	case "DingTalk":
+		oauth2userid, e = util.GetDingTalkOAuth2(ctx, req.Code)
+		if e != nil {
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		if oauth2userid == "" {
+			//this is the outside contacter,not the inner staff
+			return nil, ecode.ErrPermission
+		}
+		userid, e = s.userDao.MongoUserLogin(ctx, oauth2userid)
+		if e == nil {
+			break
+		}
+		if e != nil && e != ecode.ErrUserNotExist {
+			log.Error(ctx, "[UserLogin] db op failed", log.String("code", req.Code), log.CError(e))
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		//this is the new user
+		oauth2name, oauth2mobile, oauth2department, e = util.GetDingTalkUserInfo(ctx, oauth2userid)
+		if e != nil {
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		userid, e = s.userDao.MongoCreateUser(ctx, oauth2userid, oauth2mobile, oauth2name, oauth2department, req.SrcType)
+		if e != nil {
+			log.Error(ctx, "[UserLogin] db op failed", log.String("code", req.Code), log.CError(e))
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+	case "WeCom":
+	case "Lark":
+	}
+	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, userid.Hex(), "")
 	return &api.UserLoginResp{Token: tokenstr}, nil
 }
 func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.LoginInfoResp, error) {
 	md := metadata.GetMetadata(ctx)
-	//get other's info,need check permission
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		log.Error(ctx, "[LoginInfo] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	if operator.IsZero() {
-		log.Error(ctx, "[LoginInfo] superadmin shouldn't send this request", log.String("operator", md["Token-User"]))
+		log.Error(ctx, "[LoginInfo] root shouldn't send this request", log.String("operator", md["Token-User"]))
 		return &api.LoginInfoResp{User: nil}, nil
 	}
 	users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
@@ -70,52 +128,24 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 	user, ok := users[operator]
 	if !ok {
 		log.Error(ctx, "[LoginInfo] operator not exist", log.String("operator", md["Token-User"]))
-		return nil, ecode.ErrSystem
-	}
-	tmp := make(map[string]*api.ProjectRoles)
-	//join projects
-	for userprojectid := range user.Projects {
-		if _, ok := tmp[userprojectid]; ok {
-			continue
-		}
-		id, e := util.ParseNodeIDstr(userprojectid)
-		if e != nil {
-			log.Error(ctx, "[LoginInfo] operator join project's projectid format wrong",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", userprojectid))
-			return nil, ecode.ErrSystem
-		}
-		tmp[userprojectid] = &api.ProjectRoles{
-			ProjectId: id,
-			Roles:     make([]string, 0),
-		}
-	}
-	//roles
-	for userprojectid, userprojectroles := range user.Projects {
-		for _, userprojectrole := range userprojectroles {
-			projectid, e := util.ParseNodeIDstr(userprojectid)
-			if e != nil {
-				log.Error(ctx, "[LoginInfo] operator's joined project's projectid format wrong",
-					log.String("operator", md["Token-User"]),
-					log.String("project_id", userprojectid))
-				return nil, ecode.ErrSystem
-			}
-			if _, ok := tmp[userprojectid]; !ok {
-				tmp[userprojectid] = &api.ProjectRoles{
-					ProjectId: projectid,
-				}
-			}
-			tmp[userprojectid].Roles = append(tmp[userprojectid].Roles, userprojectrole)
-		}
+		return nil, ecode.ErrUserNotExist
 	}
 	respuser := &api.UserInfo{
-		UserId:       user.ID.Hex(),
-		UserName:     user.UserName,
-		Ctime:        uint32(user.ID.Timestamp().Unix()),
-		ProjectRoles: make([]*api.ProjectRoles, 0, len(tmp)),
+		UserId:           user.ID.Hex(),
+		Oauth2UserName:   user.OAuth2UserName,
+		Oauth2Department: user.OAuth2Department,
+		Ctime:            uint32(user.ID.Timestamp().Unix()),
+		ProjectRoles:     make([]*api.ProjectRoles, 0, len(user.Projects)),
 	}
-	for _, v := range tmp {
-		respuser.ProjectRoles = append(respuser.ProjectRoles, v)
+	for projecridstr, roles := range user.Projects {
+		projectid, e := util.ParseNodeIDstr(projecridstr)
+		if e != nil {
+			log.Error(ctx, "[LoginInfo] operator's joined project's projectid format wrong",
+				log.String("operator", md["Token-User"]),
+				log.String("project_id", projecridstr))
+			return nil, ecode.ErrSystem
+		}
+		respuser.ProjectRoles = append(respuser.ProjectRoles, &api.ProjectRoles{ProjectId: projectid, Roles: roles})
 	}
 	sort.Slice(respuser.ProjectRoles, func(i, j int) bool {
 		return respuser.ProjectRoles[i].ProjectId[1] < respuser.ProjectRoles[j].ProjectId[1]
@@ -302,7 +332,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 		log.Error(ctx, "[SearchUsers] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("user_name", req.UserName),
+			log.String("search_user_name", req.UserName),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
@@ -321,28 +351,16 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 			//jump the superadmin
 			continue
 		}
-		tmp := make(map[string]*api.ProjectRoles)
-		if userprojectroles, ok := user.Projects[projectid]; ok {
-			tmp[projectid] = &api.ProjectRoles{
-				ProjectId: req.ProjectId,
-				Roles:     make([]string, 0, 10),
-			}
-			for _, userprojectrole := range userprojectroles {
-				tmp[projectid].Roles = append(tmp[projectid].Roles, userprojectrole)
-			}
-		}
 		respuser := &api.UserInfo{
-			UserId:       user.ID.Hex(),
-			UserName:     user.UserName,
-			Ctime:        uint32(user.ID.Timestamp().Unix()),
-			ProjectRoles: make([]*api.ProjectRoles, 0, len(tmp)),
+			UserId:           user.ID.Hex(),
+			Oauth2UserName:   user.OAuth2UserName,
+			Oauth2Department: user.OAuth2Department,
+			Ctime:            uint32(user.ID.Timestamp().Unix()),
+			ProjectRoles:     make([]*api.ProjectRoles, 0, 1),
 		}
-		for _, v := range tmp {
-			respuser.ProjectRoles = append(respuser.ProjectRoles, v)
+		if roles, ok := user.Projects[projectid]; ok {
+			respuser.ProjectRoles = append(respuser.ProjectRoles, &api.ProjectRoles{ProjectId: req.ProjectId, Roles: roles})
 		}
-		sort.Slice(respuser.ProjectRoles, func(i, j int) bool {
-			return respuser.ProjectRoles[i].ProjectId[1] < respuser.ProjectRoles[j].ProjectId[1]
-		})
 		for _, v := range respuser.ProjectRoles {
 			sort.Strings(v.Roles)
 		}
@@ -370,7 +388,7 @@ func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.
 	}
 	if !operator.IsZero() {
 		//permission check
-		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.AdminProjectID+model.UserAndRoleControl, true)
+		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, model.AdminProjectID+model.UserAndRoleControl, true)
 		if e != nil {
 			log.Error(ctx, "[UpdateUser] get operator's permission info failed",
 				log.String("operator", md["Token-User"]),
@@ -378,27 +396,102 @@ func (s *Service) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.
 				log.CError(e))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
-		if !canwrite && !admin {
+		if !canread && !admin {
 			return nil, ecode.ErrPermission
 		}
 	}
 
-	//logic
-	olduser, e := s.userDao.MongoUpdateUser(ctx, target, req.NewUserName)
+	users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{target})
 	if e != nil {
 		log.Error(ctx, "[UpdateUser] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("user_id", req.UserId),
-			log.String("new_user_name", req.NewUserName),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	if olduser.UserName != req.NewUserName {
-		log.Info(ctx, "[UpdateUser] success", log.String("user_id", req.UserId), log.String("old_user_name", olduser.UserName), log.String("new_user_name", req.NewUserName))
-	} else {
-		log.Info(ctx, "[UpdateUser] success,nothing changed", log.String("user_id", req.UserId), log.String("user_name", olduser.UserName))
+	user, ok := users[target]
+	if !ok {
+		log.Error(ctx, "[UpdateUser] user not exist",
+			log.String("operator", md["Token-User"]),
+			log.String("user_id", req.UserId))
+		return nil, ecode.ErrUserNotExist
 	}
-	return &api.UpdateUserResp{}, nil
+	if user.OAuth2UserID == "" {
+		log.Error(ctx, "[UpdateUser] missing oauth2_user_id,db data broken")
+		return nil, ecode.ErrSystem
+	}
+
+	//logic
+	var newname, newtel, newdepartment string
+	switch user.OAuth2Type {
+	case "DingTalk":
+		if newname, newtel, newdepartment, e = util.GetDingTalkUserInfo(ctx, user.OAuth2UserID); e != nil {
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+	case "WeCom":
+	case "Lark":
+	default:
+		log.Error(ctx, "[UpdateUser] unknown oauth2 type",
+			log.String("operator", md["Token-User"]),
+			log.String("user_id", req.UserId))
+		return nil, ecode.ErrSystem
+	}
+	olduser, e := s.userDao.MongoUpdateUser(ctx, target, newtel, newname, newdepartment)
+	if e != nil {
+		log.Error(ctx, "[UpdateUser] db op failed",
+			log.String("operator", md["Token-User"]),
+			log.String("user_id", req.UserId),
+			log.String("new_oauth2_tel", newtel),
+			log.String("new_oauth2_user_name", newname),
+			log.String("new_oauth2_department", newdepartment),
+			log.CError(e))
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	if olduser.OAuth2UserName == newname && olduser.OAuth2Department == newdepartment && olduser.OAuth2Tel == newtel {
+		log.Info(ctx, "[UpdateUser] success,nothing changed",
+			log.String("operator", md["Token-User"]),
+			log.String("user_id", req.UserId),
+			log.String("oauth2_tel", olduser.OAuth2Tel),
+			log.String("oauth2_user_name", olduser.OAuth2UserName),
+			log.String("oauth2_department", olduser.OAuth2Department))
+	} else {
+		args := make([]interface{}, 0, 6)
+		if olduser.OAuth2UserName != newname {
+			args = append(args, log.String("old_oauth2_user_name", olduser.OAuth2UserName), log.String("new_oauth2_user_name", newname))
+		}
+		if olduser.OAuth2Tel != newtel {
+			args = append(args, log.String("old_oauth2_tel", olduser.OAuth2Tel), log.String("new_oauth2_tel", newtel))
+		}
+		if olduser.OAuth2Department != newdepartment {
+			args = append(args, log.String("old_oauth2_department", olduser.OAuth2Department), log.String("new_oauth2_department", newdepartment))
+		}
+		log.Info(ctx, "[UpdateUser] success", args...)
+	}
+
+	buf := pool.GetPool().Get(0)
+	defer pool.GetPool().Put(&buf)
+	for i, v := range req.ProjectId {
+		if i != 0 {
+			buf = append(buf, ',')
+		}
+		buf = strconv.AppendUint(buf, uint64(v), 10)
+	}
+	projectid := common.Byte2str(buf)
+
+	//only return the role in the project
+	resp := &api.UpdateUserResp{
+		Info: &api.UserInfo{
+			UserId:           olduser.ID.Hex(),
+			Oauth2UserName:   newname,
+			Oauth2Department: newdepartment,
+			Ctime:            uint32(olduser.ID.Timestamp().Unix()),
+			ProjectRoles:     make([]*api.ProjectRoles, 0, 1),
+		},
+	}
+	if roles, ok := olduser.Projects[projectid]; ok {
+		resp.Info.ProjectRoles = append(resp.Info.ProjectRoles, &api.ProjectRoles{ProjectId: req.ProjectId, Roles: roles})
+	}
+	return resp, nil
 }
 func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.CreateRoleResp, error) {
 	if req.ProjectId[0] != 0 {
@@ -499,7 +592,7 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 		log.Error(ctx, "[SearchRoles] db op failed",
 			log.String("operator", md["Token-User"]),
 			log.String("project_id", projectid),
-			log.String("role_name", req.RoleName),
+			log.String("search_role_name", req.RoleName),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}

@@ -49,21 +49,19 @@ function do_init(){
 </script>
 <template>
 	<div v-if="state.inited.value==false" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center">
-		<va-card style="min-width:350px;width:auto;margin:10px;text-align:center" color="primary" gradient>
+		<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
 			<va-card-content style="font-size:20px"><b>Initialize Now</b></va-card-content>
 		</va-card>
-		<div style="display:flex;flex-direction:column;align-items:center">
-			<va-input :type="t_access_key?'text':'password'" label="Access Key*" v-model.trim="access_key" style="width:400px;margin:5px 0">
-				<template #appendInner>
-					<va-icon :name="t_access_key?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_access_key=!t_access_key" />
-				</template>
-			</va-input>
-			<va-input :type="t_password?'text':'password'" label="Root Password*" v-model="password" style="width:400px;margin:5px 0">
-				<template #appendInner>
-					<va-icon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
-				</template>
-			</va-input>
-			<va-button style="width:100px;margin:5px 0 0 0" :disabled="!init_able()" @click="do_init" gradient>Init</va-button>
-		</div>
+		<va-input :type="t_access_key?'text':'password'" label="Access Key*" v-model.trim="access_key" style="width:350px;margin-top:10px">
+			<template #appendInner>
+				<va-icon :name="t_access_key?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_access_key=!t_access_key" />
+			</template>
+		</va-input>
+		<va-input :type="t_password?'text':'password'" label="Root Password*" v-model="password" style="width:350px;margin-top:10px">
+			<template #appendInner>
+				<va-icon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
+			</template>
+		</va-input>
+		<va-button style="width:100px;margin-top:10px" :disabled="!init_able()" @click="do_init" gradient>Init</va-button>
 	</div>
 </template>

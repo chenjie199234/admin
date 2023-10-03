@@ -114,15 +114,10 @@ message get_project_id_by_name_req{
 message get_project_id_by_name_resp{
 	repeated uint32 project_id=1;
 }
-message department{
-	string name=1;
-	repeated department children=2;
-}
 message project_info{
 	repeated uint32 project_id=1;
 	string project_name=2;
 	string project_data=3;
-	repeated department departments=4;
 }
 message list_project_req{
 }

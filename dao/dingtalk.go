@@ -18,8 +18,8 @@ var trigerDingTalk chan *struct{}
 
 func initDingTalk() {
 	trigerDingTalk = make(chan *struct{}, 1)
-	tmer := time.NewTimer(0)
 	go func() {
+		tmer := time.NewTimer(0)
 		for {
 			select {
 			case <-tmer.C:

@@ -7,17 +7,17 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/chenjie199234/admin/config"
+
 	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/log"
-
-	"github.com/chenjie199234/admin/config"
 )
 
 var FeiShuAppToken string
 var trigerFeiShu chan *struct{}
 
 func initFeiShu() {
-	trigerFeiShu = make(chan *struct{})
+	trigerFeiShu = make(chan *struct{}, 1)
 	go func() {
 		tmer := time.NewTimer(0)
 		for {

@@ -90,7 +90,7 @@ service user{
 //}
 
 message get_oauth2_req{
-	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="WeCom",(pbex.string_bytes_in)="FeiShu"];
+	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="FeiShu"];
 }
 message get_oauth2_resp{
 	string url=1;
@@ -114,7 +114,7 @@ message role_info {
 }
 
 message user_login_req {
-	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="WeCom",(pbex.string_bytes_in)="FeiShu"];
+	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="FeiShu"];
 	string code=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message user_login_resp {

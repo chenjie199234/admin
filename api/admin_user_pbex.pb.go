@@ -8,7 +8,7 @@ package api
 
 // return empty means pass
 func (m *GetOauth2Req) Validate() (errstr string) {
-	if m.GetSrcType() != "DingTalk" && m.GetSrcType() != "WeCom" && m.GetSrcType() != "FeiShu" {
+	if m.GetSrcType() != "DingTalk" && m.GetSrcType() != "FeiShu" {
 		return "field: src_type in object: get_oauth2_req check value str in failed"
 	}
 	return ""
@@ -16,7 +16,7 @@ func (m *GetOauth2Req) Validate() (errstr string) {
 
 // return empty means pass
 func (m *UserLoginReq) Validate() (errstr string) {
-	if m.GetSrcType() != "DingTalk" && m.GetSrcType() != "WeCom" && m.GetSrcType() != "FeiShu" {
+	if m.GetSrcType() != "DingTalk" && m.GetSrcType() != "FeiShu" {
 		return "field: src_type in object: user_login_req check value str in failed"
 	}
 	if len(m.GetCode()) == 0 {

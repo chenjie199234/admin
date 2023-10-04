@@ -92,6 +92,7 @@ func NewApi() error {
 		return e
 	}
 	initFeiShu()
+
 	return nil
 }
 

@@ -27,8 +27,6 @@ type ServiceConfig struct {
 	DingTalkAppKey    string `json:"dingtalk_app_key"`
 	DingTalkAppSecret string `json:"dingtalk_app_secret"`
 
-	WeComOauth2 string `json:"wecom_oauth2"`
-
 	//https://open.feishu.cn/open-apis/authen/v1/authorize?redirect_uri={REDIRECT_URI}&app_id={APPID}&state=FeiShu&scope=contact:user.employee_id:readonly%20contact:user.phone:readonly
 	FeiShuOauth2    string `json:"feishu_oauth2"`
 	FeiShuAppID     string `json:"feishu_app_id"`
@@ -39,9 +37,6 @@ type ServiceConfig struct {
 func validateAppConfig(ac *AppConfig) {
 	oauth2count := 0
 	if ac.Service.DingTalkOauth2 != "" {
-		oauth2count++
-	}
-	if ac.Service.WeComOauth2 != "" {
 		oauth2count++
 	}
 	if ac.Service.FeiShuAppSecret != "" {

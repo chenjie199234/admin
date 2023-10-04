@@ -44,8 +44,7 @@ onMounted(()=>{
 				state.set_alert("error",-2,"missng authCode in redirect url")
 			}
 			break
-		case "WeCom":
-			break
+
 		case "FeiShu":
 			if(querys.get("code")){
 				oauth2.value=state
@@ -56,7 +55,7 @@ onMounted(()=>{
 			}
 			break
 		default:
-			state.set_alert("error",-2,"unknown oauth2 state in redirect url")
+			state.set_alert("error",-2,"unknown oauth2 state in redirect url,must be DingTalk or FeiShu")
 		}
 	}
 })
@@ -82,7 +81,7 @@ function do_login_root(){
 
 const oauth2 = ref<string>("")
 const oauth2code = ref<string>("")
-const oauth2s = ref<string[]>(["DingTalk","WeCom","FeiShu"])
+const oauth2s = ref<string[]>(["DingTalk","FeiShu"])
 function doauth(){
 	if(!state.set_load()){
 		return

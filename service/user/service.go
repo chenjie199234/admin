@@ -51,11 +51,6 @@ func (s *Service) GetOauth2(ctx context.Context, req *api.GetOauth2Req) (*api.Ge
 			return nil, ecode.ErrBan
 		}
 		return &api.GetOauth2Resp{Url: config.AC.Service.DingTalkOauth2}, nil
-	case "WeCom":
-		if config.AC.Service.WeComOauth2 == "" {
-			return nil, ecode.ErrBan
-		}
-		return &api.GetOauth2Resp{Url: config.AC.Service.WeComOauth2}, nil
 	case "FeiShu":
 		if config.AC.Service.FeiShuOauth2 == "" {
 			return nil, ecode.ErrBan
@@ -72,7 +67,6 @@ func (s *Service) UserLogin(ctx context.Context, req *api.UserLoginReq) (*api.Us
 	switch req.SrcType {
 	case "DingTalk":
 		oauth2userid, oauth2name, _, e = util.GetDingTalkOAuth2(ctx, req.Code)
-	case "WeCom":
 	case "FeiShu":
 		oauth2userid, oauth2name, _, e = util.GetFeiShuOAuth2(ctx, req.Code)
 	}

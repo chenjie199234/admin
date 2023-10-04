@@ -14,7 +14,7 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
-	//value must in ["DingTalk","WeCom","FeiShu"]
+	//value must in ["DingTalk","FeiShu"]
 	"src_type":"str"
 }
 ------------------------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
-	//value must in ["DingTalk","WeCom","FeiShu"]
+	//value must in ["DingTalk","FeiShu"]
 	"src_type":"str",
 	//value length must != 0
 	"code":"str"

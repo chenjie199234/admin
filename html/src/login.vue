@@ -33,12 +33,11 @@ onMounted(()=>{
 		}
 	}else if(window.location.search){
 		let querys = new URLSearchParams(window.location.search)
-		let state = querys.get("state")
-		switch(state){
+		switch(querys.get("state")){
 		case "DingTalk":
 			if(querys.get("authCode")){
-				oauth2.value=state
-				oauth2code.value=querys.get("authCode")
+				oauth2.value=querys.get("state")!
+				oauth2code.value=querys.get("authCode")!
 				do_login_user()
 			}else{
 				state.set_alert("error",-2,"missng authCode in redirect url")
@@ -47,8 +46,8 @@ onMounted(()=>{
 
 		case "FeiShu":
 			if(querys.get("code")){
-				oauth2.value=state
-				oauth2code.value=querys.get("code")
+				oauth2.value=querys.get("state")!
+				oauth2code.value=querys.get("code")!
 				do_login_user()
 			}else{
 				state.set_alert("error",-2,"missing code in redirect url")
@@ -92,7 +91,7 @@ function doauth(){
 	client.userClient.get_oauth2({},req,client.timeout,(e :userAPI.Error)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
-	},(resp :userAPI.SearchUsersResp)=>{
+	},(resp :userAPI.GetOauth2Resp)=>{
 		state.clear_load()
 		window.location.href = resp.url
 	})

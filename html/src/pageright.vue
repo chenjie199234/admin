@@ -71,7 +71,7 @@ function iframeload(){
 	<div style="height:100%;flex:1;display:flex;flex-direction:column;overflow:auto">
 		<div style="display:flex;align-items:center;padding:5px;background-color:var(--va-background-element)">
 			<div style="display:flex;flex:1"></div>
-			<p v-if="!state.user.root" style="color:green;margin-right:10px">{{state.user.info.user_id}}</p>
+			<p v-if="!state.user.root&&state.user.info" style="color:green;margin-right:10px">{{state.user.info.user_id}}</p>
 			<va-dropdown style="width:36px" trigger="hover" :hoverOverTimeout="0" :hoverOutTimeout="100" placement="bottom-end">
 				<template #anchor>
 					<va-button round>{{ state.avatar() }}</va-button>

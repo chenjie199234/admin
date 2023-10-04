@@ -88,7 +88,8 @@ Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 user_info: {
 	"user_id":"str",
-	"oauth2_user_name":"str",
+	"feishu_user_name":"str",
+	"dingtalk_user_name":"str",
 	//timestamp,uint:second
 	//uint32
 	"ctime":0,
@@ -209,7 +210,8 @@ Success: httpcode:200
 ------------------------------------------------------------------------------------------------------------
 user_info: {
 	"user_id":"str",
-	"oauth2_user_name":"str",
+	"feishu_user_name":"str",
+	"dingtalk_user_name":"str",
 	//timestamp,uint:second
 	//uint32
 	"ctime":0,

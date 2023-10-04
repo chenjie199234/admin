@@ -72,7 +72,7 @@ func NewApi() error {
 	//ExampleWebApi = example.NewExampleWebClient(exampleweb)
 
 	//DingTalk
-	DingTalkStaticDiscover, e := discover.NewStaticDiscover("ali", "dingtalk", "oauth2", []string{"api.dingtalk.com", "oapi.dingtalk.com"}, 0, 0, 0)
+	DingTalkStaticDiscover, e := discover.NewStaticDiscover("ali", "dingtalk", "oauth2", []string{"api.dingtalk.com"}, 0, 0, 0)
 	if e != nil {
 		return e
 	}

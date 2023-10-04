@@ -12,6 +12,7 @@ onMounted(()=>{
 		let obj = JSON.parse(localtoken)
 		if(!obj.root){
 			state.user.root=false
+			state.user.oauth2=obj.oauth2
 			if(!state.set_load()){
 				return
 			}
@@ -20,6 +21,7 @@ onMounted(()=>{
 				state.set_alert("error",e.code,e.msg)
 			},(resp :userAPI.LoginInfoResp)=>{
 				state.user.token=obj.token
+				console.log(resp.user)
 				if(resp.user){
 					state.user.info=resp.user
 				}else{
@@ -29,6 +31,7 @@ onMounted(()=>{
 			})
 		}else{
 			state.user.root=true
+			state.user.oauth2=""
 			state.user.token=obj.token
 		}
 	}else if(window.location.search){
@@ -73,7 +76,7 @@ function do_login_root(){
 		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.RootLoginResp)=>{
 		password.value=""
-		state.login(resp.token)
+		state.login("",resp.token)
 		state.clear_load()
 	})
 }
@@ -108,7 +111,7 @@ function do_login_user(){
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp :userAPI.UserLoginResp)=>{
-		state.login(resp.token)
+		state.login(oauth2.value,resp.token)
 		state.clear_load()
 		window.location.href = window.location.href.slice(0,window.location.href.indexOf("?"))
 	})

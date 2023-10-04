@@ -35,19 +35,8 @@ type ServiceConfig struct {
 
 // every time update AppConfig will call this function
 func validateAppConfig(ac *AppConfig) {
-	oauth2count := 0
-	if ac.Service.DingTalkOauth2 != "" {
-		oauth2count++
-	}
-	if ac.Service.FeiShuAppSecret != "" {
-		oauth2count++
-	}
-	if oauth2count == 0 {
-		log.Warn(nil, "[config.validateAppConfig] no oauth2 service,only root account can login by password")
-	} else if oauth2count > 1 {
-		log.Error(nil, "[config.validateAppConfig] too many oauth2 service")
-		Close()
-		os.Exit(1)
+	if ac.Service.DingTalkOauth2 == "" && ac.Service.FeiShuAppSecret == "" {
+		log.Warn(nil, "[config.validateAppConfig] no oauth2 service,only root can login by password")
 	}
 	if ac.Service.DingTalkOauth2 != "" && (ac.Service.DingTalkAppKey == "" || ac.Service.DingTalkAppSecret == "") {
 		log.Error(nil, "[config.validateAppConfig] missing dingtalk_app_key or dingtalk_app_secret setting")

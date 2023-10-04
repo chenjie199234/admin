@@ -98,9 +98,10 @@ message get_oauth2_resp{
 
 message user_info {
 	string user_id=1;
-	string oauth2_user_name=2;
-	uint32 ctime=3;//timestamp,uint:second
-	repeated project_roles project_roles=4;
+	string feishu_user_name=2;
+	string dingtalk_user_name=3;
+	uint32 ctime=4;//timestamp,uint:second
+	repeated project_roles project_roles=5;
 }
 message project_roles{
 	repeated uint32 project_id=1;

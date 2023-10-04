@@ -15,32 +15,30 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func (d *Dao) MongoUserLogin(ctx context.Context, oauth2userid, oauth2type string) (user *model.User, e error) {
-	user = &model.User{}
-	if e = d.mongo.Database("user").Collection("user").FindOne(ctx, bson.M{"oauth2_user_id": oauth2userid, "oauth2_type": oauth2type}).Decode(user); e != nil {
-		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrUserNotExist
-		}
-		return
+func (d *Dao) MongoUserLogin(ctx context.Context, mobile, oauth2username, oauth2type string) (primitive.ObjectID, error) {
+	filter := bson.M{"mobile": mobile}
+	updater := bson.M{}
+	if oauth2type == "FeiShu" {
+		updater["feishu_user_name"] = oauth2username
+	} else if oauth2type == "DingTalk" {
+		updater["dingtalk_user_name"] = oauth2username
+	} else {
+		return primitive.NilObjectID, ecode.ErrReq
 	}
-	return
-}
-func (d *Dao) MongoCreateUser(ctx context.Context, oauth2userid, oauth2username, oauth2type string) (*model.User, error) {
-	user := &model.User{
-		OAuth2UserID:   oauth2userid,
-		OAuth2UserName: oauth2username,
-		OAuth2Type:     oauth2type,
-		Projects:       map[string][]string{},
+	opts := options.FindOneAndUpdate().SetUpsert(true).SetProjection(bson.M{"_id": 1})
+	user := &model.User{}
+	e := d.mongo.Database("user").Collection("user").FindOneAndUpdate(ctx, filter, bson.M{"$set": updater}, opts).Decode(user)
+	if e != nil && e != mongo.ErrNoDocuments {
+		return primitive.NilObjectID, e
 	}
-	r, e := d.mongo.Database("user").Collection("user").InsertOne(ctx, user)
+	if e == nil {
+		return user.ID, nil
+	}
+	e = d.mongo.Database("user").Collection("user").FindOne(ctx, filter, options.FindOne().SetProjection(bson.M{"_id": 1})).Decode(user)
 	if e != nil {
-		if mongo.IsDuplicateKeyError(e) {
-			return d.MongoUserLogin(ctx, oauth2userid, oauth2type)
-		}
-		return nil, e
+		return primitive.NilObjectID, e
 	}
-	user.ID = r.InsertedID.(primitive.ObjectID)
-	return user, nil
+	return user.ID, nil
 }
 
 func (d *Dao) MongoInvite(ctx context.Context, operator primitive.ObjectID, projectid string, target primitive.ObjectID) error {
@@ -117,7 +115,7 @@ func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (
 func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, pagesize, page int64) (map[primitive.ObjectID]*model.User, int64, int64, error) {
 	filter := bson.M{}
 	if name != "" {
-		filter["oauth2_user_name"] = bson.M{"$regex": name}
+		filter["$or"] = bson.A{bson.M{"feishu_user_name": bson.M{"$regex": name}}, bson.M{"dingtalk_user_name": bson.M{"$regex": name}}}
 	}
 	if projectid != "" {
 		filter["projects."+projectid] = bson.M{"$exists": true}

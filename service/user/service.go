@@ -63,35 +63,20 @@ func (s *Service) GetOauth2(ctx context.Context, req *api.GetOauth2Req) (*api.Ge
 func (s *Service) UserLogin(ctx context.Context, req *api.UserLoginReq) (*api.UserLoginResp, error) {
 	var userid primitive.ObjectID
 	var e error
-	var oauth2userid, oauth2name string
+	var oauth2username, oauth2mobile string
 	switch req.SrcType {
 	case "DingTalk":
-		oauth2userid, oauth2name, _, e = util.GetDingTalkOAuth2(ctx, req.Code)
+		oauth2username, oauth2mobile, e = util.GetDingTalkOAuth2(ctx, req.Code)
 	case "FeiShu":
-		oauth2userid, oauth2name, _, e = util.GetFeiShuOAuth2(ctx, req.Code)
+		oauth2username, oauth2mobile, e = util.GetFeiShuOAuth2(ctx, req.Code)
 	}
 	if e != nil {
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	if oauth2userid == "" {
-		return nil, ecode.ErrPermission
-	}
-	if user, e := s.userDao.MongoUserLogin(ctx, oauth2userid, req.SrcType); e == nil {
-		userid = user.ID
-		if user.OAuth2UserName != oauth2name {
-			if _, e = s.userDao.MongoUpdateUser(ctx, user.ID, oauth2name); e != nil {
-				log.Error(ctx, "[UserLogin] db op failed", log.String("code", req.Code), log.CError(e))
-				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-			}
-		}
-	} else if e != ecode.ErrUserNotExist {
-		log.Error(ctx, "[UserLogin] db op failed", log.String("code", req.Code), log.CError(e))
+	userid, e = s.userDao.MongoUserLogin(ctx, oauth2mobile, oauth2username, req.SrcType)
+	if e != nil {
+		log.Error(ctx, "[UserLogin] db op failed", log.String("oauth2_service", req.SrcType), log.String("code", req.Code), log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-	} else if user, e = s.userDao.MongoCreateUser(ctx, oauth2userid, oauth2name, req.SrcType); e != nil {
-		log.Error(ctx, "[UserLogin] db op failed", log.String("code", req.Code), log.CError(e))
-		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
-	} else {
-		userid = user.ID
 	}
 	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, userid.Hex(), "")
 	return &api.UserLoginResp{Token: tokenstr}, nil
@@ -118,10 +103,11 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 		return nil, ecode.ErrUserNotExist
 	}
 	respuser := &api.UserInfo{
-		UserId:         user.ID.Hex(),
-		Oauth2UserName: user.OAuth2UserName,
-		Ctime:          uint32(user.ID.Timestamp().Unix()),
-		ProjectRoles:   make([]*api.ProjectRoles, 0, len(user.Projects)),
+		UserId:           user.ID.Hex(),
+		FeishuUserName:   user.FeiShuUserName,
+		DingtalkUserName: user.DingTalkUserName,
+		Ctime:            uint32(user.ID.Timestamp().Unix()),
+		ProjectRoles:     make([]*api.ProjectRoles, 0, len(user.Projects)),
 	}
 	for projecridstr, roles := range user.Projects {
 		projectid, e := util.ParseNodeIDstr(projecridstr)
@@ -338,10 +324,11 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 			continue
 		}
 		respuser := &api.UserInfo{
-			UserId:         user.ID.Hex(),
-			Oauth2UserName: user.OAuth2UserName,
-			Ctime:          uint32(user.ID.Timestamp().Unix()),
-			ProjectRoles:   make([]*api.ProjectRoles, 0, 1),
+			UserId:           user.ID.Hex(),
+			FeishuUserName:   user.FeiShuUserName,
+			DingtalkUserName: user.DingTalkUserName,
+			Ctime:            uint32(user.ID.Timestamp().Unix()),
+			ProjectRoles:     make([]*api.ProjectRoles, 0, 1),
 		}
 		if roles, ok := user.Projects[projectid]; ok {
 			respuser.ProjectRoles = append(respuser.ProjectRoles, &api.ProjectRoles{ProjectId: req.ProjectId, Roles: roles})

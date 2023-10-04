@@ -10,9 +10,7 @@ import (
 	"github.com/chenjie199234/admin/dao"
 	"github.com/chenjie199234/admin/ecode"
 
-	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/log"
-	"github.com/chenjie199234/Corelib/web"
 )
 
 type getDingTalkUserTokenReq struct {
@@ -45,7 +43,7 @@ type getDingTalkUserIDByUnionIDData struct {
 	UserID      string `json:"userid"`
 }
 
-func GetDingTalkOAuth2(ctx context.Context, code string) (userid, username, mobile string, e error) {
+func GetDingTalkOAuth2(ctx context.Context, code string) (username, mobile string, e error) {
 	//step1 get user token
 	var usertoken string
 	{
@@ -58,7 +56,7 @@ func GetDingTalkOAuth2(ctx context.Context, code string) (userid, username, mobi
 			GrantType: "authorization_code",
 		}
 		reqbody, _ := json.Marshal(req)
-		resp, err := dao.DingTalkWebClient.Post(web.WithForceAddr(ctx, "api.dingtalk.com"), "/v1.0/oauth2/userAccessToken", "", header, nil, reqbody)
+		resp, err := dao.DingTalkWebClient.Post(ctx, "/v1.0/oauth2/userAccessToken", "", header, nil, reqbody)
 		if err != nil {
 			log.Error(ctx, "[GetDingTalkOAuth2.usertoken] call failed", log.String("code", code), log.CError(err))
 			e = err
@@ -80,83 +78,37 @@ func GetDingTalkOAuth2(ctx context.Context, code string) (userid, username, mobi
 		usertoken = r.AccessToken
 	}
 
-	//step2 get unionid
-	var unionid string
+	//step2 get user info
 	{
 		header := make(http.Header)
 		header.Set("Content-Type", "application/json")
 		header.Set("x-acs-dingtalk-access-token", usertoken)
-		resp, err := dao.DingTalkWebClient.Get(web.WithForceAddr(ctx, "api.dingtalk.com"), "/v1.0/contact/users/me", "", header, nil)
+		resp, err := dao.DingTalkWebClient.Get(ctx, "/v1.0/contact/users/me", "", header, nil)
 		if err != nil {
-			log.Error(ctx, "[GetDingTalkOAuth2.unionid] call failed", log.String("code", code), log.CError(err))
+			log.Error(ctx, "[GetDingTalkOAuth2.userinfo] call failed", log.String("code", code), log.CError(err))
 			e = err
 			return
 		}
 		defer resp.Body.Close()
 		respbody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Error(ctx, "[GetDingTalkOAuth2.unionid] read response body failed", log.String("code", code), log.CError(err))
+			log.Error(ctx, "[GetDingTalkOAuth2.userinfo] read response body failed", log.String("code", code), log.CError(err))
 			e = err
 			return
 		}
 		r := &getDingTalkUnionIDByUserTokenResp{}
 		if err = json.Unmarshal(respbody, r); err != nil {
-			log.Error(ctx, "[GetDingTalkOAuth2.unionid] response body deocde failed", log.String("code", code), log.CError(err))
+			log.Error(ctx, "[GetDingTalkOAuth2.userinfo] response body deocde failed", log.String("code", code), log.CError(err))
 			e = err
 			return
 		}
-		unionid = r.UnionID
 		username = r.UserName
-		if r.MobileStateCode != "" {
-			mobile = "+" + r.MobileStateCode + r.Mobile
-		} else {
-			mobile = r.Mobile
-		}
-	}
-
-	//step3 get userid
-	{
-		header := make(http.Header)
-		header.Set("Content-Type", "application/json")
-		header.Del("x-acs-dingtalk-access-token")
-		req := &getDingTalkUserIDByUnionIDReq{
-			UnionID: unionid,
-		}
-		reqbody, _ := json.Marshal(req)
-		resp, err := dao.DingTalkWebClient.Post(web.WithForceAddr(ctx, "oapi.dingtalk.com"), "/topapi/user/getbyunionid", "access_token="+dao.DingTalkToken, header, nil, reqbody)
-		if err != nil {
-			log.Error(ctx, "[GetDingTalkOAuth2.userid] call failed", log.String("code", code), log.CError(err))
-			e = err
+		if r.MobileStateCode == "" || r.Mobile == "" {
+			e = ecode.ErrPermission
+			log.Error(ctx, "[GetDingTalkOAuth2.userinfo] missing mobile", log.String("code", code), log.String("user_name", username))
 			return
 		}
-		defer resp.Body.Close()
-		respbody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Error(ctx, "[GetDingTalkOAuth2.userid] read response body failed", log.String("code", code), log.CError(err))
-			e = err
-			return
-		}
-		r := &getDingTalkUserIDByUnionIDResp{}
-		if err = json.Unmarshal(respbody, r); err != nil {
-			log.Error(ctx, "[GetDingTalkOAuth2.userid] response body decode failed", log.String("code", code), log.CError(err))
-			e = err
-			return
-		}
-		//https://open.dingtalk.com/document/orgapp/query-a-user-by-the-union-id
-		if r.ErrCode != 0 {
-			if r.ErrCode == 60121 {
-				e = ecode.ErrUserNotExist
-			} else if r.ErrCode == -1 {
-				e = ecode.ErrBusy
-			} else {
-				e = cerror.MakeError(int32(r.ErrCode), 500, r.ErrMsg)
-			}
-			log.Error(ctx, "[GetDingTalkOAuth2.userid] failed", log.String("code", code), log.CError(e))
-			return
-		}
-		if r.Result.ContactType == 0 {
-			userid = r.Result.UserID
-		}
+		mobile = "+" + r.MobileStateCode + r.Mobile
 	}
 	return
 }

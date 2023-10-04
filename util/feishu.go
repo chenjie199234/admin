@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/chenjie199234/admin/dao"
+	"github.com/chenjie199234/admin/ecode"
 
 	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/log"
@@ -35,7 +36,7 @@ type getFeiShuUserInfoData struct {
 	Mobile   string `json:"mobile"`
 }
 
-func GetFeiShuOAuth2(ctx context.Context, code string) (userid string, username string, mobile string, e error) {
+func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile string, e error) {
 	//step1 get user token
 	var usertoken string
 	{
@@ -101,8 +102,12 @@ func GetFeiShuOAuth2(ctx context.Context, code string) (userid string, username 
 			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] failed", log.String("code", code), log.CError(e))
 			return
 		}
-		userid = r.Data.UserID
 		username = r.Data.UserName
+		if r.Data.Mobile == "" {
+			e = ecode.ErrPermission
+			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] missing mobile", log.String("code", code), log.String("user_name", username))
+			return
+		}
 		mobile = r.Data.Mobile
 	}
 	return

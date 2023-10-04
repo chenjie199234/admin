@@ -3,12 +3,12 @@ package model
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type User struct {
-	ID             primitive.ObjectID  `bson:"_id,omitempty"` //user's id
-	OAuth2UserID   string              `bson:"oauth2_user_id"`
-	OAuth2UserName string              `bson:"oauth2_user_name"`
-	OAuth2Type     string              `bson:"oauth2_type"` //DingTalk,FeiShu
-	Password       string              `bson:"password"`    //only root user use this
-	Projects       map[string][]string `bson:"projects"`    //key projectid,value roles
+	ID               primitive.ObjectID  `bson:"_id,omitempty"` //user's id
+	Mobile           string              `json:"mobile"`
+	DingTalkUserName string              `json:"dingtalk_user_name"`
+	FeiShuUserName   string              `json:"feishu_user_name"`
+	Password         string              `bson:"password"` //only root user use this
+	Projects         map[string][]string `bson:"projects"` //key projectid,value roles
 }
 
 type Role struct {

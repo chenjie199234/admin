@@ -789,7 +789,8 @@ function JsonToUpdateRoleResp(_jsonobj: { [k:string]:any }): UpdateRoleResp{
 }
 export interface UserInfo{
 	user_id: string;
-	oauth2_user_name: string;
+	feishu_user_name: string;
+	dingtalk_user_name: string;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	ctime: number;//timestamp,uint:second
 	project_roles: Array<ProjectRoles|null|undefined>|null|undefined;
@@ -797,7 +798,8 @@ export interface UserInfo{
 function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 	let obj: UserInfo={
 		user_id:'',
-		oauth2_user_name:'',
+		feishu_user_name:'',
+		dingtalk_user_name:'',
 		ctime:0,
 		project_roles:null,
 	}
@@ -808,12 +810,19 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 		}
 		obj['user_id']=jsonobj['user_id']
 	}
-	//oauth2_user_name
-	if(jsonobj['oauth2_user_name']!=null&&jsonobj['oauth2_user_name']!=undefined){
-		if(typeof jsonobj['oauth2_user_name']!='string'){
-			throw 'UserInfo.oauth2_user_name must be string'
+	//feishu_user_name
+	if(jsonobj['feishu_user_name']!=null&&jsonobj['feishu_user_name']!=undefined){
+		if(typeof jsonobj['feishu_user_name']!='string'){
+			throw 'UserInfo.feishu_user_name must be string'
 		}
-		obj['oauth2_user_name']=jsonobj['oauth2_user_name']
+		obj['feishu_user_name']=jsonobj['feishu_user_name']
+	}
+	//dingtalk_user_name
+	if(jsonobj['dingtalk_user_name']!=null&&jsonobj['dingtalk_user_name']!=undefined){
+		if(typeof jsonobj['dingtalk_user_name']!='string'){
+			throw 'UserInfo.dingtalk_user_name must be string'
+		}
+		obj['dingtalk_user_name']=jsonobj['dingtalk_user_name']
 	}
 	//ctime
 	if(jsonobj['ctime']!=null&&jsonobj['ctime']!=undefined){

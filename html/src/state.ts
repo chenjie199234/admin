@@ -61,23 +61,29 @@ export function get_alert_title():string{
 //-------------------------------------------------------------------------------
 export const user = reactive<{
 	root:boolean
+	oauth2:string
 	token:string
 	info:userAPI.UserInfo|null
 }>({
 	root:false,
+	oauth2:"",
 	token:"",
 	info:null,
 })
-export function login(token:string){
+export function login(oauth2:string,token:string){
 	user.token=token
-	localStorage.setItem("token",JSON.stringify({root:user.root,token:token}))
+	localStorage.setItem("token",JSON.stringify({root:user.root,oauth2:oauth2,token:token}))
 }
 export function avatar():string{
 	if(user.root){
 		return "R"
 	}
 	if(user.info){
-		return user.info.oauth2_user_name.substr(0,1)
+		if(user.oauth2 == "FeiShu"){
+			return user.info.feishu_user_name.substr(0,1)
+		}else if (user.oauth2 == "DingTalk"){
+			return user.info.dingtalk_user_name.substr(0,1)
+		}
 	}
 	return ""
 }

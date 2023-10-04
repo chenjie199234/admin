@@ -69,7 +69,6 @@ function invited(user: userAPI.UserInfo):boolean{
 //user
 const cur_user=ref<userAPI.UserInfo|null>(null)
 const invite_kick_user=ref<userAPI.UserInfo|null>(null)
-const update_user=ref<userAPI.UserInfo|null>(null)
 const update_user_delete_role_rolename=ref<string>("")
 
 //role
@@ -211,32 +210,6 @@ function op(){
 							invite_kick_user.value!.project_roles!.splice(i,1)
 							break
 						}
-					}
-				}
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
-		case "update_user":{
-			let req = {
-				project_id: state.project.info!.project_id,
-				user_id: update_user.value!.user_id,
-			}
-			client.userClient.update_user({"Token":state.user.token},req,client.timeout,(e :userAPI.Error)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(resp: userAPI.UpdateUserResp)=>{
-				if(resp.info){
-					update_user.value.oauth2_user_name=resp.info.oauth2_user_name
-					update_user.value.oauth2_department=resp.info.oauth2_department
-					if(resp.info.project_roles){
-						update_user.value.project_roles=resp.info.project_roles
-					}else{
-						update_user.value.project_roles=[]
-					}
-					if (update_user.value.project_roles.length==0 && update_user.value == cur_user.value){
-						cur_user.value=null
 					}
 				}
 				ing.value=false
@@ -563,18 +536,6 @@ function parsetime(timestamp :number):string{
 					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
 				</div>
 			</div>
-			<div v-else-if="optype=='update_user'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px">
-						<p><b>Update user: {{ update_user!.oauth2_user_name }}</b></p>
-						<p><b>Please confirm</b></p>
-					</va-card-content>
-				</va-card>
-				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="op" gradient>Update</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
-				</div>
-			</div>
 			<div v-else-if="optype=='create_role'" style="display:flex;flex-direction:column">
 				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
 					<va-card-content style="font-size:20px"><b>Create Role</b></va-card-content>
@@ -654,7 +615,8 @@ function parsetime(timestamp :number):string{
 								:style="{'background-color':hover?'var(--va-shadow)':add_user_role_user==user?'#b6d7a8':undefined}"
 								@click="add_user_role_user=user"
 							>
-								{{user.oauth2_user_name}}
+								<span>{{user.oauth2_user_name}}</span>
+								<span style="color:green;margin-left:10px">{{user.user_id}}</span>
 							</div>
 						</template>
 					</va-hover>
@@ -797,7 +759,6 @@ function parsetime(timestamp :number):string{
 				>
 					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{cur_user==user?'-':invited(user)?'+':' ' }}</span>
 					<span style="padding:12px 0px 12px 20px;color:var(--va-primary)">{{user.oauth2_user_name}}</span>
-					<span style="padding:12px 0px 12px 20px;color:green">{{user.oauth2_department}}</span>
 					<span style="padding:12px 20px;color:green">{{user.user_id}}</span>
 					<span style="flex:1"></span>
 					<span style="padding:12px;color:green">Create Time: {{parsetime(user.ctime)}}</span>
@@ -810,21 +771,6 @@ function parsetime(timestamp :number):string{
 						@mouseout.stop=""
 						@click.stop="add_user_role_search='';add_user_role_user=user;roles=[];optype='add_user_role_missingrole';ing=true">
 						AddRole
-					</va-button>
-					<va-button
-						v-if="state.page.node!.canwrite||state.page.node!.admin"
-						style="width:60px;height:30px;margin:0 10px"
-						size="small"
-						gradient
-						@mouseover.stop=""
-						@mouseout.stop=""
-						@click.stop="()=>{
-							optype='update_user'
-							update_user=user
-							ing=true
-						}"
-					>
-						Update
 					</va-button>
 					<va-button
 						v-if="state.page.node!.admin"

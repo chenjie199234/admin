@@ -50,11 +50,6 @@ service user{
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc update_user(update_user_req)returns(update_user_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
 	rpc create_role(create_role_req)returns(create_role_resp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
@@ -95,7 +90,7 @@ service user{
 //}
 
 message get_oauth2_req{
-	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="WeCom",(pbex.string_bytes_in)="Lark"];
+	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="WeCom",(pbex.string_bytes_in)="FeiShu"];
 }
 message get_oauth2_resp{
 	string url=1;
@@ -104,9 +99,8 @@ message get_oauth2_resp{
 message user_info {
 	string user_id=1;
 	string oauth2_user_name=2;
-	string oauth2_department=3;
-	uint32 ctime=4;//timestamp,uint:second
-	repeated project_roles project_roles=5;
+	uint32 ctime=3;//timestamp,uint:second
+	repeated project_roles project_roles=4;
 }
 message project_roles{
 	repeated uint32 project_id=1;
@@ -120,7 +114,7 @@ message role_info {
 }
 
 message user_login_req {
-	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="WeCom",(pbex.string_bytes_in)="Lark"];
+	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="WeCom",(pbex.string_bytes_in)="FeiShu"];
 	string code=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message user_login_resp {
@@ -161,13 +155,6 @@ message search_users_resp {
 	uint32 page=2;
 	uint32 pagesize=3;
 	uint32 totalsize=4;
-}
-message update_user_req{
-	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
-}
-message update_user_resp{
-	user_info info=1;
 }
 message create_role_req {
 	//first element must be 0

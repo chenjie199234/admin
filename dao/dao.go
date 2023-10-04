@@ -16,6 +16,7 @@ import (
 // var ExampleCrpcApi example.ExampleCrpcClient
 // var ExampleWebApi  example.ExampleWebClient
 var DingTalkWebClient *web.WebClient
+var FeiShuWebClient *web.WebClient
 
 // NewApi create all dependent service's api we need in this program
 func NewApi() error {
@@ -70,6 +71,7 @@ func NewApi() error {
 	//}
 	//ExampleWebApi = example.NewExampleWebClient(exampleweb)
 
+	//DingTalk
 	DingTalkStaticDiscover, e := discover.NewStaticDiscover("ali", "dingtalk", "oauth2", []string{"api.dingtalk.com", "oapi.dingtalk.com"}, 0, 0, 0)
 	if e != nil {
 		return e
@@ -79,12 +81,27 @@ func NewApi() error {
 		return e
 	}
 	initDingTalk()
+
+	//FeiShu
+	FeiShuStaticDiscover, e := discover.NewStaticDiscover("bytedance", "feishu", "oauth2", []string{"open.feishu.cn"}, 0, 0, 0)
+	if e != nil {
+		return e
+	}
+	FeiShuWebClient, e = web.NewWebClient(webc, FeiShuStaticDiscover, model.Project, model.Group, model.Name, "bytedance", "feishu", "oauth2", &tls.Config{})
+	if e != nil {
+		return e
+	}
+	initFeiShu()
 	return nil
 }
 
 func UpdateAppConfig(ac *config.AppConfig) {
 	select {
 	case trigerDingTalk <- nil:
+	default:
+	}
+	select {
+	case trigerFeiShu <- nil:
 	default:
 	}
 }

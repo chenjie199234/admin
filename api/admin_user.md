@@ -14,7 +14,7 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
-	//value must in ["DingTalk","WeCom","Lark"]
+	//value must in ["DingTalk","WeCom","FeiShu"]
 	"src_type":"str"
 }
 ------------------------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ Method:       POST
 Content-Type: application/json
 ------------------------------------------------------------------------------------------------------------
 {
-	//value must in ["DingTalk","WeCom","Lark"]
+	//value must in ["DingTalk","WeCom","FeiShu"]
 	"src_type":"str",
 	//value length must != 0
 	"code":"str"
@@ -89,7 +89,6 @@ Success: httpcode:200
 user_info: {
 	"user_id":"str",
 	"oauth2_user_name":"str",
-	"oauth2_department":"str",
 	//timestamp,uint:second
 	//uint32
 	"ctime":0,
@@ -211,55 +210,6 @@ Success: httpcode:200
 user_info: {
 	"user_id":"str",
 	"oauth2_user_name":"str",
-	"oauth2_department":"str",
-	//timestamp,uint:second
-	//uint32
-	"ctime":0,
-	//object project_roles
-	"project_roles":[{},{}]
-}
-------------------------------------------------------------------------------------------------------------
-project_roles: {
-	//uint32
-	"project_id":[1,2],
-	"roles":["str","str"]
-}
-------------------------------------------------------------------------------------------------------------
-```
-### update_user
-
-#### Req:
-```
-Path:         /admin.user/update_user
-Method:       POST
-Content-Type: application/json
-------------------------------------------------------------------------------------------------------------
-{
-	//uint32
-	//element num must == 2
-	"project_id":[1,2],
-	//value length must != 0
-	"user_id":"str"
-}
-------------------------------------------------------------------------------------------------------------
-```
-#### Resp:
-```
-Fail:    httpcode:4xx/5xx
-------------------------------------------------------------------------------------------------------------
-{"code":123,"msg":"error message"}
-------------------------------------------------------------------------------------------------------------
-Success: httpcode:200
-------------------------------------------------------------------------------------------------------------
-{
-	//object user_info
-	"info":{}
-}
-------------------------------------------------------------------------------------------------------------
-user_info: {
-	"user_id":"str",
-	"oauth2_user_name":"str",
-	"oauth2_department":"str",
 	//timestamp,uint:second
 	//uint32
 	"ctime":0,

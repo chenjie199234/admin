@@ -20,7 +20,6 @@ var _CGrpcPathUserLoginInfo = "/admin.user/login_info"
 var _CGrpcPathUserInviteProject = "/admin.user/invite_project"
 var _CGrpcPathUserKickProject = "/admin.user/kick_project"
 var _CGrpcPathUserSearchUsers = "/admin.user/search_users"
-var _CGrpcPathUserUpdateUser = "/admin.user/update_user"
 var _CGrpcPathUserCreateRole = "/admin.user/create_role"
 var _CGrpcPathUserSearchRoles = "/admin.user/search_roles"
 var _CGrpcPathUserUpdateRole = "/admin.user/update_role"
@@ -35,7 +34,6 @@ type UserCGrpcClient interface {
 	InviteProject(context.Context, *InviteProjectReq, ...grpc.CallOption) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq, ...grpc.CallOption) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq, ...grpc.CallOption) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq, ...grpc.CallOption) (*UpdateUserResp, error)
 	CreateRole(context.Context, *CreateRoleReq, ...grpc.CallOption) (*CreateRoleResp, error)
 	SearchRoles(context.Context, *SearchRolesReq, ...grpc.CallOption) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq, ...grpc.CallOption) (*UpdateRoleResp, error)
@@ -112,16 +110,6 @@ func (c *userCGrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq, 
 	}
 	return resp, nil
 }
-func (c *userCGrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq, opts ...grpc.CallOption) (*UpdateUserResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	resp := new(UpdateUserResp)
-	if e := c.cc.Invoke(ctx, _CGrpcPathUserUpdateUser, req, resp, opts...); e != nil {
-		return nil, e
-	}
-	return resp, nil
-}
 func (c *userCGrpcClient) CreateRole(ctx context.Context, req *CreateRoleReq, opts ...grpc.CallOption) (*CreateRoleResp, error) {
 	if req == nil {
 		return nil, cerror.ErrReq
@@ -190,7 +178,6 @@ type UserCGrpcServer interface {
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
 	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
 	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
@@ -334,30 +321,6 @@ func _User_SearchUsers_CGrpcHandler(handler func(context.Context, *SearchUsersRe
 		}
 		if resp == nil {
 			resp = new(SearchUsersResp)
-		}
-		ctx.Write(resp)
-	}
-}
-func _User_UpdateUser_CGrpcHandler(handler func(context.Context, *UpdateUserReq) (*UpdateUserResp, error)) cgrpc.OutsideHandler {
-	return func(ctx *cgrpc.Context) {
-		req := new(UpdateUserReq)
-		if e := ctx.DecodeReq(req); e != nil {
-			log.Error(ctx, "[/admin.user/update_user] decode failed")
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_user] validate failed", log.String("validate", errstr))
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(UpdateUserResp)
 		}
 		ctx.Write(resp)
 	}
@@ -515,7 +478,6 @@ func RegisterUserCGrpcServer(engine *cgrpc.CGrpcServer, svc UserCGrpcServer, all
 	engine.RegisterHandler("admin.user", "invite_project", _User_InviteProject_CGrpcHandler(svc.InviteProject))
 	engine.RegisterHandler("admin.user", "kick_project", _User_KickProject_CGrpcHandler(svc.KickProject))
 	engine.RegisterHandler("admin.user", "search_users", _User_SearchUsers_CGrpcHandler(svc.SearchUsers))
-	engine.RegisterHandler("admin.user", "update_user", _User_UpdateUser_CGrpcHandler(svc.UpdateUser))
 	engine.RegisterHandler("admin.user", "create_role", _User_CreateRole_CGrpcHandler(svc.CreateRole))
 	engine.RegisterHandler("admin.user", "search_roles", _User_SearchRoles_CGrpcHandler(svc.SearchRoles))
 	engine.RegisterHandler("admin.user", "update_role", _User_UpdateRole_CGrpcHandler(svc.UpdateRole))

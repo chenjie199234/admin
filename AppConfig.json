@@ -5,11 +5,6 @@
 			"CRPC":"200ms",
 			"GRPC":"200ms"
 		},
-		"/admin.user/user_login":{
-			"POST":"2s",
-			"CRPC":"2s",
-			"GRPC":"2s"
-		},
 		"/admin.app/watch_config":{
 			"POST":"0s",
 			"CRPC":"0s",

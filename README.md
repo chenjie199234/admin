@@ -115,9 +115,7 @@ collection: user
 {
     "_id":ObjectId("xxx"),//userid,if this is empty,means this is the super admin user
     "oauth2_user_id":"",
-    "oauth2_tel":"",
     "oauth2_user_name":"",
-    "oauth2_department":"",
     "oauth2_type":"",//DingTalk,WeCom,Lark
     "password":"",//only root user use this,normal user use oauth2
     "projects":{

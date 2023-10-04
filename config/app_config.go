@@ -21,11 +21,18 @@ type AppConfig struct {
 }
 type ServiceConfig struct {
 	//add your config here
+
+	//https://login.dingtalk.com/oauth2/auth?redirect_uri={REDIRECT_URI}&response_type=code&client_id={APPKEY}&scope=openid&state=DingTalk&prompt=consent
 	DingTalkOauth2    string `json:"dingtalk_oauth2"`
 	DingTalkAppKey    string `json:"dingtalk_app_key"`
 	DingTalkAppSecret string `json:"dingtalk_app_secret"`
-	WeComOauth2       string `json:"wecom_oauth2"`
-	LarkOauth2        string `json:"lark_oauth2"`
+
+	WeComOauth2 string `json:"wecom_oauth2"`
+
+	//https://open.feishu.cn/open-apis/authen/v1/authorize?redirect_uri={REDIRECT_URI}&app_id={APPID}&state=FeiShu&scope=contact:user.employee_id:readonly%20contact:user.phone:readonly
+	FeiShuOauth2    string `json:"feishu_oauth2"`
+	FeiShuAppID     string `json:"feishu_app_id"`
+	FeiShuAppSecret string `json:"feishu_app_secret"`
 }
 
 // every time update AppConfig will call this function
@@ -37,7 +44,7 @@ func validateAppConfig(ac *AppConfig) {
 	if ac.Service.WeComOauth2 != "" {
 		oauth2count++
 	}
-	if ac.Service.LarkOauth2 != "" {
+	if ac.Service.FeiShuAppSecret != "" {
 		oauth2count++
 	}
 	if oauth2count == 0 {
@@ -49,6 +56,11 @@ func validateAppConfig(ac *AppConfig) {
 	}
 	if ac.Service.DingTalkOauth2 != "" && (ac.Service.DingTalkAppKey == "" || ac.Service.DingTalkAppSecret == "") {
 		log.Error(nil, "[config.validateAppConfig] missing dingtalk_app_key or dingtalk_app_secret setting")
+		Close()
+		os.Exit(1)
+	}
+	if ac.Service.FeiShuOauth2 != "" && (ac.Service.FeiShuAppID == "" || ac.Service.FeiShuAppSecret == "") {
+		log.Error(nil, "[config.validateAppConfig] missing feishu_app_id or feishu_app_secret setting")
 		Close()
 		os.Exit(1)
 	}

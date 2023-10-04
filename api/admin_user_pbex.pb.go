@@ -8,7 +8,7 @@ package api
 
 // return empty means pass
 func (m *GetOauth2Req) Validate() (errstr string) {
-	if m.GetSrcType() != "DingTalk" && m.GetSrcType() != "WeCom" && m.GetSrcType() != "Lark" {
+	if m.GetSrcType() != "DingTalk" && m.GetSrcType() != "WeCom" && m.GetSrcType() != "FeiShu" {
 		return "field: src_type in object: get_oauth2_req check value str in failed"
 	}
 	return ""
@@ -16,7 +16,7 @@ func (m *GetOauth2Req) Validate() (errstr string) {
 
 // return empty means pass
 func (m *UserLoginReq) Validate() (errstr string) {
-	if m.GetSrcType() != "DingTalk" && m.GetSrcType() != "WeCom" && m.GetSrcType() != "Lark" {
+	if m.GetSrcType() != "DingTalk" && m.GetSrcType() != "WeCom" && m.GetSrcType() != "FeiShu" {
 		return "field: src_type in object: user_login_req check value str in failed"
 	}
 	if len(m.GetCode()) == 0 {
@@ -51,17 +51,6 @@ func (m *KickProjectReq) Validate() (errstr string) {
 func (m *SearchUsersReq) Validate() (errstr string) {
 	if len(m.GetProjectId()) != 2 {
 		return "field: project_id in object: search_users_req check len eq failed"
-	}
-	return ""
-}
-
-// return empty means pass
-func (m *UpdateUserReq) Validate() (errstr string) {
-	if len(m.GetProjectId()) != 2 {
-		return "field: project_id in object: update_user_req check len eq failed"
-	}
-	if len(m.GetUserId()) == 0 {
-		return "field: user_id in object: update_user_req check value str len not eq failed"
 	}
 	return ""
 }

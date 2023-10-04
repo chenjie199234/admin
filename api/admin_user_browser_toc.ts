@@ -787,66 +787,9 @@ function JsonToUpdateRoleResp(_jsonobj: { [k:string]:any }): UpdateRoleResp{
 	}
 	return obj
 }
-export interface UpdateUserReq{
-	//Warning!!!Element type is uint32,be careful of sign(+) and overflow
-	project_id: Array<number>|null|undefined;
-	user_id: string;
-}
-function UpdateUserReqToJson(msg: UpdateUserReq): string{
-	let s: string="{"
-	//project_id
-	if(msg.project_id==null||msg.project_id==undefined){
-		s+='"project_id":null,'
-	}else if(msg.project_id.length==0){
-		s+='"project_id":[],'
-	}else{
-		s+='"project_id":['
-		for(let element of msg.project_id){
-			if(element==null||element==undefined||!Number.isInteger(element)){
-				throw 'element in UpdateUserReq.project_id must be integer'
-			}
-			if(element>4294967295||element<0){
-				throw 'element in UpdateUserReq.project_id overflow'
-			}
-			s+=element+','
-		}
-		s=s.substr(0,s.length-1)+'],'
-	}
-	//user_id
-	if(msg.user_id==null||msg.user_id==undefined){
-		throw 'UpdateUserReq.user_id must be string'
-	}else{
-		//transfer the json escape
-		let vv=JSON.stringify(msg.user_id)
-		s+='"user_id":'+vv+','
-	}
-	if(s.length==1){
-		s+="}"
-	}else{
-		s=s.substr(0,s.length-1)+'}'
-	}
-	return s
-}
-export interface UpdateUserResp{
-	info: UserInfo|null|undefined;
-}
-function JsonToUpdateUserResp(jsonobj: { [k:string]:any }): UpdateUserResp{
-	let obj: UpdateUserResp={
-		info:null,
-	}
-	//info
-	if(jsonobj['info']!=null&&jsonobj['info']!=undefined){
-		if(typeof jsonobj['info']!='object'){
-			throw 'UpdateUserResp.info must be UserInfo'
-		}
-		obj['info']=JsonToUserInfo(jsonobj['info'])
-	}
-	return obj
-}
 export interface UserInfo{
 	user_id: string;
 	oauth2_user_name: string;
-	oauth2_department: string;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	ctime: number;//timestamp,uint:second
 	project_roles: Array<ProjectRoles|null|undefined>|null|undefined;
@@ -855,7 +798,6 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 	let obj: UserInfo={
 		user_id:'',
 		oauth2_user_name:'',
-		oauth2_department:'',
 		ctime:0,
 		project_roles:null,
 	}
@@ -872,13 +814,6 @@ function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{
 			throw 'UserInfo.oauth2_user_name must be string'
 		}
 		obj['oauth2_user_name']=jsonobj['oauth2_user_name']
-	}
-	//oauth2_department
-	if(jsonobj['oauth2_department']!=null&&jsonobj['oauth2_department']!=undefined){
-		if(typeof jsonobj['oauth2_department']!='string'){
-			throw 'UserInfo.oauth2_department must be string'
-		}
-		obj['oauth2_department']=jsonobj['oauth2_department']
 	}
 	//ctime
 	if(jsonobj['ctime']!=null&&jsonobj['ctime']!=undefined){
@@ -957,7 +892,6 @@ const _WebPathUserLoginInfo: string ="/admin.user/login_info";
 const _WebPathUserInviteProject: string ="/admin.user/invite_project";
 const _WebPathUserKickProject: string ="/admin.user/kick_project";
 const _WebPathUserSearchUsers: string ="/admin.user/search_users";
-const _WebPathUserUpdateUser: string ="/admin.user/update_user";
 const _WebPathUserCreateRole: string ="/admin.user/create_role";
 const _WebPathUserSearchRoles: string ="/admin.user/search_roles";
 const _WebPathUserUpdateRole: string ="/admin.user/update_role";
@@ -1298,65 +1232,6 @@ export class UserBrowserClientToC {
 			let obj:SearchUsersResp
 			try{
 				obj=JsonToSearchUsersResp(response.data)
-			}catch(e){
-				let err:Error={code:-1,msg:'response body decode failed'}
-				errorf(err)
-				return
-			}
-			try{
-			successf(obj)
-			}catch(e){
-				let err:Error={code:-1,msg:'success callback run failed'}
-				errorf(err)
-			}
-		})
-		.catch(function(error){
-			if(error.response==undefined){
-				errorf({code:-2,msg:error.message})
-				return
-			}
-			let respdata=error.response.data
-			let err:Error={code:-1,msg:''}
-			if(respdata.code==undefined||typeof respdata.code!='number'||!Number.isInteger(respdata.code)||respdata.msg==undefined||typeof respdata.msg!='string'){
-				err.msg=respdata
-			}else{
-				err.code=respdata.code
-				err.msg=respdata.msg
-			}
-			errorf(err)
-		})
-	}
-	//timeout must be integer,timeout's unit is millisecond
-	//don't set Content-Type in header
-	update_user(header: { [k: string]: string },req: UpdateUserReq,timeout: number,errorf: (arg: Error)=>void,successf: (arg: UpdateUserResp)=>void){
-		if(!Number.isInteger(timeout)){
-			errorf({code:-2,msg:'timeout must be integer'})
-			return
-		}
-		if(header==null||header==undefined){
-			header={}
-		}
-		header["Content-Type"] = "application/json"
-		let body: string=''
-		try{
-			body=UpdateUserReqToJson(req)
-		}catch(e){
-			errorf({code:-2,msg:''+e})
-			return
-		}
-		let config={
-			url:_WebPathUserUpdateUser,
-			method: "post",
-			baseURL: this.host,
-			headers: header,
-			data: body,
-			timeout: timeout,
-		}
-		Axios.request(config)
-		.then(function(response){
-			let obj:UpdateUserResp
-			try{
-				obj=JsonToUpdateUserResp(response.data)
 			}catch(e){
 				let err:Error={code:-1,msg:'response body decode failed'}
 				errorf(err)

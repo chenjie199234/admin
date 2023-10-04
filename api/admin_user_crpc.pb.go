@@ -21,7 +21,6 @@ var _CrpcPathUserLoginInfo = "/admin.user/login_info"
 var _CrpcPathUserInviteProject = "/admin.user/invite_project"
 var _CrpcPathUserKickProject = "/admin.user/kick_project"
 var _CrpcPathUserSearchUsers = "/admin.user/search_users"
-var _CrpcPathUserUpdateUser = "/admin.user/update_user"
 var _CrpcPathUserCreateRole = "/admin.user/create_role"
 var _CrpcPathUserSearchRoles = "/admin.user/search_roles"
 var _CrpcPathUserUpdateRole = "/admin.user/update_role"
@@ -36,7 +35,6 @@ type UserCrpcClient interface {
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
 	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
 	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
@@ -173,28 +171,6 @@ func (c *userCrpcClient) SearchUsers(ctx context.Context, req *SearchUsersReq) (
 		return nil, e
 	}
 	resp := new(SearchUsersResp)
-	if len(respd) == 0 {
-		return resp, nil
-	}
-	if len(respd) >= 2 && respd[0] == '{' && respd[len(respd)-1] == '}' {
-		if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(respd, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := proto.Unmarshal(respd, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *userCrpcClient) UpdateUser(ctx context.Context, req *UpdateUserReq) (*UpdateUserResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	reqd, _ := proto.Marshal(req)
-	respd, e := c.cc.Call(ctx, _CrpcPathUserUpdateUser, reqd)
-	if e != nil {
-		return nil, e
-	}
-	resp := new(UpdateUserResp)
 	if len(respd) == 0 {
 		return resp, nil
 	}
@@ -347,7 +323,6 @@ type UserCrpcServer interface {
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
 	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
 	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
@@ -629,54 +604,6 @@ func _User_SearchUsers_CrpcHandler(handler func(context.Context, *SearchUsersReq
 		}
 		if resp == nil {
 			resp = new(SearchUsersResp)
-		}
-		if preferJSON {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
-			ctx.Write(respd)
-		} else {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write(respd)
-		}
-	}
-}
-func _User_UpdateUser_CrpcHandler(handler func(context.Context, *UpdateUserReq) (*UpdateUserResp, error)) crpc.OutsideHandler {
-	return func(ctx *crpc.Context) {
-		var preferJSON bool
-		req := new(UpdateUserReq)
-		reqbody := ctx.GetBody()
-		if len(reqbody) >= 2 && reqbody[0] == '{' && reqbody[len(reqbody)-1] == '}' {
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				req.Reset()
-				if e := proto.Unmarshal(reqbody, req); e != nil {
-					log.Error(ctx, "[/admin.user/update_user] json and proto format decode both failed")
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			} else {
-				preferJSON = true
-			}
-		} else if e := proto.Unmarshal(reqbody, req); e != nil {
-			req.Reset()
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(reqbody, req); e != nil {
-				log.Error(ctx, "[/admin.user/update_user] json and proto format decode both failed")
-				ctx.Abort(cerror.ErrReq)
-				return
-			} else {
-				preferJSON = true
-			}
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_user] validate failed", log.String("validate", errstr))
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		if e != nil {
-			ctx.Abort(e)
-			return
-		}
-		if resp == nil {
-			resp = new(UpdateUserResp)
 		}
 		if preferJSON {
 			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
@@ -984,7 +911,6 @@ func RegisterUserCrpcServer(engine *crpc.CrpcServer, svc UserCrpcServer, allmids
 	engine.RegisterHandler("admin.user", "invite_project", _User_InviteProject_CrpcHandler(svc.InviteProject))
 	engine.RegisterHandler("admin.user", "kick_project", _User_KickProject_CrpcHandler(svc.KickProject))
 	engine.RegisterHandler("admin.user", "search_users", _User_SearchUsers_CrpcHandler(svc.SearchUsers))
-	engine.RegisterHandler("admin.user", "update_user", _User_UpdateUser_CrpcHandler(svc.UpdateUser))
 	engine.RegisterHandler("admin.user", "create_role", _User_CreateRole_CrpcHandler(svc.CreateRole))
 	engine.RegisterHandler("admin.user", "search_roles", _User_SearchRoles_CrpcHandler(svc.SearchRoles))
 	engine.RegisterHandler("admin.user", "update_role", _User_UpdateRole_CrpcHandler(svc.UpdateRole))

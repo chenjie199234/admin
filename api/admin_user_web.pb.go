@@ -25,7 +25,6 @@ var _WebPathUserLoginInfo = "/admin.user/login_info"
 var _WebPathUserInviteProject = "/admin.user/invite_project"
 var _WebPathUserKickProject = "/admin.user/kick_project"
 var _WebPathUserSearchUsers = "/admin.user/search_users"
-var _WebPathUserUpdateUser = "/admin.user/update_user"
 var _WebPathUserCreateRole = "/admin.user/create_role"
 var _WebPathUserSearchRoles = "/admin.user/search_roles"
 var _WebPathUserUpdateRole = "/admin.user/update_role"
@@ -40,7 +39,6 @@ type UserWebClient interface {
 	InviteProject(context.Context, *InviteProjectReq, http.Header) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq, http.Header) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq, http.Header) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq, http.Header) (*UpdateUserResp, error)
 	CreateRole(context.Context, *CreateRoleReq, http.Header) (*CreateRoleResp, error)
 	SearchRoles(context.Context, *SearchRolesReq, http.Header) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq, http.Header) (*UpdateRoleResp, error)
@@ -237,38 +235,6 @@ func (c *userWebClient) SearchUsers(ctx context.Context, req *SearchUsersReq, he
 		return nil, cerror.ConvertStdError(e)
 	}
 	resp := new(SearchUsersResp)
-	if len(data) == 0 {
-		return resp, nil
-	}
-	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
-		if e := proto.Unmarshal(data, resp); e != nil {
-			return nil, cerror.ErrResp
-		}
-	} else if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, resp); e != nil {
-		return nil, cerror.ErrResp
-	}
-	return resp, nil
-}
-func (c *userWebClient) UpdateUser(ctx context.Context, req *UpdateUserReq, header http.Header) (*UpdateUserResp, error) {
-	if req == nil {
-		return nil, cerror.ErrReq
-	}
-	if header == nil {
-		header = make(http.Header)
-	}
-	header.Set("Content-Type", "application/x-protobuf")
-	header.Set("Accept", "application/x-protobuf")
-	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathUserUpdateUser, "", header, metadata.GetMetadata(ctx), reqd)
-	if e != nil {
-		return nil, e
-	}
-	data, e := io.ReadAll(r.Body)
-	r.Body.Close()
-	if e != nil {
-		return nil, cerror.ConvertStdError(e)
-	}
-	resp := new(UpdateUserResp)
 	if len(data) == 0 {
 		return resp, nil
 	}
@@ -481,7 +447,6 @@ type UserWebServer interface {
 	InviteProject(context.Context, *InviteProjectReq) (*InviteProjectResp, error)
 	KickProject(context.Context, *KickProjectReq) (*KickProjectResp, error)
 	SearchUsers(context.Context, *SearchUsersReq) (*SearchUsersResp, error)
-	UpdateUser(context.Context, *UpdateUserReq) (*UpdateUserResp, error)
 	CreateRole(context.Context, *CreateRoleReq) (*CreateRoleResp, error)
 	SearchRoles(context.Context, *SearchRolesReq) (*SearchRolesResp, error)
 	UpdateRole(context.Context, *UpdateRoleReq) (*UpdateRoleResp, error)
@@ -829,65 +794,6 @@ func _User_SearchUsers_WebHandler(handler func(context.Context, *SearchUsersReq)
 		}
 		if resp == nil {
 			resp = new(SearchUsersResp)
-		}
-		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
-			respd, _ := proto.Marshal(resp)
-			ctx.Write("application/x-protobuf", respd)
-		} else {
-			respd, _ := protojson.MarshalOptions{AllowPartial: true, UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(resp)
-			ctx.Write("application/json", respd)
-		}
-	}
-}
-func _User_UpdateUser_WebHandler(handler func(context.Context, *UpdateUserReq) (*UpdateUserResp, error)) web.OutsideHandler {
-	return func(ctx *web.Context) {
-		req := new(UpdateUserReq)
-		if strings.HasPrefix(ctx.GetContentType(), "application/json") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				log.Error(ctx, "[/admin.user/update_user] get body failed", log.CError(e))
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.user/update_user] unmarshal json body failed", log.CError(e))
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else if strings.HasPrefix(ctx.GetContentType(), "application/x-protobuf") {
-			data, e := ctx.GetBody()
-			if e != nil {
-				log.Error(ctx, "[/admin.user/update_user] get body failed", log.CError(e))
-				ctx.Abort(e)
-				return
-			}
-			if len(data) > 0 {
-				if e := proto.Unmarshal(data, req); e != nil {
-					log.Error(ctx, "[/admin.user/update_user] unmarshal proto body failed", log.CError(e))
-					ctx.Abort(cerror.ErrReq)
-					return
-				}
-			}
-		} else {
-			log.Error(ctx, "[/admin.user/update_user] Content-Type unknown,must be application/json or application/x-protobuf")
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		if errstr := req.Validate(); errstr != "" {
-			log.Error(ctx, "[/admin.user/update_user] validate failed", log.String("validate", errstr))
-			ctx.Abort(cerror.ErrReq)
-			return
-		}
-		resp, e := handler(ctx, req)
-		ee := cerror.ConvertStdError(e)
-		if ee != nil {
-			ctx.Abort(ee)
-			return
-		}
-		if resp == nil {
-			resp = new(UpdateUserResp)
 		}
 		if strings.HasPrefix(ctx.GetAcceptType(), "application/x-protobuf") {
 			respd, _ := proto.Marshal(resp)
@@ -1308,19 +1214,6 @@ func RegisterUserWebServer(router *web.Router, svc UserWebServer, allmids map[st
 		}
 		mids = append(mids, _User_SearchUsers_WebHandler(svc.SearchUsers))
 		router.Post(_WebPathUserSearchUsers, mids...)
-	}
-	{
-		requiredMids := []string{"token"}
-		mids := make([]web.OutsideHandler, 0, 2)
-		for _, v := range requiredMids {
-			if mid, ok := allmids[v]; ok {
-				mids = append(mids, mid)
-			} else {
-				panic("missing midware:" + v)
-			}
-		}
-		mids = append(mids, _User_UpdateUser_WebHandler(svc.UpdateUser))
-		router.Post(_WebPathUserUpdateUser, mids...)
 	}
 	{
 		requiredMids := []string{"token"}

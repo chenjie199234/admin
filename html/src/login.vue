@@ -36,10 +36,9 @@ onMounted(()=>{
 		let state = querys.get("state")
 		switch(state){
 		case "DingTalk":
-			let code=querys.get("authCode")
-			if(code){
+			if(querys.get("authCode")){
 				oauth2.value=state
-				oauth2code.value=code
+				oauth2code.value=querys.get("authCode")
 				do_login_user()
 			}else{
 				state.set_alert("error",-2,"missng authCode in redirect url")
@@ -47,7 +46,14 @@ onMounted(()=>{
 			break
 		case "WeCom":
 			break
-		case "Lark":
+		case "FeiShu":
+			if(querys.get("code")){
+				oauth2.value=state
+				oauth2code.value=querys.get("code")
+				do_login_user()
+			}else{
+				state.set_alert("error",-2,"missing code in redirect url")
+			}
 			break
 		default:
 			state.set_alert("error",-2,"unknown oauth2 state in redirect url")
@@ -76,7 +82,7 @@ function do_login_root(){
 
 const oauth2 = ref<string>("")
 const oauth2code = ref<string>("")
-const oauth2s = ref<string[]>(["DingTalk","WeCom","Lark"])
+const oauth2s = ref<string[]>(["DingTalk","WeCom","FeiShu"])
 function doauth(){
 	if(!state.set_load()){
 		return
@@ -141,9 +147,9 @@ function do_login_user(){
 						</va-hover>
 					</template>
 				</va-select>
-				<va-button style="width:90px;margin-left:10px" :disabled="oauth2==''" @click="doauth">Login</va-button>
+				<va-button style="width:90px;margin-left:10px" :disabled="oauth2==''" @click="doauth" gradient>Login</va-button>
 			</div>
-			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=true;oauth2=''">Switch To Root User Login</va-button>
+			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=true;oauth2=''" gradient>Switch To Root User Login</va-button>
 		</div>
 		<div v-if="state.user.root">
 			<va-card style="text-align:center" color="primary" gradient>
@@ -155,9 +161,9 @@ function do_login_user(){
 						<va-icon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
 					</template>
 				</va-input>
-				<va-button style="width:90px;margin-left:10px" :disabled="!login_root_able()" @click="do_login_root">Login</va-button>
+				<va-button style="width:90px;margin-left:10px" :disabled="!login_root_able()" @click="do_login_root" gradient>Login</va-button>
 			</div>
-			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=false;oauth2=''">Switch To Normal User Login</va-button>
+			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=false;oauth2=''" gradient>Switch To Normal User Login</va-button>
 		</div>
 	</div>
 </template>

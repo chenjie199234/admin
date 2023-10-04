@@ -44,6 +44,9 @@ export function set_alert(title: string,code: number,msg: string){
 	if(code==10004&&msg=="token wrong"){
 		logout()
 	}
+	if(code==20104&&msg=="user not exist"){
+		logout()
+	}
 }
 export function clear_alert(){
 	alert.ing = false

@@ -104,11 +104,11 @@ func Init(notice func(c *AppConfig)) {
 					continue
 				}
 				validateAppConfig(c)
-				if notice != nil {
-					notice(c)
-				}
-				log.Info(nil, "[config.Init] update app config success", log.Any("config", c))
 				AC = c
+				log.Info(nil, "[config.Init] update app config success", log.Any("config", AC))
+				if notice != nil {
+					notice(AC)
+				}
 				appversion = appkey.CurVersion
 				select {
 				case appch <- nil:

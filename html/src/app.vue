@@ -1224,7 +1224,7 @@ function is_json_obj(str :string):boolean{
 					<div style="flex:1;display:flex;flex-direction:column;overflow-y:auto">
 						<va-textarea
 							:modelValue="JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)"
-							style="flex:1;overflow-y:auto"
+							style="flex:1;overflow-y:auto;"
 							readonly
 							autosize
 							:resize='false'/>

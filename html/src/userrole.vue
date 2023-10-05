@@ -692,8 +692,8 @@ function parsetime(timestamp :number):string{
 			</div>
 		</template>
 	</va-modal>
-	<div style="flex:1;display:flex;flex-direction:column;align-items:center;margin:1px;overflow-y:auto">
-		<div style="display:flex;margin:1px">
+	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
+		<div style="display:flex;margin:1px;align-self:center">
 			<va-select
 				v-model="target"
 				:options="targets"
@@ -767,7 +767,7 @@ function parsetime(timestamp :number):string{
 			<va-button v-if="target=='Role'" style="margin:0 1px" @click="optype='search_role';op()" gradient>Search</va-button>
 			<va-button v-if="target=='Role'" style="margin-left:1px" @click="optype='create_role';ing=true" gradient>Create</va-button>
 		</div>
-		<div v-if="target=='User'" style="width:100%;flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
+		<div v-if="target=='User'" style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
 			<template v-for="user of users">
 				<div
 					v-if="!cur_user||cur_user==user"
@@ -897,7 +897,7 @@ function parsetime(timestamp :number):string{
 				</va-split>
 			</template>
 		</div>
-		<div v-if="target=='Role'" style="width:100%;flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
+		<div v-if="target=='Role'" style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
 			<template v-for="role of roles">
 				<div
 					v-if="!Boolean(cur_role)||cur_role==role"

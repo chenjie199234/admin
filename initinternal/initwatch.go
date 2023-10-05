@@ -405,6 +405,8 @@ func (s *InternalSdk) watch() {
 							olddi := exist.di
 							exist.di, _ = createdi(summary)
 							go olddi.Stop()
+						} else {
+							exist.di, _ = createdi(summary)
 						}
 					}
 					exist.summary = summary
@@ -835,10 +837,12 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 		app.Unlock()
 		return nil, ecode.ErrAppNotExist
 	}
-	pathinfo, ok := app.summary.Paths[path]
-	if !ok {
-		app.Unlock()
-		return nil, ecode.ErrProxyPathNotExist
+	var pathinfo *model.ProxyPath
+	if pcheck != nil {
+		if pathinfo, ok = app.summary.Paths[path]; !ok {
+			app.Unlock()
+			return nil, ecode.ErrProxyPathNotExist
+		}
 	}
 	if app.client == nil {
 		if app.di == nil {

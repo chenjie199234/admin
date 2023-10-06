@@ -1074,8 +1074,8 @@ function is_json_obj(str :string):boolean{
 			</div>
 		</template>
 	</va-modal>
-	<div style="flex:1;display:flex;flex-direction:column;align-items:center;margin:1px;overflow-y:auto">
-		<div v-if="!get_app_status" style="display:flex;margin:1px 0">
+	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
+		<div v-if="!get_app_status" style="align-self:center;display:flex;margin:1px 0">
 			<va-select
 				v-model="curg"
 				:options="Object.keys(all)"
@@ -1160,7 +1160,7 @@ function is_json_obj(str :string):boolean{
 			<va-button style="margin:0 5px" :disabled="curg==''||cura==''" @click="get_app" gradient>Search</va-button>
 			<va-button v-if="state.page.node!.admin" style="margin:0 5px" @click="reset_new_app();optype='add_app';ing=true" gradient>Add</va-button>
 		</div>
-		<div v-else style="display:flex;align-items:center;margin:1px 0">
+		<div v-else style="align-self:center;display:flex;align-items:center;margin:1px 0">
 			<va-input readonly v-model="curg" style="width:150px;margin-right:1px"/>
 			<va-input readonly v-model="cura" style="width:150px;margin-left:1px"/>
 			<va-button v-if="mustadmin()" style="margin:0 5px" @click="optype='update_secret';ing=true" gradient>UpdateSecret</va-button>
@@ -1171,7 +1171,7 @@ function is_json_obj(str :string):boolean{
 		<!-- configs -->
 		<div
 			v-if="get_app_status&&(config_proxy_instance=='config'||config_proxy_instance=='')"
-			style="width:100%;display:flex;align-items:center;margin:1px 0;cursor:pointer"
+			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_keys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
 				if(config_proxy_instance==''){
@@ -1199,7 +1199,7 @@ function is_json_obj(str :string):boolean{
 			</va-button>
 		</div>
 		<!-- keys -->
-		<div v-if="get_app_status&&config_proxy_instance=='config'&&keys.size>0" style="width:100%;overflow-y:auto;flex:1;display:flex;flex-direction:column">
+		<div v-if="get_app_status&&config_proxy_instance=='config'&&keys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
 			<template v-for="key of keys.keys()">
 				<div
 					v-if="cur_key==''||cur_key==key"
@@ -1351,13 +1351,13 @@ function is_json_obj(str :string):boolean{
 				</div>
 			</template>
 		</div>
-		<div style="width:100%" v-if="get_app_status&&config_proxy_instance=='config'&&keys.size==0">
+		<div v-if="get_app_status&&config_proxy_instance=='config'&&keys.size==0">
 			<p style="margin:1px 10px;padding:12px;background-color:var(--va-background-element);color:var(--va-primary)">No Config Keys</p>
 		</div>
 		<!-- proxys -->
 		<div
 			v-if="get_app_status&&(config_proxy_instance=='proxy'||config_proxy_instance=='')" 
-			style="width:100%;display:flex;align-items:center;margin:1px 0;cursor:pointer"
+			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_proxys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
 				if(config_proxy_instance==''){
@@ -1385,7 +1385,7 @@ function is_json_obj(str :string):boolean{
 			</va-button>
 		</div>
 		<!-- paths -->
-		<div v-if="get_app_status&&config_proxy_instance=='proxy'&&proxys.size>0" style="width:100%;overflow-y:auto;flex:1;display:flex;flex-direction:column">
+		<div v-if="get_app_status&&config_proxy_instance=='proxy'&&proxys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
 			<template v-for="proxy of proxys.keys()">
 				<div
 					v-if="cur_proxy==''||cur_proxy==proxy"
@@ -1529,7 +1529,7 @@ function is_json_obj(str :string):boolean{
 		<!-- instances -->
 		<div
 			v-if="get_app_status&&(config_proxy_instance=='instance'||config_proxy_instance=='')"
-			style="width:100%;display:flex;align-items:center;margin:1px 0;cursor:pointer"
+			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_instances_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
 				if(config_proxy_instance==''){
@@ -1557,7 +1557,7 @@ function is_json_obj(str :string):boolean{
 				refresh
 			</va-button>
 		</div>
-		<div v-if="get_app_status&&config_proxy_instance=='instance'" style="width:100%;overflow-y:auto;flex:1;display:flex;flex-wrap:wrap">
+		<div v-if="get_app_status&&config_proxy_instance=='instance'" style="overflow-y:auto;flex:1;display:flex;flex-wrap:wrap">
 			<div v-if="instances.size==0"
 				style="width:300px;height:150px;border:1px solid var(--va-primary);border-radius:5px;margin:5px;display:flex;justify-content:center;align-items:center">
 				No Instances

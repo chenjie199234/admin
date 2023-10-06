@@ -793,7 +793,7 @@ function parsetime(timestamp :number):string{
 					<span style="padding:12px;color:green">Create Time: {{parsetime(user.ctime)}}</span>
 					<va-button
 						v-if="state.page.node!.admin&&invited(user)"
-						style="width:60px;height:30px;margin:0 10px"
+						style="min-width:60px;height:30px;margin:0 10px"
 						size="small"
 						gradient
 						@mouseover.stop=""
@@ -803,7 +803,7 @@ function parsetime(timestamp :number):string{
 					</va-button>
 					<va-button
 						v-if="state.page.node!.admin"
-						style="width:60px;height:30px;margin:0 10px"
+						style="min-width:60px;height:30px;margin:0 10px"
 						size="small"
 						gradient
 						@mouseover.stop=""
@@ -828,8 +828,8 @@ function parsetime(timestamp :number):string{
 					:model-value='0'
 					:limits="['250px',50]">
 					<template #start>
-						<div style="height:100%;display:flex;flex-direction:column;align-items:center;overflow-y:auto">
-							<va-hover stateful style="width:100%;margin:2px 0">
+						<div style="height:99%;display:flex;flex-direction:column;overflow-y:auto">
+							<va-hover stateful style="flex:1;margin:2px 0">
 								<template #default="{hover}">
 									<div
 										style="padding:12px;cursor:pointer"
@@ -839,7 +839,7 @@ function parsetime(timestamp :number):string{
 									</div>
 								</template>
 							</va-hover>
-							<va-hover v-for="rolename of user.project_roles![0]!.roles!" stateful style="width:100%;margin:2px 0">
+							<va-hover v-for="rolename of user.project_roles![0]!.roles!" stateful style="flex:1;margin:2px 0">
 								<template #default="{hover}">
 									<div
 										style="display:flex;align-items:center;cursor:pointer"
@@ -847,13 +847,16 @@ function parsetime(timestamp :number):string{
 										@click="cur_role={project_id:state.project.info!.project_id,role_name:rolename,comment:'',ctime:0};
 											optype='get_role_permission';
 											op()">
-										<div style="flex:1;padding:12px;white-space:nowrap;overflow-x:scroll">Role Permissions: {{rolename}}</div>
+										<div style="flex:1;padding:12px;white-space:nowrap">Role Permissions: {{rolename}}</div>
 										<va-button
 											v-if="state.page.node!.admin"
 											size="small"
 											style="margin:0 2px"
+											gradient
+											@mouseenter.stop=""
 											@mouseover.stop=""
 											@mouseout.stop=""
+											@mouseleave.stop=""
 											@click.stop="update_user_delete_role_rolename=rolename;optype='del_user_role';ing=true">
 											X
 										</va-button>
@@ -864,7 +867,7 @@ function parsetime(timestamp :number):string{
 					</template>
 					<template #end>
 						<div v-if="node_from==''&&user_node"
-							style="height:100%;margin:2px 0;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
+							style="height:99%;margin:2px 0;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
 							<nodetree
 								:pnode="null"
 								:node="user_node"
@@ -880,17 +883,17 @@ function parsetime(timestamp :number):string{
 								}"/>
 						</div>
 						<div v-else-if="node_from==''"
-							style="height:100%;margin:2px 0;display:flex;justify-content:center;align-items:center;background-color:var(--va-background-element)">
+							style="height:99%;margin:2px 0;display:flex;justify-content:center;align-items:center;background-color:var(--va-background-element)">
 							<b>No permission</b>
 						</div>
 						<div v-if="node_from!=null&&node_from!=''&&role_node&&role_node.children&&role_node.children.length>0"
-							style="height:100%;margin:2px 0;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
+							style="height:99%;margin:2px 0;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
 							<template v-for="child of role_node.children">
 								<nodetree v-if="child" :pnode="role_node" :node="child" :deep="0" disabled/>
 							</template>
 						</div>
 						<div v-else-if="node_from!=null&&node_from!=''"
-							style="height:100%;margin:2px 0;display:flex;justify-content:center;align-items:center;background-color:var(--va-background-element)">
+							style="height:99%;margin:2px 0;display:flex;justify-content:center;align-items:center;background-color:var(--va-background-element)">
 							<b>No permission</b>
 						</div>
 					</template>

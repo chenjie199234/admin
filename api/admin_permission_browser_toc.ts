@@ -801,7 +801,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
@@ -860,7 +860,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
@@ -919,7 +919,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
@@ -978,7 +978,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
@@ -1037,7 +1037,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
@@ -1096,7 +1096,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
@@ -1155,7 +1155,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
@@ -1214,7 +1214,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
@@ -1273,7 +1273,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)
@@ -1332,7 +1332,7 @@ export class PermissionBrowserClientToC {
 				return
 			}
 			try{
-			successf(obj)
+				successf(obj)
 			}catch(e){
 				let err:Error={code:-1,msg:'success callback run failed'}
 				errorf(err)

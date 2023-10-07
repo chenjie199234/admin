@@ -956,7 +956,11 @@ function parsetime(timestamp :number):string{
 						Del
 					</va-button>
 				</div>
-				<va-textarea v-if="cur_role==role" style="margin:1px 10px" readonly autosize :resize="false" v-model="role.comment"/>
+				<textarea
+					v-if="cur_role==role"
+					style="border:1px solid var(--va-background-element);border-radius:5px;margin:1px 10px;resize:none"
+					readonly
+					v-model="role.comment" />
 				<div v-if="cur_role==role&&role_node&&role_node.children&&role_node.children.length>0"
 					style="flex:1;margin:2px 10px;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
 					<template v-for="child of role_node.children">

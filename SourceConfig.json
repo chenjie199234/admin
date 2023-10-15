@@ -28,7 +28,7 @@
 		"heart_probe":"10s"
 	},
 	"web_server":{
-		"wait_close_mode":0,
+		"wait_close_mode":1,
 		"wait_close_time":"1s",
 		"connect_timeout":"500ms",
 		"global_timeout":"500ms",
@@ -53,12 +53,12 @@
 		"admin_mongo":{
 			"tls":false,
 			"specific_ca_paths":["./example.pem"],
-			"srv_name":"",
+			"mongodb_srv":false,
 			"addrs":["127.0.0.1:27017"],
 			"user_name":"",
 			"password":"",
 			"auth_db":"",
-			"replica_set":"rs",
+			"replica_set":"",
 			"max_open":256,
 			"max_conn_idletime":"5m",
 			"io_timeout":"500ms",
@@ -69,9 +69,16 @@
 		"example_mysql":{
 			"tls":false,
 			"specific_ca_paths":["./example.pem"],
-			"addr":"127.0.0.1:3306",
-			"user_name":"",
-			"password":"",
+			"master":{
+				"addr":"127.0.0.1:3306",
+				"user_name":"root",
+				"password":""
+			},
+			"slaves":{
+				"addrs":[],
+				"user_name":"",
+				"password":""
+			},
 			"max_open":256,
 			"max_conn_idletime":"5m",
 			"io_timeout":"500ms",
@@ -85,9 +92,12 @@
 		"example_redis":{
 			"tls":false,
 			"specific_ca_paths":["./example.pem"],
+			"redis_mode":"direct",
 			"addrs":["127.0.0.1:6379"],
 			"user_name":"",
 			"password":"",
+			"sentinel_master_name":"",
+			"read_write_split":true,
 			"max_open":256,
 			"max_conn_idletime":"5m",
 			"io_timeout":"500ms",

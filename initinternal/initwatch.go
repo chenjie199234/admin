@@ -16,6 +16,7 @@ import (
 	"github.com/chenjie199234/Corelib/crpc"
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/log"
+	"github.com/chenjie199234/Corelib/log/trace"
 	"github.com/chenjie199234/Corelib/util/common"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -35,6 +36,7 @@ type InternalSdk struct {
 	appsNameIndex map[string]*app //key: projectname-group.app
 	appsIDIndex   map[string]*app //key: ObjectID.Hex()
 	closing       bool
+	stopwatch     context.CancelFunc
 }
 type app struct {
 	sync.RWMutex
@@ -68,6 +70,9 @@ func (s *InternalSdk) Stop() {
 	s.lker.Lock()
 	defer s.lker.Unlock()
 	s.closing = true
+	if s.stopwatch != nil {
+		s.stopwatch()
+	}
 	for _, v := range s.apps {
 		app := v
 		app.Lock()
@@ -243,21 +248,26 @@ func (s *InternalSdk) mongoGetAllApp() error {
 	return nil
 }
 func (s *InternalSdk) watch() {
-	watchfilter := mongo.Pipeline{bson.D{primitive.E{Key: "$match", Value: bson.M{"ns.db": "app", "ns.coll": "config"}}}}
 	var stream *mongo.ChangeStream
+	ctx, span := trace.NewSpan(context.Background(), "InitWatch", trace.Client, nil)
+	defer span.Finish(nil)
+	ctx, s.stopwatch = context.WithCancel(ctx)
 	for {
 		for stream == nil {
+			if s.closing {
+				return
+			}
 			//connect
 			var e error
 			opts := options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(s.start)
-			if stream, e = s.db.Watch(context.Background(), watchfilter, opts); e != nil {
+			if stream, e = s.db.Database("app").Collection("config").Watch(ctx, mongo.Pipeline{}, opts); e != nil {
 				log.Error(nil, "[InitWatch] get stream failed", log.CError(e))
 				stream = nil
 				time.Sleep(time.Millisecond * 100)
 				continue
 			}
 		}
-		for stream.Next(context.Background()) {
+		for stream.Next(ctx) {
 			s.start.T, s.start.I = stream.Current.Lookup("clusterTime").Timestamp()
 			s.start.I++
 			switch stream.Current.Lookup("operationType").StringValue() {
@@ -458,7 +468,7 @@ func (s *InternalSdk) watch() {
 		if stream.Err() != nil {
 			log.Error(nil, "[InitWatch] stream disconnected", log.CError(stream.Err()))
 		}
-		stream.Close(context.Background())
+		stream.Close(nil)
 		stream = nil
 	}
 }

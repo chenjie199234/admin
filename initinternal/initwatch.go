@@ -485,7 +485,7 @@ func (s *InternalSdk) decodeProxyPath(app *model.AppSummary) error {
 				log.CError(e))
 			return e
 		}
-		tmp[common.Byte2str(realpath)] = info
+		tmp[common.BTS(realpath)] = info
 	}
 	app.Paths = tmp
 	return nil

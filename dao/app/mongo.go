@@ -49,7 +49,7 @@ func (d *Dao) MongoGetApp(ctx context.Context, projectid, gname, aname, secret s
 			if e != nil {
 				return nil, e
 			}
-			keysummary.CurValue = common.Byte2str(plaintext)
+			keysummary.CurValue = common.BTS(plaintext)
 		}
 	}
 	if e := decodeProxyPath(appsummary); e != nil {
@@ -313,10 +313,10 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 			if e != nil {
 				return
 			}
-			log.Value = common.Byte2str(plaintext)
+			log.Value = common.BTS(plaintext)
 		}
 		if newsecret != "" {
-			log.Value, _ = secure.AesEncrypt(newsecret, common.Str2byte(log.Value))
+			log.Value, _ = secure.AesEncrypt(newsecret, common.STB(log.Value))
 		}
 		filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": log.Key, "index": log.Index}
 		updater := bson.M{"$set": bson.M{"value": log.Value}}
@@ -346,10 +346,10 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 				if e != nil {
 					return
 				}
-				summary.CurValue = common.Byte2str(plaintext)
+				summary.CurValue = common.BTS(plaintext)
 			}
 			if newsecret != "" {
-				summary.CurValue, _ = secure.AesEncrypt(newsecret, common.Str2byte(summary.CurValue))
+				summary.CurValue, _ = secure.AesEncrypt(newsecret, common.STB(summary.CurValue))
 			}
 		}
 		updater["keys."+key+".cur_value"] = summary.CurValue
@@ -391,7 +391,7 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 			if e != nil {
 				return nil, nil, e
 			}
-			keysummary.CurValue = common.Byte2str(plaintext)
+			keysummary.CurValue = common.BTS(plaintext)
 		}
 		log = &model.Log{
 			Key:       key,
@@ -449,12 +449,12 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 		if e != nil {
 			return nil, nil, e
 		}
-		keysummary.CurValue = common.Byte2str(plaintext)
+		keysummary.CurValue = common.BTS(plaintext)
 		plaintext, e = secure.AesDecrypt(secret, log.Value)
 		if e != nil {
 			return nil, nil, e
 		}
-		log.Value = common.Byte2str(plaintext)
+		log.Value = common.BTS(plaintext)
 	}
 	return keysummary, log, nil
 }
@@ -490,7 +490,7 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 		return
 	}
 	if secret != "" {
-		if value, e = secure.AesEncrypt(secret, common.Str2byte(value)); e != nil {
+		if value, e = secure.AesEncrypt(secret, common.STB(value)); e != nil {
 			return
 		}
 	}
@@ -709,7 +709,7 @@ func (d *Dao) MongoDelProxyPath(ctx context.Context, projectid, gname, aname, se
 			s.AbortTransaction(sctx)
 		}
 	}()
-	b64path := base64.StdEncoding.EncodeToString(common.Str2byte(path))
+	b64path := base64.StdEncoding.EncodeToString(common.STB(path))
 	appsummary := &model.AppSummary{}
 	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
 	updater := bson.M{"$unset": bson.M{"paths." + b64path: 1}}
@@ -743,7 +743,7 @@ func (d *Dao) MongoDelProxyPath(ctx context.Context, projectid, gname, aname, se
 	return
 }
 func encodeProxyPath(path string) string {
-	return base64.StdEncoding.EncodeToString(common.Str2byte(path))
+	return base64.StdEncoding.EncodeToString(common.STB(path))
 }
 func decodeProxyPath(app *model.AppSummary) error {
 	tmp := make(map[string]*model.ProxyPath)
@@ -752,7 +752,7 @@ func decodeProxyPath(app *model.AppSummary) error {
 		if e != nil {
 			return e
 		}
-		tmp[common.Byte2str(realpath)] = info
+		tmp[common.BTS(realpath)] = info
 	}
 	app.Paths = tmp
 	return nil

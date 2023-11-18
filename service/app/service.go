@@ -67,7 +67,7 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//config control permission check
@@ -210,7 +210,7 @@ func (s *Service) SetApp(ctx context.Context, req *api.SetAppReq) (*api.SetAppRe
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//config control permission check
@@ -342,7 +342,7 @@ func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppRe
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GName, req.AName)
 	if e != nil {
@@ -427,7 +427,7 @@ func (s *Service) UpdateAppSecret(ctx context.Context, req *api.UpdateAppSecretR
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//config control permission check
@@ -501,7 +501,7 @@ func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyRe
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GName, req.AName)
 	if e != nil {
@@ -586,7 +586,7 @@ func (s *Service) GetKeyConfig(ctx context.Context, req *api.GetKeyConfigReq) (*
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//config control permission check
@@ -666,7 +666,7 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	req.Key = strings.TrimSpace(req.Key)
 	if req.Key == "" {
@@ -690,7 +690,7 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 	switch req.ValueType {
 	case "json":
 		buf := bytes.NewBuffer(nil)
-		if e := json.Compact(buf, common.Str2byte(req.Value)); e != nil {
+		if e := json.Compact(buf, common.STB(req.Value)); e != nil {
 			log.Error(ctx, "[SetKeyConfig] json value format wrong",
 				log.String("operator", md["Token-User"]),
 				log.String("project_id", projectid),
@@ -700,7 +700,7 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 				log.CError(e))
 			return nil, ecode.ErrReq
 		}
-		req.Value = common.Byte2str(buf.Bytes())
+		req.Value = common.BTS(buf.Bytes())
 	case "toml":
 		//TODO
 		fallthrough
@@ -798,7 +798,7 @@ func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.Roll
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//config control permission check
@@ -958,7 +958,7 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if e := s.appDao.MongoCheckSecret(ctx, projectid, req.GName, req.AName, req.Secret); e != nil {
 		log.Error(ctx, "[GetInstances] db op failed",
@@ -1040,7 +1040,7 @@ func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoR
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if e := s.appDao.MongoCheckSecret(ctx, projectid, req.GName, req.AName, req.Secret); e != nil {
 		log.Error(ctx, "[GetInstanceInfo] db op failed",
@@ -1101,7 +1101,7 @@ func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetP
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//config control permission check
@@ -1180,7 +1180,7 @@ func (s *Service) DelProxy(ctx context.Context, req *api.DelProxyReq) (*api.DelP
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//config control permission check
@@ -1252,7 +1252,7 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if req.Path[0] != '/' {
 		req.Path = "/" + req.Path
@@ -1279,7 +1279,7 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 		}
 		return nil
 	}
-	out, e := config.Sdk.CallByPrjoectID(ctx, projectid, req.GName, req.AName, req.Path, common.Str2byte(req.Data), req.ForceAddr, pcheck)
+	out, e := config.Sdk.CallByPrjoectID(ctx, projectid, req.GName, req.AName, req.Path, common.STB(req.Data), req.ForceAddr, pcheck)
 	if e != nil {
 		log.Error(ctx, "[Proxy] call server failed",
 			log.String("operator", md["Token-User"]),
@@ -1300,8 +1300,8 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 		log.String("path", req.Path),
 		log.String("forceaddr", req.ForceAddr),
 		log.String("reqdata", req.Data),
-		log.String("respdata", common.Byte2str(out)))
-	return &api.ProxyResp{Data: common.Byte2str(out)}, nil
+		log.String("respdata", common.BTS(out)))
+	return &api.ProxyResp{Data: common.BTS(out)}, nil
 }
 
 // Stop -

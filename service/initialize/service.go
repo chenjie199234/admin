@@ -150,7 +150,7 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	oldnode, e := s.initializeDao.MongoUpdateProject(ctx, projectid, req.NewProjectName, req.NewProjectData)
 	if e != nil {
@@ -279,7 +279,7 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	node, e := s.initializeDao.MongoDelProject(ctx, projectid)
 	if e != nil {

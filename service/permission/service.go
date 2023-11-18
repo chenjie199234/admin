@@ -54,7 +54,7 @@ func (s *Service) GetUserPermission(ctx context.Context, req *api.GetUserPermiss
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	nodeid := common.Byte2str(buf)
+	nodeid := common.BTS(buf)
 
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
@@ -83,14 +83,14 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 		}
 		buf1 = strconv.AppendUint(buf1, uint64(v), 10)
 	}
-	nodeid := common.Byte2str(buf1)
+	nodeid := common.BTS(buf1)
 
 	buf2 := pool.GetPool().Get(0)
 	defer pool.GetPool().Put(&buf2)
 	buf2 = strconv.AppendUint(buf2, uint64(req.NodeId[0]), 10)
 	buf2 = append(buf2, ',')
 	buf2 = strconv.AppendUint(buf2, uint64(req.NodeId[1]), 10)
-	projectid := common.Byte2str(buf2)
+	projectid := common.BTS(buf2)
 
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
@@ -149,7 +149,7 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 		}
 		buf1 = strconv.AppendUint(buf1, uint64(v), 10)
 	}
-	nodeid := common.Byte2str(buf1)
+	nodeid := common.BTS(buf1)
 
 	buf2 := pool.GetPool().Get(0)
 	defer pool.GetPool().Put(&buf2)
@@ -159,7 +159,7 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 		}
 		buf2 = strconv.AppendUint(buf2, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf2)
+	projectid := common.BTS(buf2)
 
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
@@ -223,7 +223,7 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	pnodeid := common.Byte2str(buf)
+	pnodeid := common.BTS(buf)
 
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
@@ -272,7 +272,7 @@ func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	nodeid := common.Byte2str(buf)
+	nodeid := common.BTS(buf)
 
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
@@ -362,7 +362,7 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 		}
 		buf1 = strconv.AppendUint(buf1, uint64(v), 10)
 	}
-	nodeid := common.Byte2str(buf1)
+	nodeid := common.BTS(buf1)
 
 	buf2 := pool.GetPool().Get(0)
 	defer pool.GetPool().Put(&buf2)
@@ -372,7 +372,7 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 		}
 		buf2 = strconv.AppendUint(buf2, uint64(v), 10)
 	}
-	pnodeid := common.Byte2str(buf2)
+	pnodeid := common.BTS(buf2)
 
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
@@ -424,7 +424,7 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	nodeid := common.Byte2str(buf)
+	nodeid := common.BTS(buf)
 
 	node, e := s.permissionDao.MongoDeleteNode(ctx, operator, nodeid)
 	if e != nil {
@@ -453,7 +453,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
@@ -620,7 +620,7 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
@@ -718,7 +718,7 @@ func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeR
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	md := metadata.GetMetadata(ctx)
 

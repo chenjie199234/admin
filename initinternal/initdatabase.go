@@ -47,8 +47,8 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 		appconfig, _ = secure.AesEncrypt(secret, bufapp.Bytes())
 		sourceconfig, _ = secure.AesEncrypt(secret, bufsource.Bytes())
 	} else {
-		appconfig = common.Byte2str(bufapp.Bytes())
-		sourceconfig = common.Byte2str(bufsource.Bytes())
+		appconfig = common.BTS(bufapp.Bytes())
+		sourceconfig = common.BTS(bufsource.Bytes())
 	}
 	ctx, span := trace.NewSpan(context.Background(), "InitDatabase", trace.Client, nil)
 	defer span.Finish(e)

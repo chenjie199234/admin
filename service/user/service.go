@@ -151,7 +151,7 @@ func (s *Service) InviteProject(ctx context.Context, req *api.InviteProjectReq) 
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//permission check
@@ -208,7 +208,7 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//permission check
@@ -273,7 +273,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//permission check
@@ -370,7 +370,7 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//permission check
@@ -423,7 +423,7 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//permission check
@@ -493,7 +493,7 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		//permission check
@@ -553,7 +553,7 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	//permission check
 	if !operator.IsZero() {
@@ -608,7 +608,7 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	//permission check
 	if !operator.IsZero() {
@@ -666,7 +666,7 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 		}
 		buf = strconv.AppendUint(buf, uint64(v), 10)
 	}
-	projectid := common.Byte2str(buf)
+	projectid := common.BTS(buf)
 
 	if !operator.IsZero() {
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)

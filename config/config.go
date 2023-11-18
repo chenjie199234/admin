@@ -96,7 +96,7 @@ func Init(notice func(c *AppConfig)) {
 						continue
 					}
 				} else {
-					plaintxt = common.Str2byte(appkey.CurValue)
+					plaintxt = common.STB(appkey.CurValue)
 				}
 				c := &AppConfig{}
 				if e := json.Unmarshal(plaintxt, c); e != nil {
@@ -125,7 +125,7 @@ func Init(notice func(c *AppConfig)) {
 						continue
 					}
 				} else {
-					plaintxt = common.Str2byte(sourcekey.CurValue)
+					plaintxt = common.STB(sourcekey.CurValue)
 				}
 				c := &sourceConfig{}
 				if e := json.Unmarshal(plaintxt, c); e != nil {

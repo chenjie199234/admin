@@ -163,7 +163,7 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 					log.Error(nil, "[ConfigSdk.watch] decrypt keys's value failed", log.String("key", data.Key), log.CError(e))
 					continue
 				}
-				data.Value = common.Byte2str(plaintext)
+				data.Value = common.BTS(plaintext)
 			}
 			instance.keys[key] = data
 			notice, ok := instance.keysnotice[key]

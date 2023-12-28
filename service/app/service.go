@@ -182,8 +182,8 @@ func (s *Service) SetApp(ctx context.Context, req *api.SetAppReq) (*api.SetAppRe
 			log.Error(ctx, "[SetApp] kubernetes namesapce empty", log.String("operator", md["Token-User"]))
 			return nil, ecode.ErrReq
 		}
-		if req.KubernetesLabelselector == "" {
-			log.Error(ctx, "[SetApp] kubernetes labelselector empty", log.String("operator", md["Token-User"]))
+		if req.KubernetesLabelselector == "" && req.KubernetesFieldselector == "" {
+			log.Error(ctx, "[SetApp] kubernetes labelselector and fieldselector empty", log.String("operator", md["Token-User"]))
 			return nil, ecode.ErrReq
 		}
 	case "dns":
@@ -926,25 +926,89 @@ func (s *Service) WatchDiscover(ctx context.Context, req *api.WatchDiscoverReq) 
 	if req.CurDiscoverMode == "dns" && (req.CurDnsHost == "" || req.CurDnsInterval == 0) {
 		return nil, ecode.ErrReq
 	}
-	resp := &api.WatchDiscoverResp{
-		DiscoverMode: req.CurDiscoverMode,
-		DnsHost:      req.CurDnsHost,
-		DnsInterval:  req.CurDnsInterval,
-		Addrs:        req.CurAddrs,
-		CrpcPort:     req.CrpcPort,
-		CgrpcPort:    req.CgrpcPort,
-		WebPort:      req.WebPort,
+	if req.CurDiscoverMode == "static" && len(req.CurStaticAddrs) == 0 {
+		return nil, ecode.ErrReq
 	}
-	e := config.Sdk.WatchDiscover(ctx, req.ProjectName, req.GName, req.AName, resp)
+	if req.CurDiscoverMode == "kubernetes" && (req.CurKubernetesNamespace == "" || (req.CurKubernetesFieldselector == "" && req.CurKubernetesLabelselector == "")) {
+		return nil, ecode.ErrReq
+	}
+	ch, cancel, e := config.Sdk.GetNoticeByProjectName(req.ProjectName, req.GName, req.AName)
 	if e != nil {
-		log.Error(ctx, "[WatchDiscover] failed",
+		log.Error(ctx, "[WatchConfig] get notice failed",
 			log.String("project_name", req.ProjectName),
 			log.String("group", req.GName),
 			log.String("app", req.AName),
 			log.CError(e))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	return resp, nil
+	defer cancel()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, cerror.ConvertStdError(ctx.Err())
+		case <-ch:
+			app, e := config.Sdk.GetAppConfigByProjectName(req.ProjectName, req.GName, req.AName)
+			if e != nil {
+				if e != ecode.ErrServerClosing {
+					log.Error(ctx, "[WatchDiscover] get config failed",
+						log.String("project_name", req.ProjectName),
+						log.String("group", req.GName),
+						log.String("app", req.AName),
+						log.CError(e))
+				}
+				return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+			}
+			needreturn := app.DiscoverMode != req.CurDiscoverMode || app.CrpcPort != req.CurCrpcPort || app.WebPort != req.CurWebPort || app.CGrpcPort != req.CurCgrpcPort
+			if !needreturn {
+				if app.DiscoverMode == "dns" {
+					needreturn = app.DnsHost != req.CurDnsHost || app.DnsInterval != req.CurDnsInterval
+				} else if app.DiscoverMode == "static" {
+					for _, addr := range app.StaticAddrs {
+						find := false
+						for _, v := range req.CurStaticAddrs {
+							if addr == v {
+								find = true
+								break
+							}
+						}
+						if !find {
+							needreturn = true
+						}
+					}
+					for _, addr := range req.CurStaticAddrs {
+						find := false
+						for _, v := range app.StaticAddrs {
+							if addr == v {
+								find = true
+								break
+							}
+						}
+						if !find {
+							needreturn = true
+						}
+					}
+				} else if app.DiscoverMode == "kubernetes" {
+					needreturn = app.KubernetesNs != req.CurKubernetesNamespace ||
+						app.KubernetesFS != req.CurKubernetesFieldselector ||
+						app.KubernetesLS != req.CurKubernetesLabelselector
+				}
+			}
+			if needreturn {
+				return &api.WatchDiscoverResp{
+					DiscoverMode:            app.DiscoverMode,
+					DnsHost:                 app.DnsHost,
+					DnsInterval:             app.DnsInterval,
+					StaticAddrs:             app.StaticAddrs,
+					KubernetesNamespace:     app.KubernetesNs,
+					KubernetesLabelselector: app.KubernetesLS,
+					KubernetesFieldselector: app.KubernetesFS,
+					CrpcPort:                app.CrpcPort,
+					WebPort:                 app.WebPort,
+					CgrpcPort:               app.CGrpcPort,
+				}, nil
+			}
+		}
+	}
 }
 
 func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*api.GetInstancesResp, error) {

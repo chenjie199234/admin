@@ -148,7 +148,7 @@ message set_app_req {
 	string kubernetes_labelselector=7;//when discover_mode == "kubernetes"
 	string kubernetes_fieldselector=8;//when discover_mode == "kubernetes"
 	string dns_host=9;//when discover_mode == "dns"
-	uint32 dns_interval=10;//when discover_mode == "dns"
+	uint32 dns_interval=10;//when discover_mode == "dns",unit second
 	repeated string static_addrs=11;//when discover_mode == "static"
 	uint32 crpc_port=12[(pbex.uint_gt)=0,(pbex.uint_lt)=65536];
 	uint32 cgrpc_port=13[(pbex.uint_gt)=0,(pbex.uint_lt)=65536];
@@ -250,20 +250,26 @@ message watch_discover_req{
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
 	string cur_discover_mode=4[(pbex.string_bytes_in)="kubernetes",(pbex.string_bytes_in)="dns",(pbex.string_bytes_in)="static",(pbex.string_bytes_in)=""];
 	string cur_dns_host=5;//when discover_mode == "dns"
-	uint32 cur_dns_interval=6;//when discover_mode == "dns"
-	repeated string cur_addrs=7;//when discover_mode == "static" or "kubernetes"
-	uint32 crpc_port=8[(pbex.uint_lt)=65536];
-	uint32 cgrpc_port=9[(pbex.uint_lt)=65536];
-	uint32 web_port=10[(pbex.uint_lt)=65536];
+	uint32 cur_dns_interval=6;//when cur_discover_mode == "dns",unit second
+	repeated string cur_static_addrs=7;//when cur_discover_mode == "static"
+	string cur_kubernetes_namespace=8;//when cur_discover_mode == "kubernetes"
+	string cur_kubernetes_labelselector=9;//when cur_discover_mode == "kubernetes"
+	string cur_kubernetes_fieldselector=10;//when cur_discover_mode == "kubernetes"
+	uint32 cur_crpc_port=11[(pbex.uint_lt)=65536];
+	uint32 cur_cgrpc_port=12[(pbex.uint_lt)=65536];
+	uint32 cur_web_port=13[(pbex.uint_lt)=65536];
 }
 message watch_discover_resp{
 	string discover_mode=1;
 	string dns_host=2;//when discover_mode == "dns"
 	uint32 dns_interval=3;//when discover_mode == "dns"
-	repeated string addrs=4;//when discover_mode == "static"
-	uint32 crpc_port=5[(pbex.uint_lt)=65536];
-	uint32 cgrpc_port=6[(pbex.uint_lt)=65536];
-	uint32 web_port=7[(pbex.uint_lt)=65536];
+	repeated string static_addrs=4;//when discover_mode == "static"
+	string kubernetes_namespace=5;//when discover_mode == "kubernetes"
+	string kubernetes_labelselector=6;//when discover_mode == "kubernetes"
+	string kubernetes_fieldselector=7;//when discover_mode == "kubernetes"
+	uint32 crpc_port=8[(pbex.uint_lt)=65536];
+	uint32 cgrpc_port=9[(pbex.uint_lt)=65536];
+	uint32 web_port=10[(pbex.uint_lt)=65536];
 }
 
 //instance

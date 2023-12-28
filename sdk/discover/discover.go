@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
-	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -18,7 +17,6 @@ import (
 	"github.com/chenjie199234/Corelib/cerror"
 	cdiscover "github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/log"
-	"github.com/chenjie199234/Corelib/util/ctime"
 	"github.com/chenjie199234/Corelib/util/name"
 	"github.com/chenjie199234/Corelib/web"
 )
@@ -32,26 +30,31 @@ var (
 )
 
 type DiscoverSdk struct {
-	target    string
-	client    api.AppWebClient
-	accesskey string
-	status    int32 //0 idle,1 discovering
-	triger    chan *struct{}
+	target string
+	status int32 //0 idle,1 discovering
+
+	lker        *sync.RWMutex
+	notices     map[chan *struct{}]*struct{}
+	di          cdiscover.DI
+	noportaddrs map[string]*cdiscover.RegisterData
+	version     cdiscover.Version
+	lasterror   error
 
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	lker         *sync.RWMutex
-	notices      map[chan *struct{}]*struct{}
-	version      int64
+	client       api.AppWebClient
+	accesskey    string
 	discovermode string
 	dnshost      string
 	dnsinterval  uint32 //uint seconds
-	addrs        []string
+	staticaddrs  []string
+	kubernetesns string
+	kubernetesls string
+	kubernetesfs string
 	crpcport     uint32
 	cgrpcport    uint32
 	webport      uint32
-	lasterror    error
 }
 
 // if tlsc is not nil,the tls will be actived
@@ -79,17 +82,20 @@ func NewAdminDiscover(selfproject, selfgroup, selfapp string, targetproject, tar
 		return nil, e
 	}
 	sdk := &DiscoverSdk{
-		target:    targetfullname,
+		target: targetfullname,
+		status: 1,
+
+		lker:    &sync.RWMutex{},
+		notices: make(map[chan *struct{}]*struct{}, 10),
+
 		client:    api.NewAppWebClient(tmpclient),
 		accesskey: accesskey,
-		status:    1,
-		triger:    make(chan *struct{}, 1),
-		lker:      &sync.RWMutex{},
-		notices:   make(map[chan *struct{}]*struct{}, 10),
 	}
 	sdk.ctx, sdk.cancel = context.WithCancel(context.Background())
-	go sdk.watch(targetproject, targetgroup, targetapp)
-	go sdk.run()
+
+	once := make(chan *struct{}, 1)
+	go sdk.watch(targetproject, targetgroup, targetapp, once)
+	go sdk.run(targetproject, targetgroup, targetapp, once)
 	return sdk, nil
 }
 
@@ -97,9 +103,9 @@ func (s *DiscoverSdk) Now() {
 	if !atomic.CompareAndSwapInt32(&s.status, 0, 1) {
 		return
 	}
-	select {
-	case s.triger <- nil:
-	default:
+	curdi := s.di
+	if curdi != nil {
+		curdi.Now()
 	}
 }
 func (s *DiscoverSdk) Stop() {
@@ -135,21 +141,33 @@ func env() (projectname, group string, host string, port int, accesskey string, 
 	}
 	return
 }
-func (s *DiscoverSdk) watch(project, group, app string) {
+func (s *DiscoverSdk) watch(project, group, app string, once chan *struct{}) {
+	defer func() {
+		s.discovermode = ""
+		if s.di != nil {
+			olddi := s.di
+			s.di = nil
+			olddi.Stop()
+		}
+		close(once)
+	}()
 	for {
 		header := make(http.Header)
 		header.Set("Access-Key", s.accesskey)
 		resp, e := s.client.WatchDiscover(s.ctx, &api.WatchDiscoverReq{
-			ProjectName:     project,
-			GName:           group,
-			AName:           app,
-			CurDiscoverMode: s.discovermode,
-			CurDnsHost:      s.dnshost,
-			CurDnsInterval:  s.dnsinterval,
-			CurAddrs:        s.addrs,
-			CrpcPort:        s.crpcport,
-			CgrpcPort:       s.cgrpcport,
-			WebPort:         s.webport,
+			ProjectName:                project,
+			GName:                      group,
+			AName:                      app,
+			CurDiscoverMode:            s.discovermode,
+			CurDnsHost:                 s.dnshost,
+			CurDnsInterval:             s.dnsinterval,
+			CurStaticAddrs:             s.staticaddrs,
+			CurKubernetesNamespace:     s.kubernetesns,
+			CurKubernetesLabelselector: s.kubernetesls,
+			CurKubernetesFieldselector: s.kubernetesfs,
+			CurCrpcPort:                s.crpcport,
+			CurCgrpcPort:               s.cgrpcport,
+			CurWebPort:                 s.webport,
 		}, header)
 		if e != nil {
 			if cerror.Equal(e, cerror.ErrCanceled) {
@@ -164,135 +182,92 @@ func (s *DiscoverSdk) watch(project, group, app string) {
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
+		if resp.DiscoverMode == "Static" && len(resp.StaticAddrs) == 0 {
+			log.Error(nil, "[discover.admin] static setting broken", log.String("target", s.target))
+			time.Sleep(time.Millisecond * 100)
+			continue
+		}
+		if resp.DiscoverMode == "kubernetes" && (resp.KubernetesNamespace == "" || (resp.KubernetesFieldselector == "" && resp.KubernetesLabelselector == "")) {
+			log.Error(nil, "[discover.admin] kubernetes setting broken", log.String("target", s.target))
+			time.Sleep(time.Millisecond * 100)
+			continue
+		}
 		s.lker.Lock()
 		s.discovermode = resp.DiscoverMode
 		s.dnshost = resp.DnsHost
 		s.dnsinterval = resp.DnsInterval
+		s.staticaddrs = resp.StaticAddrs
+		s.kubernetesns = resp.KubernetesNamespace
+		s.kubernetesls = resp.KubernetesLabelselector
+		s.kubernetesfs = resp.KubernetesFieldselector
 		s.crpcport = resp.CrpcPort
 		s.cgrpcport = resp.CgrpcPort
 		s.webport = resp.WebPort
-		if s.discovermode != "dns" {
-			s.addrs = resp.Addrs
-			s.version = time.Now().UnixNano()
-			s.lasterror = nil
+		if s.di != nil {
+			olddi := s.di
+			s.di = nil
+			go olddi.Stop()
 		}
 		s.lker.Unlock()
 		select {
-		case s.triger <- nil:
+		case once <- nil:
 		default:
 		}
 	}
 }
-func (s *DiscoverSdk) run() {
-	tmer := time.NewTimer(0)
-	<-tmer.C
-	defer func() {
-		s.lker.Lock()
-		for notice := range s.notices {
-			delete(s.notices, notice)
-			close(notice)
-		}
-		s.lker.Unlock()
-	}()
+func (s *DiscoverSdk) run(project, group, app string, once chan *struct{}) {
 	for {
-		var dnshost string
-		var dnsinterval time.Duration
-		var version int64
-		select {
-		case <-s.ctx.Done():
-			log.Info(nil, "[discover.admin] discover stopped", log.String("target", s.target))
-			s.lasterror = cerror.ErrDiscoverStopped
-			return
-		case <-tmer.C:
-		case <-s.triger:
-		}
-		s.status = 1
-		if !tmer.Stop() {
-			for len(tmer.C) > 0 {
-				<-tmer.C
-			}
-		}
-		s.lker.RLock()
-		if s.discovermode == "dns" {
-			//copy the current dns discover setting
-			//the watch may change the current setting when we do dns look up
-			dnshost = s.dnshost
-			dnsinterval = time.Duration(s.dnsinterval) * time.Second
-			version = s.version
-		} else {
-			for notice := range s.notices {
-				select {
-				case notice <- nil:
-				default:
-				}
-			}
-			s.status = 0
-		}
-		s.lker.RUnlock()
-		if dnshost == "" {
-			continue
-		}
-		tmer.Reset(dnsinterval)
-		addrs, e := net.DefaultResolver.LookupHost(s.ctx, dnshost)
-		if e != nil && cerror.Equal(errors.Unwrap(e), cerror.ErrCanceled) {
-			log.Info(nil, "[discover.admin] discover stopped", log.String("target", s.target))
-			s.lasterror = cerror.ErrDiscoverStopped
-			return
-		}
-		if e != nil {
-			log.Error(nil, "[discover.admin] dns look up failed",
-				log.String("target", s.target),
-				log.String("host", dnshost),
-				log.CDuration("interval", ctime.Duration(dnsinterval)),
-				log.CError(e))
-			s.lker.Lock()
-			s.lasterror = e
-			for notice := range s.notices {
-				select {
-				case notice <- nil:
-				default:
-				}
-			}
-			s.status = 0
-			s.lker.Unlock()
-			continue
-		}
 		s.lker.Lock()
-		if version != s.version {
+		if s.di == nil && s.discovermode != "" {
+			var e error
+			switch s.discovermode {
+			case "dns":
+				s.di, e = cdiscover.NewDNSDiscover(project, group, app, s.dnshost, time.Duration(s.dnsinterval)*time.Second, int(s.crpcport), int(s.cgrpcport), int(s.webport))
+			case "static":
+				s.di, e = cdiscover.NewStaticDiscover(project, group, app, s.staticaddrs, int(s.crpcport), int(s.cgrpcport), int(s.webport))
+			case "kubernetes":
+				s.di, e = cdiscover.NewKubernetesDiscover(project, group, app, s.kubernetesns, s.kubernetesfs, s.kubernetesls, int(s.crpcport), int(s.cgrpcport), int(s.webport))
+			default:
+				log.Error(nil, "[discover.admin] unknown discover type", log.String("target", s.target))
+				time.Sleep(time.Millisecond * 100)
+				s.lker.Unlock()
+				continue
+			}
+			if e != nil {
+				log.Error(nil, "[discover.admin] create discover failed", log.String("target", s.target))
+				time.Sleep(time.Millisecond * 100)
+				s.lker.Unlock()
+				continue
+			}
+		}
+		if s.di == nil {
 			s.lker.Unlock()
-			//watch changed the version
-			s.status = 0
+			_, ok := <-once
+			if !ok {
+				return
+			}
 			continue
 		}
-		different := len(addrs) != len(s.addrs)
-		if !different {
-			for _, newaddr := range addrs {
-				find := false
-				for _, oldaddr := range s.addrs {
-					if newaddr == oldaddr {
-						find = true
-						break
-					}
-				}
-				if !find {
-					different = true
-					break
-				}
-			}
-		}
-		if different {
-			s.addrs = addrs
-			s.version = time.Now().UnixNano()
-		}
-		s.lasterror = nil
-		for notice := range s.notices {
-			select {
-			case notice <- nil:
-			default:
-			}
-		}
-		s.status = 0
+		curdi := s.di
 		s.lker.Unlock()
+
+		ch, cancel := curdi.GetNotice()
+		for {
+			if _, ok := <-ch; !ok {
+				break
+			}
+			s.lker.Lock()
+			s.noportaddrs, s.version, s.lasterror = curdi.GetAddrs(cdiscover.NotNeed)
+			s.lker.Unlock()
+			atomic.StoreInt32(&s.status, 0)
+			for notice := range s.notices {
+				select {
+				case notice <- nil:
+				default:
+				}
+			}
+		}
+		cancel()
 	}
 }
 
@@ -328,10 +303,7 @@ func (s *DiscoverSdk) GetAddrs(pt cdiscover.PortType) (addrs map[string]*cdiscov
 	s.lker.RLock()
 	defer s.lker.RUnlock()
 	r := make(map[string]*cdiscover.RegisterData)
-	reg := &cdiscover.RegisterData{
-		DServers: map[string]*struct{}{"admin": nil},
-	}
-	for _, addr := range s.addrs {
+	for addr, reg := range s.noportaddrs {
 		switch pt {
 		case cdiscover.NotNeed:
 		case cdiscover.Crpc:

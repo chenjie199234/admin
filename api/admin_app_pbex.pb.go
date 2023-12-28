@@ -218,14 +218,14 @@ func (m *WatchDiscoverReq) Validate() (errstr string) {
 	if m.GetCurDiscoverMode() != "kubernetes" && m.GetCurDiscoverMode() != "dns" && m.GetCurDiscoverMode() != "static" && m.GetCurDiscoverMode() != "" {
 		return "field: cur_discover_mode in object: watch_discover_req check value str in failed"
 	}
-	if m.GetCrpcPort() >= 65536 {
-		return "field: crpc_port in object: watch_discover_req check value uint lt failed"
+	if m.GetCurCrpcPort() >= 65536 {
+		return "field: cur_crpc_port in object: watch_discover_req check value uint lt failed"
 	}
-	if m.GetCgrpcPort() >= 65536 {
-		return "field: cgrpc_port in object: watch_discover_req check value uint lt failed"
+	if m.GetCurCgrpcPort() >= 65536 {
+		return "field: cur_cgrpc_port in object: watch_discover_req check value uint lt failed"
 	}
-	if m.GetWebPort() >= 65536 {
-		return "field: web_port in object: watch_discover_req check value uint lt failed"
+	if m.GetCurWebPort() >= 65536 {
+		return "field: cur_web_port in object: watch_discover_req check value uint lt failed"
 	}
 	return ""
 }

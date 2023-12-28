@@ -1182,7 +1182,7 @@ export interface SetAppReq{
 	kubernetes_fieldselector: string;//when discover_mode == "kubernetes"
 	dns_host: string;//when discover_mode == "dns"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	dns_interval: number;//when discover_mode == "dns"
+	dns_interval: number;//when discover_mode == "dns",unit second
 	static_addrs: Array<string>|null|undefined;//when discover_mode == "static"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	crpc_port: number;
@@ -1811,14 +1811,17 @@ export interface WatchDiscoverReq{
 	cur_discover_mode: string;
 	cur_dns_host: string;//when discover_mode == "dns"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	cur_dns_interval: number;//when discover_mode == "dns"
-	cur_addrs: Array<string>|null|undefined;//when discover_mode == "static" or "kubernetes"
+	cur_dns_interval: number;//when cur_discover_mode == "dns",unit second
+	cur_static_addrs: Array<string>|null|undefined;//when cur_discover_mode == "static"
+	cur_kubernetes_namespace: string;//when cur_discover_mode == "kubernetes"
+	cur_kubernetes_labelselector: string;//when cur_discover_mode == "kubernetes"
+	cur_kubernetes_fieldselector: string;//when cur_discover_mode == "kubernetes"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	crpc_port: number;
+	cur_crpc_port: number;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	cgrpc_port: number;
+	cur_cgrpc_port: number;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	web_port: number;
+	cur_web_port: number;
 }
 function WatchDiscoverReqToJson(msg: WatchDiscoverReq): string{
 	let s: string="{"
@@ -1870,16 +1873,16 @@ function WatchDiscoverReqToJson(msg: WatchDiscoverReq): string{
 	}else{
 		s+='"cur_dns_interval":'+msg.cur_dns_interval+','
 	}
-	//cur_addrs
-	if(msg.cur_addrs==null||msg.cur_addrs==undefined){
-		s+='"cur_addrs":null,'
-	}else if(msg.cur_addrs.length==0){
-		s+='"cur_addrs":[],'
+	//cur_static_addrs
+	if(msg.cur_static_addrs==null||msg.cur_static_addrs==undefined){
+		s+='"cur_static_addrs":null,'
+	}else if(msg.cur_static_addrs.length==0){
+		s+='"cur_static_addrs":[],'
 	}else{
-		s+='"cur_addrs":['
-		for(let element of msg.cur_addrs){
+		s+='"cur_static_addrs":['
+		for(let element of msg.cur_static_addrs){
 			if(element==null||element==undefined){
-				throw 'element in WatchDiscoverReq.cur_addrs must be string'
+				throw 'element in WatchDiscoverReq.cur_static_addrs must be string'
 			}
 			//transfer the json escape
 			let vv=JSON.stringify(element)
@@ -1887,29 +1890,53 @@ function WatchDiscoverReqToJson(msg: WatchDiscoverReq): string{
 		}
 		s=s.substr(0,s.length-1)+'],'
 	}
-	//crpc_port
-	if(msg.crpc_port==null||msg.crpc_port==undefined||!Number.isInteger(msg.crpc_port)){
-		throw 'WatchDiscoverReq.crpc_port must be integer'
-	}else if(msg.crpc_port>4294967295||msg.crpc_port<0){
-		throw 'WatchDiscoverReq.crpc_port overflow'
+	//cur_kubernetes_namespace
+	if(msg.cur_kubernetes_namespace==null||msg.cur_kubernetes_namespace==undefined){
+		throw 'WatchDiscoverReq.cur_kubernetes_namespace must be string'
 	}else{
-		s+='"crpc_port":'+msg.crpc_port+','
+		//transfer the json escape
+		let vv=JSON.stringify(msg.cur_kubernetes_namespace)
+		s+='"cur_kubernetes_namespace":'+vv+','
 	}
-	//cgrpc_port
-	if(msg.cgrpc_port==null||msg.cgrpc_port==undefined||!Number.isInteger(msg.cgrpc_port)){
-		throw 'WatchDiscoverReq.cgrpc_port must be integer'
-	}else if(msg.cgrpc_port>4294967295||msg.cgrpc_port<0){
-		throw 'WatchDiscoverReq.cgrpc_port overflow'
+	//cur_kubernetes_labelselector
+	if(msg.cur_kubernetes_labelselector==null||msg.cur_kubernetes_labelselector==undefined){
+		throw 'WatchDiscoverReq.cur_kubernetes_labelselector must be string'
 	}else{
-		s+='"cgrpc_port":'+msg.cgrpc_port+','
+		//transfer the json escape
+		let vv=JSON.stringify(msg.cur_kubernetes_labelselector)
+		s+='"cur_kubernetes_labelselector":'+vv+','
 	}
-	//web_port
-	if(msg.web_port==null||msg.web_port==undefined||!Number.isInteger(msg.web_port)){
-		throw 'WatchDiscoverReq.web_port must be integer'
-	}else if(msg.web_port>4294967295||msg.web_port<0){
-		throw 'WatchDiscoverReq.web_port overflow'
+	//cur_kubernetes_fieldselector
+	if(msg.cur_kubernetes_fieldselector==null||msg.cur_kubernetes_fieldselector==undefined){
+		throw 'WatchDiscoverReq.cur_kubernetes_fieldselector must be string'
 	}else{
-		s+='"web_port":'+msg.web_port+','
+		//transfer the json escape
+		let vv=JSON.stringify(msg.cur_kubernetes_fieldselector)
+		s+='"cur_kubernetes_fieldselector":'+vv+','
+	}
+	//cur_crpc_port
+	if(msg.cur_crpc_port==null||msg.cur_crpc_port==undefined||!Number.isInteger(msg.cur_crpc_port)){
+		throw 'WatchDiscoverReq.cur_crpc_port must be integer'
+	}else if(msg.cur_crpc_port>4294967295||msg.cur_crpc_port<0){
+		throw 'WatchDiscoverReq.cur_crpc_port overflow'
+	}else{
+		s+='"cur_crpc_port":'+msg.cur_crpc_port+','
+	}
+	//cur_cgrpc_port
+	if(msg.cur_cgrpc_port==null||msg.cur_cgrpc_port==undefined||!Number.isInteger(msg.cur_cgrpc_port)){
+		throw 'WatchDiscoverReq.cur_cgrpc_port must be integer'
+	}else if(msg.cur_cgrpc_port>4294967295||msg.cur_cgrpc_port<0){
+		throw 'WatchDiscoverReq.cur_cgrpc_port overflow'
+	}else{
+		s+='"cur_cgrpc_port":'+msg.cur_cgrpc_port+','
+	}
+	//cur_web_port
+	if(msg.cur_web_port==null||msg.cur_web_port==undefined||!Number.isInteger(msg.cur_web_port)){
+		throw 'WatchDiscoverReq.cur_web_port must be integer'
+	}else if(msg.cur_web_port>4294967295||msg.cur_web_port<0){
+		throw 'WatchDiscoverReq.cur_web_port overflow'
+	}else{
+		s+='"cur_web_port":'+msg.cur_web_port+','
 	}
 	if(s.length==1){
 		s+="}"
@@ -1923,7 +1950,10 @@ export interface WatchDiscoverResp{
 	dns_host: string;//when discover_mode == "dns"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	dns_interval: number;//when discover_mode == "dns"
-	addrs: Array<string>|null|undefined;//when discover_mode == "static"
+	static_addrs: Array<string>|null|undefined;//when discover_mode == "static"
+	kubernetes_namespace: string;//when discover_mode == "kubernetes"
+	kubernetes_labelselector: string;//when discover_mode == "kubernetes"
+	kubernetes_fieldselector: string;//when discover_mode == "kubernetes"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	crpc_port: number;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
@@ -1936,7 +1966,10 @@ function JsonToWatchDiscoverResp(jsonobj: { [k:string]:any }): WatchDiscoverResp
 		discover_mode:'',
 		dns_host:'',
 		dns_interval:0,
-		addrs:null,
+		static_addrs:null,
+		kubernetes_namespace:'',
+		kubernetes_labelselector:'',
+		kubernetes_fieldselector:'',
 		crpc_port:0,
 		cgrpc_port:0,
 		web_port:0,
@@ -1964,20 +1997,41 @@ function JsonToWatchDiscoverResp(jsonobj: { [k:string]:any }): WatchDiscoverResp
 		}
 		obj['dns_interval']=jsonobj['dns_interval']
 	}
-	//addrs
-	if(jsonobj['addrs']!=null&&jsonobj['addrs']!=undefined){
-		if(!(jsonobj['addrs'] instanceof Array)){
-			throw 'WatchDiscoverResp.addrs must be Array<string>|null|undefined'
+	//static_addrs
+	if(jsonobj['static_addrs']!=null&&jsonobj['static_addrs']!=undefined){
+		if(!(jsonobj['static_addrs'] instanceof Array)){
+			throw 'WatchDiscoverResp.static_addrs must be Array<string>|null|undefined'
 		}
-		for(let element of jsonobj['addrs']){
+		for(let element of jsonobj['static_addrs']){
 			if(typeof element!='string'){
-				throw 'element in WatchDiscoverResp.addrs must be string'
+				throw 'element in WatchDiscoverResp.static_addrs must be string'
 			}
-			if(obj['addrs']==null){
-				obj['addrs']=new Array<string>
+			if(obj['static_addrs']==null){
+				obj['static_addrs']=new Array<string>
 			}
-			obj['addrs'].push(element)
+			obj['static_addrs'].push(element)
 		}
+	}
+	//kubernetes_namespace
+	if(jsonobj['kubernetes_namespace']!=null&&jsonobj['kubernetes_namespace']!=undefined){
+		if(typeof jsonobj['kubernetes_namespace']!='string'){
+			throw 'WatchDiscoverResp.kubernetes_namespace must be string'
+		}
+		obj['kubernetes_namespace']=jsonobj['kubernetes_namespace']
+	}
+	//kubernetes_labelselector
+	if(jsonobj['kubernetes_labelselector']!=null&&jsonobj['kubernetes_labelselector']!=undefined){
+		if(typeof jsonobj['kubernetes_labelselector']!='string'){
+			throw 'WatchDiscoverResp.kubernetes_labelselector must be string'
+		}
+		obj['kubernetes_labelselector']=jsonobj['kubernetes_labelselector']
+	}
+	//kubernetes_fieldselector
+	if(jsonobj['kubernetes_fieldselector']!=null&&jsonobj['kubernetes_fieldselector']!=undefined){
+		if(typeof jsonobj['kubernetes_fieldselector']!='string'){
+			throw 'WatchDiscoverResp.kubernetes_fieldselector must be string'
+		}
+		obj['kubernetes_fieldselector']=jsonobj['kubernetes_fieldselector']
 	}
 	//crpc_port
 	if(jsonobj['crpc_port']!=null&&jsonobj['crpc_port']!=undefined){

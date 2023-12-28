@@ -113,7 +113,7 @@ Content-Type: application/json
 	"kubernetes_fieldselector":"str",
 	//when discover_mode == "dns"
 	"dns_host":"str",
-	//when discover_mode == "dns"
+	//when discover_mode == "dns",unit second
 	//uint32
 	"dns_interval":0,
 	//when discover_mode == "static"
@@ -454,20 +454,26 @@ Content-Type: application/json
 	"cur_discover_mode":"str",
 	//when discover_mode == "dns"
 	"cur_dns_host":"str",
-	//when discover_mode == "dns"
+	//when cur_discover_mode == "dns",unit second
 	//uint32
 	"cur_dns_interval":0,
-	//when discover_mode == "static" or "kubernetes"
-	"cur_addrs":["str","str"],
+	//when cur_discover_mode == "static"
+	"cur_static_addrs":["str","str"],
+	//when cur_discover_mode == "kubernetes"
+	"cur_kubernetes_namespace":"str",
+	//when cur_discover_mode == "kubernetes"
+	"cur_kubernetes_labelselector":"str",
+	//when cur_discover_mode == "kubernetes"
+	"cur_kubernetes_fieldselector":"str",
 	//uint32
 	//value must < 65536
-	"crpc_port":0,
+	"cur_crpc_port":0,
 	//uint32
 	//value must < 65536
-	"cgrpc_port":0,
+	"cur_cgrpc_port":0,
 	//uint32
 	//value must < 65536
-	"web_port":0
+	"cur_web_port":0
 }
 ------------------------------------------------------------------------------------------------------------
 ```
@@ -487,7 +493,13 @@ Success: httpcode:200
 	//uint32
 	"dns_interval":0,
 	//when discover_mode == "static"
-	"addrs":["str","str"],
+	"static_addrs":["str","str"],
+	//when discover_mode == "kubernetes"
+	"kubernetes_namespace":"str",
+	//when discover_mode == "kubernetes"
+	"kubernetes_labelselector":"str",
+	//when discover_mode == "kubernetes"
+	"kubernetes_fieldselector":"str",
 	//uint32
 	"crpc_port":0,
 	//uint32

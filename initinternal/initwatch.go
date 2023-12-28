@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
 
@@ -40,12 +39,12 @@ type InternalSdk struct {
 }
 type app struct {
 	sync.RWMutex
-	summary      *model.AppSummary
-	notices      map[chan *struct{}]*struct{}
-	di           discover.DI
-	client       *crpc.CrpcClient
-	clientactive int64
-	delstatus    bool
+	summary   *model.AppSummary
+	notices   map[chan *struct{}]*struct{}
+	di        discover.DI
+	client    *crpc.CrpcClient
+	active    int64
+	delstatus bool
 }
 
 func InitWatch(secret string, db *mongo.Client) (*InternalSdk, error) {
@@ -81,6 +80,7 @@ func (s *InternalSdk) Stop() {
 			delete(app.notices, notice)
 			close(notice)
 		}
+		//discover should always stop after client
 		if app.client != nil {
 			go func() {
 				app.client.Close(false)
@@ -102,11 +102,23 @@ func (s *InternalSdk) timeout() {
 		s.lker.RLock()
 		for _, v := range s.apps {
 			v.Lock()
-			if v.client != nil && now.UnixNano()-v.clientactive >= time.Minute.Nanoseconds() {
-				oldclient := v.client
-				v.client = nil
-				v.clientactive = 0
-				go oldclient.Close(false)
+			if now.UnixNano()-v.active >= time.Minute.Nanoseconds() {
+				if v.client != nil {
+					oldclient := v.client
+					olddi := v.di
+					v.client = nil
+					v.di = nil
+					v.active = 0
+					go func() {
+						oldclient.Close(false)
+						olddi.Stop()
+					}()
+				} else if v.di != nil {
+					olddi := v.di
+					v.di = nil
+					v.active = 0
+					go olddi.Stop()
+				}
 			}
 			v.Unlock()
 		}
@@ -237,10 +249,6 @@ func (s *InternalSdk) mongoGetAllApp() error {
 			summary: v,
 			notices: make(map[chan *struct{}]*struct{}, 10),
 		}
-		tmp.di, e = createdi(v)
-		if e != nil {
-			return e
-		}
 		s.apps[v.ID.Hex()] = tmp
 		s.appsNameIndex[v.ProjectName+"-"+v.Group+"."+v.App] = tmp
 		s.appsIDIndex[v.ProjectID+"-"+v.Group+"."+v.App] = tmp
@@ -342,15 +350,16 @@ func (s *InternalSdk) watch() {
 					log.Any("keys", summary.Keys))
 				s.lker.Lock()
 				if exist, ok := s.apps[summary.ID.Hex()]; !ok {
+					//this is a new app
 					tmp := &app{
 						summary: summary,
 						notices: make(map[chan *struct{}]*struct{}, 10),
 					}
-					tmp.di, _ = createdi(summary)
 					s.apps[summary.ID.Hex()] = tmp
 					s.appsNameIndex[summary.ProjectName+"-"+summary.Group+"."+summary.App] = tmp
 					s.appsIDIndex[summary.ProjectID+"-"+summary.Group+"."+summary.App] = tmp
 				} else {
+					//this is an old app
 					exist.Lock()
 					if exist.summary.ProjectName != summary.ProjectName {
 						//ProjectName changed
@@ -402,21 +411,20 @@ func (s *InternalSdk) watch() {
 							log.String("app", aname))
 						//discover should always stop after client
 						if exist.client != nil {
-							olddi := exist.di
 							oldclient := exist.client
-							exist.di, _ = createdi(summary)
+							olddi := exist.di
 							exist.client = nil
-							exist.clientactive = 0
+							exist.di = nil
+							exist.active = 0
 							go func() {
 								oldclient.Close(false)
 								olddi.Stop()
 							}()
 						} else if exist.di != nil {
 							olddi := exist.di
-							exist.di, _ = createdi(summary)
+							exist.di = nil
+							exist.active = 0
 							go olddi.Stop()
-						} else {
-							exist.di, _ = createdi(summary)
 						}
 					}
 					exist.summary = summary
@@ -435,10 +443,11 @@ func (s *InternalSdk) watch() {
 				s.lker.Lock()
 				exist, ok := s.apps[objid]
 				if !ok {
-					//this is not the summary
+					//this is not the app summary
 					s.lker.Unlock()
 					break
 				}
+				//this is the app summary
 				delete(s.apps, objid)
 				delete(s.appsNameIndex, exist.summary.ProjectName+"-"+exist.summary.Group+"."+exist.summary.App)
 				delete(s.appsIDIndex, exist.summary.ProjectID+"-"+exist.summary.Group+"."+exist.summary.App)
@@ -588,6 +597,7 @@ func (s *InternalSdk) GetAppConfigByProjectName(pname, g, a string) (*model.AppS
 	}
 	return app.summary, nil
 }
+
 func (s *InternalSdk) GetAppAddrsByProjectID(ctx context.Context, pid, g, a string) ([]string, error) {
 	fullname := pid + "-" + g + "." + a
 	s.lker.RLock()
@@ -606,11 +616,24 @@ func (s *InternalSdk) GetAppAddrsByProjectID(ctx context.Context, pid, g, a stri
 		app.Unlock()
 		return nil, ecode.ErrAppNotExist
 	}
+	if app.di == nil {
+		var e error
+		app.di, e = createdi(app.summary)
+		if e != nil {
+			app.Unlock()
+			return nil, e
+		}
+	}
+	app.active = time.Now().UnixNano()
 	//copy the di pointer
 	di := app.di
 	app.Unlock()
-	if di == nil {
-		return nil, ecode.ErrDBDataBroken
+	ch, cancel := di.GetNotice()
+	defer cancel()
+	select {
+	case <-ch:
+	case <-ctx.Done():
+		return nil, cerror.ConvertStdError(ctx.Err())
 	}
 	tmp, _, _ := di.GetAddrs(discover.NotNeed)
 	addrs := make([]string, 0, len(tmp))
@@ -619,6 +642,7 @@ func (s *InternalSdk) GetAppAddrsByProjectID(ctx context.Context, pid, g, a stri
 	}
 	return addrs, nil
 }
+
 func (s *InternalSdk) GetAppAddrsByProjectName(ctx context.Context, pname, g, a string) ([]string, error) {
 	fullname := pname + "-" + g + "." + a
 	s.lker.RLock()
@@ -637,11 +661,24 @@ func (s *InternalSdk) GetAppAddrsByProjectName(ctx context.Context, pname, g, a 
 		app.Unlock()
 		return nil, ecode.ErrAppNotExist
 	}
+	if app.di == nil {
+		var e error
+		app.di, e = createdi(app.summary)
+		if e != nil {
+			app.Unlock()
+			return nil, e
+		}
+	}
+	app.active = time.Now().UnixNano()
 	//copy the di pointer
 	di := app.di
 	app.Unlock()
-	if di == nil {
-		return nil, ecode.ErrDBDataBroken
+	ch, cancel := di.GetNotice()
+	defer cancel()
+	select {
+	case <-ch:
+	case <-ctx.Done():
+		return nil, cerror.ConvertStdError(ctx.Err())
 	}
 	tmp, _, _ := di.GetAddrs(discover.NotNeed)
 	addrs := make([]string, 0, len(tmp))
@@ -649,182 +686,6 @@ func (s *InternalSdk) GetAppAddrsByProjectName(ctx context.Context, pname, g, a 
 		addrs = append(addrs, addr)
 	}
 	return addrs, nil
-}
-
-// this is for the DiscoverSdk
-func (s *InternalSdk) WatchDiscover(ctx context.Context, pname, g, a string, info *api.WatchDiscoverResp) error {
-	fullname := pname + "-" + g + "." + a
-	for {
-		s.lker.RLock()
-		if s.closing {
-			s.lker.RUnlock()
-			return ecode.ErrServerClosing
-		}
-		app, ok := s.appsNameIndex[fullname]
-		if !ok {
-			s.lker.RUnlock()
-			return ecode.ErrAppNotExist
-		}
-		app.RLock()
-		s.lker.RUnlock()
-		if app.delstatus {
-			app.RUnlock()
-			return ecode.ErrAppNotExist
-		}
-		if info.DiscoverMode == "dns" && app.summary.DiscoverMode == "dns" {
-			if app.summary.DnsHost == "" || app.summary.DnsInterval == 0 {
-				app.RUnlock()
-				return ecode.ErrDBDataBroken
-			}
-			if info.DnsHost != app.summary.DnsHost ||
-				info.DnsInterval != app.summary.DnsInterval ||
-				info.CrpcPort != app.summary.CrpcPort ||
-				info.CgrpcPort != app.summary.CGrpcPort ||
-				info.WebPort != app.summary.WebPort {
-				//return the current discover setting
-				info.DiscoverMode = "dns"
-				info.DnsHost = app.summary.DnsHost
-				info.DnsInterval = app.summary.DnsInterval
-				info.Addrs = nil
-				info.CrpcPort = app.summary.CrpcPort
-				info.CgrpcPort = app.summary.CGrpcPort
-				info.WebPort = app.summary.WebPort
-				app.RUnlock()
-				return nil
-			}
-			//copy di
-			di := app.di
-			app.RUnlock()
-			//we don't care about the dns result
-			//but we do care about the change of app's discover setting
-			//if the discover setting changed,the current discover will be closed
-			//so we wait the close
-			notice, cancel := di.GetNotice()
-			closed := false
-			for {
-				select {
-				case <-ctx.Done():
-					cancel()
-					return cerror.ConvertStdError(ctx.Err())
-				case _, ok := <-notice:
-					closed = !ok
-				}
-				if closed {
-					break
-				}
-			}
-			cancel()
-			continue
-		}
-		if info.DiscoverMode == "dns" && app.summary.DiscoverMode != "dns" {
-			info.DiscoverMode = app.summary.DiscoverMode
-			info.DnsHost = ""
-			info.DnsInterval = 0
-			info.CrpcPort = app.summary.CrpcPort
-			info.CgrpcPort = app.summary.CGrpcPort
-			info.WebPort = app.summary.WebPort
-
-			//copy the di
-			di := app.di
-			app.RUnlock()
-			tmpaddrs, _, e := di.GetAddrs(discover.NotNeed)
-			if e != nil {
-				if e == cerror.ErrDiscoverStopped {
-					//app's discover setting changed,so the old discover closed
-					//loop to get the newest discover setting
-					continue
-				}
-				return e
-			}
-			//return the current discover setting
-			info.Addrs = make([]string, 0, len(tmpaddrs))
-			for addr := range tmpaddrs {
-				info.Addrs = append(info.Addrs, addr)
-			}
-			return nil
-		}
-		if info.DiscoverMode != "dns" && app.summary.DiscoverMode == "dns" {
-			if app.summary.DnsHost == "" || app.summary.DnsInterval == 0 {
-				app.RUnlock()
-				return ecode.ErrDBDataBroken
-			}
-			//return the current discover setting
-			info.DiscoverMode = "dns"
-			info.DnsHost = app.summary.DnsHost
-			info.DnsInterval = app.summary.DnsInterval
-			info.Addrs = nil
-			info.CrpcPort = app.summary.CrpcPort
-			info.CgrpcPort = app.summary.CGrpcPort
-			info.WebPort = app.summary.WebPort
-			app.RUnlock()
-			return nil
-		}
-		if info.DiscoverMode != "dns" && app.summary.DiscoverMode != "dns" {
-			info.DiscoverMode = app.summary.DiscoverMode
-			info.DnsHost = ""
-			info.DnsInterval = 0
-
-			portdifferent := info.CrpcPort != app.summary.CrpcPort ||
-				info.CgrpcPort != app.summary.CGrpcPort ||
-				info.WebPort != app.summary.WebPort
-
-			info.CrpcPort = app.summary.CrpcPort
-			info.CgrpcPort = app.summary.CGrpcPort
-			info.WebPort = app.summary.WebPort
-			//copy the di
-			di := app.di
-			app.RUnlock()
-			//the static and kubernetes discover will triger notice immediately
-			notice, cancel := di.GetNotice()
-			closed := false
-			for {
-				select {
-				case <-ctx.Done():
-					cancel()
-					return cerror.ConvertStdError(ctx.Err())
-				case _, ok := <-notice:
-					closed = !ok
-				}
-				if closed {
-					//app's discover setting changed,so the old discover closed
-					//loop to get the newest discover setting
-					break
-				}
-				tmpaddrs, _, e := di.GetAddrs(discover.NotNeed)
-				if e != nil {
-					if e == cerror.ErrDiscoverStopped {
-						//app's discover setting changed,so the old discover closed
-						//loop to get the newest discover setting
-						break
-					}
-					cancel()
-					return e
-				}
-				addrsdifferent := len(tmpaddrs) != len(info.Addrs)
-				if !addrsdifferent {
-					for i := range info.Addrs {
-						if _, ok := tmpaddrs[info.Addrs[i]]; !ok {
-							addrsdifferent = true
-							break
-						}
-					}
-				}
-				if addrsdifferent {
-					info.Addrs = make([]string, 0, len(tmpaddrs))
-					for addr := range tmpaddrs {
-						info.Addrs = append(info.Addrs, addr)
-					}
-				}
-				if portdifferent || addrsdifferent {
-					cancel()
-					return nil
-				}
-				//loop to get new addrs or discover closed
-			}
-			cancel()
-			continue
-		}
-	}
 }
 
 type PermissionCheckHandler func(ctx context.Context, nodeid string, read, write, admin bool) error
@@ -855,18 +716,21 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 		}
 	}
 	if app.client == nil {
-		if app.di == nil {
-			app.Unlock()
-			return nil, ecode.ErrDBDataBroken
-		}
 		var e error
+		if app.di == nil {
+			app.di, e = createdi(app.summary)
+			if e != nil {
+				app.Unlock()
+				return nil, e
+			}
+		}
 		app.client, e = crpc.NewCrpcClient(nil, app.di, model.Project, model.Group, model.Name, app.summary.ProjectName, app.summary.Group, app.summary.App, nil)
 		if e != nil {
 			app.Unlock()
 			return nil, e
 		}
 	}
-	app.clientactive = time.Now().UnixNano()
+	app.active = time.Now().UnixNano()
 	if forceaddr != "" && app.summary.CrpcPort != 0 {
 		if strings.Contains(forceaddr, ":") {
 			//ipv6
@@ -917,18 +781,21 @@ func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string,
 		}
 	}
 	if app.client == nil {
-		if app.di == nil {
-			app.Unlock()
-			return nil, ecode.ErrDBDataBroken
-		}
 		var e error
+		if app.di == nil {
+			app.di, e = createdi(app.summary)
+			if e != nil {
+				app.Unlock()
+				return nil, e
+			}
+		}
 		app.client, e = crpc.NewCrpcClient(nil, app.di, model.Project, model.Group, model.Name, app.summary.ProjectName, app.summary.Group, app.summary.App, nil)
 		if e != nil {
 			app.Unlock()
 			return nil, e
 		}
 	}
-	app.clientactive = time.Now().UnixNano()
+	app.active = time.Now().UnixNano()
 	if forceaddr != "" && app.summary.CrpcPort != 0 {
 		if strings.Contains(forceaddr, ":") {
 			//ipv6

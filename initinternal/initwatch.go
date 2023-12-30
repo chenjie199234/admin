@@ -215,6 +215,8 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 			}
 			return di, nil
 		}
+	default:
+		return nil, ecode.ErrDBDataBroken
 	}
 	return nil, nil
 }

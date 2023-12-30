@@ -853,8 +853,8 @@ function is_json_obj(str :string):boolean{
 				<va-input v-if="new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin-top:10px" v-model.trim="new_kubernetesns" />
 				<b v-if="new_discovermode=='kubernetes'" style="color:var(--va-primary);margin-top:10px;font-size:12px">KUBERNETES SELECTOR*</b>
 				<div v-if="new_discovermode=='kubernetes'" style="display:flex;justify-content:space-between">
-					<va-input type="text" label="Label Selector" style="width:170px" v-model.trim="new_kubernetesls" />
-					<va-input type="text" label="Field Selector" style="width:170px" v-model.trim="new_kubernetesfs" />
+					<va-input type="text" label="Label Selector" style="flex:1;margin-right:5px" v-model.trim="new_kubernetesls" />
+					<va-input type="text" label="Field Selector" style="flex:1;margin-left:5px" v-model.trim="new_kubernetesfs" />
 				</div>
 				<va-input v-if="new_discovermode=='dns'" type="text" label="Dns Host*" style="margin-top:10px" v-model.trim="new_dnshost" />
 				<va-input v-if="new_discovermode=='dns'" type="number" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="new_dnsinterval" />
@@ -902,8 +902,8 @@ function is_json_obj(str :string):boolean{
 				<va-input v-if="update_new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin-top:10px" v-model.trim="update_new_kubernetesns" />
 				<b v-if="update_new_discovermode=='kubernetes'" style="color:var(--va-primary);margin-top:10px;font-size:12px">KUBERNETES SELECTOR*</b>
 				<div v-if="update_new_discovermode=='kubernetes'" style="display:flex;justify-content:space-between">
-					<va-input type="text" label="Label Selector" style="width:170px" v-model.trim="update_new_kubernetesls" />
-					<va-input type="text" label="Field Selector" style="width:170px" v-model.trim="update_new_kubernetesfs" />
+					<va-input type="text" label="Label Selector" style="flex:1;margin-right:5px" v-model.trim="update_new_kubernetesls" />
+					<va-input type="text" label="Field Selector" style="flex:1;margin-left:5px" v-model.trim="update_new_kubernetesfs" />
 				</div>
 				<va-input v-if="update_new_discovermode=='dns'" type="text" label="Dns Host*" style="margin-top:10px" v-model.trim="update_new_dnshost" />
 				<va-input v-if="update_new_discovermode=='dns'" type="number" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="update_new_dnsinterval" />
@@ -946,7 +946,7 @@ function is_json_obj(str :string):boolean{
 				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
 					<va-card-content style="font-size:20px"><b>Add Key Config</b></va-card-content>
 				</va-card>
-				<va-input type="text" label="Key_Name*" style="margin-top:10px;width:600px" v-model.trim="config_key" />
+				<va-input type="text" label="Key_Name*" style="margin-top:10px" v-model.trim="config_key" />
 				<va-radio
 					style="margin-top:10px;display:flex;justify-content:space-evenly;align-items:center"
 					:options='["json","raw","yaml","toml"]'
@@ -954,7 +954,7 @@ function is_json_obj(str :string):boolean{
 					disabled />
 				<b style="font-size:13px;color:var(--va-primary)">CONTENT</b>
 				<textarea
-					style="border:1px solid var(--va-background-element);border-radius:5px;margin-top:10px;width:600px;height:300px;resize:none"
+					style="border:1px solid var(--va-background-element);border-radius:5px;margin-top:10px;height:300px;resize:none"
 					v-model.trim="config_value" />
 				<div style="display:flex;justify-content:center">
 					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" :disabled="!add_key_able()" gradient >Add</va-button>
@@ -989,7 +989,7 @@ function is_json_obj(str :string):boolean{
 				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
 					<va-card-content style="font-size:20px"><b>Add Proxy Path</b></va-card-content>
 				</va-card>
-				<va-input label="Path" style="width:500px;margin-top:10px" v-model.trim="new_proxy_path"/>
+				<va-input label="Path" style="margin-top:10px" v-model.trim="new_proxy_path"/>
 				<div style="display:flex;justify-content:space-around;margin-top:10px">
 					<va-switch
 						v-model="new_proxy_permission_read"

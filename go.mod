@@ -3,7 +3,7 @@ module github.com/chenjie199234/admin
 go 1.21
 
 require (
-	github.com/chenjie199234/Corelib v0.0.94-0.20231230084039-0236415a52aa
+	github.com/chenjie199234/Corelib v0.0.94
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/redis/go-redis/v9 v9.3.1
 	go.mongodb.org/mongo-driver v1.13.1
@@ -38,7 +38,7 @@ require (
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
-	github.com/shirou/gopsutil/v3 v3.23.11 // indirect
+	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect

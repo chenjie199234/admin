@@ -104,7 +104,7 @@ type GetAppResp struct {
 	KubernetesLabelselector string                    `protobuf:"bytes,3,opt,name=kubernetes_labelselector,json=kubernetesLabelselector,proto3" json:"kubernetes_labelselector,omitempty"` //when discover_mode == "kubernetes"
 	KubernetesFieldselector string                    `protobuf:"bytes,4,opt,name=kubernetes_fieldselector,json=kubernetesFieldselector,proto3" json:"kubernetes_fieldselector,omitempty"` //when discover_mode == "kubernetes"
 	DnsHost                 string                    `protobuf:"bytes,5,opt,name=dns_host,json=dnsHost,proto3" json:"dns_host,omitempty"`                                                 //when discover_mode == "dns"
-	DnsInterval             uint32                    `protobuf:"varint,6,opt,name=dns_interval,json=dnsInterval,proto3" json:"dns_interval,omitempty"`                                    //when discover_mode == "dns",unit second
+	DnsInterval             uint32                    `protobuf:"varint,6,opt,name=dns_interval,json=dnsInterval,proto3" json:"dns_interval,omitempty"`                                    //when discover_mode == "dns",unit seconds
 	StaticAddrs             []string                  `protobuf:"bytes,7,rep,name=static_addrs,json=staticAddrs,proto3" json:"static_addrs,omitempty"`                                     //when discover_mode == "static"
 	CrpcPort                uint32                    `protobuf:"varint,8,opt,name=crpc_port,json=crpcPort,proto3" json:"crpc_port,omitempty"`
 	CgrpcPort               uint32                    `protobuf:"varint,9,opt,name=cgrpc_port,json=cgrpcPort,proto3" json:"cgrpc_port,omitempty"`
@@ -393,7 +393,7 @@ type SetAppReq struct {
 	KubernetesLabelselector string   `protobuf:"bytes,7,opt,name=kubernetes_labelselector,json=kubernetesLabelselector,proto3" json:"kubernetes_labelselector,omitempty"` //when discover_mode == "kubernetes"
 	KubernetesFieldselector string   `protobuf:"bytes,8,opt,name=kubernetes_fieldselector,json=kubernetesFieldselector,proto3" json:"kubernetes_fieldselector,omitempty"` //when discover_mode == "kubernetes"
 	DnsHost                 string   `protobuf:"bytes,9,opt,name=dns_host,json=dnsHost,proto3" json:"dns_host,omitempty"`                                                 //when discover_mode == "dns"
-	DnsInterval             uint32   `protobuf:"varint,10,opt,name=dns_interval,json=dnsInterval,proto3" json:"dns_interval,omitempty"`                                   //when discover_mode == "dns",unit second
+	DnsInterval             uint32   `protobuf:"varint,10,opt,name=dns_interval,json=dnsInterval,proto3" json:"dns_interval,omitempty"`                                   //when discover_mode == "dns",unit seconds
 	StaticAddrs             []string `protobuf:"bytes,11,rep,name=static_addrs,json=staticAddrs,proto3" json:"static_addrs,omitempty"`                                    //when discover_mode == "static"
 	CrpcPort                uint32   `protobuf:"varint,12,opt,name=crpc_port,json=crpcPort,proto3" json:"crpc_port,omitempty"`
 	CgrpcPort               uint32   `protobuf:"varint,13,opt,name=cgrpc_port,json=cgrpcPort,proto3" json:"cgrpc_port,omitempty"`
@@ -1571,7 +1571,7 @@ type WatchDiscoverReq struct {
 	AName                      string   `protobuf:"bytes,3,opt,name=a_name,json=aName,proto3" json:"a_name,omitempty"`
 	CurDiscoverMode            string   `protobuf:"bytes,4,opt,name=cur_discover_mode,json=curDiscoverMode,proto3" json:"cur_discover_mode,omitempty"`
 	CurDnsHost                 string   `protobuf:"bytes,5,opt,name=cur_dns_host,json=curDnsHost,proto3" json:"cur_dns_host,omitempty"`                                                  //when discover_mode == "dns"
-	CurDnsInterval             uint32   `protobuf:"varint,6,opt,name=cur_dns_interval,json=curDnsInterval,proto3" json:"cur_dns_interval,omitempty"`                                     //when cur_discover_mode == "dns",unit second
+	CurDnsInterval             uint32   `protobuf:"varint,6,opt,name=cur_dns_interval,json=curDnsInterval,proto3" json:"cur_dns_interval,omitempty"`                                     //when cur_discover_mode == "dns",unit seconds
 	CurStaticAddrs             []string `protobuf:"bytes,7,rep,name=cur_static_addrs,json=curStaticAddrs,proto3" json:"cur_static_addrs,omitempty"`                                      //when cur_discover_mode == "static"
 	CurKubernetesNamespace     string   `protobuf:"bytes,8,opt,name=cur_kubernetes_namespace,json=curKubernetesNamespace,proto3" json:"cur_kubernetes_namespace,omitempty"`              //when cur_discover_mode == "kubernetes"
 	CurKubernetesLabelselector string   `protobuf:"bytes,9,opt,name=cur_kubernetes_labelselector,json=curKubernetesLabelselector,proto3" json:"cur_kubernetes_labelselector,omitempty"`  //when cur_discover_mode == "kubernetes"

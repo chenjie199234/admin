@@ -792,7 +792,7 @@ export interface UserInfo{
 	feishu_user_name: string;
 	dingtalk_user_name: string;
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	ctime: number;//timestamp,uint:second
+	ctime: number;//timestamp,uint seconds
 	project_roles: Array<ProjectRoles|null|undefined>|null|undefined;
 }
 function JsonToUserInfo(jsonobj: { [k:string]:any }): UserInfo{

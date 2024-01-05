@@ -125,7 +125,7 @@ type UserInfo struct {
 	UserId           string          `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	FeishuUserName   string          `protobuf:"bytes,2,opt,name=feishu_user_name,json=feishuUserName,proto3" json:"feishu_user_name,omitempty"`
 	DingtalkUserName string          `protobuf:"bytes,3,opt,name=dingtalk_user_name,json=dingtalkUserName,proto3" json:"dingtalk_user_name,omitempty"`
-	Ctime            uint32          `protobuf:"varint,4,opt,name=ctime,proto3" json:"ctime,omitempty"` //timestamp,uint:second
+	Ctime            uint32          `protobuf:"varint,4,opt,name=ctime,proto3" json:"ctime,omitempty"` //timestamp,uint seconds
 	ProjectRoles     []*ProjectRoles `protobuf:"bytes,5,rep,name=project_roles,json=projectRoles,proto3" json:"project_roles,omitempty"`
 }
 

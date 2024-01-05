@@ -114,7 +114,7 @@ message get_app_resp{
 	string kubernetes_labelselector=3;//when discover_mode == "kubernetes"
 	string kubernetes_fieldselector=4;//when discover_mode == "kubernetes"
 	string dns_host=5;//when discover_mode == "dns"
-	uint32 dns_interval=6;//when discover_mode == "dns",unit second
+	uint32 dns_interval=6;//when discover_mode == "dns",unit seconds
 	repeated string static_addrs=7;//when discover_mode == "static"
 	uint32 crpc_port=8;
 	uint32 cgrpc_port=9;
@@ -148,7 +148,7 @@ message set_app_req {
 	string kubernetes_labelselector=7;//when discover_mode == "kubernetes"
 	string kubernetes_fieldselector=8;//when discover_mode == "kubernetes"
 	string dns_host=9;//when discover_mode == "dns"
-	uint32 dns_interval=10;//when discover_mode == "dns",unit second
+	uint32 dns_interval=10;//when discover_mode == "dns",unit seconds
 	repeated string static_addrs=11;//when discover_mode == "static"
 	uint32 crpc_port=12[(pbex.uint_gt)=0,(pbex.uint_lt)=65536];
 	uint32 cgrpc_port=13[(pbex.uint_gt)=0,(pbex.uint_lt)=65536];
@@ -250,7 +250,7 @@ message watch_discover_req{
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
 	string cur_discover_mode=4[(pbex.string_bytes_in)="kubernetes",(pbex.string_bytes_in)="dns",(pbex.string_bytes_in)="static",(pbex.string_bytes_in)=""];
 	string cur_dns_host=5;//when discover_mode == "dns"
-	uint32 cur_dns_interval=6;//when cur_discover_mode == "dns",unit second
+	uint32 cur_dns_interval=6;//when cur_discover_mode == "dns",unit seconds
 	repeated string cur_static_addrs=7;//when cur_discover_mode == "static"
 	string cur_kubernetes_namespace=8;//when cur_discover_mode == "kubernetes"
 	string cur_kubernetes_labelselector=9;//when cur_discover_mode == "kubernetes"

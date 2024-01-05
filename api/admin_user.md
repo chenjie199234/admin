@@ -90,7 +90,7 @@ user_info: {
 	"user_id":"str",
 	"feishu_user_name":"str",
 	"dingtalk_user_name":"str",
-	//timestamp,uint:second
+	//timestamp,uint seconds
 	//uint32
 	"ctime":0,
 	//object project_roles
@@ -212,7 +212,7 @@ user_info: {
 	"user_id":"str",
 	"feishu_user_name":"str",
 	"dingtalk_user_name":"str",
-	//timestamp,uint:second
+	//timestamp,uint seconds
 	//uint32
 	"ctime":0,
 	//object project_roles

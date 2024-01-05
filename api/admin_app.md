@@ -45,7 +45,7 @@ Success: httpcode:200
 	"kubernetes_fieldselector":"str",
 	//when discover_mode == "dns"
 	"dns_host":"str",
-	//when discover_mode == "dns",unit second
+	//when discover_mode == "dns",unit seconds
 	//uint32
 	"dns_interval":0,
 	//when discover_mode == "static"
@@ -113,7 +113,7 @@ Content-Type: application/json
 	"kubernetes_fieldselector":"str",
 	//when discover_mode == "dns"
 	"dns_host":"str",
-	//when discover_mode == "dns",unit second
+	//when discover_mode == "dns",unit seconds
 	//uint32
 	"dns_interval":0,
 	//when discover_mode == "static"
@@ -454,7 +454,7 @@ Content-Type: application/json
 	"cur_discover_mode":"str",
 	//when discover_mode == "dns"
 	"cur_dns_host":"str",
-	//when cur_discover_mode == "dns",unit second
+	//when cur_discover_mode == "dns",unit seconds
 	//uint32
 	"cur_dns_interval":0,
 	//when cur_discover_mode == "static"

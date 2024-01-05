@@ -290,7 +290,7 @@ export interface GetAppResp{
 	kubernetes_fieldselector: string;//when discover_mode == "kubernetes"
 	dns_host: string;//when discover_mode == "dns"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	dns_interval: number;//when discover_mode == "dns",unit second
+	dns_interval: number;//when discover_mode == "dns",unit seconds
 	static_addrs: Array<string>|null|undefined;//when discover_mode == "static"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	crpc_port: number;
@@ -1182,7 +1182,7 @@ export interface SetAppReq{
 	kubernetes_fieldselector: string;//when discover_mode == "kubernetes"
 	dns_host: string;//when discover_mode == "dns"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	dns_interval: number;//when discover_mode == "dns",unit second
+	dns_interval: number;//when discover_mode == "dns",unit seconds
 	static_addrs: Array<string>|null|undefined;//when discover_mode == "static"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
 	crpc_port: number;
@@ -1811,7 +1811,7 @@ export interface WatchDiscoverReq{
 	cur_discover_mode: string;
 	cur_dns_host: string;//when discover_mode == "dns"
 	//Warning!!!Type is uint32,be careful of sign(+) and overflow
-	cur_dns_interval: number;//when cur_discover_mode == "dns",unit second
+	cur_dns_interval: number;//when cur_discover_mode == "dns",unit seconds
 	cur_static_addrs: Array<string>|null|undefined;//when cur_discover_mode == "static"
 	cur_kubernetes_namespace: string;//when cur_discover_mode == "kubernetes"
 	cur_kubernetes_labelselector: string;//when cur_discover_mode == "kubernetes"

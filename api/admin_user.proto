@@ -100,7 +100,7 @@ message user_info {
 	string user_id=1;
 	string feishu_user_name=2;
 	string dingtalk_user_name=3;
-	uint32 ctime=4;//timestamp,uint:second
+	uint32 ctime=4;//timestamp,uint seconds
 	repeated project_roles project_roles=5;
 }
 message project_roles{

@@ -218,7 +218,6 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 	default:
 		return nil, ecode.ErrDBDataBroken
 	}
-	return nil, nil
 }
 func (s *InternalSdk) mongoGetAllApp() error {
 	filter := bson.M{"key": "", "index": 0}

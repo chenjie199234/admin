@@ -16,7 +16,8 @@ onMounted(()=>{
 			if(!state.set_load()){
 				return
 			}
-			client.userClient.login_info({"Token":obj.token},{},client.timeout,(e :userAPI.Error)=>{
+			let req = new userAPI.LoginInfoReq()
+			client.userClient.login_info({"Token":obj.token},req,client.timeout,(e :userAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp :userAPI.LoginInfoResp)=>{
@@ -71,7 +72,9 @@ function do_login_root(){
 	if(!state.set_load()){
 		return
 	}
-	client.initializeClient.root_login({},{password:password.value},client.timeout,(e: initializeAPI.Error)=>{
+	let req = new initializeAPI.RootLoginReq()
+	req.password = password.value
+	client.initializeClient.root_login({},req,client.timeout,(e: initializeAPI.LogicError)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.RootLoginResp)=>{
@@ -88,10 +91,9 @@ function doauth(){
 	if(!state.set_load()){
 		return
 	}
-	let req={
-		src_type:oauth2.value,
-	}
-	client.userClient.get_oauth2({},req,client.timeout,(e :userAPI.Error)=>{
+	let req = new userAPI.GetOauth2Req()
+	req.src_type=oauth2.value
+	client.userClient.get_oauth2({},req,client.timeout,(e :userAPI.LogicError)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp :userAPI.GetOauth2Resp)=>{
@@ -103,11 +105,10 @@ function do_login_user(){
 	if(!state.set_load()){
 		return
 	}
-	let req = {
-		src_type:oauth2.value,
-		code:oauth2code.value,
-	}
-	client.userClient.user_login({},req,client.timeout,(e :userAPI.Error)=>{
+	let req = new userAPI.UserLoginReq()
+	req.src_type=oauth2.value
+	req.code=oauth2code.value
+	client.userClient.user_login({},req,client.timeout,(e :userAPI.LogicError)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp :userAPI.UserLoginResp)=>{
@@ -121,11 +122,11 @@ function do_login_user(){
 <template>
 	<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center">
 		<div v-if="!state.user.root">
-			<va-card style="text-align:center" color="primary" gradient>
-				<va-card-content style="font-size:20px"><b>Normal User Login</b></va-card-content>
-			</va-card>
+			<VaCard style="text-align:center" color="primary" gradient>
+				<VaCardContent style="font-size:20px"><b>Normal User Login</b></VaCardContent>
+			</VaCard>
 			<div style="display:flex;align-items:end;margin-top:20px">
-				<va-select
+				<VaSelect
 					v-model="oauth2"
 					:options="oauth2s"
 					noOptionsText="NO Oauth2 Login"
@@ -136,7 +137,7 @@ function do_login_user(){
 					:hoverOutTimeout="100"
 				>
 					<template #option='{option,selectOption}'>
-						<va-hover stateful @click="selectOption(option)">
+						<VaHover stateful @click="selectOption(option)">
 							<template #default="{hover}">
 								<div
 									style="padding:10px;cursor:pointer"
@@ -145,26 +146,26 @@ function do_login_user(){
 									{{option}}
 								</div>
 							</template>
-						</va-hover>
+						</VaHover>
 					</template>
-				</va-select>
-				<va-button style="width:90px;margin-left:10px" :disabled="oauth2==''" @click="doauth" gradient>Login</va-button>
+				</VaSelect>
+				<VaButton style="width:90px;margin-left:10px" :disabled="oauth2==''" @click="doauth" gradient>Login</VaButton>
 			</div>
-			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=true;oauth2=''" gradient>Switch To Root User Login</va-button>
+			<VaButton style="width:400px;margin:10px 0 0 0" @click="state.user.root=true;oauth2=''" gradient>Switch To Root User Login</VaButton>
 		</div>
 		<div v-if="state.user.root">
-			<va-card style="text-align:center" color="primary" gradient>
-				<va-card-content style="font-size:20px"><b>Root User Login</b></va-card-content>
-			</va-card>
+			<VaCard style="text-align:center" color="primary" gradient>
+				<VaCardContent style="font-size:20px"><b>Root User Login</b></VaCardContent>
+			</VaCard>
 			<div style="display:flex;align-items:end;margin-top:20px">
-				<va-input :type="t_password?'text':'password'" style="width:300px" label="Root Password*" v-model="password">
+				<VaInput :type="t_password?'text':'password'" style="width:300px" label="Root Password*" v-model="password">
 					<template #appendInner>
-						<va-icon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
+						<VaIcon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
 					</template>
-				</va-input>
-				<va-button style="width:90px;margin-left:10px" :disabled="!login_root_able()" @click="do_login_root" gradient>Login</va-button>
+				</VaInput>
+				<VaButton style="width:90px;margin-left:10px" :disabled="!login_root_able()" @click="do_login_root" gradient>Login</VaButton>
 			</div>
-			<va-button style="width:400px;margin:10px 0 0 0" @click="state.user.root=false;oauth2=''" gradient>Switch To Normal User Login</va-button>
+			<VaButton style="width:400px;margin:10px 0 0 0" @click="state.user.root=false;oauth2=''" gradient>Switch To Normal User Login</VaButton>
 		</div>
 	</div>
 </template>

@@ -79,7 +79,7 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 </script>
 <template>
 	<div style="display:flex">
-		<va-divider vertical color="shadow" style="margin-right:0" :style="{'margin-left':deep==0?'5px':'15px'}" />
+		<VaDivider vertical color="shadow" style="margin-right:0" :style="{'margin-left':deep==0?'5px':'15px'}" />
 		<div style="flex:1;display:flex;flex-direction:column">
 			<template v-for="node of pnode.children">
 				<div v-if="showable(node)" style="display:flex;align-items:center">
@@ -96,12 +96,12 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 								state.set_page(node!)
 							}
 						}">
-						<va-divider color="shadow" style="margin:0;width:15px" />
+						<VaDivider color="shadow" style="margin:0;width:15px" />
 						<div style="flex:1;display:flex;align-items:center;padding:3px 0">
 							<span style="padding:7px 0">{{node!.node_name}}</span>
 							<span v-if="jumpable(node)" style="padding-left:5px;font-size:30px" :style="{color:state.page.node==node?'green':'black'}">☞</span>
 						</div>
-						<va-hover v-if="has_children(node)" stateful>
+						<VaHover v-if="has_children(node)" stateful>
 							<template #default="{hover}">
 								<div
 									style="padding:5px;border-radius:2px"
@@ -111,19 +111,19 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 									{{open[node!.node_id!.toString()]?'▲':'▼'}}
 								</div>
 							</template>
-						</va-hover>
-						<va-hover v-if="need_button(node)" stateful>
+						</VaHover>
+						<VaHover v-if="need_button(node)" stateful>
 							<template #default="{hover}">
 								<div v-if="!hover" style="padding:5px 7px">
 									•••
 								</div>
-								<va-popover
+								<VaPopover
 									v-if="hover"
 									message="Update Menu"
 									:hover-out-timeout="0"
 									:hover-over-timeout="0"
 									color="primary">
-									<va-hover stateful>
+									<VaHover stateful>
 										<template #default="{hover}">
 											<div
 												style="padding:5px 7px;border-radius:2px"
@@ -132,15 +132,15 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 												<b>◉</b>
 											</div>
 										</template>
-									</va-hover>
-								</va-popover>
-								<va-popover
+									</VaHover>
+								</VaPopover>
+								<VaPopover
 									v-if="hover"
 									message="Delete Menu"
 									:hover-out-timeout="0"
 									:hover-over-timeout="0"
 									color="primary">
-									<va-hover stateful>
+									<VaHover stateful>
 										<template #default="{hover}">
 											<div
 												style="padding:5px 9px;border-radius:2px"
@@ -149,15 +149,15 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 												<b>x</b>
 											</div>
 										</template>
-									</va-hover>
-								</va-popover>
-								<va-popover
+									</VaHover>
+								</VaPopover>
+								<VaPopover
 									v-if="hover"
 									message="Add Sub Menu"
 									:hover-out-timeout="0"
 									:hover-over-timeout="0"
 									color="primary">
-									<va-hover stateful>
+									<VaHover stateful>
 										<template #default="{hover}">
 											<div
 												style="padding:5px 9px;border-radius:2px"
@@ -166,10 +166,10 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 												<b>+</b>
 											</div>
 										</template>
-									</va-hover>
-								</va-popover>
+									</VaHover>
+								</VaPopover>
 							</template>
-						</va-hover>
+						</VaHover>
 					</div>
 				</div>
 				<menutree v-if="showable(node)&&open[node!.node_id!.toString()]&&has_children(node)" :pnode="node!" :deep="deep+1" @nodeevent="(pnode,node,type)=>{$emit('nodeevent',pnode,node,type)}"></menutree>

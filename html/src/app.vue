@@ -102,13 +102,12 @@ function get_app(){
 	if(!state.set_load()){
 		return
 	}
-	let req = {
-		project_id:state.project.info!.project_id,
-		g_name:curg.value,
-		a_name:cura.value,
-		secret:secret.value,
-	}
-	client.appClient.get_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+	let req=new appAPI.GetAppReq()
+	req.project_id=state.project.info!.project_id
+	req.g_name=curg.value
+	req.a_name=cura.value
+	req.secret=secret.value
+	client.appClient.get_app({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetAppResp)=>{
@@ -138,8 +137,8 @@ function get_app(){
 		kubernetesns.value=resp.kubernetes_namespace
 		kubernetesls.value=resp.kubernetes_labelselector
 		kubernetesfs.value=resp.kubernetes_fieldselector
-	      	dnshost.value=resp.dns_host
-	      	dnsinterval.value=resp.dns_interval
+		dnshost.value=resp.dns_host
+		dnsinterval.value=resp.dns_interval
 		if(resp.static_addrs){
 			staticaddrs.value=resp.static_addrs
 		}else{
@@ -156,14 +155,13 @@ function get_instances(withinfo: boolean){
 	if(!state.set_load()){
 		return
 	}
-	let req = {
-		project_id:state.project.info!.project_id,
-		g_name:curg.value,
-		a_name:cura.value,
-		secret:secret.value,
-		with_info:withinfo,
-	}
-	client.appClient.get_instances({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+	let req=new appAPI.GetInstancesReq()
+	req.project_id=state.project.info!.project_id
+	req.g_name=curg.value
+	req.a_name=cura.value
+	req.secret=secret.value
+	req.with_info=withinfo
+	client.appClient.get_instances({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetInstancesResp)=>{
@@ -187,14 +185,13 @@ function get_instance(addr: string){
 	if(!state.set_load()){
 		return
 	}
-	let req = {
-		project_id:state.project.info!.project_id,
-		g_name:curg.value,
-		a_name:cura.value,
-		secret:secret.value,
-		addr:addr,
-	}
-	client.appClient.get_instance_info({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+	let req=new appAPI.GetInstanceInfoReq()
+	req.project_id=state.project.info!.project_id
+	req.g_name=curg.value
+	req.a_name=cura.value
+	req.secret=secret.value
+	req.addr=addr
+	client.appClient.get_instance_info({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetInstanceInfoResp)=>{
@@ -444,13 +441,12 @@ function app_op(){
 	}
 	switch(optype.value){
 		case 'del_app':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-			}
-			client.appClient.del_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.DelAppReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			client.appClient.del_app({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.DelAppResp)=>{
@@ -477,51 +473,41 @@ function app_op(){
 			break
 		}
 		case 'add_app':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:new_g.value,
-				a_name:new_a.value,
-				secret:new_secret.value,
-				discover_mode:new_discovermode.value,
-				kubernetes_namespace:new_kubernetesns.value,
-	      			kubernetes_labelselector:new_kubernetesls.value,
-	      			kubernetes_fieldselector:new_kubernetesfs.value,
-	      			dns_host:new_dnshost.value,
-	      			dns_interval:new_dnsinterval.value,
-	      			static_addrs:new_staticaddrs.value,
-				crpc_port:new_crpc_port.value,
-				cgrpc_port:new_cgrpc_port.value,
-				web_port:new_web_port.value,
-	      			new_app:true,
-			}
-			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.SetAppReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=new_g.value
+			req.a_name=new_a.value
+			req.secret=new_secret.value
+			req.discover_mode=new_discovermode.value
+			req.kubernetes_namespace=new_kubernetesns.value
+			req.kubernetes_labelselector=new_kubernetesls.value
+			req.kubernetes_fieldselector=new_kubernetesfs.value
+			req.dns_host=new_dnshost.value
+			req.dns_interval=new_dnsinterval.value
+			req.static_addrs=new_staticaddrs.value
+			req.crpc_port=new_crpc_port.value
+			req.cgrpc_port=new_cgrpc_port.value
+			req.web_port=new_web_port.value
+			req.new_app=true
+			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.SetAppResp)=>{
 				if(all.value[new_g.value] && all.value[new_g.value][new_a.value]){
 					return
 				}
-				if(state.page.node!.children){
-					state.page.node!.children!.push({
-						node_id:resp.node_id,
-						node_name:new_g.value+"."+new_a.value,
-						node_data:"",
-						canread:true,
-						canwrite:true,
-						admin:true,
-						children:[],
-					})
-				}else{
-					state.page.node!.children=[{
-						node_id:resp.node_id,
-						node_name:new_g.value+"."+new_a.value,
-						node_data:"",
-						canread:true,
-						canwrite:true,
-						admin:true,
-						children:[],
-					}]
+				let tmp = new permissionAPI.NodeInfo()
+				tmp.node_id=resp.node_id
+				tmp.node_name=new_g.value+"."+new_a.value
+				tmp.node_data=""
+				tmp.canread=true
+				tmp.canwrite=true
+				tmp.admin=true
+				tmp.children=[]
+				if(!state.page.node!.children){
+					state.page.node!.children=[]
 				}
+				state.page.node!.children!.push(tmp)
 				new_g.value=""
 				new_a.value=""
 				new_secret.value=""
@@ -532,24 +518,23 @@ function app_op(){
 			break
 		}
 		case 'update_discover':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-				discover_mode:update_new_discovermode.value,
-				kubernetes_namespace:update_new_kubernetesns.value,
-	      			kubernetes_labelselector:update_new_kubernetesls.value,
-	      			kubernetes_fieldselector:update_new_kubernetesfs.value,
-	      			dns_host:update_new_dnshost.value,
-	      			dns_interval:update_new_dnsinterval.value,
-	      			static_addrs:update_new_staticaddrs.value,
-				crpc_port:update_new_crpc_port.value,
-				cgrpc_port:update_new_cgrpc_port.value,
-				web_port:update_new_web_port.value,
-	      			new_app:false,
-			}
-			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.SetAppReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			req.discover_mode=update_new_discovermode.value
+			req.kubernetes_namespace=update_new_kubernetesns.value
+			req.kubernetes_labelselector=update_new_kubernetesls.value
+			req.kubernetes_fieldselector=update_new_kubernetesfs.value
+			req.dns_host=update_new_dnshost.value
+			req.dns_interval=update_new_dnsinterval.value
+			req.static_addrs=update_new_staticaddrs.value
+			req.crpc_port=update_new_crpc_port.value
+			req.cgrpc_port=update_new_cgrpc_port.value
+			req.web_port=update_new_web_port.value
+			req.new_app=false
+			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_: appAPI.SetAppResp)=>{
@@ -569,14 +554,13 @@ function app_op(){
 			break
 		}
 		case 'update_secret':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				old_secret:secret.value,
-				new_secret:update_new_secret.value
-			}
-			client.appClient.update_app_secret({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.UpdateAppSecretReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.old_secret=secret.value
+			req.new_secret=update_new_secret.value
+			client.appClient.update_app_secret({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.UpdateAppSecretResp)=>{
@@ -588,15 +572,14 @@ function app_op(){
 			break
 		}
 		case 'get_rollback_key':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-				key:cur_key.value,
-				index:rollback_key_index.value,
-			}
-			client.appClient.get_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.GetKeyConfigReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			req.key=cur_key.value
+			req.index=rollback_key_index.value
+			client.appClient.get_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.GetKeyConfigResp)=>{
@@ -612,27 +595,26 @@ function app_op(){
 			break
 		}
 		case 'add_key':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-				key:config_key.value,
-				value:config_value.value,
-				value_type:config_value_type.value,
-				new_key:true,
-			}
-			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.SetKeyConfigReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			req.key=config_key.value
+			req.value=config_value.value
+			req.value_type=config_value_type.value
+			req.new_key=true
+			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.SetKeyConfigResp)=>{
-				keys.value.set(config_key.value,{
-					cur_index:1,
-					max_index:1,
-					cur_version:1,
-					cur_value:config_value.value,
-					cur_value_type:config_value_type.value,
-				})
+				let tmp = new appAPI.KeyConfigInfo()
+				tmp.cur_index=1
+				tmp.max_index=1
+				tmp.cur_version=1
+				tmp.cur_value=config_value.value
+				tmp.cur_value_type=config_value_type.value
+				keys.value.set(config_key.value,tmp)
 				config_key.value = ''
 				config_value.value = '{\n}'
 				config_value_type.value = 'json'
@@ -642,17 +624,16 @@ function app_op(){
 			break
 		}
 		case 'update_key':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-				key:cur_key.value,
-				value:edit_key_value.value,
-				value_type:edit_key_value_type.value,
-				new_key:false,
-			}
-			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.SetKeyConfigReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			req.key=cur_key.value
+			req.value=edit_key_value.value
+			req.value_type=edit_key_value_type.value
+			req.new_key=false
+			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.SetKeyConfigResp)=>{
@@ -664,15 +645,14 @@ function app_op(){
 			break
 		}
 		case 'rollback_key':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-				key:cur_key.value,
-				index:rollback_key_index.value,
-			}
-			client.appClient.rollback({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.RollbackReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			req.key=cur_key.value
+			req.index=rollback_key_index.value
+			client.appClient.rollback({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.RollbackResp)=>{
@@ -684,14 +664,13 @@ function app_op(){
 			break
 		}
 		case 'del_key':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-				key:cur_key.value,
-			}
-			client.appClient.del_key({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.DelKeyReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			req.key=cur_key.value
+			client.appClient.del_key({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.DelKeyResp)=>{
@@ -703,30 +682,29 @@ function app_op(){
 			break
 		}
 		case 'add_proxy':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-				path:new_proxy_path.value,
-				read:new_proxy_permission_read.value,
-				write:new_proxy_permission_write.value,
-				admin:new_proxy_permission_admin.value,
-				new_path:true,
-			}
-			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.SetProxyReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			req.path=new_proxy_path.value
+			req.read=new_proxy_permission_read.value
+			req.write=new_proxy_permission_write.value
+			req.admin=new_proxy_permission_admin.value
+			req.new_path=true
+			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(resp: appAPI.SetProxyResp)=>{
 				if(new_proxy_path.value[0]!='/'){
 					new_proxy_path.value="/"+new_proxy_path.value
 				}
-				proxys.value.set(new_proxy_path.value,{
-					node_id:resp.node_id,
-					read:new_proxy_permission_read.value,
-					write:new_proxy_permission_write.value,
-					admin:new_proxy_permission_admin.value,
-				})
+				let tmp=new appAPI.ProxyPathInfo()
+				tmp.node_id=resp.node_id
+				tmp.read=new_proxy_permission_read.value
+				tmp.write=new_proxy_permission_write.value
+				tmp.admin=new_proxy_permission_admin.value
+				proxys.value.set(new_proxy_path.value,tmp)
 				new_proxy_path.value=''
 				new_proxy_permission_read.value=false
 				new_proxy_permission_write.value=false
@@ -737,18 +715,17 @@ function app_op(){
 			break
 		}
 		case 'update_proxy':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-				path:cur_proxy.value,
-				read:update_proxy_permission_read.value,
-				write:update_proxy_permission_write.value,
-				admin:update_proxy_permission_admin.value,
-				new_path:false,
-			}
-			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.SetProxyReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			req.path=cur_proxy.value
+			req.read=update_proxy_permission_read.value
+			req.write=update_proxy_permission_write.value
+			req.admin=update_proxy_permission_admin.value
+			req.new_path=false
+			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.SetProxyResp)=>{
@@ -761,14 +738,13 @@ function app_op(){
 			break
 		}
 		case 'del_proxy':{
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				secret:secret.value,
-				path:cur_proxy.value,
-			}
-			client.appClient.del_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.DelProxyReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.secret=secret.value
+			req.path=cur_proxy.value
+			client.appClient.del_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(_resp: appAPI.DelProxyResp)=>{
@@ -780,16 +756,14 @@ function app_op(){
 			break
 		}
 		case 'proxy':{
-			let data=JSON.stringify(JSON.parse(reqdata.value))
-			let req = {
-				project_id:state.project.info!.project_id,
-				g_name:curg.value,
-				a_name:cura.value,
-				path:cur_proxy.value,
-				data:data,
-				force_addr:forceaddr.value,
-			}
-			client.appClient.proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.Error)=>{
+			let req=new appAPI.ProxyReq()
+			req.project_id=state.project.info!.project_id
+			req.g_name=curg.value
+			req.a_name=cura.value
+			req.path=cur_proxy.value
+			req.data=JSON.stringify(JSON.parse(reqdata.value))
+			req.force_addr=forceaddr.value
+			client.appClient.proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 				state.clear_load()
 				state.set_alert("error",e.code,e.msg)
 			},(r: appAPI.ProxyResp)=>{
@@ -825,129 +799,129 @@ function is_json_obj(str :string):boolean{
 }
 </script>
 <template>
-	<va-modal v-model="ing" attach-element="#app" max-width="800px" max-height="600px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
+	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el)=>{el.querySelector('.va-modal__inner').style.minWidth='0px'}">
 		<template #default>
 			<div v-if="optype=='del_app'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px">
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px">
 						<p><b>Delete app: {{ cura }} in group: {{ curg }}</b></p>
 						<p><b>Please confirm</b></p>
-					</va-card-content>
-				</va-card>
+					</VaCardContent>
+				</VaCard>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Del</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Del</VaButton>
+					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='add_app'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px"><b>Add App</b></va-card-content>
-				</va-card>
-				<va-input type="text" label="Group*" style="margin-top:10px" v-model.trim="new_g" />
-				<va-input type="text" label="App*" style="margin-top:10px" v-model.trim="new_a" />
-				<va-input type="text" label="Secret" style="margin-top:10px" v-model.trim="new_secret" :max-length="31" />
-				<va-radio style="display:flex;justify-content:center;margin-top:10px"
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px"><b>Add App</b></VaCardContent>
+				</VaCard>
+				<VaInput type="text" label="Group*" style="margin-top:10px" v-model.trim="new_g" />
+				<VaInput type="text" label="App*" style="margin-top:10px" v-model.trim="new_a" />
+				<VaInput type="text" label="Secret" style="margin-top:10px" v-model.trim="new_secret" :max-length="31" />
+				<VaRadio style="display:flex;justify-content:center;margin-top:10px"
 					v-model="new_discovermode"
 					:options='["dns","kubernetes","static"]'
 					@update:modelValue="reset_new_app()" />
-				<va-input v-if="new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin-top:10px" v-model.trim="new_kubernetesns" />
+				<VaInput v-if="new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin-top:10px" v-model.trim="new_kubernetesns" />
 				<b v-if="new_discovermode=='kubernetes'" style="color:var(--va-primary);margin-top:10px;font-size:12px">KUBERNETES SELECTOR*</b>
 				<div v-if="new_discovermode=='kubernetes'" style="display:flex;justify-content:space-between">
-					<va-input type="text" label="Label Selector" style="flex:1;margin-right:5px" v-model.trim="new_kubernetesls" />
-					<va-input type="text" label="Field Selector" style="flex:1;margin-left:5px" v-model.trim="new_kubernetesfs" />
+					<VaInput type="text" label="Label Selector" style="flex:1;margin-right:5px" v-model.trim="new_kubernetesls" />
+					<VaInput type="text" label="Field Selector" style="flex:1;margin-left:5px" v-model.trim="new_kubernetesfs" />
 				</div>
-				<va-input v-if="new_discovermode=='dns'" type="text" label="Dns Host*" style="margin-top:10px" v-model.trim="new_dnshost" />
-				<va-input v-if="new_discovermode=='dns'" type="number" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="new_dnsinterval" />
+				<VaInput v-if="new_discovermode=='dns'" type="text" label="Dns Host*" style="margin-top:10px" v-model.trim="new_dnshost" />
+				<VaInput v-if="new_discovermode=='dns'" type="number" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="new_dnsinterval" />
 				<b v-if="new_discovermode=='static'&&new_staticaddrs.length>0" style="color:var(--va-primary);margin-top:10px;font-size:12px">CURRENT ADDRS*</b>
 				<div v-if="new_discovermode=='static'" v-for="(addr,index) in new_staticaddrs" style="display:flex;align-items:end;margin-top:4px">
-					<va-input v-if="addr!=''" style="flex:1;margin-right:5px" readonly type="text" v-model="new_staticaddrs[index]" />
-					<va-button v-if="addr!=''" @click="new_staticaddrs.splice(index,1)" gradient>X</va-button>
+					<VaInput v-if="addr!=''" style="flex:1;margin-right:5px" readonly type="text" v-model="new_staticaddrs[index]" />
+					<VaButton v-if="addr!=''" @click="new_staticaddrs.splice(index,1)" gradient>X</VaButton>
 				</div>
 				<div v-if="new_discovermode=='static'" style="display:flex;align-items:end;margin-top:10px">
-					<va-input style="flex:1;margin-right:5px" type="text" label="New Addr" v-model.trim="new_staticaddr" />
-					<va-button
+					<VaInput style="flex:1;margin-right:5px" type="text" label="New Addr" v-model.trim="new_staticaddr" />
+					<VaButton
 						:disabled="new_staticaddr==''||new_staticaddrs.includes(new_staticaddr)" 
 						@click="new_staticaddrs.push(new_staticaddr);new_staticaddr=''"
 						gradient
-					>+</va-button>
+					>+</VaButton>
 				</div>
 				<div style="display:flex;justify-content:space-around;margin-top:10px">
-					<va-input v-if="new_discovermode!=''" type="number" label="Crpc Port*" style="width:100px" v-model.number="new_crpc_port"/>
-					<va-input v-if="new_discovermode!=''" type="number" label="CGrpc Port*" style="width:100px" v-model.number="new_cgrpc_port"/>
-					<va-input v-if="new_discovermode!=''" type="number" label="Web Port*" style="width:100px" v-model.number="new_web_port"/>
+					<VaInput v-if="new_discovermode!=''" type="number" label="Crpc Port*" style="width:100px" v-model.number="new_crpc_port"/>
+					<VaInput v-if="new_discovermode!=''" type="number" label="CGrpc Port*" style="width:100px" v-model.number="new_cgrpc_port"/>
+					<VaInput v-if="new_discovermode!=''" type="number" label="Web Port*" style="width:100px" v-model.number="new_web_port"/>
 				</div>
 				<div style="display:flex;justify-content:center">
-					<va-button @click="app_op" style="margin:10px 10px 0 0" :disabled="!add_app_able()" gradient>Add</va-button>
-					<va-button @click="new_g='';new_a='';new_secret='';new_discovermode='';ing=false" style="margin:10px 0 0 10px" gradient>Cancel</va-button>
+					<VaButton @click="app_op" style="margin:10px 10px 0 0" :disabled="!add_app_able()" gradient>Add</VaButton>
+					<VaButton @click="new_g='';new_a='';new_secret='';new_discovermode='';ing=false" style="margin:10px 0 0 10px" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='update_secret'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px"><b>Update Secret</b></va-card-content>
-				</va-card>
-				<va-input type="text" label="New Secret" style="margin-top:10px" v-model.trim="update_new_secret" />
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px"><b>Update Secret</b></VaCardContent>
+				</VaCard>
+				<VaInput type="text" label="New Secret" style="margin-top:10px" v-model.trim="update_new_secret" />
 				<div style="display:flex;justify-content:center">
-					<va-button @click="app_op" style="margin:10px 10px 0 0" :disabled="!update_secret_able()" gradient>Update</va-button>
-					<va-button @click="update_new_secret='';ing=false" style="margin:10px 0 0 10px" gradient>Cancel</va-button>
+					<VaButton @click="app_op" style="margin:10px 10px 0 0" :disabled="!update_secret_able()" gradient>Update</VaButton>
+					<VaButton @click="update_new_secret='';ing=false" style="margin:10px 0 0 10px" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='update_discover'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px"><b>Update Discover</b></va-card-content>
-				</va-card>
-				<va-radio style="display:flex;justify-content:center;margin-top:10px"
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px"><b>Update Discover</b></VaCardContent>
+				</VaCard>
+				<VaRadio style="display:flex;justify-content:center;margin-top:10px"
 					v-model="update_new_discovermode"
 					:options='["dns","kubernetes","static"]'
 					@update:modelValue="reset_update_discover('')"/>
-				<va-input v-if="update_new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin-top:10px" v-model.trim="update_new_kubernetesns" />
+				<VaInput v-if="update_new_discovermode=='kubernetes'" type="text" label="Kubernetes Namesapce*" style="margin-top:10px" v-model.trim="update_new_kubernetesns" />
 				<b v-if="update_new_discovermode=='kubernetes'" style="color:var(--va-primary);margin-top:10px;font-size:12px">KUBERNETES SELECTOR*</b>
 				<div v-if="update_new_discovermode=='kubernetes'" style="display:flex;justify-content:space-between">
-					<va-input type="text" label="Label Selector" style="flex:1;margin-right:5px" v-model.trim="update_new_kubernetesls" />
-					<va-input type="text" label="Field Selector" style="flex:1;margin-left:5px" v-model.trim="update_new_kubernetesfs" />
+					<VaInput type="text" label="Label Selector" style="flex:1;margin-right:5px" v-model.trim="update_new_kubernetesls" />
+					<VaInput type="text" label="Field Selector" style="flex:1;margin-left:5px" v-model.trim="update_new_kubernetesfs" />
 				</div>
-				<va-input v-if="update_new_discovermode=='dns'" type="text" label="Dns Host*" style="margin-top:10px" v-model.trim="update_new_dnshost" />
-				<va-input v-if="update_new_discovermode=='dns'" type="number" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="update_new_dnsinterval" />
+				<VaInput v-if="update_new_discovermode=='dns'" type="text" label="Dns Host*" style="margin-top:10px" v-model.trim="update_new_dnshost" />
+				<VaInput v-if="update_new_discovermode=='dns'" type="number" label="Dns Interval(seconds)*" style="margin-top:10px" v-model.number="update_new_dnsinterval" />
 				<b v-if="update_new_discovermode=='static'&&update_new_staticaddrs.length>0" style="color:var(--va-primary);margin-top:10px;font-size:12px">CURRENT ADDRS*</b>
 				<div v-if="update_new_discovermode=='static'" v-for="(addr,index) in update_new_staticaddrs" style="display:flex;align-items:end;margin-top:4px">
-					<va-input v-if="addr!=''" style="flex:1;margin-right:5px" readonly type="text" v-model="update_new_staticaddrs[index]" />
-					<va-button v-if="addr!=''" @click="update_new_staticaddrs.splice(index,1)" gradient>X</va-button>
+					<VaInput v-if="addr!=''" style="flex:1;margin-right:5px" readonly type="text" v-model="update_new_staticaddrs[index]" />
+					<VaButton v-if="addr!=''" @click="update_new_staticaddrs.splice(index,1)" gradient>X</VaButton>
 				</div>
 				<div v-if="update_new_discovermode=='static'" style="display:flex;align-items:end;margin-top:10px">
-					<va-input style="flex:1;margin-right:5px" type="text" label="New Addr" v-model.trim="update_new_staticaddr" />
-					<va-button
+					<VaInput style="flex:1;margin-right:5px" type="text" label="New Addr" v-model.trim="update_new_staticaddr" />
+					<VaButton
 						:disabled="update_new_staticaddr==''||update_new_staticaddrs.includes(update_new_staticaddr)" 
 						@click="update_new_staticaddrs.push(update_new_staticaddr);update_new_staticaddr=''"
 						gradient
-					>+</va-button>
+					>+</VaButton>
 				</div>
 				<div style="display:flex;justify-content:space-around;margin-top:10px">
-					<va-input v-if="update_new_discovermode!=''" type="number" label="Crpc Port*" style="width:100px" v-model.number="update_new_crpc_port"/>
-					<va-input v-if="update_new_discovermode!=''" type="number" label="CGrpc Port*" style="width:100px" v-model.number="update_new_cgrpc_port"/>
-					<va-input v-if="update_new_discovermode!=''" type="number" label="Web Port*" style="width:100px" v-model.number="update_new_web_port"/>
+					<VaInput v-if="update_new_discovermode!=''" type="number" label="Crpc Port*" style="width:100px" v-model.number="update_new_crpc_port"/>
+					<VaInput v-if="update_new_discovermode!=''" type="number" label="CGrpc Port*" style="width:100px" v-model.number="update_new_cgrpc_port"/>
+					<VaInput v-if="update_new_discovermode!=''" type="number" label="Web Port*" style="width:100px" v-model.number="update_new_web_port"/>
 				</div>
 				<div style="display:flex;justify-content:center">
-					<va-button @click="app_op" style="margin:10px 10px 0 0" :disabled="!update_discover_able()" gradient>Update</va-button>
-					<va-button @click="update_new_discovermode='';ing=false" style="margin:10px 0 0 10px" gradient>Cancel</va-button>
+					<VaButton @click="app_op" style="margin:10px 10px 0 0" :disabled="!update_discover_able()" gradient>Update</VaButton>
+					<VaButton @click="update_new_discovermode='';ing=false" style="margin:10px 0 0 10px" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='del_key'" style="display:flex;flex-direction:column">
-				<va-card  style="min-width:350px;width:auto;text-align:center" color="primary" gradient >
-					<va-card-content style="font-size:20px">
+				<VaCard  style="min-width:350px;width:auto;text-align:center" color="primary" gradient >
+					<VaCardContent style="font-size:20px">
 						<p><b>Delete key config: {{ cur_key }}</b></p>
 						<p><b>Please confirm</b></p>
-					</va-card-content>
-				</va-card>
+					</VaCardContent>
+				</VaCard>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Del</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Del</VaButton>
+					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='add_key'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px"><b>Add Key Config</b></va-card-content>
-				</va-card>
-				<va-input type="text" label="Key_Name*" style="margin-top:10px" v-model.trim="config_key" />
-				<va-radio
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px"><b>Add Key Config</b></VaCardContent>
+				</VaCard>
+				<VaInput type="text" label="Key_Name*" style="margin-top:10px" v-model.trim="config_key" />
+				<VaRadio
 					style="margin-top:10px;display:flex;justify-content:space-evenly;align-items:center"
 					:options='["json","raw","yaml","toml"]'
 					v-model="config_value_type"
@@ -957,41 +931,41 @@ function is_json_obj(str :string):boolean{
 					style="border:1px solid var(--va-background-element);border-radius:5px;margin-top:10px;height:300px;resize:none"
 					v-model.trim="config_value" />
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" :disabled="!add_key_able()" gradient >Add</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="reset_add_key();ing=false" gradient>Cancel</va-button>
+					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" :disabled="!add_key_able()" gradient >Add</VaButton>
+					<VaButton style="width:80px;margin:10px 0 0 10px" @click="reset_add_key();ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='update_key'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px">
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px">
 						<p><b>Update key config: {{ cur_key }}</b></p>
 						<p><b>Please confirm</b></p>
-					</va-card-content>
-				</va-card>
+					</VaCardContent>
+				</VaCard>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Update</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Update</VaButton>
+					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='rollback_key'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px">
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px">
 						<p><b>Rollback key config: {{ cur_key }} to config id: {{ rollback_key_index }}</b></p>
 						<p><b>Please confirm</b></p>
-					</va-card-content>
-				</va-card>
+					</VaCardContent>
+				</VaCard>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Rollback</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Rollback</VaButton>
+					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='add_proxy'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px"><b>Add Proxy Path</b></va-card-content>
-				</va-card>
-				<va-input label="Path" style="margin-top:10px" v-model.trim="new_proxy_path"/>
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px"><b>Add Proxy Path</b></VaCardContent>
+				</VaCard>
+				<VaInput label="Path" style="margin-top:10px" v-model.trim="new_proxy_path"/>
 				<div style="display:flex;justify-content:space-around;margin-top:10px">
-					<va-switch
+					<VaSwitch
 						v-model="new_proxy_permission_read"
 						true-inner-label="Read"
 						false-inner-label="Read"
@@ -1002,7 +976,7 @@ function is_json_obj(str :string):boolean{
 							}
 						}"
 					/>
-					<va-switch
+					<VaSwitch
 						v-model="new_proxy_permission_write"
 						true-inner-label="Write"
 						false-inner-label="Write"
@@ -1014,7 +988,7 @@ function is_json_obj(str :string):boolean{
 							}
 						}"
 					/>
-					<va-switch
+					<VaSwitch
 						v-model="new_proxy_permission_admin"
 						true-inner-label="Admin"
 						false-inner-label="Admin"
@@ -1027,51 +1001,51 @@ function is_json_obj(str :string):boolean{
 					/>
 				</div>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" :disabled="!add_proxy_able()" gradient>Add</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="reset_add_proxy();ing=false" gradient>Cancel</va-button>
+					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" :disabled="!add_proxy_able()" gradient>Add</VaButton>
+					<VaButton style="width:80px;margin:10px 0 0 10px" @click="reset_add_proxy();ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='update_proxy'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px">
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px">
 						<p><b>Update proxy path: {{ cur_proxy }}</b></p>
 						<p><b>Please confirm</b></p>
-					</va-card-content>
-				</va-card>
+					</VaCardContent>
+				</VaCard>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Update</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Update</VaButton>
+					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='del_proxy'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px">
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px">
 						<p><b>Delete proxy path: {{ cur_proxy }}</b></p>
 						<p><b>Please confirm</b></p>
-					</va-card-content>
-				</va-card>
+					</VaCardContent>
+				</VaCard>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Del</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Del</VaButton>
+					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 			<div v-else-if="optype=='proxy'" style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px">
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px">
 						<p><b>Call path: {{ cur_proxy }}</b></p>
 						<p><b>Please confirm</b></p>
-					</va-card-content>
-				</va-card>
+					</VaCardContent>
+				</VaCard>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Proxy</va-button>
-					<va-button style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</va-button>
+					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Proxy</VaButton>
+					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 		</template>
-	</va-modal>
+	</VaModal>
 	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
 		<div v-if="!get_app_status" style="align-self:center;display:flex;margin:1px 0">
-			<va-select
+			<VaSelect
 				v-model="curg"
 				:options="Object.keys(all)"
 				noOptionsText="No Groups"
@@ -1084,7 +1058,7 @@ function is_json_obj(str :string):boolean{
 				:hoverOutTimeout="100"
 			>
 				<template #option='{option,selectOption}'>
-					<va-hover
+					<VaHover
 						stateful
 						@click="()=>{
 							if(curg!=option){
@@ -1106,10 +1080,10 @@ function is_json_obj(str :string):boolean{
 								{{option}}
 							</div>
 						</template>
-					</va-hover>
+					</VaHover>
 				</template>
-			</va-select>
-			<va-select
+			</VaSelect>
+			<VaSelect
 				v-model="cura"
 				:options="curg==''?[]:Object.keys(all[curg])"
 				noOptionsText="No Apps"
@@ -1122,7 +1096,7 @@ function is_json_obj(str :string):boolean{
 				:hoverOutTimeout="100"
 			>
 				<template #option='{option,selectOption}'>
-					<va-hover
+					<VaHover
 						stateful
 						@click="()=>{
 							if(cura!=option){
@@ -1144,24 +1118,24 @@ function is_json_obj(str :string):boolean{
 								{{option}}
 							</div>
 						</template>
-					</va-hover>
+					</VaHover>
 				</template>
-			</va-select>
-			<va-input :type="t_secret?'text':'password'" v-model.trim="secret" outline placeholder="Secret" :max-length="31" style="width:250px;margin:0 1px">
+			</VaSelect>
+			<VaInput :type="t_secret?'text':'password'" v-model.trim="secret" outline placeholder="Secret" :max-length="31" style="width:250px;margin:0 1px">
 				<template #appendInner>
-					<va-icon :name="t_secret?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_secret=!t_secret" />
+					<VaIcon :name="t_secret?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_secret=!t_secret" />
 				</template>
-			</va-input>
-			<va-button style="margin:0 5px" :disabled="curg==''||cura==''" @click="get_app" gradient>Search</va-button>
-			<va-button v-if="state.page.node!.admin" style="margin:0 5px" @click="reset_new_app();optype='add_app';ing=true" gradient>Add</va-button>
+			</VaInput>
+			<VaButton style="margin:0 5px" :disabled="curg==''||cura==''" @click="get_app" gradient>Search</VaButton>
+			<VaButton v-if="state.page.node!.admin" style="margin:0 5px" @click="reset_new_app();optype='add_app';ing=true" gradient>Add</VaButton>
 		</div>
 		<div v-else style="align-self:center;display:flex;align-items:center;margin:1px 0">
-			<va-input readonly v-model="curg" style="width:150px;margin-right:1px"/>
-			<va-input readonly v-model="cura" style="width:150px;margin-left:1px"/>
-			<va-button v-if="mustadmin()" style="margin:0 5px" @click="optype='update_secret';ing=true" gradient>UpdateSecret</va-button>
-			<va-button v-if="mustadmin()" style="margin:0 5px" @click="reset_update_discover(discovermode);optype='update_discover';ing=true" gradient>UpdateDiscover</va-button>
-			<va-button v-if="state.page.node!.admin&&!selfapp()" style="margin:0 5px" @click="optype='del_app';ing=true" gradient>Delete</va-button>
-			<va-button style="margin:0 5px" @click="config_proxy_instance='';get_app_status=false" gradient>Back</va-button>
+			<VaInput readonly v-model="curg" style="width:150px;margin-right:1px"/>
+			<VaInput readonly v-model="cura" style="width:150px;margin-left:1px"/>
+			<VaButton v-if="mustadmin()" style="margin:0 5px" @click="optype='update_secret';ing=true" gradient>UpdateSecret</VaButton>
+			<VaButton v-if="mustadmin()" style="margin:0 5px" @click="reset_update_discover(discovermode);optype='update_discover';ing=true" gradient>UpdateDiscover</VaButton>
+			<VaButton v-if="state.page.node!.admin&&!selfapp()" style="margin:0 5px" @click="optype='del_app';ing=true" gradient>Delete</VaButton>
+			<VaButton style="margin:0 5px" @click="config_proxy_instance='';get_app_status=false" gradient>Back</VaButton>
 		</div>
 		<!-- configs -->
 		<div
@@ -1181,7 +1155,7 @@ function is_json_obj(str :string):boolean{
 		>
 			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='config'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Configs</span>
-			<va-button
+			<VaButton
 				v-if="canwrite()"
 				style="height:30px;margin-right:20px"
 				size="small"
@@ -1191,7 +1165,7 @@ function is_json_obj(str :string):boolean{
 				@click.stop="optype='add_key';ing=true"
 			>
 				ADD
-			</va-button>
+			</VaButton>
 		</div>
 		<!-- keys -->
 		<div v-if="get_app_status&&config_proxy_instance=='config'&&keys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
@@ -1222,18 +1196,18 @@ function is_json_obj(str :string):boolean{
 							readonly>{{JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)}}</textarea>
 						<div style="align-self:center;display:flex;align-items:center">
 							<b style="color:var(--va-primary);margin:2px 10px">Current Config ID:  {{ keys.get(key)!.cur_index }}</b>
-							<va-dropdown
+							<VaDropdown
 								:disabled="rollback_key_index!=0||edit_key_value_type!=''"
 								trigger="hover"
 								placement="top"
 								:hoverOverTimeout="0"
 								:hoverOutTimeout="100">
 								<template #anchor>
-									<va-button style="width:60px;height:30px;margin:2px 10px" size="small" gradient>History</va-button>
+									<VaButton style="width:60px;height:30px;margin:2px 10px" size="small" gradient>History</VaButton>
 								</template>
-								<va-dropdown-content>
+								<VaDropdownContent>
 									<div style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column">
-										<va-button
+										<VaButton
 											v-for="index of keys.get(key)!.max_index"
 											size="small"
 											gradient
@@ -1242,11 +1216,11 @@ function is_json_obj(str :string):boolean{
 											@click="rollback_key_index=keys.get(key)!.max_index-index+1;optype='get_rollback_key';app_op()"
 										>
 											{{keys.get(key)!.max_index-index+1}}
-										</va-button>
+										</VaButton>
 									</div>
-								</va-dropdown-content>
-							</va-dropdown>
-							<va-button
+								</VaDropdownContent>
+							</VaDropdown>
+							<VaButton
 								v-if="canwrite()"
 								size="small"
 								gradient
@@ -1267,8 +1241,8 @@ function is_json_obj(str :string):boolean{
 								}"
 							>
 								Edit
-							</va-button>
-							<va-button
+							</VaButton>
+							<VaButton
 								v-if="canwrite()&&(!selfapp()||(key!='AppConfig'&&key!='SourceConfig'))"
 								size="small"
 								gradient
@@ -1276,10 +1250,10 @@ function is_json_obj(str :string):boolean{
 								@click.stop="optype='del_key';ing=true"
 							>
 								Del
-							</va-button>
+							</VaButton>
 						</div>
 					</div>
-					<va-divider v-if="rollback_key_index!=0||edit_key_value_type!=''" vertical style="margin:0 4px" />
+					<VaDivider v-if="rollback_key_index!=0||edit_key_value_type!=''" vertical style="margin:0 4px" />
 					<div v-if="rollback_key_index!=0||edit_key_value_type!=''" style="flex:1;display:flex;flex-direction:column">
 						<textarea 
 							v-if="rollback_key_index!=0"
@@ -1290,14 +1264,14 @@ function is_json_obj(str :string):boolean{
 							style="border:1px solid var(--va-background-element);border-radius:5px;flex:1;overflow-y:auto;resize:none"
 							v-model.trim="edit_key_value" />
 						<div style="display:flex;align-items:center">
-							<va-radio
+							<VaRadio
 								v-if="rollback_key_index!=0"
 								:options='["json","raw","yaml","toml"]'
 								v-model.trim="rollback_key_value_type"
 								style="margin:4px"
 								disabled
 							/>
-							<va-radio
+							<VaRadio
 								v-if="edit_key_value_type!=''"
 								:options='["json","raw","yaml","toml"]'
 								v-model.trim="edit_key_value_type"
@@ -1305,7 +1279,7 @@ function is_json_obj(str :string):boolean{
 								disabled
 							/>
 							<span style="flex:1"></span>
-							<va-button
+							<VaButton
 								v-if="rollback_key_index!=0&&canwrite()"
 								size="small"
 								gradient
@@ -1313,8 +1287,8 @@ function is_json_obj(str :string):boolean{
 								@click="optype='rollback_key';ing=true"
 							>
 								Rollback
-							</va-button>
-							<va-button
+							</VaButton>
+							<VaButton
 								v-if="edit_key_value_type!=''&&canwrite()"
 								:disabled="!edit_commit_able()"
 								size="small"
@@ -1323,15 +1297,15 @@ function is_json_obj(str :string):boolean{
 								@click="optype='update_key';ing=true"
 							>
 								Update
-							</va-button>
-							<va-button
+							</VaButton>
+							<VaButton
 								size="small"
 								gradient
 								style="width:60px;height:30px;margin:2px"
 								@click="rollback_key_index=0;edit_key_value_type=''"
 							>
 								Cancel
-							</va-button>
+							</VaButton>
 						</div>
 					</div>
 				</div>
@@ -1358,7 +1332,7 @@ function is_json_obj(str :string):boolean{
 		>
 			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='proxy'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Proxys</span>
-			<va-button
+			<VaButton
 				v-if="canwrite()"
 				style="height:30px;margin-right:20px"
 				size="small"
@@ -1368,7 +1342,7 @@ function is_json_obj(str :string):boolean{
 				@click.stop="reset_add_proxy();optype='add_proxy';ing=true"
 			>
 				ADD
-			</va-button>
+			</VaButton>
 		</div>
 		<!-- paths -->
 		<div v-if="get_app_status&&config_proxy_instance=='proxy'&&proxys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
@@ -1403,7 +1377,7 @@ function is_json_obj(str :string):boolean{
 							v-model.trim="reqdata"
 							:readonly="respdata!=''" />
 						<div style="display:flex;align-items:center">
-							<va-button
+							<VaButton
 								style="width:60px;height:30px;margin:2px 0"
 								size="small"
 								gradient
@@ -1411,8 +1385,8 @@ function is_json_obj(str :string):boolean{
 								:disabled="respdata!=''||!is_json_obj(reqdata)"
 							>
 								Proxy
-							</va-button>
-							<va-select
+							</VaButton>
+							<VaSelect
 								:disabled="respdata!=''"
 								v-model="forceaddr"
 								:options="[...instances.keys()]"
@@ -1423,7 +1397,7 @@ function is_json_obj(str :string):boolean{
 								outline
 								@click="get_instances(false)">
 								<template #option="{option,selectOption}">
-									<va-hover stateful @click="()=>{
+									<VaHover stateful @click="()=>{
 										if(forceaddr==option){
 											selectOption(option)
 											forceaddr=''
@@ -1439,10 +1413,10 @@ function is_json_obj(str :string):boolean{
 												{{option}}{{forceaddr==option?"    (click to cancel)":""}}
 											</div>
 										</template>
-									</va-hover>
+									</VaHover>
 								</template>
-							</va-select>
-							<va-switch
+							</VaSelect>
+							<VaSwitch
 								:disabled="respdata!=''||!canwrite()"
 								style="margin:2px 10px"
 								v-model="update_proxy_permission_read"
@@ -1455,7 +1429,7 @@ function is_json_obj(str :string):boolean{
 									}
 								}"
 							/>
-							<va-switch
+							<VaSwitch
 								:disabled="respdata!=''||!canwrite()"
 								style="margin:2px 10px"
 								v-model="update_proxy_permission_write"
@@ -1469,7 +1443,7 @@ function is_json_obj(str :string):boolean{
 									}
 								}"
 							/>
-							<va-switch
+							<VaSwitch
 								:disabled="respdata!=''||!canwrite()"
 								style="margin:2px 10px"
 								v-model="update_proxy_permission_admin"
@@ -1482,7 +1456,7 @@ function is_json_obj(str :string):boolean{
 									}
 								}"
 							/>
-							<va-button
+							<VaButton
 								v-if="canwrite()"
 								style="width:60px;height:30px;margin:2px 10px"
 								size="small"
@@ -1491,8 +1465,8 @@ function is_json_obj(str :string):boolean{
 								@click="optype='update_proxy';ing=true"
 							>
 								Update
-							</va-button>
-							<va-button
+							</VaButton>
+							<VaButton
 								v-if="canwrite()"
 								style="width:60px;height:30px;margin:2px 10px"
 								size="small"
@@ -1501,16 +1475,16 @@ function is_json_obj(str :string):boolean{
 								@click.stop="optype='del_proxy';ing=true"
 							>
 								DEL
-							</va-button>
+							</VaButton>
 						</div>
 					</div>
-					<va-divider v-if="respdata!=''" vertical style="margin:0 4px" />
+					<VaDivider v-if="respdata!=''" vertical style="margin:0 4px" />
 					<div v-if="respdata!=''" style="flex:1;display:flex;flex-direction:column;overflow-y:auto">
 						<textarea
 							style="border:1px solid var(--va-background-element);border-radius:5px;flex:1;overflow-y:auto;resize:none"
 							v-model="respdata"
 							readonly />
-						<va-button style="align-self:center;width:60px;height:30px;margin:2px" size="small" gradient @click="respdata=''">OK</va-button>
+						<VaButton style="align-self:center;width:60px;height:30px;margin:2px" size="small" gradient @click="respdata=''">OK</VaButton>
 					</div>
 				</div>
 			</template>
@@ -1537,7 +1511,7 @@ function is_json_obj(str :string):boolean{
 		>
 			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='instance'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Instances</span>
-			<va-button
+			<VaButton
 				v-if="config_proxy_instance=='instance'"
 				style="width:60px;height:30px;margin-right:20px"
 				size="small"
@@ -1547,7 +1521,7 @@ function is_json_obj(str :string):boolean{
 				@click.stop="get_instances(true)"
 			>
 				refresh
-			</va-button>
+			</VaButton>
 		</div>
 		<div v-if="get_app_status&&config_proxy_instance=='instance'" style="overflow-y:auto;flex:1;display:flex;flex-wrap:wrap">
 			<div v-if="instances.size==0"
@@ -1556,36 +1530,36 @@ function is_json_obj(str :string):boolean{
 			</div>
 			<div v-for="instanceaddr of instances.keys()"
 				style="position:relative;width:300px;height:150px;margin:5px;border:1px solid var(--va-primary);border-radius:5px">
-				<va-button style="position:absolute;right:1px;top:1px" size="small" gradient @click="get_instance(instanceaddr)">refresh</va-button>
+				<VaButton style="position:absolute;right:1px;top:1px" size="small" gradient @click="get_instance(instanceaddr)">refresh</VaButton>
 				<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-around">
 					<div style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">Addr</span>
-						<va-divider vertical />
+						<VaDivider vertical />
 						<span>{{instanceaddr}}</span>
 					</div>
 					<div v-if="!instances.get(instanceaddr)||instances.get(instanceaddr)!.cpu_num==0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">SysInfo</span>
-						<va-divider vertical />
+						<VaDivider vertical />
 						<span>get failed</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuNum</span>
-						<va-divider vertical />
+						<VaDivider vertical />
 						<span>{{instances.get(instanceaddr)!.cpu_num}}</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuUsage</span>
-						<va-divider vertical />
+						<VaDivider vertical />
 						<span>{{(instances.get(instanceaddr)!.cur_cpu_usage*100).toFixed(2)}}%</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemTotal</span>
-						<va-divider vertical />
+						<VaDivider vertical />
 						<span>{{(instances.get(instanceaddr)!.total_mem.toNumber()/1024/1024).toFixed(2)}}MB</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemUsage</span>
-						<va-divider vertical />
+						<VaDivider vertical />
 						<span>{{(instances.get(instanceaddr)!.cur_mem_usage.toNumber()/instances.get(instanceaddr)!.total_mem.toNumber()*100).toFixed(2)}}%</span>
 					</div>
 				</div>

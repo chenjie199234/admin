@@ -27,7 +27,10 @@ function do_change_root_password(){
 	if(!state.set_load()){
 		return
 	}
-	client.initializeClient.update_root_password({"Token":state.user.token},{old_password:oldpassword.value,new_password:newpassword.value},client.timeout,(e: initializeAPI.Error)=>{
+	let req=new initializeAPI.UpdateRootPasswordReq()
+	req.old_password=oldpassword.value
+	req.new_password=newpassword.value
+	client.initializeClient.update_root_password({"Token":state.user.token},req,client.timeout,(e: initializeAPI.LogicError)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(_resp: initializeAPI.UpdateRootPasswordResp)=>{
@@ -45,44 +48,44 @@ function iframeload(){
 }
 </script>
 <template>
-	<va-modal v-model="password_changing" attach-element="#app" max-width="800px" hide-default-actions no-dismiss overlay-opacity="0.2" z-index="999">
+	<VaModal v-model="password_changing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__inner').style.minWidth='0px'}">
 		<template #default>
 			<div style="display:flex;flex-direction:column">
-				<va-card style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
-					<va-card-content style="font-size:20px"><b>Change Root Password</b></va-card-content>
-				</va-card>
-				<va-input :type="t_oldpassword?'text':'password'" label="Old Root Password*" v-model="oldpassword" style="margin-top:10px">
+				<VaCard style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px"><b>Change Root Password</b></VaCardContent>
+				</VaCard>
+				<VaInput :type="t_oldpassword?'text':'password'" label="Old Root Password*" v-model="oldpassword" style="margin-top:10px">
 					<template #appendInner>
-						<va-icon :name="t_oldpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_oldpassword=!t_oldpassword" />
+						<VaIcon :name="t_oldpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_oldpassword=!t_oldpassword" />
 					</template>
-				</va-input>
-				<va-input :type="t_newpassword?'text':'password'" label="New Root Password*" v-model="newpassword" style="margin-top:10px">
+				</VaInput>
+				<VaInput :type="t_newpassword?'text':'password'" label="New Root Password*" v-model="newpassword" style="margin-top:10px">
 					<template #appendInner>
-						<va-icon :name="t_newpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_newpassword=!t_newpassword" />
+						<VaIcon :name="t_newpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_newpassword=!t_newpassword" />
 					</template>
-				</va-input>
+				</VaInput>
 				<div style="display:flex;justify-content:center">
-					<va-button style="width:100px;margin:10px 10px 0 0" :disabled="!change_root_password_able()" @click="do_change_root_password">Change</va-button>
-					<va-button style="width:100px;margin:10px 0 0 10px" @click="oldpassword='';newpassword='';t_oldpassword=false;t_newpassword=false;password_changing=false">Cancel</va-button>
+					<VaButton style="width:100px;margin:10px 10px 0 0" :disabled="!change_root_password_able()" @click="do_change_root_password">Change</VaButton>
+					<VaButton style="width:100px;margin:10px 0 0 10px" @click="oldpassword='';newpassword='';t_oldpassword=false;t_newpassword=false;password_changing=false">Cancel</VaButton>
 				</div>
 			</div>
 		</template>
-	</va-modal>
+	</VaModal>
 	<div style="height:100%;flex:1;display:flex;flex-direction:column;overflow:auto">
 		<div style="display:flex;align-items:center;padding:5px;background-color:var(--va-background-element)">
 			<div style="display:flex;flex:1"></div>
 			<p v-if="!state.user.root&&state.user.info" style="color:green;margin-right:10px">{{state.user.info.user_id}}</p>
-			<va-dropdown style="width:36px" trigger="hover" :hoverOverTimeout="0" :hoverOutTimeout="100" placement="bottom-end">
+			<VaDropdown style="width:36px" trigger="hover" :hoverOverTimeout="0" :hoverOutTimeout="100" placement="bottom-end">
 				<template #anchor>
-					<va-button round>{{ state.avatar() }}</va-button>
+					<VaButton round>{{ state.avatar() }}</VaButton>
 				</template>
-				<va-dropdown-content>
+				<VaDropdownContent>
 					<div style="display:flex;flex-direction:column">
-						<va-button v-if="state.user.root" style="margin:0 0 3px 0" @click="password_changing=true">ChangePassword</va-button>
-						<va-button style="margin:3px 0 0 0" @click="state.logout">Logout</va-button>
+						<VaButton v-if="state.user.root" style="margin:0 0 3px 0" @click="password_changing=true">ChangePassword</VaButton>
+						<VaButton style="margin:3px 0 0 0" @click="state.logout">Logout</VaButton>
 					</div>
-				</va-dropdown-content>
-			</va-dropdown>
+				</VaDropdownContent>
+			</VaDropdown>
 		</div>
 		<userrole v-if="Boolean(state.page.node)&&Boolean(state.page.node!.node_id)&&state.page.node!.node_id!.length==3&&state.page.node!.node_id![2]==1"></userrole>
 		<app v-else-if="Boolean(state.page.node)&&Boolean(state.page.node!.node_id)&&state.page.node!.node_id!.length==3&&state.page.node!.node_id![2]==2"></app>

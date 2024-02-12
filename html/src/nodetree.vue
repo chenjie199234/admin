@@ -74,10 +74,10 @@ function permission_same():boolean{
 </script>
 <template>
 	<div style="flex:1;display:flex;flex-direction:column;margin:0 15px">
-		<va-divider v-if="deep!=0" vertical style="height:50px;align-self:center;border-right-color:var(--va-primary)"/>
+		<VaDivider v-if="deep!=0" vertical style="height:50px;align-self:center;border-right-color:var(--va-primary)"/>
 		<div style="display:flex;flex-direction:column;align-items:center;padding:5px 15px 0px 15px;border:1px solid var(--va-primary);border-radius:5px">
 			<div style="margin:2px;min-width:100px;border:1px solid var(--va-primary);border-radius:3px;padding:10px;text-align:center">{{node.node_name}}</div>
-			<va-switch
+			<VaSwitch
 				:disabled="disabled||(pnode!=null&&pnode.admin)"
 				off-color="shadow"
 				style="margin:2px"
@@ -86,7 +86,7 @@ function permission_same():boolean{
 				false-inner-label="Read"
 				@update:modelValue="permission_update('read')"
 			/>
-			<va-switch
+			<VaSwitch
 				:disabled="disabled||(pnode!=null&&pnode.admin)"
 				off-color="shadow"
 				style="margin:2px"
@@ -95,7 +95,7 @@ function permission_same():boolean{
 				false-inner-label="Write"
 				@update:modelValue="permission_update('write')"
 			/>
-			<va-switch
+			<VaSwitch
 				:disabled="disabled||(pnode!=null&&pnode.admin)"
 				off-color="shadow"
 				style="margin:2px"
@@ -104,13 +104,13 @@ function permission_same():boolean{
 				false-inner-label="Admin"
 				@update:modelValue="permission_update('admin')"
 			/>
-			<va-button
+			<VaButton
 				:disabled="disabled||(pnode!=null&&pnode.admin)||permission_same()"
 				style="margin:2px"
 				@click="$emit('permissionevent',node,new_canread,new_canwrite,new_admin)"
 			>
 				Update
-			</va-button>
+			</VaButton>
 			<div
 				v-if="Boolean(node.children)&&node.children!.length>0"
 				style="padding:5px 10px;border-radius:3px;cursor:pointer"

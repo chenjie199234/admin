@@ -1396,6 +1396,8 @@ function is_json_obj(str :string):boolean{
 							</VaButton>
 							<VaSelect
 								:disabled="respdata!=''"
+								:clearable="true"
+								clearableIcon="[X]"
 								v-model="forceaddr"
 								:options="[...instances.keys()]"
 								noOptionsText="No Servers"
@@ -1405,20 +1407,12 @@ function is_json_obj(str :string):boolean{
 								outline
 								@click="get_instances(false)">
 								<template #option="{option,selectOption}">
-									<VaHover stateful @click="()=>{
-										if(forceaddr==option){
-											selectOption(option)
-											forceaddr=''
-										}else{
-											selectOption(option)
-											forceaddr=option
-										}
-									}">
+									<VaHover stateful @click="selectOption(option)">
 										<template #default="{hover}">
 											<div
 												style="padding:10px;cursor:pointer"
 												:style="{'background-color':hover?'var(--va-background-border)':'',color:forceaddr==option?'green':'black'}">
-												{{option}}{{forceaddr==option?"    (click to cancel)":""}}
+												{{option}}
 											</div>
 										</template>
 									</VaHover>

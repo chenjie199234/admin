@@ -44,7 +44,7 @@ export class DeleteProjectReq{
 	}
 }
 export class DeleteProjectResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class InitReq{
@@ -58,7 +58,7 @@ export class InitReq{
 	}
 }
 export class InitResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class InitStatusReq{
@@ -153,7 +153,7 @@ export class UpdateProjectReq{
 	}
 }
 export class UpdateProjectResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class UpdateRootPasswordReq{
@@ -171,7 +171,7 @@ export class UpdateRootPasswordReq{
 	}
 }
 export class UpdateRootPasswordResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 //timeout's unit is millisecond,it will be used when > 0

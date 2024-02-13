@@ -70,6 +70,9 @@ function selfproject():boolean{
 const projectnodes=ref<permissionAPI.NodeInfo|null>(null)
 
 function select_project(){
+	if(!state.project.info){
+		return
+	}
 	if(!state.set_load()){
 		return
 	}
@@ -246,8 +249,8 @@ function node_op(){
 				}
 				if(state.page.node){
 					let needcleanpage=true
-					for(let i=0;i<target.value.node_id!.length;i++){
-						if(target.value.node_id[i]!=state.page.node!.node_id[i]){
+					for(let i=0;i<target.value!.node_id!.length;i++){
+						if(target.value!.node_id![i]!=state.page.node!.node_id![i]){
 							needcleanpage=true
 							break
 						}
@@ -376,7 +379,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 	<div style="height:100%;flex:1;display:flex;flex-direction:column">
 		<div style="display:flex;padding:5px 0">
 			<VaSelect
-				:modelValue="state.project.info?state.project.info!:{}"
+				v-model="state.project.info"
 				textBy="project_name"
 				:options="allprojects"
 				noOptionsText="NO Projects"
@@ -387,15 +390,16 @@ function same_node_id(a:number[],b:number[]):boolean{
 				trigger="hover"
 				:hoverOverTimeout="0"
 				:hoverOutTimeout="100"
+				@update:modelValue="select_project()"
 			>
-				<template #option='{option}'>
-					<VaHover stateful @click="state.project.info=option;select_project()">
+				<template #option='{option,selectOption}'>
+					<VaHover stateful @click="selectOption(option)">
 						<template #default="{hover}">
 							<div
 								style="padding:10px;cursor:pointer"
-								:style="{'background-color':hover?'var(--va-background-border)':'',color:state.project.info==option?'green':'black'}"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:state.project.info&&option&&state.project.info.project_name==option['project_name']?'green':'black'}"
 							>
-								{{option.project_name}}
+								{{option?option["project_name"]:''}}
 							</div>
 						</template>
 					</VaHover>

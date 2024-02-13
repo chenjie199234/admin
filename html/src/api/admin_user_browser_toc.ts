@@ -30,7 +30,7 @@ export class AddUserRoleReq{
 	}
 }
 export class AddUserRoleResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class CreateRoleReq{
@@ -54,7 +54,7 @@ export class CreateRoleReq{
 	}
 }
 export class CreateRoleResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class DelRolesReq{
@@ -74,7 +74,7 @@ export class DelRolesReq{
 	}
 }
 export class DelRolesResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class DelUserRoleReq{
@@ -98,7 +98,7 @@ export class DelUserRoleReq{
 	}
 }
 export class DelUserRoleResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class GetOauth2Req{
@@ -136,7 +136,7 @@ export class InviteProjectReq{
 	}
 }
 export class InviteProjectResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class KickProjectReq{
@@ -156,7 +156,7 @@ export class KickProjectReq{
 	}
 }
 export class KickProjectResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class LoginInfoReq{
@@ -342,7 +342,7 @@ export class UpdateRoleReq{
 	}
 }
 export class UpdateRoleResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class UserInfo{

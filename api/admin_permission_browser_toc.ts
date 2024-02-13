@@ -51,7 +51,7 @@ export class DelNodeReq{
 	}
 }
 export class DelNodeResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class GetUserPermissionReq{
@@ -182,7 +182,7 @@ export class MoveNodeReq{
 	}
 }
 export class MoveNodeResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class NodeInfo{
@@ -248,7 +248,7 @@ export class UpdateNodeReq{
 	}
 }
 export class UpdateNodeResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class UpdateRolePermissionReq{
@@ -290,7 +290,7 @@ export class UpdateRolePermissionReq{
 	}
 }
 export class UpdateRolePermissionResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class UpdateUserPermissionReq{
@@ -326,7 +326,7 @@ export class UpdateUserPermissionReq{
 	}
 }
 export class UpdateUserPermissionResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 //timeout's unit is millisecond,it will be used when > 0

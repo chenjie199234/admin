@@ -33,7 +33,7 @@ export class DelAppReq{
 	}
 }
 export class DelAppResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class DelKeyReq{
@@ -64,7 +64,7 @@ export class DelKeyReq{
 	}
 }
 export class DelKeyResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class DelProxyReq{
@@ -95,7 +95,7 @@ export class DelProxyReq{
 	}
 }
 export class DelProxyResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class GetAppReq{
@@ -485,7 +485,7 @@ export class RollbackReq{
 	}
 }
 export class RollbackResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class SetAppReq{
@@ -608,7 +608,7 @@ export class SetKeyConfigReq{
 	}
 }
 export class SetKeyConfigResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class SetProxyReq{
@@ -691,7 +691,7 @@ export class UpdateAppSecretReq{
 	}
 }
 export class UpdateAppSecretResp{
-	fromOBJ(obj:Object){
+	fromOBJ(_obj:Object){
 	}
 }
 export class WatchConfigReq{

@@ -8,7 +8,8 @@ onMounted(()=>{
 	if(!state.set_load()){
 		return
 	}
-	client.initializeClient.init_status({},{},client.timeout,(e: initializeAPI.LogicError)=>{
+	let req=new initializeAPI.InitStatusReq()
+	client.initializeClient.init_status({},req,client.timeout,(e: initializeAPI.LogicError)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: initializeAPI.InitStatusResp)=>{

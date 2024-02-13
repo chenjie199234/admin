@@ -832,7 +832,11 @@ function parsetime(timestamp :number):string{
 									<div
 										style="display:flex;align-items:center;cursor:pointer"
 										:style="{'background-color':hover?'var(--va-shadow)':node_from==rolename?'#b6d7a8':'var(--va-background-element)'}"
-										@click="cur_role={project_id:state.project.info!.project_id,role_name:rolename,comment:'',ctime:0};
+										@click="cur_role=new userAPI.RoleInfo();
+											cur_role.project_id=state.project.info!.project_id;
+											cur_role.role_name=rolename;
+											cur_role.comment='';
+											cur_role.ctime=0;
 											optype='get_role_permission';
 											op()">
 										<div style="flex:1;padding:12px;white-space:nowrap">Role: {{rolename}}</div>

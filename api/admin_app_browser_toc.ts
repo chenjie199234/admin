@@ -169,10 +169,9 @@ export class GetAppResp{
 		if(obj["web_port"]){
 			this.web_port=obj["web_port"]
 		}
-		if(obj["keys"] && obj["keys"].keys().length>0){
+		if(obj["keys"] && Object.keys(obj["keys"]).length>0){
 			this.keys=new Map<string,KeyConfigInfo|null>()
-			let keys = obj["keys"].keys()
-			for(let key of keys){
+			for(let key of Object.keys(obj["keys"])){
 				if(obj["keys"][key]){
 					let tmp = new KeyConfigInfo()
 					tmp.fromOBJ(obj["keys"][key])
@@ -182,10 +181,9 @@ export class GetAppResp{
 				}
 			}
 		}
-		if(obj["paths"] && obj["paths"].keys().length>0){
+		if(obj["paths"] && Object.keys(obj["paths"]).length>0){
 			this.paths=new Map<string,ProxyPathInfo|null>()
-			let keys = obj["paths"].keys()
-			for(let key of keys){
+			for(let key of Object.keys(obj["paths"])){
 				if(obj["paths"][key]){
 					let tmp = new ProxyPathInfo()
 					tmp.fromOBJ(obj["paths"][key])
@@ -263,10 +261,9 @@ export class GetInstancesReq{
 export class GetInstancesResp{
 	instances: Map<string,InstanceInfo|null>|null = null//key addr,value info,if with_info is false,value is empty
 	fromOBJ(obj:Object){
-		if(obj["instances"] && obj["instances"].keys().length>0){
+		if(obj["instances"] && Object.keys(obj["instances"]).length>0){
 			this.instances=new Map<string,InstanceInfo|null>()
-			let keys = obj["instances"].keys()
-			for(let key of keys){
+			for(let key of Object.keys(obj["instances"])){
 				if(obj["instances"][key]){
 					let tmp = new InstanceInfo()
 					tmp.fromOBJ(obj["instances"][key])
@@ -730,10 +727,9 @@ export class WatchConfigReq{
 export class WatchConfigResp{
 	datas: Map<string,WatchData|null>|null = null
 	fromOBJ(obj:Object){
-		if(obj["datas"] && obj["datas"].keys().length>0){
+		if(obj["datas"] && Object.keys(obj["datas"]).length>0){
 			this.datas=new Map<string,WatchData|null>()
-			let keys = obj["datas"].keys()
-			for(let key of keys){
+			for(let key of Object.keys(obj["datas"])){
 				if(obj["datas"][key]){
 					let tmp = new WatchData()
 					tmp.fromOBJ(obj["datas"][key])

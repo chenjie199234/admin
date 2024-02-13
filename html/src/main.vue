@@ -8,8 +8,10 @@ import pageright from './pageright.vue'
 </script>
 
 <template>
-	<VaModal v-model="state.load.ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" noPadding @beforeOpen="(el)=>{el.querySelector('.va-modal__inner').style.minWidth='0px'}">
-		<VaInnerLoading icon="❃" loading :size="60" style="width:100px;height:100px"/>
+	<VaModal v-model="state.load.ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" noPadding @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
+		<template #default>
+			<VaInnerLoading icon="❃" loading :size="60" style="width:100px;height:100px"/>
+		</template>
 	</VaModal>
 	<VaModal v-model="state.alert.ing" :title="state.get_alert_title()" :message="state.alert.msg" :mobileFullscreen="false" hideDefaultActions fixedLayout blur :overlay="false" maxWidth="600px" maxHeight="400px" />
 	<init v-if="!state.inited.value" />

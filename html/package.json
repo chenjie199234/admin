@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "vue": "^3.4.18",
-    "vuestic-ui": "^1.8.8"
+    "vuestic-ui": "^1.9.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

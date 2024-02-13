@@ -48,7 +48,7 @@ function iframeload(){
 }
 </script>
 <template>
-	<VaModal v-model="password_changing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__inner').style.minWidth='0px'}">
+	<VaModal v-model="password_changing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
 		<template #default>
 			<div style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;width:auto;text-align:center" color="primary" gradient>

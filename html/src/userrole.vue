@@ -498,7 +498,7 @@ function parsetime(timestamp :number):string{
 }
 </script>
 <template>
-	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el)=>{el.querySelector('.va-modal__inner').style.minWidth='0px'}">
+	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
 		<template #default>
 			<div v-if="optype=='invite'" style="display:flex;flex-direction:column">
 				<VaCard  style="min-width:350px;width:auto;text-align:center" color="primary" gradient>

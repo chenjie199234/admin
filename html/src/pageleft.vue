@@ -244,6 +244,18 @@ function node_op(){
 						break
 					}
 				}
+				if(state.page.node){
+					let needcleanpage=true
+					for(let i=0;i<target.value.node_id!.length;i++){
+						if(target.value.node_id[i]!=state.page.node!.node_id[i]){
+							needcleanpage=true
+							break
+						}
+					}
+					if(needcleanpage){
+						state.clear_page()
+					}
+				}
 				ptarget.value=null
 				target.value=null
 				state.clear_load()
@@ -287,7 +299,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 }
 </script>
 <template>
-	<VaModal v-model="project_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__inner').style.minWidth='0px'}">
+	<VaModal v-model="project_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
 		<template #default>
 			<div v-if="optype=='add'" style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
@@ -323,7 +335,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 			</div>
 		</template>
 	</VaModal>
-	<VaModal v-model="node_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__inner').style.minWidth='0px'}">
+	<VaModal v-model="node_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
 		<template #default>
 			<div v-if="optype=='del'" style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;width:auto;text-align:center" color="primary" gradient>

@@ -799,7 +799,7 @@ function is_json_obj(str :string):boolean{
 }
 </script>
 <template>
-	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el)=>{el.querySelector('.va-modal__inner').style.minWidth='0px'}">
+	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
 		<template #default>
 			<div v-if="optype=='del_app'" style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
@@ -1555,12 +1555,12 @@ function is_json_obj(str :string):boolean{
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemTotal</span>
 						<VaDivider vertical />
-						<span>{{(instances.get(instanceaddr)!.total_mem.toNumber()/1024/1024).toFixed(2)}}MB</span>
+						<span>{{(Number(instances.get(instanceaddr)!.total_mem)/1024/1024).toFixed(2)}}MB</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemUsage</span>
 						<VaDivider vertical />
-						<span>{{(instances.get(instanceaddr)!.cur_mem_usage.toNumber()/instances.get(instanceaddr)!.total_mem.toNumber()*100).toFixed(2)}}%</span>
+						<span>{{(Number(instances.get(instanceaddr)!.cur_mem_usage)/Number(instances.get(instanceaddr)!.total_mem)*100).toFixed(2)}}%</span>
 					</div>
 				</div>
 			</div>

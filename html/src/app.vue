@@ -859,7 +859,11 @@ function is_json_obj(str :string):boolean{
 				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
 					<VaCardContent style="font-size:20px"><b>Update Secret</b></VaCardContent>
 				</VaCard>
-				<VaInput type="text" label="New Secret" style="margin-top:10px" v-model.trim="update_new_secret" />
+				<VaInput :type="t_secret?'text':'password'" label="New Secret" style="margin-top:10px" v-model.trim="update_new_secret" :max-length="31">
+					<template #appendInner>
+						<VaIcon :name="t_secret?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_secret=!t_secret" />
+					</template>
+				</VaInput>
 				<div style="display:flex;justify-content:center">
 					<VaButton @click="app_op" style="margin:10px 10px 0 0" :disabled="!update_secret_able()" gradient>Update</VaButton>
 					<VaButton @click="update_new_secret='';ing=false" style="margin:10px 0 0 10px" gradient>Cancel</VaButton>
@@ -1195,7 +1199,8 @@ function is_json_obj(str :string):boolean{
 							style="border:1px solid var(--va-background-element);border-radius:5px;flex:1;overflow-y:auto;resize:none"
 							readonly>{{JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)}}</textarea>
 						<div style="align-self:center;display:flex;align-items:center">
-							<b style="color:var(--va-primary);margin:2px 10px">Current Config ID:  {{ keys.get(key)!.cur_index }}</b>
+							<b style="color:var(--va-primary);margin:2px 10px">Current Version:  {{ keys.get(key)!.cur_version}}</b>
+							<b style="color:var(--va-primary);margin:2px 10px">Current ID:  {{ keys.get(key)!.cur_index }}</b>
 							<VaDropdown
 								:disabled="rollback_key_index!=0||edit_key_value_type!=''"
 								trigger="hover"

@@ -13,7 +13,7 @@ import pageright from './pageright.vue'
 			<VaInnerLoading icon="❃" loading :size="60" style="width:100px;height:100px"/>
 		</template>
 	</VaModal>
-	<VaModal v-model="state.alert.ing" :title="state.get_alert_title()" :message="state.alert.msg" :mobileFullscreen="false" hideDefaultActions fixedLayout blur :overlay="false" maxWidth="600px" maxHeight="400px" />
+	<VaModal v-model="state.alert.ing" :title="state.get_alert_title()" :message="state.alert.msg" :mobileFullscreen="false" hideDefaultActions blur :overlay="false" maxWidth="600px" maxHeight="400px" />
 	<init v-if="!state.inited.value" />
 	<login v-else-if="state.user.token.length==0" />
 	<VaSplit v-else style="width:100%;height:100%;display:flex" stateful :model-value='0' :limits="['300px',50]">

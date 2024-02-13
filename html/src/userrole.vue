@@ -449,7 +449,7 @@ function assign_search_roles(part: string){
 		let req=new userAPI.SearchRolesReq()
 		req.project_id=state.project.info!.project_id
 		req.role_name=add_user_role_search.value
-		rqe.page=0
+		req.page=0
 		client.userClient.search_roles({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
 			state.clear_load()
 			state.set_alert("error",e.code,e.msg)
@@ -816,18 +816,18 @@ function parsetime(timestamp :number):string{
 					:model-value='0'
 					:limits="['250px',50]">
 					<template #start>
-						<div style="height:99%;display:flex;flex-direction:column;overflow-y:auto">
-							<VaHover stateful style="flex:1;margin:2px 0">
+						<div style="height:100%;display:flex;flex-direction:column;overflow-y:auto">
+							<VaHover stateful style="margin:1px 5px 1px 0">
 								<template #default="{hover}">
 									<div
 										style="padding:12px;cursor:pointer"
 										:style="{'background-color':hover?'var(--va-shadow)':node_from==''?'#b6d7a8':'var(--va-background-element)'}"
 										@click="optype='get_user_permission';op()">
-										User Self Permissions
+										User Self
 									</div>
 								</template>
 							</VaHover>
-							<VaHover v-for="rolename of user.project_roles![0]!.roles!" stateful style="flex:1;margin:2px 0">
+							<VaHover v-for="rolename of user.project_roles![0]!.roles!" stateful style="margin:1px 5px 1px 0">
 								<template #default="{hover}">
 									<div
 										style="display:flex;align-items:center;cursor:pointer"
@@ -835,7 +835,7 @@ function parsetime(timestamp :number):string{
 										@click="cur_role={project_id:state.project.info!.project_id,role_name:rolename,comment:'',ctime:0};
 											optype='get_role_permission';
 											op()">
-										<div style="flex:1;padding:12px;white-space:nowrap">Role Permissions: {{rolename}}</div>
+										<div style="flex:1;padding:12px;white-space:nowrap">Role: {{rolename}}</div>
 										<VaButton
 											v-if="state.page.node!.admin"
 											size="small"

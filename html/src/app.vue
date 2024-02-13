@@ -32,6 +32,7 @@ const all=computed(()=>{
 const curg=ref<string>("")
 const cura=ref<string>("")
 const secret=ref<string>("")
+const tmpsecret=ref<string>("")
 const t_secret=ref<boolean>(false)
 function selfapp():boolean{
 	let nodeid=all.value[curg.value][cura.value].node_id
@@ -106,11 +107,13 @@ function get_app(){
 	req.project_id=state.project.info!.project_id
 	req.g_name=curg.value
 	req.a_name=cura.value
-	req.secret=secret.value
+	req.secret=tmpsecret.value
 	client.appClient.get_app({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
 		state.clear_load()
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetAppResp)=>{
+		secret.value=tmpsecret.value
+		tmpsecret.value=""
 		if(resp.keys){
 			keys.value=new Map()
 			let tmp = [...resp.keys.entries()].sort()
@@ -1125,7 +1128,7 @@ function is_json_obj(str :string):boolean{
 					</VaHover>
 				</template>
 			</VaSelect>
-			<VaInput :type="t_secret?'text':'password'" v-model.trim="secret" outline placeholder="Secret" :max-length="31" style="width:250px;margin:0 1px">
+			<VaInput :type="t_secret?'text':'password'" v-model.trim="tmpsecret" outline placeholder="Secret" :max-length="31" style="width:250px;margin:0 1px">
 				<template #appendInner>
 					<VaIcon :name="t_secret?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_secret=!t_secret" />
 				</template>

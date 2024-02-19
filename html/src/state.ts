@@ -71,6 +71,7 @@ export const user = reactive<{
 	info:null,
 })
 export function login(oauth2:string,token:string){
+	user.oauth2=oauth2
 	user.token=token
 	localStorage.setItem("token",JSON.stringify({root:user.root,oauth2:oauth2,token:token}))
 }
@@ -81,8 +82,10 @@ export function avatar():string{
 	if(user.info){
 		if(user.oauth2 == "FeiShu"){
 			return user.info.feishu_user_name.substr(0,1)
-		}else if (user.oauth2 == "DingTalk"){
-			return user.info.dingtalk_user_name.substr(0,1)
+		}else if(user.oauth2 == "DingDing"){
+			return user.info.dingding_user_name.substr(0,1)
+		}else if(user.oauth2 == "WXWork"){
+			return user.info.wxwork_user_name.substr(0,1)
 		}
 	}
 	return ""

@@ -90,7 +90,7 @@ service user{
 //}
 
 message get_oauth2_req{
-	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="FeiShu"];
+	string src_type=1[(pbex.string_bytes_in)="DingDing",(pbex.string_bytes_in)="FeiShu",(pbex.string_bytes_in)="WXWork"];
 }
 message get_oauth2_resp{
 	string url=1;
@@ -99,9 +99,10 @@ message get_oauth2_resp{
 message user_info {
 	string user_id=1;
 	string feishu_user_name=2;
-	string dingtalk_user_name=3;
-	uint32 ctime=4;//timestamp,uint seconds
-	repeated project_roles project_roles=5;
+	string dingding_user_name=3;
+	string wxwork_user_name=4;
+	uint32 ctime=5;//timestamp,uint seconds
+	repeated project_roles project_roles=6;
 }
 message project_roles{
 	repeated uint32 project_id=1;
@@ -115,7 +116,7 @@ message role_info {
 }
 
 message user_login_req {
-	string src_type=1[(pbex.string_bytes_in)="DingTalk",(pbex.string_bytes_in)="FeiShu"];
+	string src_type=1[(pbex.string_bytes_in)="DingDing",(pbex.string_bytes_in)="FeiShu",(pbex.string_bytes_in)="WXWork"];
 	string code=2[(pbex.string_bytes_len_not_eq)=0];
 }
 message user_login_resp {

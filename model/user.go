@@ -4,9 +4,10 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type User struct {
 	ID               primitive.ObjectID  `bson:"_id,omitempty"` //user's id
-	Mobile           string              `json:"mobile"`
-	DingTalkUserName string              `json:"dingtalk_user_name"`
-	FeiShuUserName   string              `json:"feishu_user_name"`
+	Mobile           string              `bson:"mobile"`
+	DingDingUserName string              `bson:"dingding_user_name"`
+	FeiShuUserName   string              `bson:"feishu_user_name"`
+	WXWorkUserName   string              `bson:"wxwork_user_name"`
 	Password         string              `bson:"password"` //only root user use this
 	Projects         map[string][]string `bson:"projects"` //key projectid,value roles
 }

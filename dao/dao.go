@@ -15,8 +15,9 @@ import (
 // var ExampleCGrpcApi example.ExampleCGrpcClient
 // var ExampleCrpcApi example.ExampleCrpcClient
 // var ExampleWebApi  example.ExampleWebClient
-var DingTalkWebClient *web.WebClient
+var DingDingWebClient *web.WebClient
 var FeiShuWebClient *web.WebClient
+var WXWorkWebClient *web.WebClient
 
 // NewApi create all dependent service's api we need in this program
 func NewApi() error {
@@ -76,11 +77,11 @@ func NewApi() error {
 	if e != nil {
 		return e
 	}
-	DingTalkWebClient, e = web.NewWebClient(webc, DingTalkStaticDiscover, model.Project, model.Group, model.Name, "ali", "dingtalk", "oauth2", &tls.Config{})
+	DingDingWebClient, e = web.NewWebClient(webc, DingTalkStaticDiscover, model.Project, model.Group, model.Name, "ali", "dingtalk", "oauth2", &tls.Config{})
 	if e != nil {
 		return e
 	}
-	initDingTalk()
+	initDingDing()
 
 	//FeiShu
 	FeiShuStaticDiscover, e := discover.NewStaticDiscover("bytedance", "feishu", "oauth2", []string{"open.feishu.cn"}, 0, 0, 0)
@@ -93,16 +94,22 @@ func NewApi() error {
 	}
 	initFeiShu()
 
+	//WXWork
+	WXWorkStaticDiscover, e := discover.NewStaticDiscover("tencent", "wxwork", "oauth2", []string{"qyapi.weixin.qq.com"}, 0, 0, 0)
+	if e != nil {
+		return e
+	}
+	WXWorkWebClient, e = web.NewWebClient(webc, WXWorkStaticDiscover, model.Project, model.Group, model.Name, "tencent", "wxwork", "oauth2", &tls.Config{})
+	if e != nil {
+		return e
+	}
+	initWXWork()
+
 	return nil
 }
 
 func UpdateAppConfig(ac *config.AppConfig) {
-	select {
-	case trigerDingTalk <- nil:
-	default:
-	}
-	select {
-	case trigerFeiShu <- nil:
-	default:
-	}
+	RefreshDingDingToken()
+	RefreshFeiShuToken()
+	RefreshWXWorkToken()
 }

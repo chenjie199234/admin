@@ -22,24 +22,29 @@ type AppConfig struct {
 type ServiceConfig struct {
 	//add your config here
 
-	//https://login.dingtalk.com/oauth2/auth?redirect_uri={REDIRECT_URI}&response_type=code&client_id={APPKEY}&scope=openid&state=DingTalk&prompt=consent
-	DingTalkOauth2    string `json:"dingtalk_oauth2"`
-	DingTalkAppKey    string `json:"dingtalk_app_key"`
-	DingTalkAppSecret string `json:"dingtalk_app_secret"`
+	//https://login.dingtalk.com/oauth2/auth?redirect_uri={REDIRECT_URI}&response_type=code&client_id={CLIENTID}&scope=openid&state=DingDing&prompt=consent
+	DingDingOauth2       string `json:"dingding_oauth2"`
+	DingDingClientID     string `json:"dingding_client_id"`
+	DingDingClientSecret string `json:"dingding_client_secret"`
 
 	//https://open.feishu.cn/open-apis/authen/v1/authorize?redirect_uri={REDIRECT_URI}&app_id={APPID}&state=FeiShu&scope=contact:user.employee_id:readonly%20contact:user.phone:readonly
 	FeiShuOauth2    string `json:"feishu_oauth2"`
 	FeiShuAppID     string `json:"feishu_app_id"`
 	FeiShuAppSecret string `json:"feishu_app_secret"`
+
+	//https://login.work.weixin.qq.com/wwlogin/sso/login?redirect_uri={REDIRECT_URI}&login_type=CorpApp&appid={CorpID}&agentid={AgentID}&state=WXWork
+	WXWorkOauth2     string `json:"wxwork_oauth2"`
+	WXWorkCorpID     string `json:"wxwork_corp_id"`
+	WXWorkCorpSecret string `json:"wxwork_corp_secret"`
 }
 
 // every time update AppConfig will call this function
 func validateAppConfig(ac *AppConfig) {
-	if ac.Service.DingTalkOauth2 == "" && ac.Service.FeiShuAppSecret == "" {
+	if ac.Service.DingDingOauth2 == "" && ac.Service.FeiShuAppSecret == "" {
 		log.Warn(nil, "[config.validateAppConfig] no oauth2 service,only root can login by password")
 	}
-	if ac.Service.DingTalkOauth2 != "" && (ac.Service.DingTalkAppKey == "" || ac.Service.DingTalkAppSecret == "") {
-		log.Error(nil, "[config.validateAppConfig] missing dingtalk_app_key or dingtalk_app_secret setting")
+	if ac.Service.DingDingOauth2 != "" && (ac.Service.DingDingClientID == "" || ac.Service.DingDingClientSecret == "") {
+		log.Error(nil, "[config.validateAppConfig] missing dingding_client_id or dingding_client_secret setting")
 		Close()
 		os.Exit(1)
 	}

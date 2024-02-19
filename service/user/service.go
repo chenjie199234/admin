@@ -46,16 +46,21 @@ func Start() *Service {
 
 func (s *Service) GetOauth2(ctx context.Context, req *api.GetOauth2Req) (*api.GetOauth2Resp, error) {
 	switch req.SrcType {
-	case "DingTalk":
-		if config.AC.Service.DingTalkOauth2 == "" {
+	case "DingDing":
+		if config.AC.Service.DingDingOauth2 == "" {
 			return nil, ecode.ErrBan
 		}
-		return &api.GetOauth2Resp{Url: config.AC.Service.DingTalkOauth2}, nil
+		return &api.GetOauth2Resp{Url: config.AC.Service.DingDingOauth2}, nil
 	case "FeiShu":
 		if config.AC.Service.FeiShuOauth2 == "" {
 			return nil, ecode.ErrBan
 		}
 		return &api.GetOauth2Resp{Url: config.AC.Service.FeiShuOauth2}, nil
+	case "WXWork":
+		if config.AC.Service.WXWorkOauth2 == "" {
+			return nil, ecode.ErrBan
+		}
+		return &api.GetOauth2Resp{Url: config.AC.Service.WXWorkOauth2}, nil
 	}
 	log.Error(ctx, "[GetOauth2] unsupported oauth2 type", log.String("type", req.SrcType))
 	return nil, ecode.ErrReq
@@ -65,10 +70,12 @@ func (s *Service) UserLogin(ctx context.Context, req *api.UserLoginReq) (*api.Us
 	var e error
 	var oauth2username, oauth2mobile string
 	switch req.SrcType {
-	case "DingTalk":
-		oauth2username, oauth2mobile, e = util.GetDingTalkOAuth2(ctx, req.Code)
+	case "DingDing":
+		oauth2username, oauth2mobile, e = util.GetDingDingOAuth2(ctx, req.Code)
 	case "FeiShu":
 		oauth2username, oauth2mobile, e = util.GetFeiShuOAuth2(ctx, req.Code)
+	case "WXWork":
+		oauth2username, oauth2mobile, e = util.GetWXWorkOAuth2(ctx, req.Code)
 	}
 	if e != nil {
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -105,7 +112,7 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 	respuser := &api.UserInfo{
 		UserId:           user.ID.Hex(),
 		FeishuUserName:   user.FeiShuUserName,
-		DingtalkUserName: user.DingTalkUserName,
+		DingdingUserName: user.DingDingUserName,
 		Ctime:            uint32(user.ID.Timestamp().Unix()),
 		ProjectRoles:     make([]*api.ProjectRoles, 0, len(user.Projects)),
 	}
@@ -326,7 +333,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 		respuser := &api.UserInfo{
 			UserId:           user.ID.Hex(),
 			FeishuUserName:   user.FeiShuUserName,
-			DingtalkUserName: user.DingTalkUserName,
+			DingdingUserName: user.DingDingUserName,
 			Ctime:            uint32(user.ID.Timestamp().Unix()),
 			ProjectRoles:     make([]*api.ProjectRoles, 0, 1),
 		}

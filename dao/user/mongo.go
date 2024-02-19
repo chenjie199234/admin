@@ -20,8 +20,10 @@ func (d *Dao) MongoUserLogin(ctx context.Context, mobile, oauth2username, oauth2
 	updater := bson.M{}
 	if oauth2type == "FeiShu" {
 		updater["feishu_user_name"] = oauth2username
-	} else if oauth2type == "DingTalk" {
-		updater["dingtalk_user_name"] = oauth2username
+	} else if oauth2type == "DingDing" {
+		updater["dingding_user_name"] = oauth2username
+	} else if oauth2type == "WXWork" {
+		updater["wxwork_user_name"] = oauth2username
 	} else {
 		return primitive.NilObjectID, ecode.ErrReq
 	}
@@ -115,7 +117,11 @@ func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (
 func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, pagesize, page int64) (map[primitive.ObjectID]*model.User, int64, int64, error) {
 	filter := bson.M{}
 	if name != "" {
-		filter["$or"] = bson.A{bson.M{"feishu_user_name": bson.M{"$regex": name}}, bson.M{"dingtalk_user_name": bson.M{"$regex": name}}}
+		filter["$or"] = bson.A{
+			bson.M{"feishu_user_name": bson.M{"$regex": name}},
+			bson.M{"dingding_user_name": bson.M{"$regex": name}},
+			bson.M{"wxwork_user_name": bson.M{"$regex": name}},
+		}
 	}
 	if projectid != "" {
 		filter["projects."+projectid] = bson.M{"$exists": true}

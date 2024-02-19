@@ -38,7 +38,7 @@ onMounted(()=>{
 	}else if(window.location.search){
 		let querys = new URLSearchParams(window.location.search)
 		switch(querys.get("state")){
-		case "DingTalk":
+		case "DingDing":
 			if(querys.get("authCode")){
 				oauth2.value=querys.get("state")!
 				oauth2code.value=querys.get("authCode")!
@@ -47,7 +47,6 @@ onMounted(()=>{
 				state.set_alert("error",-2,"missng authCode in redirect url")
 			}
 			break
-
 		case "FeiShu":
 			if(querys.get("code")){
 				oauth2.value=querys.get("state")!
@@ -57,8 +56,17 @@ onMounted(()=>{
 				state.set_alert("error",-2,"missing code in redirect url")
 			}
 			break
+		case "WXWork":
+			if(querys.get("code")){
+				oauth2.value=querys.get("state")!
+				oauth2code.value=querys.get("code")!
+				do_login_user()
+			}else{
+				state.set_alert("error",-2,"missing code in redirect url")
+			}
+			break
 		default:
-			state.set_alert("error",-2,"unknown oauth2 state in redirect url,must be DingTalk or FeiShu")
+			state.set_alert("error",-2,"unknown oauth2 state in redirect url,must be DingDing or FeiShu or WXWork")
 		}
 	}
 })
@@ -86,7 +94,7 @@ function do_login_root(){
 
 const oauth2 = ref<string>("")
 const oauth2code = ref<string>("")
-const oauth2s = ref<string[]>(["DingTalk","FeiShu"])
+const oauth2s = ref<string[]>(["DingDing","FeiShu","WXWork"])
 function doauth(){
 	if(!state.set_load()){
 		return

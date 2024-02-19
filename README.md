@@ -115,8 +115,9 @@ collection: user
 {
     "_id":ObjectId("xxx"),//userid,if this is empty,means this is the super admin user
     "mobile":"",
-    "dingtalk_user_name":"",
+    "dingding_user_name":"",
     "feishu_user_name":"",
+    "wxwork_user_name":"",
     "password":"",//only root user use this,normal user use oauth2
     "projects":{
         "project_id1":["role_name1","role_name2"],
@@ -126,8 +127,9 @@ collection: user
 //手动创建数据库
 use user;
 db.createCollection("user");
-db.user.createIndex({dingtalk_user_name:1});
+db.user.createIndex({dingding_user_name:1});
 db.user.createIndex({feishu_user_name:1});
+db.user.createIndex({wxwork_user_name:1});
 db.user.createIndex({mobile:1},{unique:true});
 db.user.createIndex({"projects.$**":1});
 

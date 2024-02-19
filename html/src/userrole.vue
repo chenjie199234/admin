@@ -504,10 +504,13 @@ function parsetime(timestamp :number):string{
 				<VaCard  style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
 					<VaCardContent style="font-size:20px">
 						<p v-if="invite_kick_user!.feishu_user_name">
-							<b>Invite user: {{ invite_kick_user!.feishu_user_name }}(feishu) join project: {{ state.project.info!.project_name}}</b>
+							<b>Invite user: {{ invite_kick_user!.feishu_user_name }}(feishu) join project: {{ state.project.info!.project_name }}</b>
 						</p>
-						<p v-if="invite_kick_user!.dingtalk_user_name">
-							<b>Invite user: {{ invite_kick_user!.dingtalk_user_name }}(dingtalk) join project: {{ state.project.info!.project_name}}</b>
+						<p v-if="invite_kick_user!.dingding_user_name">
+							<b>Invite user: {{ invite_kick_user!.dingding_user_name }}(dingding) join project: {{ state.project.info!.project_name }}</b>
+						</p>
+						<p v-if="invite_kick_user!.wxwork_user_name">
+							<b>Invite user: {{ invite_kick_user!.wxwork_user_name }}(wxwork) join project: {{ state.project.info!.project_name }}</b>
 						</p>
 						<p><b>Please confirm</b></p>
 					</VaCardContent>
@@ -523,8 +526,11 @@ function parsetime(timestamp :number):string{
 						<p v-if="invite_kick_user!.feishu_user_name">
 							<b>Kick user: {{ invite_kick_user!.feishu_user_name }}(feishu) out of project: {{ state.project.info!.project_name}}</b>
 						</p>
-						<p v-if="invite_kick_user!.dingtalk_user_name">
-							<b>Kick user: {{ invite_kick_user!.dingtalk_user_name }}(feishu) out of project: {{ state.project.info!.project_name}}</b>
+						<p v-if="invite_kick_user!.dingding_user_name">
+							<b>Kick user: {{ invite_kick_user!.dingding_user_name }}(dingding) out of project: {{ state.project.info!.project_name}}</b>
+						</p>
+						<p v-if="invite_kick_user!.wxwork_user_name">
+							<b>Kick user: {{ invite_kick_user!.wxwork_user_name }}(wxwork) out of project: {{ state.project.info!.project_name }}</b>
 						</p>
 						<p><b>Please confirm</b></p>
 					</VaCardContent>
@@ -573,8 +579,11 @@ function parsetime(timestamp :number):string{
 						<p v-if="add_user_role_user!.feishu_user_name">
 							<b>Assign user: {{add_user_role_user!.feishu_user_name}}(feishu) a role</b>
 						</p>
-						<p v-if="add_user_role_user!.dingtalk_user_name">
-							<b>Assign user: {{add_user_role_user!.dingtalk_user_name}}(dingtalk) a role</b>
+						<p v-if="add_user_role_user!.dingding_user_name">
+							<b>Assign user: {{add_user_role_user!.dingding_user_name}}(dingding) a role</b>
+						</p>
+						<p v-if="invite_kick_user!.wxwork_user_name">
+							<b>Assign user: {{add_user_role_user!.wxwork_user_name}}(wxwork) a role</b>
 						</p>
 					</VaCardContent>
 				</VaCard>
@@ -621,7 +630,8 @@ function parsetime(timestamp :number):string{
 								@click="add_user_role_user=user"
 							>
 								<span v-if="user.feishu_user_name">{{user.feishu_user_name}}(feishu)</span>
-								<span v-if="user.dingtalk_user_name" style="margin-left:5px">{{user.dingtalk_user_name}}(dingtalk)</span>
+								<span v-if="user.dingding_user_name" style="margin-left:5px">{{user.dingding_user_name}}(dingding)</span>
+								<span v-if="user.wxwork_user_name" style="margin-left:5px">{{user.wxwork_user_name}}(wxwork)</span>
 								<span style="color:green;margin-left:10px">{{user.user_id}}</span>
 							</div>
 						</template>
@@ -638,8 +648,11 @@ function parsetime(timestamp :number):string{
 						<p v-if="cur_user!.feishu_user_name">
 							<b>Remove user: {{ cur_user!.feishu_user_name }}(feishu)'s role: {{ update_user_delete_role_rolename }}</b>
 						</p>
-						<p v-if="cur_user!.dingtalk_user_name">
-							<b>Remove user: {{ cur_user!.dingtalk_user_name }}(dingtalk)'s role: {{ update_user_delete_role_rolename }}</b>
+						<p v-if="cur_user!.dingding_user_name">
+							<b>Remove user: {{ cur_user!.dingding_user_name }}(dingding)'s role: {{ update_user_delete_role_rolename }}</b>
+						</p>
+						<p v-if="cur_user!.wxwork_user_name">
+							<b>Remove user: {{ cur_user!.wxwork_user_name }}(wxwork)'s role: {{ update_user_delete_role_rolename }}</b>
 						</p>
 						<p><b>Please confirm</b></p>
 					</VaCardContent>
@@ -667,8 +680,11 @@ function parsetime(timestamp :number):string{
 						<p v-if="cur_user!.feishu_user_name">
 							<b>Update user: {{ cur_user!.feishu_user_name}}(feishu)'s permission on node: {{ update_node!.node_name }}</b>
 						</p>
-						<p v-if="cur_user!.dingtalk_user_name">
-							<b>Update user: {{ cur_user!.dingtalk_user_name}}(dingtalk)'s permission on node: {{ update_node!.node_name }}</b>
+						<p v-if="cur_user!.dingding_user_name">
+							<b>Update user: {{ cur_user!.dingding_user_name}}(dingding)'s permission on node: {{ update_node!.node_name }}</b>
+						</p>
+						<p v-if="cur_user!.wxwork_user_name">
+							<b>Update user: {{ cur_user!.wxwork_user_name }}(wxwork)'s permission on node: {{ update_node!.node_name }}</b>
 						</p>
 						<p><b>Please confirm</b></p>
 					</VaCardContent>
@@ -775,7 +791,8 @@ function parsetime(timestamp :number):string{
 				>
 					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{cur_user==user?'-':invited(user)?'+':' ' }}</span>
 					<span v-if="user.feishu_user_name" style="padding:12px 0px 12px 20px;color:var(--va-primary)">{{user.feishu_user_name}}(feishu)</span>
-					<span v-if="user.dingtalk_user_name" style="padding:12px 0px 12px 20px;color:var(--va-primary)">{{user.dingtalk_user_name}}(dingtalk)</span>
+					<span v-if="user.dingding_user_name" style="padding:12px 0px 12px 20px;color:var(--va-primary)">{{user.dingding_user_name}}(dingding)</span>
+					<span v-if="user.wxwork_user_name" style="padding:12px 0px 12px 20px;color:var(--pa-primary)">{{user.wxwork_user_name}}(wxwork)</span>
 					<span style="padding:12px 20px;color:green">{{user.user_id}}</span>
 					<span style="flex:1"></span>
 					<span style="padding:12px;color:green">Create Time: {{parsetime(user.ctime)}}</span>

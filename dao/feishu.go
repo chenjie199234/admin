@@ -16,6 +16,7 @@ import (
 var FeiShuAppToken string
 var trigerFeiShu chan *struct{}
 
+// https://open.feishu.cn/document/server-docs/authentication-management/access-token/app_access_token_internal
 func initFeiShu() {
 	trigerFeiShu = make(chan *struct{}, 1)
 	go func() {
@@ -50,7 +51,7 @@ type getFeiShuTokenReq struct {
 }
 
 type getFeiShuAppTokenResp struct {
-	Code           int64  `json:"code"`
+	Code           int32  `json:"code"`
 	Msg            string `json:"msg"`
 	AppAccessToken string `json:"app_access_token"`
 	ExpireIn       int64  `json:"expire"`
@@ -81,9 +82,15 @@ func getFeiShuAppToken() (*getFeiShuAppTokenResp, error) {
 		return nil, e
 	}
 	if r.Code != 0 {
-		e = cerror.MakeError(int32(r.Code), 500, r.Msg)
+		e = cerror.MakeError(r.Code, 500, r.Msg)
 		log.Error(nil, "[GetFeiShuAppToken] failed", log.CError(e))
 		return nil, e
 	}
 	return r, nil
+}
+func RefreshFeiShuToken() {
+	select {
+	case trigerFeiShu <- nil:
+	default:
+	}
 }

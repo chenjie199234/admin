@@ -18,7 +18,7 @@ type getFeiShuUserTokenReq struct {
 	Code      string `json:"code"`
 }
 type getFeiShuUserTokenResp struct {
-	Code int64                   `json:"code"`
+	Code int32                   `json:"code"`
 	Msg  string                  `json:"msg"`
 	Data *getFeiShuUserTokenData `json:"data"`
 }
@@ -26,7 +26,7 @@ type getFeiShuUserTokenData struct {
 	UserAccessToken string `json:"access_token"`
 }
 type getFeiShuUserInfoResp struct {
-	Code int64                  `json:"code"`
+	Code int32                  `json:"code"`
 	Msg  string                 `json:"msg"`
 	Data *getFeiShuUserInfoData `json:"data"`
 }
@@ -38,6 +38,7 @@ type getFeiShuUserInfoData struct {
 
 func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile string, e error) {
 	//step1 get user token
+	//https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/authen-v1/oidc-access_token/create?appId=cli_a596bbd826b8100d
 	var usertoken string
 	{
 		header := make(http.Header)
@@ -68,13 +69,14 @@ func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile 
 			return
 		}
 		if r.Code != 0 {
-			e = cerror.MakeError(int32(r.Code), 500, r.Msg)
+			e = cerror.MakeError(r.Code, 500, r.Msg)
 			log.Error(ctx, "[GetFeiShuOAuth2.usertoken] failed", log.String("code", code), log.CError(e))
 			return
 		}
 		usertoken = r.Data.UserAccessToken
 	}
 	//step2 get user info
+	//https://open.feishu.cn/document/server-docs/authentication-management/login-state-management/get
 	{
 		header := make(http.Header)
 		header.Set("Authorization", "Bearer "+usertoken)
@@ -87,13 +89,13 @@ func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile 
 		defer resp.Body.Close()
 		respbody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] read response body failed", log.String("code", code), log.CError(e))
+			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] read response body failed", log.String("code", code), log.CError(err))
 			e = err
 			return
 		}
 		r := &getFeiShuUserInfoResp{}
 		if err = json.Unmarshal(respbody, r); err != nil {
-			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] response body decode failed", log.String("code", code), log.CError(e))
+			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] response body decode failed", log.String("code", code), log.CError(err))
 			e = err
 			return
 		}

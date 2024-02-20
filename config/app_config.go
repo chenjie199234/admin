@@ -32,7 +32,7 @@ type ServiceConfig struct {
 	FeiShuAppID     string `json:"feishu_app_id"`
 	FeiShuAppSecret string `json:"feishu_app_secret"`
 
-	//https://login.work.weixin.qq.com/wwlogin/sso/login?redirect_uri={REDIRECT_URI}&login_type=CorpApp&appid={CorpID}&agentid={AgentID}&state=WXWork
+	//https://open.weixin.qq.com/connect/oauth2/authorize?redirect_uri={REDIRECT_URI}&appid={CORPID}&response_type=code&scope=snsapi_privateinfo&state=WXWork&agentid={AGENTID}#wechat_redirect
 	WXWorkOauth2     string `json:"wxwork_oauth2"`
 	WXWorkCorpID     string `json:"wxwork_corp_id"`
 	WXWorkCorpSecret string `json:"wxwork_corp_secret"`

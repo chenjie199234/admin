@@ -113,6 +113,7 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 		UserId:           user.ID.Hex(),
 		FeishuUserName:   user.FeiShuUserName,
 		DingdingUserName: user.DingDingUserName,
+		WxworkUserName:   user.WXWorkUserName,
 		Ctime:            uint32(user.ID.Timestamp().Unix()),
 		ProjectRoles:     make([]*api.ProjectRoles, 0, len(user.Projects)),
 	}
@@ -334,6 +335,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 			UserId:           user.ID.Hex(),
 			FeishuUserName:   user.FeiShuUserName,
 			DingdingUserName: user.DingDingUserName,
+			WxworkUserName:   user.WXWorkUserName,
 			Ctime:            uint32(user.ID.Timestamp().Unix()),
 			ProjectRoles:     make([]*api.ProjectRoles, 0, 1),
 		}

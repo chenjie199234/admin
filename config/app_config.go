@@ -40,7 +40,7 @@ type ServiceConfig struct {
 
 // every time update AppConfig will call this function
 func validateAppConfig(ac *AppConfig) {
-	if ac.Service.DingDingOauth2 == "" && ac.Service.FeiShuAppSecret == "" && ac.Service.WXWorkOauth2 == "" {
+	if ac.Service.DingDingOauth2 == "" && ac.Service.FeiShuOauth2 == "" && ac.Service.WXWorkOauth2 == "" {
 		log.Warn(nil, "[config.validateAppConfig] no oauth2 service,only root can login by password")
 	}
 	if ac.Service.DingDingOauth2 != "" && (ac.Service.DingDingClientID == "" || ac.Service.DingDingClientSecret == "") {

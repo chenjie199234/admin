@@ -40,16 +40,21 @@ type ServiceConfig struct {
 
 // every time update AppConfig will call this function
 func validateAppConfig(ac *AppConfig) {
-	if ac.Service.DingDingOauth2 == "" && ac.Service.FeiShuAppSecret == "" {
+	if ac.Service.DingDingOauth2 == "" && ac.Service.FeiShuAppSecret == "" && ac.Service.WXWorkOauth2 == "" {
 		log.Warn(nil, "[config.validateAppConfig] no oauth2 service,only root can login by password")
 	}
 	if ac.Service.DingDingOauth2 != "" && (ac.Service.DingDingClientID == "" || ac.Service.DingDingClientSecret == "") {
-		log.Error(nil, "[config.validateAppConfig] missing dingding_client_id or dingding_client_secret setting")
+		log.Error(nil, "[config.validateAppConfig] missing dingding_client_id or dingding_client_secret")
 		Close()
 		os.Exit(1)
 	}
 	if ac.Service.FeiShuOauth2 != "" && (ac.Service.FeiShuAppID == "" || ac.Service.FeiShuAppSecret == "") {
-		log.Error(nil, "[config.validateAppConfig] missing feishu_app_id or feishu_app_secret setting")
+		log.Error(nil, "[config.validateAppConfig] missing feishu_app_id or feishu_app_secret")
+		Close()
+		os.Exit(1)
+	}
+	if ac.Service.WXWorkOauth2 != "" && (ac.Service.WXWorkCorpID == "" || ac.Service.WXWorkCorpSecret == "") {
+		log.Error(nil, "[config.validateAppConfig] missing wxwork_corp_id or wxwork_corp_secret")
 		Close()
 		os.Exit(1)
 	}

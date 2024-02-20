@@ -109,11 +109,14 @@
 	"token_secret":"test",
 	"session_token_expire":"24h",
 	"service":{
-		"dingtalk_oauth2":"",
-		"dingtalk_app_key":"",
-		"dingtalk_app_secret":"",
+		"dingding_oauth2":"",
+		"dingding_client_id":"",
+		"dingding_client_secret":"",
 		"feishu_oauth2":"",
 		"feishu_app_id":"",
-		"feishu_app_secret":""
+		"feishu_app_secret":"",
+		"wxwork_oauth2":"",
+		"wxwork_corp_id":"",
+		"wxwork_corp_secret":""
 	}
 }

@@ -23,12 +23,12 @@ const t_access_key=ref<boolean>(false)
 const password=ref<string>("")
 const t_password=ref<boolean>(false)
 function init_able():boolean{
-	return access_key.value!="" && password.value.length>=10 && password.value.length<32
+	return access_key.value!="" && password.value.length>=10 && password.value.length<=32
 }
 function do_init(){
 	if(!init_able()){
 		if(access_key.value){
-			state.set_alert("error",-2,"Root Password length must in [10,32)!")
+			state.set_alert("error",-2,"Root Password length must in [10,32]!")
 		}else{
 			state.set_alert("error",-2,"Missing Access Key!")
 		}
@@ -60,7 +60,7 @@ function do_init(){
 				<VaIcon :name="t_access_key?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_access_key=!t_access_key" />
 			</template>
 		</VaInput>
-		<VaInput :type="t_password?'text':'password'" label="Root Password*" v-model="password" style="width:350px;margin-top:10px">
+		<VaInput :type="t_password?'text':'password'" label="Root Password*" v-model="password" style="width:350px;margin-top:10px" :max-length="32">
 			<template #appendInner>
 				<VaIcon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
 			</template>

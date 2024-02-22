@@ -822,7 +822,7 @@ function is_json_obj(str :string):boolean{
 				</VaCard>
 				<VaInput type="text" label="Group*" style="margin-top:10px" v-model.trim="new_g" />
 				<VaInput type="text" label="App*" style="margin-top:10px" v-model.trim="new_a" />
-				<VaInput type="text" label="Secret" style="margin-top:10px" v-model.trim="new_secret" :max-length="31" />
+				<VaInput type="text" label="Secret" style="margin-top:10px" v-model="new_secret" :max-length="32" />
 				<VaRadio style="display:flex;justify-content:center;margin-top:10px"
 					v-model="new_discovermode"
 					:options='["dns","kubernetes","static"]'
@@ -862,7 +862,7 @@ function is_json_obj(str :string):boolean{
 				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
 					<VaCardContent style="font-size:20px"><b>Update Secret</b></VaCardContent>
 				</VaCard>
-				<VaInput :type="t_secret?'text':'password'" label="New Secret" style="margin-top:10px" v-model.trim="update_new_secret" :max-length="31">
+				<VaInput :type="t_secret?'text':'password'" label="New Secret" style="margin-top:10px" v-model="update_new_secret" :max-length="32">
 					<template #appendInner>
 						<VaIcon :name="t_secret?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_secret=!t_secret" />
 					</template>
@@ -1128,7 +1128,7 @@ function is_json_obj(str :string):boolean{
 					</VaHover>
 				</template>
 			</VaSelect>
-			<VaInput :type="t_secret?'text':'password'" v-model.trim="tmpsecret" outline placeholder="Secret" :max-length="31" style="width:250px;margin:0 1px">
+			<VaInput :type="t_secret?'text':'password'" v-model="tmpsecret" outline placeholder="Secret" :max-length="32" style="width:250px;margin:0 1px">
 				<template #appendInner>
 					<VaIcon :name="t_secret?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_secret=!t_secret" />
 				</template>

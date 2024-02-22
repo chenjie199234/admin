@@ -14,14 +14,14 @@ const t_oldpassword = ref<boolean>(false)
 const newpassword = ref<string>("")
 const t_newpassword = ref<boolean>(false)
 function change_root_password_able():boolean{
-	return oldpassword.value.length>=10 && oldpassword.value.length<32 && newpassword.value.length>=10 && newpassword.value.length<32
+	return oldpassword.value.length>=10 && oldpassword.value.length<=32 && newpassword.value.length>=10 && newpassword.value.length<=32
 }
 function do_change_root_password(){
 	if(!state.user.root || state.user.token==""){
 		return
 	}
 	if(!change_root_password_able()){
-		state.set_alert("error",-2,"Root Password length must in [10,32)!")
+		state.set_alert("error",-2,"Root Password length must in [10,32]!")
 		return
 	}
 	if(!state.set_load()){
@@ -54,12 +54,12 @@ function iframeload(){
 				<VaCard style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
 					<VaCardContent style="font-size:20px"><b>Change Root Password</b></VaCardContent>
 				</VaCard>
-				<VaInput :type="t_oldpassword?'text':'password'" label="Old Root Password*" v-model="oldpassword" style="margin-top:10px">
+				<VaInput :type="t_oldpassword?'text':'password'" label="Old Root Password*" v-model="oldpassword" style="margin-top:10px" :max-length=32>
 					<template #appendInner>
 						<VaIcon :name="t_oldpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_oldpassword=!t_oldpassword" />
 					</template>
 				</VaInput>
-				<VaInput :type="t_newpassword?'text':'password'" label="New Root Password*" v-model="newpassword" style="margin-top:10px">
+				<VaInput :type="t_newpassword?'text':'password'" label="New Root Password*" v-model="newpassword" style="margin-top:10px" :max-length="32">
 					<template #appendInner>
 						<VaIcon :name="t_newpassword?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_newpassword=!t_newpassword" />
 					</template>

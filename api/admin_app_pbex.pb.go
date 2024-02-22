@@ -17,8 +17,8 @@ func (m *GetAppReq) Validate() (errstr string) {
 	if len(m.GetAName()) <= 0 {
 		return "field: a_name in object: get_app_req check value str len gt failed"
 	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: get_app_req check value str len lt failed"
+	if len(m.GetSecret()) > 32 {
+		return "field: secret in object: get_app_req check value str len lte failed"
 	}
 	return ""
 }
@@ -34,8 +34,8 @@ func (m *SetAppReq) Validate() (errstr string) {
 	if len(m.GetAName()) <= 0 {
 		return "field: a_name in object: set_app_req check value str len gt failed"
 	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: set_app_req check value str len lt failed"
+	if len(m.GetSecret()) > 32 {
+		return "field: secret in object: set_app_req check value str len lte failed"
 	}
 	if m.GetDiscoverMode() != "kubernetes" && m.GetDiscoverMode() != "dns" && m.GetDiscoverMode() != "static" {
 		return "field: discover_mode in object: set_app_req check value str in failed"
@@ -72,8 +72,8 @@ func (m *DelAppReq) Validate() (errstr string) {
 	if len(m.GetAName()) <= 0 {
 		return "field: a_name in object: del_app_req check value str len gt failed"
 	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: del_app_req check value str len lt failed"
+	if len(m.GetSecret()) > 32 {
+		return "field: secret in object: del_app_req check value str len lte failed"
 	}
 	return ""
 }
@@ -89,11 +89,11 @@ func (m *UpdateAppSecretReq) Validate() (errstr string) {
 	if len(m.GetAName()) <= 0 {
 		return "field: a_name in object: update_app_secret_req check value str len gt failed"
 	}
-	if len(m.GetOldSecret()) >= 32 {
-		return "field: old_secret in object: update_app_secret_req check value str len lt failed"
+	if len(m.GetOldSecret()) > 32 {
+		return "field: old_secret in object: update_app_secret_req check value str len lte failed"
 	}
-	if len(m.GetNewSecret()) >= 32 {
-		return "field: new_secret in object: update_app_secret_req check value str len lt failed"
+	if len(m.GetNewSecret()) > 32 {
+		return "field: new_secret in object: update_app_secret_req check value str len lte failed"
 	}
 	return ""
 }
@@ -112,8 +112,8 @@ func (m *DelKeyReq) Validate() (errstr string) {
 	if len(m.GetKey()) <= 0 {
 		return "field: key in object: del_key_req check value str len gt failed"
 	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: del_key_req check value str len lt failed"
+	if len(m.GetSecret()) > 32 {
+		return "field: secret in object: del_key_req check value str len lte failed"
 	}
 	return ""
 }
@@ -132,8 +132,8 @@ func (m *GetKeyConfigReq) Validate() (errstr string) {
 	if len(m.GetKey()) <= 0 {
 		return "field: key in object: get_key_config_req check value str len gt failed"
 	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: get_key_config_req check value str len lt failed"
+	if len(m.GetSecret()) > 32 {
+		return "field: secret in object: get_key_config_req check value str len lte failed"
 	}
 	return ""
 }
@@ -158,8 +158,8 @@ func (m *SetKeyConfigReq) Validate() (errstr string) {
 	if m.GetValueType() != "raw" && m.GetValueType() != "json" && m.GetValueType() != "yaml" && m.GetValueType() != "toml" {
 		return "field: value_type in object: set_key_config_req check value str in failed"
 	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: set_key_config_req check value str len lt failed"
+	if len(m.GetSecret()) > 32 {
+		return "field: secret in object: set_key_config_req check value str len lte failed"
 	}
 	return ""
 }
@@ -178,8 +178,8 @@ func (m *RollbackReq) Validate() (errstr string) {
 	if len(m.GetKey()) <= 0 {
 		return "field: key in object: rollback_req check value str len gt failed"
 	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: rollback_req check value str len lt failed"
+	if len(m.GetSecret()) > 32 {
+		return "field: secret in object: rollback_req check value str len lte failed"
 	}
 	if m.GetIndex() <= 0 {
 		return "field: index in object: rollback_req check value uint gt failed"
@@ -289,8 +289,8 @@ func (m *SetProxyReq) Validate() (errstr string) {
 	if len(m.GetPath()) == 0 {
 		return "field: path in object: set_proxy_req check value str len not eq failed"
 	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: set_proxy_req check value str len lt failed"
+	if len(m.GetSecret()) > 32 {
+		return "field: secret in object: set_proxy_req check value str len lte failed"
 	}
 	return ""
 }
@@ -309,8 +309,8 @@ func (m *DelProxyReq) Validate() (errstr string) {
 	if len(m.GetPath()) == 0 {
 		return "field: path in object: del_proxy_req check value str len not eq failed"
 	}
-	if len(m.GetSecret()) >= 32 {
-		return "field: secret in object: del_proxy_req check value str len lt failed"
+	if len(m.GetSecret()) > 32 {
+		return "field: secret in object: del_proxy_req check value str len lte failed"
 	}
 	return ""
 }

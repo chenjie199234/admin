@@ -21,7 +21,7 @@ Content-Type: application/json
 	"g_name":"str",
 	//value length must > 0
 	"a_name":"str",
-	//value length must < 32
+	//value length must <= 32
 	"secret":"str"
 }
 ------------------------------------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ Content-Type: application/json
 	"g_name":"str",
 	//value length must > 0
 	"a_name":"str",
-	//value length must < 32
+	//value length must <= 32
 	"secret":"str",
 	//value must in ["kubernetes","dns","static"]
 	"discover_mode":"str",
@@ -165,7 +165,7 @@ Content-Type: application/json
 	"g_name":"str",
 	//value length must > 0
 	"a_name":"str",
-	//value length must < 32
+	//value length must <= 32
 	"secret":"str"
 }
 ------------------------------------------------------------------------------------------------------------
@@ -198,9 +198,9 @@ Content-Type: application/json
 	"g_name":"str",
 	//value length must > 0
 	"a_name":"str",
-	//value length must < 32
+	//value length must <= 32
 	"old_secret":"str",
-	//value length must < 32
+	//value length must <= 32
 	"new_secret":"str"
 }
 ------------------------------------------------------------------------------------------------------------
@@ -236,7 +236,7 @@ Content-Type: application/json
 	//can't contain '.' in key
 	//value length must > 0
 	"key":"str",
-	//value length must < 32
+	//value length must <= 32
 	"secret":"str"
 }
 ------------------------------------------------------------------------------------------------------------
@@ -275,7 +275,7 @@ Content-Type: application/json
 	//0 means return current active config,config's index start from 1
 	//uint32
 	"index":0,
-	//value length must < 32
+	//value length must <= 32
 	"secret":"str"
 }
 ------------------------------------------------------------------------------------------------------------
@@ -329,7 +329,7 @@ Content-Type: application/json
 	"value":"str",
 	//value must in ["raw","json","yaml","toml"]
 	"value_type":"str",
-	//value length must < 32
+	//value length must <= 32
 	"secret":"str",
 	//true: create a new key config. false: update the already exist key config
 	"new_key":true
@@ -367,7 +367,7 @@ Content-Type: application/json
 	//can't contain '.' in key
 	//value length must > 0
 	"key":"str",
-	//value length must < 32
+	//value length must <= 32
 	"secret":"str",
 	//uint32
 	//value must > 0
@@ -629,7 +629,7 @@ Content-Type: application/json
 	"write":true,
 	//need admin permission on this node
 	"admin":true,
-	//value length must < 32
+	//value length must <= 32
 	"secret":"str",
 	//true: create a new proxy path config. false: update the already exist proxy path setting
 	"new_path":true
@@ -668,7 +668,7 @@ Content-Type: application/json
 	"a_name":"str",
 	//value length must != 0
 	"path":"str",
-	//value length must < 32
+	//value length must <= 32
 	"secret":"str"
 }
 ------------------------------------------------------------------------------------------------------------

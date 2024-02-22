@@ -106,7 +106,7 @@ message get_app_req{
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
-	string secret=4[(pbex.string_bytes_len_lt)=32];
+	string secret=4[(pbex.string_bytes_len_lte)=32];
 }
 message get_app_resp{
 	string discover_mode=1;//can be one of "kubernetes" / "dns" / "static"
@@ -142,7 +142,7 @@ message set_app_req {
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
-	string secret=4[(pbex.string_bytes_len_lt)=32];
+	string secret=4[(pbex.string_bytes_len_lte)=32];
 	string discover_mode=5[(pbex.string_bytes_in)="kubernetes",(pbex.string_bytes_in)="dns",(pbex.string_bytes_in)="static"];
 	string kubernetes_namespace=6;//when discover_mode == "kubernetes"
 	string kubernetes_labelselector=7;//when discover_mode == "kubernetes"
@@ -162,7 +162,7 @@ message del_app_req {
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
-	string secret=4[(pbex.string_bytes_len_lt)=32];
+	string secret=4[(pbex.string_bytes_len_lte)=32];
 }
 message del_app_resp {
 }
@@ -170,8 +170,8 @@ message update_app_secret_req {
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
-	string old_secret=4[(pbex.string_bytes_len_lt)=32];
-	string new_secret=5[(pbex.string_bytes_len_lt)=32];
+	string old_secret=4[(pbex.string_bytes_len_lte)=32];
+	string new_secret=5[(pbex.string_bytes_len_lte)=32];
 }
 message update_app_secret_resp{
 }
@@ -180,7 +180,7 @@ message del_key_req {
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
 	string key=4[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
-	string secret=5[(pbex.string_bytes_len_lt)=32];
+	string secret=5[(pbex.string_bytes_len_lte)=32];
 }
 message del_key_resp {
 }
@@ -190,7 +190,7 @@ message get_key_config_req {
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
 	string key=4[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
 	uint32 index=5;//0 means return current active config,config's index start from 1
-	string secret=6[(pbex.string_bytes_len_lt)=32];
+	string secret=6[(pbex.string_bytes_len_lte)=32];
 }
 message get_key_config_resp {
 	uint32 cur_index=1;//current active config index,0 means not exist
@@ -210,7 +210,7 @@ message set_key_config_req {
 		(pbex.string_bytes_in)="json",
 		(pbex.string_bytes_in)="yaml",
 		(pbex.string_bytes_in)="toml"];
-	string secret=7[(pbex.string_bytes_len_lt)=32];
+	string secret=7[(pbex.string_bytes_len_lte)=32];
 	bool new_key=8;//true: create a new key config. false: update the already exist key config
 }
 message set_key_config_resp {
@@ -220,7 +220,7 @@ message rollback_req{
 	string g_name=2[(pbex.string_bytes_len_gt)=0];
 	string a_name=3[(pbex.string_bytes_len_gt)=0];
 	string key=4[(pbex.string_bytes_len_gt)=0];//can't contain '.' in key
-	string secret=5[(pbex.string_bytes_len_lt)=32];
+	string secret=5[(pbex.string_bytes_len_lte)=32];
 	uint32 index=6[(pbex.uint_gt)=0];
 }
 message rollback_resp{
@@ -311,7 +311,7 @@ message set_proxy_req{
 	bool read=5;//need read permission on this node
 	bool write=6;//need write permission on this node
 	bool admin=7;//need admin permission on this node
-	string secret=8[(pbex.string_bytes_len_lt)=32];
+	string secret=8[(pbex.string_bytes_len_lte)=32];
 	bool new_path=9;//true: create a new proxy path config. false: update the already exist proxy path setting
 }
 message set_proxy_resp{
@@ -322,7 +322,7 @@ message del_proxy_req{
 	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
 	string path=4[(pbex.string_bytes_len_not_eq)=0];
-	string secret=5[(pbex.string_bytes_len_lt)=32];
+	string secret=5[(pbex.string_bytes_len_lte)=32];
 }
 message del_proxy_resp{
 }

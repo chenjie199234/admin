@@ -77,20 +77,20 @@ message init_status_resp{
 	bool status=1;//true-already inited,false-not inited
 }
 message init_req{
-	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
+	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
 }
 message init_resp{
 
 }
 message root_login_req{
-	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
+	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
 }
 message root_login_resp{
 	string token=1;
 }
 message update_root_password_req{
-	string old_password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
-	string new_password=2[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lt)=32];
+	string old_password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
+	string new_password=2[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
 }
 message update_root_password_resp{
 }

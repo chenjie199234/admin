@@ -11,8 +11,8 @@ func (m *InitReq) Validate() (errstr string) {
 	if len(m.GetPassword()) < 10 {
 		return "field: password in object: init_req check value str len gte failed"
 	}
-	if len(m.GetPassword()) >= 32 {
-		return "field: password in object: init_req check value str len lt failed"
+	if len(m.GetPassword()) > 32 {
+		return "field: password in object: init_req check value str len lte failed"
 	}
 	return ""
 }
@@ -22,8 +22,8 @@ func (m *RootLoginReq) Validate() (errstr string) {
 	if len(m.GetPassword()) < 10 {
 		return "field: password in object: root_login_req check value str len gte failed"
 	}
-	if len(m.GetPassword()) >= 32 {
-		return "field: password in object: root_login_req check value str len lt failed"
+	if len(m.GetPassword()) > 32 {
+		return "field: password in object: root_login_req check value str len lte failed"
 	}
 	return ""
 }
@@ -33,14 +33,14 @@ func (m *UpdateRootPasswordReq) Validate() (errstr string) {
 	if len(m.GetOldPassword()) < 10 {
 		return "field: old_password in object: update_root_password_req check value str len gte failed"
 	}
-	if len(m.GetOldPassword()) >= 32 {
-		return "field: old_password in object: update_root_password_req check value str len lt failed"
+	if len(m.GetOldPassword()) > 32 {
+		return "field: old_password in object: update_root_password_req check value str len lte failed"
 	}
 	if len(m.GetNewPassword()) < 10 {
 		return "field: new_password in object: update_root_password_req check value str len gte failed"
 	}
-	if len(m.GetNewPassword()) >= 32 {
-		return "field: new_password in object: update_root_password_req check value str len lt failed"
+	if len(m.GetNewPassword()) > 32 {
+		return "field: new_password in object: update_root_password_req check value str len lte failed"
 	}
 	return ""
 }

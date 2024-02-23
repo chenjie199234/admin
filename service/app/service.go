@@ -483,7 +483,7 @@ func (s *Service) UpdateAppSecret(ctx context.Context, req *api.UpdateAppSecretR
 }
 
 func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyResp, error) {
-	if strings.Contains(req.Key, ".") {
+	if strings.Contains(req.Key, ".") || strings.Contains(req.Key, "$") {
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
@@ -567,7 +567,7 @@ func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyRe
 }
 
 func (s *Service) GetKeyConfig(ctx context.Context, req *api.GetKeyConfigReq) (*api.GetKeyConfigResp, error) {
-	if strings.Contains(req.Key, ".") {
+	if strings.Contains(req.Key, ".") || strings.Contains(req.Key, "$") {
 		return nil, ecode.ErrReq
 	}
 
@@ -647,7 +647,7 @@ func (s *Service) GetKeyConfig(ctx context.Context, req *api.GetKeyConfigReq) (*
 }
 
 func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*api.SetKeyConfigResp, error) {
-	if strings.Contains(req.Key, ".") {
+	if strings.Contains(req.Key, ".") || strings.Contains(req.Key, "$") {
 		return nil, ecode.ErrReq
 	}
 
@@ -780,7 +780,7 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 }
 
 func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.RollbackResp, error) {
-	if strings.Contains(req.Key, ".") {
+	if strings.Contains(req.Key, ".") || strings.Contains(req.Key, "$") {
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
@@ -859,7 +859,7 @@ func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.Roll
 
 func (s *Service) WatchConfig(ctx context.Context, req *api.WatchConfigReq) (*api.WatchConfigResp, error) {
 	for k := range req.Keys {
-		if strings.Contains(k, ".") {
+		if strings.Contains(k, ".") || strings.Contains(k, "$") {
 			return nil, ecode.ErrReq
 		}
 	}

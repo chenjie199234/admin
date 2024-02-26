@@ -44,10 +44,10 @@ func StartCGrpcServer() {
 
 	//you just need to register your service here
 	api.RegisterStatusCGrpcServer(s, service.SvcStatus, mids.AllMids())
-	api.RegisterAppCGrpcServer(s, service.SvcApp, mids.AllMids())
-	api.RegisterUserCGrpcServer(s, service.SvcUser, mids.AllMids())
-	api.RegisterPermissionCGrpcServer(s, service.SvcPermission, mids.AllMids())
-	api.RegisterInitializeCGrpcServer(s, service.SvcInitialize, mids.AllMids())
+	// api.RegisterAppCGrpcServer(s, service.SvcApp, mids.AllMids())
+	// api.RegisterUserCGrpcServer(s, service.SvcUser, mids.AllMids())
+	// api.RegisterPermissionCGrpcServer(s, service.SvcPermission, mids.AllMids())
+	// api.RegisterInitializeCGrpcServer(s, service.SvcInitialize, mids.AllMids())
 	//example
 	//api.RegisterExampleCGrpcServer(s, service.SvcExample, mids.AllMids())
 

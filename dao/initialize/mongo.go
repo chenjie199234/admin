@@ -19,9 +19,6 @@ import (
 )
 
 func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
-	if len(password) >= 32 {
-		return ecode.ErrPasswordLength
-	}
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {
@@ -71,9 +68,6 @@ func (d *Dao) MongoRootLogin(ctx context.Context) (*model.User, error) {
 	return user, nil
 }
 func (d *Dao) MongoUpdateRootPassword(ctx context.Context, oldpassword, newpassword string) (e error) {
-	if len(oldpassword) >= 32 || len(newpassword) >= 32 {
-		return ecode.ErrPasswordLength
-	}
 	var s mongo.Session
 	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
 	if e != nil {

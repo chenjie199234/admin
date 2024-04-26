@@ -15,7 +15,7 @@ import (
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	publicmids "github.com/chenjie199234/Corelib/mids"
-	"github.com/chenjie199234/Corelib/pool"
+	"github.com/chenjie199234/Corelib/pool/bpool"
 	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/graceful"
@@ -142,8 +142,8 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 	if md["Token-User"] != primitive.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -271,8 +271,8 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 	if md["Token-User"] != primitive.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')

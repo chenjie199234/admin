@@ -17,7 +17,7 @@ import (
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	publicmids "github.com/chenjie199234/Corelib/mids"
-	"github.com/chenjie199234/Corelib/pool"
+	"github.com/chenjie199234/Corelib/pool/bpool"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/graceful"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -151,8 +151,8 @@ func (s *Service) InviteProject(ctx context.Context, req *api.InviteProjectReq) 
 		log.Error(ctx, "[InviteProject] target's userid format wrong", log.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -208,8 +208,8 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 		return nil, ecode.ErrReq
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -273,8 +273,8 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -371,8 +371,8 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 		log.Error(ctx, "[CreateRole] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -424,8 +424,8 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 		log.Error(ctx, "[SearchRoles] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -494,8 +494,8 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 		log.Error(ctx, "[UpdateRole] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -554,8 +554,8 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 		log.Error(ctx, "[DelRoles] operator's token format wrong", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -609,8 +609,8 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 		log.Error(ctx, "[AddUserRole] target's userid format wrong", log.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -667,8 +667,8 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 		log.Error(ctx, "[DelUserRole] target's userid format wrong", log.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')

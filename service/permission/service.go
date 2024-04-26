@@ -16,7 +16,7 @@ import (
 
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
-	"github.com/chenjie199234/Corelib/pool"
+	"github.com/chenjie199234/Corelib/pool/bpool"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/graceful"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -46,8 +46,8 @@ func (s *Service) GetUserPermission(ctx context.Context, req *api.GetUserPermiss
 	if req.NodeId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.NodeId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -75,8 +75,8 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	if !req.Admin && req.Canwrite && !req.Canread {
 		return nil, ecode.ErrReq
 	}
-	buf1 := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf1)
+	buf1 := bpool.Get(0)
+	defer bpool.Put(&buf1)
 	for i, v := range req.NodeId {
 		if i != 0 {
 			buf1 = append(buf1, ',')
@@ -85,8 +85,8 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	}
 	nodeid := common.BTS(buf1)
 
-	buf2 := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf2)
+	buf2 := bpool.Get(0)
+	defer bpool.Put(&buf2)
 	buf2 = strconv.AppendUint(buf2, uint64(req.NodeId[0]), 10)
 	buf2 = append(buf2, ',')
 	buf2 = strconv.AppendUint(buf2, uint64(req.NodeId[1]), 10)
@@ -141,8 +141,8 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	if !req.Admin && req.Canwrite && !req.Canread {
 		return nil, ecode.ErrReq
 	}
-	buf1 := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf1)
+	buf1 := bpool.Get(0)
+	defer bpool.Put(&buf1)
 	for i, v := range req.NodeId {
 		if i != 0 {
 			buf1 = append(buf1, ',')
@@ -151,8 +151,8 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	}
 	nodeid := common.BTS(buf1)
 
-	buf2 := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf2)
+	buf2 := bpool.Get(0)
+	defer bpool.Put(&buf2)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf2 = append(buf2, ',')
@@ -215,8 +215,8 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 		//these are default,already exist
 		return nil, ecode.ErrPermission
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.PnodeId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -264,8 +264,8 @@ func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.
 		//these are default,can't update
 		return nil, ecode.ErrPermission
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.NodeId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -354,8 +354,8 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 			return &api.MoveNodeResp{}, nil
 		}
 	}
-	buf1 := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf1)
+	buf1 := bpool.Get(0)
+	defer bpool.Put(&buf1)
 	for i, v := range req.NodeId {
 		if i != 0 {
 			buf1 = append(buf1, ',')
@@ -364,8 +364,8 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 	}
 	nodeid := common.BTS(buf1)
 
-	buf2 := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf2)
+	buf2 := bpool.Get(0)
+	defer bpool.Put(&buf2)
 	for i, v := range req.PnodeId {
 		if i != 0 {
 			buf2 = append(buf2, ',')
@@ -416,8 +416,8 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 		log.Error(ctx, "[DelNode] operator's token format failed", log.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.NodeId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -445,8 +445,8 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -612,8 +612,8 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -710,8 +710,8 @@ func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeR
 	if req.ProjectId[0] != 0 {
 		return nil, ecode.ErrReq
 	}
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')

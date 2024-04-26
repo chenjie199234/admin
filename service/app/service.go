@@ -20,7 +20,7 @@ import (
 	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
-	"github.com/chenjie199234/Corelib/pool"
+	"github.com/chenjie199234/Corelib/pool/bpool"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/egroup"
 	"github.com/chenjie199234/Corelib/util/graceful"
@@ -59,8 +59,8 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -202,8 +202,8 @@ func (s *Service) SetApp(ctx context.Context, req *api.SetAppReq) (*api.SetAppRe
 		}
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -334,8 +334,8 @@ func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppRe
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -419,8 +419,8 @@ func (s *Service) UpdateAppSecret(ctx context.Context, req *api.UpdateAppSecretR
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -493,8 +493,8 @@ func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyRe
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -578,8 +578,8 @@ func (s *Service) GetKeyConfig(ctx context.Context, req *api.GetKeyConfigReq) (*
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -658,8 +658,8 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -790,8 +790,8 @@ func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.Roll
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -1014,8 +1014,8 @@ func (s *Service) WatchDiscover(ctx context.Context, req *api.WatchDiscoverReq) 
 func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*api.GetInstancesResp, error) {
 	md := metadata.GetMetadata(ctx)
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -1096,8 +1096,8 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoReq) (*api.GetInstanceInfoResp, error) {
 	md := metadata.GetMetadata(ctx)
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -1157,8 +1157,8 @@ func (s *Service) SetProxy(ctx context.Context, req *api.SetProxyReq) (*api.SetP
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -1236,8 +1236,8 @@ func (s *Service) DelProxy(ctx context.Context, req *api.DelProxyReq) (*api.DelP
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')
@@ -1308,8 +1308,8 @@ func (s *Service) Proxy(ctx context.Context, req *api.ProxyReq) (*api.ProxyResp,
 		return nil, ecode.ErrToken
 	}
 
-	buf := pool.GetPool().Get(0)
-	defer pool.GetPool().Put(&buf)
+	buf := bpool.Get(0)
+	defer bpool.Put(&buf)
 	for i, v := range req.ProjectId {
 		if i != 0 {
 			buf = append(buf, ',')

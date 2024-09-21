@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/discover"
-	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/web"
@@ -133,7 +133,7 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 		resp, e := instance.client.WatchConfig(instance.ctx, &api.WatchConfigReq{ProjectName: selfprojectname, GName: selfappgroup, AName: selfappname, Keys: keys}, header)
 		if e != nil {
 			if !cerror.Equal(e, cerror.ErrCanceled) {
-				log.Error(nil, "[ConfigSdk.watch] failed", log.Any("watch_keys", keys), log.CError(e))
+				slog.ErrorContext(nil, "[ConfigSdk.watch] failed", slog.Any("watch_keys", keys), slog.String("error", e.Error()))
 				time.Sleep(time.Millisecond * 100)
 			}
 			instance.cancel()
@@ -153,14 +153,14 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 			}
 			if data.Version == 0 {
 				broken = true
-				log.Error(nil, "[ConfigSdk.watch] key's value's version == 0", log.String("key", data.Key))
+				slog.ErrorContext(nil, "[ConfigSdk.watch] key's value's version == 0", slog.String("key", data.Key))
 				continue
 			}
 			if instance.secret != "" {
 				plaintext, e := secure.AesDecrypt(instance.secret, data.Value)
 				if e != nil {
 					broken = true
-					log.Error(nil, "[ConfigSdk.watch] decrypt keys's value failed", log.String("key", data.Key), log.CError(e))
+					slog.ErrorContext(nil, "[ConfigSdk.watch] decrypt keys's value failed", slog.String("key", data.Key), slog.String("error", e.Error()))
 					continue
 				}
 				data.Value = common.BTS(plaintext)

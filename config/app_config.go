@@ -1,9 +1,9 @@
 package config
 
 import (
+	"log/slog"
 	"os"
 
-	"github.com/chenjie199234/Corelib/log"
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	"github.com/chenjie199234/Corelib/util/ctime"
 )
@@ -41,21 +41,18 @@ type ServiceConfig struct {
 // every time update AppConfig will call this function
 func validateAppConfig(ac *AppConfig) {
 	if ac.Service.DingDingOauth2 == "" && ac.Service.FeiShuOauth2 == "" && ac.Service.WXWorkOauth2 == "" {
-		log.Warn(nil, "[config.validateAppConfig] no oauth2 service,only root can login by password")
+		slog.WarnContext(nil, "[config.validateAppConfig] no oauth2 service,only root can login by password")
 	}
 	if ac.Service.DingDingOauth2 != "" && (ac.Service.DingDingClientID == "" || ac.Service.DingDingClientSecret == "") {
-		log.Error(nil, "[config.validateAppConfig] missing dingding_client_id or dingding_client_secret")
-		Close()
+		slog.ErrorContext(nil, "[config.validateAppConfig] missing dingding_client_id or dingding_client_secret")
 		os.Exit(1)
 	}
 	if ac.Service.FeiShuOauth2 != "" && (ac.Service.FeiShuAppID == "" || ac.Service.FeiShuAppSecret == "") {
-		log.Error(nil, "[config.validateAppConfig] missing feishu_app_id or feishu_app_secret")
-		Close()
+		slog.ErrorContext(nil, "[config.validateAppConfig] missing feishu_app_id or feishu_app_secret")
 		os.Exit(1)
 	}
 	if ac.Service.WXWorkOauth2 != "" && (ac.Service.WXWorkCorpID == "" || ac.Service.WXWorkCorpSecret == "") {
-		log.Error(nil, "[config.validateAppConfig] missing wxwork_corp_id or wxwork_corp_secret")
-		Close()
+		slog.ErrorContext(nil, "[config.validateAppConfig] missing wxwork_corp_id or wxwork_corp_secret")
 		os.Exit(1)
 	}
 }

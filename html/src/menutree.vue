@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-import * as permissionAPI from './api/admin_permission_browser_toc'
+import * as permissionAPI from './api/admin_permission_browser'
 
 import * as state from './state'
 

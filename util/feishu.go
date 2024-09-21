@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/chenjie199234/admin/dao"
 	"github.com/chenjie199234/admin/ecode"
 
 	"github.com/chenjie199234/Corelib/cerror"
-	"github.com/chenjie199234/Corelib/log"
 )
 
 type getFeiShuUserTokenReq struct {
@@ -51,26 +51,26 @@ func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile 
 		reqbody, _ := json.Marshal(req)
 		resp, err := dao.FeiShuWebClient.Post(ctx, "/open-apis/authen/v1/oidc/access_token", "", header, nil, reqbody)
 		if err != nil {
-			log.Error(ctx, "[GetFeiShuOAuth2.usertoken] call failed", log.String("code", code), log.CError(err))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		defer resp.Body.Close()
 		respbody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Error(ctx, "[GetFeiShuOAuth2.usertoken] read response body failed", log.String("code", code), log.CError(err))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] read response body failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		r := &getFeiShuUserTokenResp{}
 		if err = json.Unmarshal(respbody, r); err != nil {
-			log.Error(ctx, "[GetFeiShuOAuth2.usertoken] response body decode failed", log.String("code", code), log.CError(err))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] response body decode failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		if r.Code != 0 {
-			e = cerror.MakeError(r.Code, 500, r.Msg)
-			log.Error(ctx, "[GetFeiShuOAuth2.usertoken] failed", log.String("code", code), log.CError(e))
+			e = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] failed", slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
 		usertoken = r.Data.UserAccessToken
@@ -82,32 +82,32 @@ func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile 
 		header.Set("Authorization", "Bearer "+usertoken)
 		resp, err := dao.FeiShuWebClient.Get(ctx, "/open-apis/authen/v1/user_info", "", header, nil)
 		if err != nil {
-			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] call failed", log.String("code", code), log.CError(err))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		defer resp.Body.Close()
 		respbody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] read response body failed", log.String("code", code), log.CError(err))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] read response body failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		r := &getFeiShuUserInfoResp{}
 		if err = json.Unmarshal(respbody, r); err != nil {
-			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] response body decode failed", log.String("code", code), log.CError(err))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] response body decode failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		if r.Code != 0 {
-			e = cerror.MakeError(int32(r.Code), 500, r.Msg)
-			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] failed", log.String("code", code), log.CError(e))
+			e = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] failed", slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
 		username = r.Data.UserName
 		if r.Data.Mobile == "" {
 			e = ecode.ErrPermission
-			log.Error(ctx, "[GetFeiShuOAuth2.userinfo] missing mobile", log.String("code", code), log.String("user_name", username))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] missing mobile", slog.String("code", code), slog.String("user_name", username))
 			return
 		}
 		mobile = r.Data.Mobile

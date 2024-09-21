@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref,computed } from 'vue'
-import * as appAPI from './api/admin_app_browser_toc'
-import * as permissionAPI from './api/admin_permission_browser_toc'
+import * as appAPI from './api/admin_app_browser'
+import * as permissionAPI from './api/admin_permission_browser'
 import * as state from './state'
 import * as client from './client'
 
@@ -45,7 +45,7 @@ function mustadmin():boolean{
 	return all.value[curg.value][cura.value].admin
 }
 
-const config_proxy_instance=ref<string>("")
+const config_instance=ref<string>("")
 
 const discovermode=ref<string>("")
 const kubernetesns=ref<string>("")
@@ -62,10 +62,6 @@ const keys=ref<Map<string,appAPI.KeyConfigInfo>>(new Map())
 const t_keys_hover=ref<boolean>(false)
 const keyhover=ref<string>("")
 
-const proxys=ref<Map<string,appAPI.ProxyPathInfo>>(new Map())
-const t_proxys_hover=ref<boolean>(false)
-const proxyhover=ref<string>("")
-
 const instances=ref<Map<string,appAPI.InstanceInfo|null>>(new Map())
 const t_instances_hover=ref<boolean>(false)
 
@@ -74,8 +70,7 @@ const get_app_status=ref<boolean>(false)
 function get_app(){
 	if(curg.value==""||cura.value==""){
 		keys.value=new Map()
-		proxys.value=new Map()
-		config_proxy_instance.value=""
+		config_instance.value=""
 		discovermode.value=""
 		kubernetesns.value=""
 		kubernetesls.value=""
@@ -88,8 +83,7 @@ function get_app(){
 	}
 	if(!all.value[curg.value][cura.value].node_id||all.value[curg.value][cura.value].node_id!.length!=4){
 		keys.value=new Map()
-		proxys.value=new Map()
-		config_proxy_instance.value=""
+		config_instance.value=""
 		discovermode.value=""
 		kubernetesns.value=""
 		kubernetesls.value=""
@@ -124,17 +118,6 @@ function get_app(){
 			}
 		}else{
 			keys.value = new Map()
-		}
-		if(resp.paths){
-			proxys.value = new Map()
-			let tmp = [...resp.paths.entries()].sort()
-			for(let i=0;i<tmp.length;i++){
-				if(tmp[i][1]){
-					proxys.value.set(tmp[i][0],tmp[i][1]!)
-				}
-			}
-		}else{
-			proxys.value = new Map()
 		}
 		discovermode.value=resp.discover_mode
 		kubernetesns.value=resp.kubernetes_namespace
@@ -398,46 +381,6 @@ function edit_commit_able():boolean{
 	return edit_key_value.value!=keys.value.get(cur_key.value)!.cur_value
 }
 
-//add proxy
-const new_proxy_path=ref<string>("")
-const new_proxy_permission_read=ref<boolean>(false)
-const new_proxy_permission_write=ref<boolean>(false)
-const new_proxy_permission_admin=ref<boolean>(false)
-function reset_add_proxy(){
-	new_proxy_path.value=''
-	new_proxy_permission_read.value=false
-	new_proxy_permission_write.value=false
-	new_proxy_permission_admin.value=false
-}
-function add_proxy_able():boolean{
-	return new_proxy_path.value!=""&&!proxys.value.has(new_proxy_path.value)
-}
-
-const cur_proxy=ref<string>("")
-
-//update proxy
-const update_proxy_permission_read=ref<boolean>(false)
-const update_proxy_permission_write=ref<boolean>(false)
-const update_proxy_permission_admin=ref<boolean>(false)
-
-function update_proxy_able():boolean{
-	if(proxys.value.get(cur_proxy.value)!.read!=update_proxy_permission_read.value){
-		return true
-	}
-	if(proxys.value.get(cur_proxy.value)!.write!=update_proxy_permission_write.value){
-		return true
-	}
-	if(proxys.value.get(cur_proxy.value)!.admin!=update_proxy_permission_admin.value){
-		return true
-	}
-	return false
-}
-
-//proxy
-const reqdata=ref<string>("")
-const respdata=ref<string>("")
-const forceaddr=ref<string>("")
-
 function app_op(){
 	if(!state.set_load()){
 		return
@@ -467,9 +410,8 @@ function app_op(){
 				secret.value=""
 				discovermode.value=""
 				keys.value=new Map()
-				proxys.value=new Map()
 				get_app_status.value=false
-				config_proxy_instance.value=""
+				config_instance.value=""
 				ing.value=false
 				state.clear_load()
 			})
@@ -684,102 +626,6 @@ function app_op(){
 			})
 			break
 		}
-		case 'add_proxy':{
-			let req=new appAPI.SetProxyReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			req.path=new_proxy_path.value
-			req.read=new_proxy_permission_read.value
-			req.write=new_proxy_permission_write.value
-			req.admin=new_proxy_permission_admin.value
-			req.new_path=true
-			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.SetProxyResp)=>{
-				if(new_proxy_path.value[0]!='/'){
-					new_proxy_path.value="/"+new_proxy_path.value
-				}
-				let tmp=new appAPI.ProxyPathInfo()
-				tmp.node_id=resp.node_id
-				tmp.read=new_proxy_permission_read.value
-				tmp.write=new_proxy_permission_write.value
-				tmp.admin=new_proxy_permission_admin.value
-				proxys.value.set(new_proxy_path.value,tmp)
-				new_proxy_path.value=''
-				new_proxy_permission_read.value=false
-				new_proxy_permission_write.value=false
-				new_proxy_permission_admin.value=false
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
-		case 'update_proxy':{
-			let req=new appAPI.SetProxyReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			req.path=cur_proxy.value
-			req.read=update_proxy_permission_read.value
-			req.write=update_proxy_permission_write.value
-			req.admin=update_proxy_permission_admin.value
-			req.new_path=false
-			client.appClient.set_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: appAPI.SetProxyResp)=>{
-				proxys.value.get(cur_proxy.value)!.read=update_proxy_permission_read.value
-				proxys.value.get(cur_proxy.value)!.write=update_proxy_permission_write.value
-				proxys.value.get(cur_proxy.value)!.admin=update_proxy_permission_admin.value
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
-		case 'del_proxy':{
-			let req=new appAPI.DelProxyReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			req.path=cur_proxy.value
-			client.appClient.del_proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: appAPI.DelProxyResp)=>{
-				proxys.value.delete(cur_proxy.value)
-				cur_proxy.value=''
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
-		case 'proxy':{
-			let req=new appAPI.ProxyReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.path=cur_proxy.value
-			req.data=JSON.stringify(JSON.parse(reqdata.value))
-			req.force_addr=forceaddr.value
-			client.appClient.proxy({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(r: appAPI.ProxyResp)=>{
-				if(r.data==""){
-					respdata.value="{}"
-				}else{
-					respdata.value=JSON.stringify(JSON.parse(r.data),null,4)
-				}
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
 		default:{
 			state.clear_load()
 			state.set_alert("error",-2,"unknown operation")
@@ -966,88 +812,6 @@ function is_json_obj(str :string):boolean{
 					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
-			<div v-else-if="optype=='add_proxy'" style="display:flex;flex-direction:column">
-				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<VaCardContent style="font-size:20px"><b>Add Proxy Path</b></VaCardContent>
-				</VaCard>
-				<VaInput label="Path" style="margin-top:10px" v-model.trim="new_proxy_path"/>
-				<div style="display:flex;justify-content:space-around;margin-top:10px">
-					<VaSwitch
-						v-model="new_proxy_permission_read"
-						true-inner-label="Read"
-						false-inner-label="Read"
-						@update:modelValue="()=>{
-							if(!new_proxy_permission_read){
-								new_proxy_permission_write=false
-								new_proxy_permission_admin=false
-							}
-						}"
-					/>
-					<VaSwitch
-						v-model="new_proxy_permission_write"
-						true-inner-label="Write"
-						false-inner-label="Write"
-						@update:modelValue="()=>{
-							if(!new_proxy_permission_write){
-								new_proxy_permission_admin=false
-							}else{
-								new_proxy_permission_read=true
-							}
-						}"
-					/>
-					<VaSwitch
-						v-model="new_proxy_permission_admin"
-						true-inner-label="Admin"
-						false-inner-label="Admin"
-						@update:modelValue="()=>{
-							if(new_proxy_permission_admin){
-								new_proxy_permission_read=true
-								new_proxy_permission_write=true
-							}
-						}"
-					/>
-				</div>
-				<div style="display:flex;justify-content:center">
-					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" :disabled="!add_proxy_able()" gradient>Add</VaButton>
-					<VaButton style="width:80px;margin:10px 0 0 10px" @click="reset_add_proxy();ing=false" gradient>Cancel</VaButton>
-				</div>
-			</div>
-			<div v-else-if="optype=='update_proxy'" style="display:flex;flex-direction:column">
-				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<VaCardContent style="font-size:20px">
-						<p><b>Update proxy path: {{ cur_proxy }}</b></p>
-						<p><b>Please confirm</b></p>
-					</VaCardContent>
-				</VaCard>
-				<div style="display:flex;justify-content:center">
-					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Update</VaButton>
-					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
-				</div>
-			</div>
-			<div v-else-if="optype=='del_proxy'" style="display:flex;flex-direction:column">
-				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<VaCardContent style="font-size:20px">
-						<p><b>Delete proxy path: {{ cur_proxy }}</b></p>
-						<p><b>Please confirm</b></p>
-					</VaCardContent>
-				</VaCard>
-				<div style="display:flex;justify-content:center">
-					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Del</VaButton>
-					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
-				</div>
-			</div>
-			<div v-else-if="optype=='proxy'" style="display:flex;flex-direction:column">
-				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
-					<VaCardContent style="font-size:20px">
-						<p><b>Call path: {{ cur_proxy }}</b></p>
-						<p><b>Please confirm</b></p>
-					</VaCardContent>
-				</VaCard>
-				<div style="display:flex;justify-content:center">
-					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Proxy</VaButton>
-					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
-				</div>
-			</div>
 		</template>
 	</VaModal>
 	<div style="flex:1;display:flex;flex-direction:column;margin:1px;overflow-y:auto">
@@ -1072,10 +836,9 @@ function is_json_obj(str :string):boolean{
 								cura=''
 								secret=''
 								keys=new Map()
-								proxys=new Map()
 								//instances=[]
 								get_app_status=false
-								config_proxy_instance=''
+								config_instance=''
 							}
 							selectOption(option)
 						}">
@@ -1109,10 +872,9 @@ function is_json_obj(str :string):boolean{
 							if(cura!=option){
 								secret=''
 								keys=new Map()
-								proxys=new Map()
 								//instances=[]
 								get_app_status=false
-								config_proxy_instance=''
+								config_instance=''
 							}
 							selectOption(option)
 						}"
@@ -1142,25 +904,25 @@ function is_json_obj(str :string):boolean{
 			<VaButton v-if="mustadmin()" style="margin:0 5px" @click="optype='update_secret';ing=true" gradient>UpdateSecret</VaButton>
 			<VaButton v-if="mustadmin()" style="margin:0 5px" @click="reset_update_discover(discovermode);optype='update_discover';ing=true" gradient>UpdateDiscover</VaButton>
 			<VaButton v-if="state.page.node!.admin&&!selfapp()" style="margin:0 5px" @click="optype='del_app';ing=true" gradient>Delete</VaButton>
-			<VaButton style="margin:0 5px" @click="config_proxy_instance='';get_app_status=false" gradient>Back</VaButton>
+			<VaButton style="margin:0 5px" @click="config_instance='';get_app_status=false" gradient>Back</VaButton>
 		</div>
 		<!-- configs -->
 		<div
-			v-if="get_app_status&&(config_proxy_instance=='config'||config_proxy_instance=='')"
+			v-if="get_app_status&&(config_instance=='config'||config_instance=='')"
 			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_keys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
-				if(config_proxy_instance==''){
-					config_proxy_instance='config'
+				if(config_instance==''){
+					config_instance='config'
 					cur_key=''
 				}else{
-					config_proxy_instance=''
+					config_instance=''
 				}
 			}"
 			@mouseover="t_keys_hover=true"
 			@mouseout="t_keys_hover=false"
 		>
-			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='config'?'-':'+' }}</span>
+			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_instance=='config'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Configs</span>
 			<VaButton
 				v-if="canwrite()"
@@ -1175,7 +937,7 @@ function is_json_obj(str :string):boolean{
 			</VaButton>
 		</div>
 		<!-- keys -->
-		<div v-if="get_app_status&&config_proxy_instance=='config'&&keys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
+		<div v-if="get_app_status&&config_instance=='config'&&keys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
 			<template v-for="key of keys.keys()">
 				<div
 					v-if="cur_key==''||cur_key==key"
@@ -1319,202 +1081,30 @@ function is_json_obj(str :string):boolean{
 				</div>
 			</template>
 		</div>
-		<div v-if="get_app_status&&config_proxy_instance=='config'&&keys.size==0">
+		<div v-if="get_app_status&&config_instance=='config'&&keys.size==0">
 			<p style="margin:1px 10px;padding:12px;background-color:var(--va-background-element);color:var(--va-primary)">No Config Keys</p>
-		</div>
-		<!-- proxys -->
-		<div
-			v-if="get_app_status&&(config_proxy_instance=='proxy'||config_proxy_instance=='')" 
-			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
-			:style="{'background-color':t_proxys_hover?'var(--va-shadow)':'var(--va-background-element)'}"
-			@click="()=>{
-				if(config_proxy_instance==''){
-					config_proxy_instance='proxy'
-					cur_proxy=''
-				}else{
-					config_proxy_instance=''
-				}
-			}"
-			@mouseover="t_proxys_hover=true"
-			@mouseout="t_proxys_hover=false"
-		>
-			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='proxy'?'-':'+' }}</span>
-			<span style="flex:1;padding:12px;color:var(--va-primary)">Proxys</span>
-			<VaButton
-				v-if="canwrite()"
-				style="height:30px;margin-right:20px"
-				size="small"
-				gradient
-				@mouseover.stop=""
-				@mouseout.stop=""
-				@click.stop="reset_add_proxy();optype='add_proxy';ing=true"
-			>
-				ADD
-			</VaButton>
-		</div>
-		<!-- paths -->
-		<div v-if="get_app_status&&config_proxy_instance=='proxy'&&proxys.size>0" style="overflow-y:auto;flex:1;display:flex;flex-direction:column">
-			<template v-for="proxy of proxys.keys()">
-				<div
-					v-if="cur_proxy==''||cur_proxy==proxy"
-					style="cursor:pointer;display:flex;align-items:center;margin:1px 10px"
-					:style="{'background-color':proxyhover==proxy?'var(--va-shadow)':'var(--va-background-element)'}"
-					@mouseover="proxyhover=proxy"
-					@mouseout="proxyhover=''"
-					@click="()=>{
-						if(cur_proxy==''){
-							cur_proxy=proxy
-							reqdata='{\n}'
-							respdata=''
-							forceaddr=''
-							update_proxy_permission_read=proxys.get(proxy)!.read
-							update_proxy_permission_write=proxys.get(proxy)!.write
-							update_proxy_permission_admin=proxys.get(proxy)!.admin
-						}else{
-							cur_proxy=''
-						}
-					}"
-				>
-					<span style="width:35px;padding:12px;color:var(--va-primary)"> {{ cur_proxy!=''&&cur_proxy==proxy?'-':'+' }} </span>
-					<span style="padding:12px;color:var(--va-primary)">{{proxy}}</span>
-				</div>
-				<div v-if="cur_proxy==proxy" style="flex:1;display:flex;margin:1px 20px;overflow-y:auto">
-					<div style="flex:1;display:flex;flex-direction:column">
-						<textarea
-							style="border:1px solid var(--va-background-element);border-radius:5px;flex:1;overflow-y:auto;resize:none"
-							v-model.trim="reqdata"
-							:readonly="respdata!=''" />
-						<div style="display:flex;align-items:center">
-							<VaButton
-								style="width:60px;height:30px;margin:2px 0"
-								size="small"
-								gradient
-								@click="optype='proxy';ing=true"
-								:disabled="respdata!=''||!is_json_obj(reqdata)"
-							>
-								Proxy
-							</VaButton>
-							<VaSelect
-								:disabled="respdata!=''"
-								:clearable="true"
-								clearableIcon="[X]"
-								v-model="forceaddr"
-								:options="[...instances.keys()]"
-								noOptionsText="No Servers"
-								style="margin:2px 10px"
-								placeholder="Specific Server(random when empty)"
-								dropdownIcon=""
-								outline
-								@click="get_instances(false)">
-								<template #option="{option,selectOption}">
-									<VaHover stateful @click="selectOption(option)">
-										<template #default="{hover}">
-											<div
-												style="padding:10px;cursor:pointer"
-												:style="{'background-color':hover?'var(--va-background-border)':'',color:forceaddr==option?'green':'black'}">
-												{{option}}
-											</div>
-										</template>
-									</VaHover>
-								</template>
-							</VaSelect>
-							<VaSwitch
-								:disabled="respdata!=''||!canwrite()"
-								style="margin:2px 10px"
-								v-model="update_proxy_permission_read"
-								true-inner-label="Read"
-								false-inner-label="Read"
-								@update:model-value="()=>{
-									if(!update_proxy_permission_read){
-										update_proxy_permission_write=false
-										update_proxy_permission_admin=false
-									}
-								}"
-							/>
-							<VaSwitch
-								:disabled="respdata!=''||!canwrite()"
-								style="margin:2px 10px"
-								v-model="update_proxy_permission_write"
-								true-inner-label="Write"
-								false-inner-label="Write"
-								@update:model-value="()=>{
-									if(!update_proxy_permission_write){
-										update_proxy_permission_admin=false
-									}else{
-										update_proxy_permission_read=true
-									}
-								}"
-							/>
-							<VaSwitch
-								:disabled="respdata!=''||!canwrite()"
-								style="margin:2px 10px"
-								v-model="update_proxy_permission_admin"
-								true-inner-label="Admin"
-								false-inner-label="Admin"
-								@update:model-value="()=>{
-									if(update_proxy_permission_admin){
-										update_proxy_permission_read=true
-										update_proxy_permission_write=true
-									}
-								}"
-							/>
-							<VaButton
-								v-if="canwrite()"
-								style="width:60px;height:30px;margin:2px 10px"
-								size="small"
-								gradient
-								:disabled="respdata!=''||!update_proxy_able()"
-								@click="optype='update_proxy';ing=true"
-							>
-								Update
-							</VaButton>
-							<VaButton
-								v-if="canwrite()"
-								style="width:60px;height:30px;margin:2px 10px"
-								size="small"
-								gradient
-								:disabled="respdata!=''"
-								@click.stop="optype='del_proxy';ing=true"
-							>
-								DEL
-							</VaButton>
-						</div>
-					</div>
-					<VaDivider v-if="respdata!=''" vertical style="margin:0 4px" />
-					<div v-if="respdata!=''" style="flex:1;display:flex;flex-direction:column;overflow-y:auto">
-						<textarea
-							style="border:1px solid var(--va-background-element);border-radius:5px;flex:1;overflow-y:auto;resize:none"
-							v-model="respdata"
-							readonly />
-						<VaButton style="align-self:center;width:60px;height:30px;margin:2px" size="small" gradient @click="respdata=''">OK</VaButton>
-					</div>
-				</div>
-			</template>
-		</div>
-		<div v-if="get_app_status&&config_proxy_instance=='proxy'&&proxys.size==0" style="width:100%">
-			<p style="margin:1px 10px;padding:12px;background-color:var(--va-background-element);color:var(--va-primary)">No Proxy Paths</p>
 		</div>
 		<!-- instances -->
 		<div
-			v-if="get_app_status&&(config_proxy_instance=='instance'||config_proxy_instance=='')"
+			v-if="get_app_status&&(config_instance=='instance'||config_instance=='')"
 			style="display:flex;align-items:center;margin:1px 0;cursor:pointer"
 			:style="{'background-color':t_instances_hover?'var(--va-shadow)':'var(--va-background-element)'}"
 			@click="()=>{
-				if(config_proxy_instance==''){
+				if(config_instance==''){
 					instances=new Map()
-					config_proxy_instance='instance'
+					config_instance='instance'
 					get_instances(true)
 				}else{
-					config_proxy_instance=''
+					config_instance=''
 				}
 			}"
 			@mouseover="t_instances_hover=true"
 			@mouseout="t_instances_hover=false"
 		>
-			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_proxy_instance=='instance'?'-':'+' }}</span>
+			<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ config_instance=='instance'?'-':'+' }}</span>
 			<span style="flex:1;padding:12px;color:var(--va-primary)">Instances</span>
 			<VaButton
-				v-if="config_proxy_instance=='instance'"
+				v-if="config_instance=='instance'"
 				style="width:60px;height:30px;margin-right:20px"
 				size="small"
 				gradient
@@ -1525,7 +1115,7 @@ function is_json_obj(str :string):boolean{
 				refresh
 			</VaButton>
 		</div>
-		<div v-if="get_app_status&&config_proxy_instance=='instance'" style="overflow-y:auto;flex:1;display:flex;flex-wrap:wrap">
+		<div v-if="get_app_status&&config_instance=='instance'" style="overflow-y:auto;flex:1;display:flex;flex-wrap:wrap">
 			<div v-if="instances.size==0"
 				style="width:300px;height:150px;border:1px solid var(--va-primary);border-radius:5px;margin:5px;display:flex;justify-content:center;align-items:center">
 				No Instances
@@ -1542,7 +1132,11 @@ function is_json_obj(str :string):boolean{
 					<div v-if="!instances.get(instanceaddr)||instances.get(instanceaddr)!.cpu_num==0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">SysInfo</span>
 						<VaDivider vertical />
-						<span>get failed</span>
+						<div style="display:flex;flex-direction:column">
+							<span>instance offline</span>
+							<span>or</span>
+							<span>monitor closed</span>
+						</div>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuNum</span>

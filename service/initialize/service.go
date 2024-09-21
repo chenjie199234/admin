@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"context"
+	"log/slog"
 	"strconv"
 
 	"github.com/chenjie199234/admin/api"
@@ -12,7 +13,6 @@ import (
 	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/util"
 
-	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	publicmids "github.com/chenjie199234/Corelib/mids"
 	"github.com/chenjie199234/Corelib/pool/bpool"
@@ -53,14 +53,14 @@ func (s *Service) InitStatus(ctx context.Context, req *api.InitStatusReq) (*api.
 	if e == ecode.ErrNotInited {
 		return &api.InitStatusResp{Status: false}, nil
 	}
-	log.Error(ctx, "[InitStatus] db op failed", log.CError(e))
+	slog.ErrorContext(ctx, "[InitStatus] db op failed", slog.String("error", e.Error()))
 	return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 }
 
 // Init 初始化项目
 func (s *Service) Init(ctx context.Context, req *api.InitReq) (*api.InitResp, error) {
 	if e := s.initializeDao.MongoInit(ctx, req.Password); e != nil {
-		log.Error(ctx, "[Init] db op failed", log.CError(e))
+		slog.ErrorContext(ctx, "[Init] db op failed", slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.InitResp{}, nil
@@ -70,14 +70,14 @@ func (s *Service) Init(ctx context.Context, req *api.InitReq) (*api.InitResp, er
 func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.RootLoginResp, error) {
 	user, e := s.initializeDao.MongoRootLogin(ctx)
 	if e != nil {
-		log.Error(ctx, "[RootLogin] db op failed", log.CError(e))
+		slog.ErrorContext(ctx, "[RootLogin] db op failed", slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	if e := secure.SignCheck(req.Password, user.Password); e != nil {
 		if e == ecode.ErrDataBroken {
 			e = ecode.ErrDBDataBroken
 		}
-		log.Error(ctx, "[RootLogin] sign check failed", log.CError(e))
+		slog.ErrorContext(ctx, "[RootLogin] sign check failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, user.ID.Hex(), "")
@@ -92,17 +92,17 @@ func (s *Service) UpdateRootPassword(ctx context.Context, req *api.UpdateRootPas
 		return nil, ecode.ErrPermission
 	}
 	if e := s.initializeDao.MongoUpdateRootPassword(ctx, req.OldPassword, req.NewPassword); e != nil {
-		log.Error(ctx, "[UpdateRootPassword] db op failed", log.CError(e))
+		slog.ErrorContext(ctx, "[UpdateRootPassword] db op failed", slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	log.Info(ctx, "[UpdateRootPassword] success")
+	slog.InfoContext(ctx, "[UpdateRootPassword] success")
 	return &api.UpdateRootPasswordResp{}, nil
 }
 
 // CreateProject 创建项目
 func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) (*api.CreateProjectResp, error) {
 	if e := name.SingleCheck(req.ProjectName, false); e != nil {
-		log.Error(ctx, "[CreateProject] project name format wrong", log.String("project_name", req.ProjectName))
+		slog.ErrorContext(ctx, "[CreateProject] project name format wrong", slog.String("project_name", req.ProjectName))
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
@@ -112,18 +112,18 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 	}
 	projectidstr, e := s.initializeDao.MongoCreateProject(ctx, req.ProjectName, req.ProjectData)
 	if e != nil {
-		log.Error(ctx, "[CreateProject] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("name", req.ProjectName),
-			log.String("data", req.ProjectData),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[CreateProject] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("name", req.ProjectName),
+			slog.String("data", req.ProjectData),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectid, _ := util.ParseNodeIDstr(projectidstr)
-	log.Info(ctx, "[CreateProject] success",
-		log.String("project_id", projectidstr),
-		log.String("project_name", req.ProjectName),
-		log.String("project_data", req.ProjectData))
+	slog.InfoContext(ctx, "[CreateProject] success",
+		slog.String("project_id", projectidstr),
+		slog.String("project_name", req.ProjectName),
+		slog.String("project_data", req.ProjectData))
 	return &api.CreateProjectResp{ProjectId: projectid}, nil
 }
 
@@ -134,7 +134,7 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 		return nil, ecode.ErrReq
 	}
 	if e := name.SingleCheck(req.NewProjectName, false); e != nil {
-		log.Error(ctx, "[UpdateProject] project name format wrong", log.String("new_project_name", req.NewProjectName))
+		slog.ErrorContext(ctx, "[UpdateProject] project name format wrong", slog.String("new_project_name", req.NewProjectName))
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
@@ -154,36 +154,36 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 
 	oldnode, e := s.initializeDao.MongoUpdateProject(ctx, projectid, req.NewProjectName, req.NewProjectData)
 	if e != nil {
-		log.Error(ctx, "[UpdateProject] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("project_id", projectid),
-			log.String("new_project_name", req.NewProjectName),
-			log.String("new_project_data", req.NewProjectData),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[UpdateProject] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("new_project_name", req.NewProjectName),
+			slog.String("new_project_data", req.NewProjectData),
+			slog.String("error", e.Error()))
 		return nil, e
 	}
 	if oldnode.NodeName != req.NewProjectName && oldnode.NodeData != req.NewProjectData {
-		log.Info(ctx, "[UpdateProject] success",
-			log.String("project_id", projectid),
-			log.String("old_project_name", oldnode.NodeName),
-			log.String("new_project_name", req.NewProjectName),
-			log.String("old_project_data", oldnode.NodeData),
-			log.String("new_project_data", req.NewProjectData))
+		slog.InfoContext(ctx, "[UpdateProject] success",
+			slog.String("project_id", projectid),
+			slog.String("old_project_name", oldnode.NodeName),
+			slog.String("new_project_name", req.NewProjectName),
+			slog.String("old_project_data", oldnode.NodeData),
+			slog.String("new_project_data", req.NewProjectData))
 	} else if oldnode.NodeName != req.NewProjectName {
-		log.Info(ctx, "[UpdateProject] success",
-			log.String("project_id", projectid),
-			log.String("old_project_name", oldnode.NodeName),
-			log.String("new_project_name", req.NewProjectName))
+		slog.InfoContext(ctx, "[UpdateProject] success",
+			slog.String("project_id", projectid),
+			slog.String("old_project_name", oldnode.NodeName),
+			slog.String("new_project_name", req.NewProjectName))
 	} else if oldnode.NodeData != req.NewProjectData {
-		log.Info(ctx, "[UpdateProject] success",
-			log.String("project_id", projectid),
-			log.String("old_project_data", oldnode.NodeData),
-			log.String("new_project_data", req.NewProjectData))
+		slog.InfoContext(ctx, "[UpdateProject] success",
+			slog.String("project_id", projectid),
+			slog.String("old_project_data", oldnode.NodeData),
+			slog.String("new_project_data", req.NewProjectData))
 	} else {
-		log.Info(ctx, "[UpdateProject] success,nothing changed",
-			log.String("project_id", projectid),
-			log.String("project_name", oldnode.NodeName),
-			log.String("project_data", oldnode.NodeData))
+		slog.InfoContext(ctx, "[UpdateProject] success,nothing changed",
+			slog.String("project_id", projectid),
+			slog.String("project_name", oldnode.NodeName),
+			slog.String("project_data", oldnode.NodeData))
 	}
 	return &api.UpdateProjectResp{}, nil
 }
@@ -192,12 +192,12 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 func (s *Service) GetProjectIdByName(ctx context.Context, req *api.GetProjectIdByNameReq) (*api.GetProjectIdByNameResp, error) {
 	projectid, e := s.initializeDao.MongoGetProjectIDByName(ctx, req.ProjectName)
 	if e != nil {
-		log.Error(ctx, "[GetProjectIdByName] db op failed", log.String("project_name", req.ProjectName), log.CError(e))
+		slog.ErrorContext(ctx, "[GetProjectIdByName] db op failed", slog.String("project_name", req.ProjectName), slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectids, e := util.ParseNodeIDstr(projectid)
 	if e != nil {
-		log.Error(ctx, "[GetProjectIdByName] project's projectid format wrong", log.String("project_name", req.ProjectName), log.String("project_id", projectid))
+		slog.ErrorContext(ctx, "[GetProjectIdByName] project's projectid format wrong", slog.String("project_name", req.ProjectName), slog.String("project_id", projectid))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.GetProjectIdByNameResp{ProjectId: projectids}, nil
@@ -208,25 +208,25 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 	md := metadata.GetMetadata(ctx)
 	nodes, e := s.initializeDao.MongoListProject(ctx)
 	if e != nil {
-		log.Error(ctx, "[ListProject] db op failed", log.String("operator", md["Token-User"]), log.CError(e))
+		slog.ErrorContext(ctx, "[ListProject] db op failed", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	var user *model.User
 	if md["Token-User"] != primitive.NilObjectID.Hex() {
 		operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 		if e != nil {
-			log.Error(ctx, "[ListProject] operator's token format wrong", log.String("operator", md["Token-User"]))
+			slog.ErrorContext(ctx, "[ListProject] operator's token format wrong", slog.String("operator", md["Token-User"]))
 			return nil, ecode.ErrToken
 		}
 		users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
 		if e != nil {
-			log.Error(ctx, "[ListProject] get operator's user info failed", log.String("operator", md["Token-User"]), log.CError(e))
+			slog.ErrorContext(ctx, "[ListProject] get operator's user info failed", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		var ok bool
 		user, ok = users[operator]
 		if !ok {
-			log.Error(ctx, "[ListProject] operator not exist", log.String("operator", md["Token-User"]))
+			slog.ErrorContext(ctx, "[ListProject] operator not exist", slog.String("operator", md["Token-User"]))
 			return nil, ecode.ErrSystem
 		}
 	}
@@ -248,7 +248,7 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 		}
 		nodeid, e := util.ParseNodeIDstr(node.NodeId)
 		if e != nil {
-			log.Error(ctx, "[ListProject] project's projectid format wrong", log.String("project_id", node.NodeId))
+			slog.ErrorContext(ctx, "[ListProject] project's projectid format wrong", slog.String("project_id", node.NodeId))
 			return nil, ecode.ErrSystem
 		}
 		resp.Projects = append(resp.Projects, &api.ProjectInfo{
@@ -283,10 +283,10 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 
 	node, e := s.initializeDao.MongoDelProject(ctx, projectid)
 	if e != nil {
-		log.Error(ctx, "[DeleteProject] db op failed", log.String("operator", md["Token-User"]), log.String("project_id", projectid), log.CError(e))
+		slog.ErrorContext(ctx, "[DeleteProject] db op failed", slog.String("operator", md["Token-User"]), slog.String("project_id", projectid), slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	log.Info(ctx, "[DeleteProject] success", log.String("project_id", projectid), log.String("project_name", node.NodeName), log.String("project_data", node.NodeData))
+	slog.InfoContext(ctx, "[DeleteProject] success", slog.String("project_id", projectid), slog.String("project_name", node.NodeName), slog.String("project_data", node.NodeData))
 	return &api.DeleteProjectResp{}, nil
 }
 

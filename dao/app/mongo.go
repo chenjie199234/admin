@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"encoding/base64"
 	"strconv"
 
 	"github.com/chenjie199234/admin/ecode"
@@ -52,9 +51,6 @@ func (d *Dao) MongoGetApp(ctx context.Context, projectid, gname, aname, secret s
 			keysummary.CurValue = common.BTS(plaintext)
 		}
 	}
-	if e := decodeProxyPath(appsummary); e != nil {
-		return nil, e
-	}
 	return appsummary, nil
 }
 func (d *Dao) MongoGetAppWithoutDecrypt(ctx context.Context, projectid, gname, aname string) (*model.AppSummary, error) {
@@ -64,9 +60,6 @@ func (d *Dao) MongoGetAppWithoutDecrypt(ctx context.Context, projectid, gname, a
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrAppNotExist
 		}
-		return nil, e
-	}
-	if e := decodeProxyPath(app); e != nil {
 		return nil, e
 	}
 	return app, nil
@@ -161,7 +154,6 @@ func (d *Dao) MongoCreateApp(
 		CrpcPort:         crpcport,
 		CGrpcPort:        cgrpcport,
 		WebPort:          webport,
-		Paths:            map[string]*model.ProxyPath{},
 		Keys:             map[string]*model.KeySummary{},
 		Value:            sign,
 		PermissionNodeID: nodeid,
@@ -618,142 +610,4 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, projectid, gname, anam
 	}
 	_, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterSummary, updaterSummary)
 	return
-}
-func (d *Dao) MongoSetProxyPath(ctx context.Context, projectid, gname, aname, secret, path string, read, write, admin, newpath bool) (nodeid string, e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
-		return
-	}
-	defer s.EndSession(ctx)
-	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
-		return
-	}
-	defer func() {
-		if e != nil {
-			s.AbortTransaction(sctx)
-		} else if e = s.CommitTransaction(sctx); e != nil {
-			s.AbortTransaction(sctx)
-		}
-	}()
-	b64path := encodeProxyPath(path)
-	appsummary := &model.AppSummary{}
-	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
-	updater1 := bson.M{
-		"$set": bson.M{
-			"paths." + b64path + ".permission_read":  read,
-			"paths." + b64path + ".permission_write": write,
-			"paths." + b64path + ".permission_admin": admin,
-		},
-	}
-	opts := options.FindOneAndUpdate().SetProjection(bson.M{"value": 1, "paths." + b64path: 1, "permission_node_id": 1})
-	if e = d.mongo.Database("app").Collection("config").FindOneAndUpdate(sctx, filter, updater1, opts).Decode(appsummary); e != nil {
-		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrAppNotExist
-		}
-		return
-	}
-	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
-		return
-	}
-	addpermission := false
-	if len(appsummary.Paths) == 0 {
-		addpermission = true
-	} else if path, ok := appsummary.Paths[b64path]; !ok {
-		addpermission = true
-	} else {
-		nodeid = path.PermissionNodeID
-	}
-	if !addpermission {
-		if newpath {
-			e = ecode.ErrProxyPathAlreadyExist
-		}
-		return
-	}
-	parent := &model.Node{}
-	if e = d.mongo.Database("permission").Collection("node").FindOneAndUpdate(sctx, bson.M{"node_id": appsummary.PermissionNodeID}, bson.M{"$inc": bson.M{"cur_node_index": 1}}).Decode(parent); e != nil {
-		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrAppPermissionMissing
-		}
-		return
-	}
-	nodeid = parent.NodeId + "," + strconv.FormatUint(uint64(parent.CurNodeIndex+1), 10)
-	if _, e = d.mongo.Database("permission").Collection("node").InsertOne(sctx, &model.Node{
-		NodeId:       nodeid,
-		NodeName:     path,
-		NodeData:     "",
-		CurNodeIndex: 0,
-	}); e != nil {
-		return
-	}
-	updater2 := bson.M{"$set": bson.M{"paths." + b64path + ".permission_node_id": nodeid}}
-	_, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filter, updater2)
-	return
-}
-func (d *Dao) MongoDelProxyPath(ctx context.Context, projectid, gname, aname, secret, path string) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
-		return
-	}
-	defer s.EndSession(ctx)
-	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
-		return
-	}
-	defer func() {
-		if e != nil {
-			s.AbortTransaction(sctx)
-		} else if e = s.CommitTransaction(sctx); e != nil {
-			s.AbortTransaction(sctx)
-		}
-	}()
-	b64path := base64.StdEncoding.EncodeToString(common.STB(path))
-	appsummary := &model.AppSummary{}
-	filter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": "", "index": 0}
-	updater := bson.M{"$unset": bson.M{"paths." + b64path: 1}}
-	opts := options.FindOneAndUpdate().SetProjection(bson.M{"value": 1, "paths." + b64path: 1})
-	if e = d.mongo.Database("app").Collection("config").FindOneAndUpdate(sctx, filter, updater, opts).Decode(appsummary); e != nil {
-		if e == mongo.ErrNoDocuments {
-			e = ecode.ErrAppNotExist
-		}
-		return
-	}
-	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
-		return
-	}
-	permissionid := ""
-	if len(appsummary.Paths) != 0 {
-		if proxypath, ok := appsummary.Paths[b64path]; ok {
-			permissionid = proxypath.PermissionNodeID
-		}
-	}
-	if permissionid == "" {
-		return
-	}
-	delfilter := bson.M{"node_id": bson.M{"$regex": "^" + permissionid}}
-	if _, e = d.mongo.Database("permission").Collection("node").DeleteMany(sctx, delfilter); e != nil {
-		return
-	}
-	if _, e = d.mongo.Database("permission").Collection("usernode").DeleteMany(sctx, delfilter); e != nil {
-		return
-	}
-	_, e = d.mongo.Database("permission").Collection("rolenode").DeleteMany(sctx, delfilter)
-	return
-}
-func encodeProxyPath(path string) string {
-	return base64.StdEncoding.EncodeToString(common.STB(path))
-}
-func decodeProxyPath(app *model.AppSummary) error {
-	tmp := make(map[string]*model.ProxyPath)
-	for path, info := range app.Paths {
-		realpath, e := base64.StdEncoding.DecodeString(path)
-		if e != nil {
-			return e
-		}
-		tmp[common.BTS(realpath)] = info
-	}
-	app.Paths = tmp
-	return nil
 }

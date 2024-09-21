@@ -2,21 +2,21 @@ package initinternal
 
 import (
 	"context"
-	"encoding/base64"
+	"log/slog"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/crpc"
 	"github.com/chenjie199234/Corelib/discover"
-	"github.com/chenjie199234/Corelib/log"
-	"github.com/chenjie199234/Corelib/log/trace"
-	"github.com/chenjie199234/Corelib/util/common"
+	"github.com/chenjie199234/Corelib/trace"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -129,11 +129,11 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 	switch summary.DiscoverMode {
 	case "kubernetes":
 		if summary.KubernetesNs == "" || summary.KubernetesLS == "" {
-			log.Error(nil, "[InitWatch] discover info broken",
-				log.String("project_id", summary.ProjectID),
-				log.String("project_name", summary.ProjectName),
-				log.String("group", summary.Group),
-				log.String("app", summary.App))
+			slog.ErrorContext(nil, "[InitWatch] discover info broken",
+				slog.String("project_id", summary.ProjectID),
+				slog.String("project_name", summary.ProjectName),
+				slog.String("group", summary.Group),
+				slog.String("app", summary.App))
 			return nil, ecode.ErrDBDataBroken
 		} else {
 			di, e := discover.NewKubernetesDiscover(
@@ -147,23 +147,23 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 				int(summary.CGrpcPort),
 				int(summary.WebPort))
 			if e != nil {
-				log.Error(nil, "[InitWatch] new discover failed",
-					log.String("project_id", summary.ProjectID),
-					log.String("project_name", summary.ProjectName),
-					log.String("group", summary.Group),
-					log.String("app", summary.App),
-					log.CError(e))
+				slog.ErrorContext(nil, "[InitWatch] new discover failed",
+					slog.String("project_id", summary.ProjectID),
+					slog.String("project_name", summary.ProjectName),
+					slog.String("group", summary.Group),
+					slog.String("app", summary.App),
+					slog.String("error", e.Error()))
 				return nil, ecode.ErrDBDataBroken
 			}
 			return di, nil
 		}
 	case "dns":
 		if summary.DnsHost == "" || summary.DnsInterval <= 0 {
-			log.Error(nil, "[InitWatch] discover info broken",
-				log.String("project_id", summary.ProjectID),
-				log.String("project_name", summary.ProjectName),
-				log.String("group", summary.Group),
-				log.String("app", summary.App))
+			slog.ErrorContext(nil, "[InitWatch] discover info broken",
+				slog.String("project_id", summary.ProjectID),
+				slog.String("project_name", summary.ProjectName),
+				slog.String("group", summary.Group),
+				slog.String("app", summary.App))
 			return nil, ecode.ErrDBDataBroken
 		} else {
 			interval := time.Duration(summary.DnsInterval) * time.Second
@@ -177,23 +177,23 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 				int(summary.CGrpcPort),
 				int(summary.WebPort))
 			if e != nil {
-				log.Error(nil, "[InitWatch] new discover failed",
-					log.String("project_id", summary.ProjectID),
-					log.String("project_name", summary.ProjectName),
-					log.String("group", summary.Group),
-					log.String("app", summary.App),
-					log.CError(e))
+				slog.ErrorContext(nil, "[InitWatch] new discover failed",
+					slog.String("project_id", summary.ProjectID),
+					slog.String("project_name", summary.ProjectName),
+					slog.String("group", summary.Group),
+					slog.String("app", summary.App),
+					slog.String("error", e.Error()))
 				return nil, ecode.ErrDBDataBroken
 			}
 			return di, nil
 		}
 	case "static":
 		if len(summary.StaticAddrs) == 0 {
-			log.Error(nil, "[InitWatch] discover info broken",
-				log.String("project_id", summary.ProjectID),
-				log.String("project_name", summary.ProjectName),
-				log.String("group", summary.Group),
-				log.String("app", summary.App))
+			slog.ErrorContext(nil, "[InitWatch] discover info broken",
+				slog.String("project_id", summary.ProjectID),
+				slog.String("project_name", summary.ProjectName),
+				slog.String("group", summary.Group),
+				slog.String("app", summary.App))
 			return nil, ecode.ErrDBDataBroken
 		} else {
 			di, e := discover.NewStaticDiscover(
@@ -205,12 +205,12 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 				int(summary.CGrpcPort),
 				int(summary.WebPort))
 			if e != nil {
-				log.Error(nil, "[InitWatch] new discover failed",
-					log.String("project_id", summary.ProjectID),
-					log.String("project_name", summary.ProjectName),
-					log.String("group", summary.Group),
-					log.String("app", summary.App),
-					log.CError(e))
+				slog.ErrorContext(nil, "[InitWatch] new discover failed",
+					slog.String("project_id", summary.ProjectID),
+					slog.String("project_name", summary.ProjectName),
+					slog.String("group", summary.Group),
+					slog.String("app", summary.App),
+					slog.String("error", e.Error()))
 				return nil, ecode.ErrDBDataBroken
 			}
 			return di, nil
@@ -225,19 +225,16 @@ func (s *InternalSdk) mongoGetAllApp() error {
 	primarylocalOPTS := options.Collection().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())
 	cursor, e := s.db.Database("app").Collection("config", primarylocalOPTS).Find(context.Background(), filter)
 	if e != nil {
-		log.Error(nil, "[InitWatch] get all app config failed", log.CError(e))
+		slog.ErrorContext(nil, "[InitWatch] get all app config failed", slog.String("error", e.Error()))
 		return e
 	}
 	defer cursor.Close(context.Background())
 	apps := make([]*model.AppSummary, 0, cursor.RemainingBatchLength())
 	if e := cursor.All(context.Background(), &apps); e != nil {
-		log.Error(nil, "[InitWatch] get all app config failed", log.CError(e))
+		slog.ErrorContext(nil, "[InitWatch] get all app config failed", slog.String("error", e.Error()))
 		return e
 	}
 	for _, v := range apps {
-		if e := s.decodeProxyPath(v); e != nil {
-			return e
-		}
 		undup := make(map[string]*struct{}, len(v.StaticAddrs))
 		for _, v := range v.StaticAddrs {
 			undup[v] = nil
@@ -270,7 +267,7 @@ func (s *InternalSdk) watch() {
 			var e error
 			opts := options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(s.start)
 			if stream, e = s.db.Database("app").Collection("config").Watch(ctx, mongo.Pipeline{}, opts); e != nil {
-				log.Error(nil, "[InitWatch] get stream failed", log.CError(e))
+				slog.ErrorContext(nil, "[InitWatch] get stream failed", slog.String("error", e.Error()))
 				stream = nil
 				time.Sleep(time.Millisecond * 100)
 				continue
@@ -282,7 +279,7 @@ func (s *InternalSdk) watch() {
 			switch stream.Current.Lookup("operationType").StringValue() {
 			case "drop":
 				//drop collection
-				log.Error(nil, "[InitWatch] all configs deleted")
+				slog.ErrorContext(nil, "[InitWatch] all configs deleted")
 				s.lker.Lock()
 				for _, v := range s.apps {
 					app := v
@@ -328,27 +325,18 @@ func (s *InternalSdk) watch() {
 				//this is the app summary
 				summary := &model.AppSummary{}
 				if e := stream.Current.Lookup("fullDocument").Unmarshal(summary); e != nil {
-					log.Error(nil, "[InitWatch] document format wrong",
-						log.String("project_id", projectid),
-						log.String("group", gname),
-						log.String("app", aname),
-						log.CError(e))
+					slog.ErrorContext(nil, "[InitWatch] document format wrong",
+						slog.String("project_id", projectid),
+						slog.String("group", gname),
+						slog.String("app", aname),
+						slog.String("error", e.Error()))
 					continue
 				}
-				//decode proxy path
-				if e := s.decodeProxyPath(summary); e != nil {
-					log.Error(nil, "[InitWatch] db data broken",
-						log.String("project_id", projectid),
-						log.String("group", gname),
-						log.String("app", aname),
-						log.CError(e))
-					continue
-				}
-				log.Debug(nil, "[InitWatch] updated",
-					log.String("project_id", summary.ProjectID),
-					log.String("group", summary.Group),
-					log.String("app", summary.App),
-					log.Any("keys", summary.Keys))
+				slog.DebugContext(nil, "[InitWatch] updated",
+					slog.String("project_id", summary.ProjectID),
+					slog.String("group", summary.Group),
+					slog.String("app", summary.App),
+					slog.Any("keys", summary.Keys))
 				s.lker.Lock()
 				if exist, ok := s.apps[summary.ID.Hex()]; !ok {
 					//this is a new app
@@ -406,10 +394,10 @@ func (s *InternalSdk) watch() {
 						}
 					}
 					if discoverchanged {
-						log.Debug(nil, "[InitWatch] discover changed",
-							log.String("project_id", projectid),
-							log.String("group", gname),
-							log.String("app", aname))
+						slog.DebugContext(nil, "[InitWatch] discover changed",
+							slog.String("project_id", projectid),
+							slog.String("group", gname),
+							slog.String("app", aname))
 						//discover should always stop after client
 						if exist.client != nil {
 							oldclient := exist.client
@@ -454,10 +442,10 @@ func (s *InternalSdk) watch() {
 				delete(s.appsIDIndex, exist.summary.ProjectID+"-"+exist.summary.Group+"."+exist.summary.App)
 				exist.Lock()
 				s.lker.Unlock()
-				log.Debug(nil, "[InitWatch] deleted",
-					log.String("project_id", exist.summary.ProjectID),
-					log.String("group", exist.summary.Group),
-					log.String("app", exist.summary.App))
+				slog.DebugContext(nil, "[InitWatch] deleted",
+					slog.String("project_id", exist.summary.ProjectID),
+					slog.String("group", exist.summary.Group),
+					slog.String("app", exist.summary.App))
 				exist.delstatus = true
 				for notice := range exist.notices {
 					delete(exist.notices, notice)
@@ -476,29 +464,11 @@ func (s *InternalSdk) watch() {
 			}
 		}
 		if stream.Err() != nil {
-			log.Error(nil, "[InitWatch] stream disconnected", log.CError(stream.Err()))
+			slog.ErrorContext(nil, "[InitWatch] stream disconnected", slog.String("error", stream.Err().Error()))
 		}
 		stream.Close(nil)
 		stream = nil
 	}
-}
-func (s *InternalSdk) decodeProxyPath(app *model.AppSummary) error {
-	tmp := make(map[string]*model.ProxyPath)
-	for path, info := range app.Paths {
-		realpath, e := base64.StdEncoding.DecodeString(path)
-		if e != nil {
-			log.Error(nil, "[InitWatch] app's proxy path's base64 format wrong",
-				log.String("project_id", app.ProjectID),
-				log.String("group", app.Group),
-				log.String("app", app.App),
-				log.String("base64_path", path),
-				log.CError(e))
-			return e
-		}
-		tmp[common.BTS(realpath)] = info
-	}
-	app.Paths = tmp
-	return nil
 }
 
 // if you don't need the notice,remember to call the cancel
@@ -634,7 +604,7 @@ func (s *InternalSdk) GetAppAddrsByProjectID(ctx context.Context, pid, g, a stri
 	select {
 	case <-ch:
 	case <-ctx.Done():
-		return nil, cerror.ConvertStdError(ctx.Err())
+		return nil, cerror.Convert(ctx.Err())
 	}
 	tmp, _, _ := di.GetAddrs(discover.NotNeed)
 	addrs := make([]string, 0, len(tmp))
@@ -679,7 +649,7 @@ func (s *InternalSdk) GetAppAddrsByProjectName(ctx context.Context, pname, g, a 
 	select {
 	case <-ch:
 	case <-ctx.Done():
-		return nil, cerror.ConvertStdError(ctx.Err())
+		return nil, cerror.Convert(ctx.Err())
 	}
 	tmp, _, _ := di.GetAddrs(discover.NotNeed)
 	addrs := make([]string, 0, len(tmp))
@@ -689,9 +659,7 @@ func (s *InternalSdk) GetAppAddrsByProjectName(ctx context.Context, pname, g, a 
 	return addrs, nil
 }
 
-type PermissionCheckHandler func(ctx context.Context, nodeid string, read, write, admin bool) error
-
-func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, path string, reqdata []byte, forceaddr string, pcheck PermissionCheckHandler) ([]byte, error) {
+func (s *InternalSdk) PingByPrjoectID(ctx context.Context, pid, g, a string, forceaddr string) (*api.Pingresp, error) {
 	fullname := pid + "-" + g + "." + a
 	s.lker.RLock()
 	if s.closing {
@@ -709,13 +677,6 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 		app.Unlock()
 		return nil, ecode.ErrAppNotExist
 	}
-	var pathinfo *model.ProxyPath
-	if pcheck != nil {
-		if pathinfo, ok = app.summary.Paths[path]; !ok {
-			app.Unlock()
-			return nil, ecode.ErrProxyPathNotExist
-		}
-	}
 	if app.client == nil {
 		var e error
 		if app.di == nil {
@@ -744,15 +705,25 @@ func (s *InternalSdk) CallByPrjoectID(ctx context.Context, pid, g, a string, pat
 	//copy the client pointer
 	client := app.client
 	app.Unlock()
-	if pcheck != nil {
-		if e := pcheck(ctx, pathinfo.PermissionNodeID, pathinfo.PermissionRead, pathinfo.PermissionWrite, pathinfo.PermissionAdmin); e != nil {
-			return nil, e
+	in, _ := proto.Marshal(&api.Pingreq{Timestamp: time.Now().UnixNano()})
+	var resp *api.Pingresp
+	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".status/ping", in, func(cctx *crpc.CallContext) error {
+		out, e := cctx.Recv()
+		if e != nil {
+			return e
 		}
+		resp = &api.Pingresp{}
+		if e := proto.Unmarshal(out, resp); e != nil {
+			return ecode.ErrResp
+		}
+		return nil
+	}); e != nil {
+		return nil, e
 	}
-	return client.Call(crpc.WithForceAddr(ctx, forceaddr), path, reqdata)
+	return resp, nil
 }
 
-func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string, path string, reqdata []byte, forceaddr string, pcheck PermissionCheckHandler) ([]byte, error) {
+func (s *InternalSdk) PingByPrjoectName(ctx context.Context, pname, g, a string, forceaddr string) (*api.Pingresp, error) {
 	fullname := pname + "-" + g + "." + a
 	s.lker.RLock()
 	if s.closing {
@@ -770,17 +741,6 @@ func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string,
 		app.Unlock()
 		return nil, ecode.ErrAppNotExist
 	}
-	pathinfo, ok := app.summary.Paths[path]
-	if !ok {
-		app.Unlock()
-		return nil, ecode.ErrProxyPathNotExist
-	}
-	if pcheck != nil {
-		if e := pcheck(ctx, pathinfo.PermissionNodeID, pathinfo.PermissionRead, pathinfo.PermissionWrite, pathinfo.PermissionAdmin); e != nil {
-			app.Unlock()
-			return nil, e
-		}
-	}
 	if app.client == nil {
 		var e error
 		if app.di == nil {
@@ -809,5 +769,20 @@ func (s *InternalSdk) CallByPrjoectName(ctx context.Context, pname, g, a string,
 	//copy the client pointer
 	client := app.client
 	app.Unlock()
-	return client.Call(crpc.WithForceAddr(ctx, forceaddr), path, reqdata)
+	in, _ := proto.Marshal(&api.Pingreq{Timestamp: time.Now().UnixNano()})
+	var resp *api.Pingresp
+	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".status/ping", in, func(cctx *crpc.CallContext) error {
+		out, e := cctx.Recv()
+		if e != nil {
+			return e
+		}
+		resp = &api.Pingresp{}
+		if e := proto.Unmarshal(out, resp); e != nil {
+			return ecode.ErrResp
+		}
+		return nil
+	}); e != nil {
+		return nil, e
+	}
+	return resp, nil
 }

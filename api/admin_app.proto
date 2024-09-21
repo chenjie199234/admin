@@ -78,21 +78,6 @@ service app{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
-
-	//proxy
-
-	rpc set_proxy(set_proxy_req)returns(set_proxy_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-	rpc del_proxy(del_proxy_req)returns(del_proxy_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-	rpc proxy(proxy_req)returns(proxy_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
 }
 
 //req can be set with pbex extentions
@@ -122,13 +107,6 @@ message get_app_resp{
 	uint32 cgrpc_port=9;
 	uint32 web_port=10;
 	map<string,key_config_info> keys=11;
-	map<string,proxy_path_info> paths=12;
-}
-message proxy_path_info{
-	repeated uint32 node_id=1;
-	bool read=2;//need read permission on this node
-	bool write=3;//need write permission on this node
-	bool admin=4;//need admin permission on this node
 }
 message key_config_info{
 	uint32 cur_index=1;
@@ -301,41 +279,4 @@ message get_instance_info_req{
 }
 message get_instance_info_resp{
 	instance_info info=1;
-}
-
-//proxy
-
-message set_proxy_req{
-	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
-	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
-	string path=4[(pbex.string_bytes_len_not_eq)=0];
-	bool read=5;//need read permission on this node
-	bool write=6;//need write permission on this node
-	bool admin=7;//need admin permission on this node
-	string secret=8[(pbex.string_bytes_len_lte)=32];
-	bool new_path=9;//true: create a new proxy path config. false: update the already exist proxy path setting
-}
-message set_proxy_resp{
-	repeated uint32 node_id=1;
-}
-message del_proxy_req{
-	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
-	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
-	string path=4[(pbex.string_bytes_len_not_eq)=0];
-	string secret=5[(pbex.string_bytes_len_lte)=32];
-}
-message del_proxy_resp{
-}
-message proxy_req{
-	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
-	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
-	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
-	string path=4[(pbex.string_bytes_len_not_eq)=0];
-	string data=5[(pbex.string_bytes_len_gte)=2];
-	string force_addr=6;
-}
-message proxy_resp{
-	string data=1;
 }

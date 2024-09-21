@@ -27,8 +27,7 @@ type AppSummary struct {
 	CrpcPort         uint32                 `bson:"crpc_port"`
 	CGrpcPort        uint32                 `bson:"cgrpc_port"`
 	WebPort          uint32                 `bson:"web_port"`
-	Paths            map[string]*ProxyPath  `bson:"paths"` //map's key is the base64(proxy path)
-	Keys             map[string]*KeySummary `bson:"keys"`  //map's key is config's key name
+	Keys             map[string]*KeySummary `bson:"keys"` //map's key is config's key name
 	Value            string                 `bson:"value"`
 	PermissionNodeID string                 `bson:"permission_node_id"`
 }
@@ -43,12 +42,6 @@ type KeySummary struct {
 	CurVersion   uint32 `bson:"cur_version"`
 	CurValue     string `bson:"cur_value"`
 	CurValueType string `bson:"cur_value_type"`
-}
-type ProxyPath struct {
-	PermissionNodeID string `bson:"permission_node_id"`
-	PermissionRead   bool   `bson:"permission_read"`
-	PermissionWrite  bool   `bson:"permission_write"`
-	PermissionAdmin  bool   `bson:"permission_admin"`
 }
 type Log struct {
 	ProjectID string `bson:"project_id"`

@@ -2,6 +2,7 @@ package permission
 
 import (
 	"context"
+	"log/slog"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/util"
 
-	"github.com/chenjie199234/Corelib/log"
 	"github.com/chenjie199234/Corelib/metadata"
 	"github.com/chenjie199234/Corelib/pool/bpool"
 	"github.com/chenjie199234/Corelib/util/common"
@@ -58,12 +58,12 @@ func (s *Service) GetUserPermission(ctx context.Context, req *api.GetUserPermiss
 
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[GetUserPermission] target's userid format wrong", log.String("user_id", req.UserId))
+		slog.ErrorContext(ctx, "[GetUserPermission] target's userid format wrong", slog.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
 	canread, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, target, nodeid, true)
 	if e != nil {
-		log.Error(ctx, "[GetUserPermission] db op failed", log.String("user_id", req.UserId), log.String("node_id", nodeid), log.CError(e))
+		slog.ErrorContext(ctx, "[GetUserPermission] db op failed", slog.String("user_id", req.UserId), slog.String("node_id", nodeid), slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	return &api.GetUserPermissionResp{Canread: canread, Canwrite: canwrite, Admin: admin}, nil
@@ -95,22 +95,22 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[UpdateUserPermission] operator's token format wrong", log.String("operator", md["Token-User"]))
+		slog.ErrorContext(ctx, "[UpdateUserPermission] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	target, e := primitive.ObjectIDFromHex(req.UserId)
 	if e != nil {
-		log.Error(ctx, "[UpdateUserPermission] target's userid format wrong", log.String("user_id", req.UserId))
+		slog.ErrorContext(ctx, "[UpdateUserPermission] target's userid format wrong", slog.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
 	}
 	if !operator.IsZero() {
 		//permission check
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[UpdateUserPermission] get operator's permission info failed",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", projectid),
-				log.CError(e))
+			slog.ErrorContext(ctx, "[UpdateUserPermission] get operator's permission info failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("error", e.Error()))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -119,19 +119,19 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	}
 	//logic
 	if e = s.permissionDao.MongoUpdateUserPermission(ctx, operator, target, nodeid, req.Admin, req.Canread, req.Canwrite); e != nil {
-		log.Error(ctx, "[UpdateUserPermission] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("user_id", req.UserId),
-			log.String("node_id", nodeid),
-			log.Any("new_permission", []bool{req.Canread, req.Canwrite, req.Admin}),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[UpdateUserPermission] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("user_id", req.UserId),
+			slog.String("node_id", nodeid),
+			slog.Any("new_permission", []bool{req.Canread, req.Canwrite, req.Admin}),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	log.Info(ctx, "[UpdateUserPermission] success",
-		log.String("project_id", projectid),
-		log.String("user_id", req.UserId),
-		log.String("node_id", nodeid),
-		log.Any("new_permission", []bool{req.Canread, req.Canwrite, req.Admin}))
+	slog.InfoContext(ctx, "[UpdateUserPermission] success",
+		slog.String("project_id", projectid),
+		slog.String("user_id", req.UserId),
+		slog.String("node_id", nodeid),
+		slog.Any("new_permission", []bool{req.Canread, req.Canwrite, req.Admin}))
 	return &api.UpdateUserPermissionResp{}, nil
 }
 func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRolePermissionReq) (*api.UpdateRolePermissionResp, error) {
@@ -164,17 +164,17 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[UpdateRolePermission] operator's token format wrong", log.String("operator", md["Token-User"]))
+		slog.ErrorContext(ctx, "[UpdateRolePermission] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	if !operator.IsZero() {
 		//role control permission check
 		_, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[UpdateRolePermission] get operator's permission info failed",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", projectid),
-				log.CError(e))
+			slog.ErrorContext(ctx, "[UpdateRolePermission] get operator's permission info failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("error", e.Error()))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !admin {
@@ -183,21 +183,21 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	}
 	//logic
 	if e = s.permissionDao.MongoUpdateRolePermission(ctx, operator, projectid, req.RoleName, nodeid, req.Admin, req.Canread, req.Canwrite); e != nil {
-		log.Error(ctx, "[UpdateRolePermission] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("project_id", projectid),
-			log.String("role_name", req.RoleName),
-			log.String("node_id", nodeid),
-			log.Any("new_permission", []bool{req.Canread, req.Canwrite, req.Admin}),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[UpdateRolePermission] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("role_name", req.RoleName),
+			slog.String("node_id", nodeid),
+			slog.Any("new_permission", []bool{req.Canread, req.Canwrite, req.Admin}),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	log.Info(ctx, "[UpdateRolePermission] success",
-		log.String("operator", md["Token-User"]),
-		log.String("project_id", projectid),
-		log.String("role_name", req.RoleName),
-		log.String("node_id", nodeid),
-		log.Any("new_permission", []bool{req.Canread, req.Canwrite, req.Admin}))
+	slog.InfoContext(ctx, "[UpdateRolePermission] success",
+		slog.String("operator", md["Token-User"]),
+		slog.String("project_id", projectid),
+		slog.String("role_name", req.RoleName),
+		slog.String("node_id", nodeid),
+		slog.Any("new_permission", []bool{req.Canread, req.Canwrite, req.Admin}))
 	return &api.UpdateRolePermissionResp{}, nil
 }
 func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNodeResp, error) {
@@ -228,25 +228,25 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[AddNode] operator's token format wrong", log.String("operator", md["Token-User"]))
+		slog.ErrorContext(ctx, "[AddNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	var nodeidstr string
 	if nodeidstr, e = s.permissionDao.MongoAddNode(ctx, operator, pnodeid, req.NodeName, req.NodeData); e != nil {
-		log.Error(ctx, "[AddNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("node_name", req.NodeName),
-			log.String("node_data", req.NodeData),
-			log.String("parent_node_id", pnodeid),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[AddNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("node_name", req.NodeName),
+			slog.String("node_data", req.NodeData),
+			slog.String("parent_node_id", pnodeid),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	nodeid, _ := util.ParseNodeIDstr(nodeidstr)
-	log.Info(ctx, "[AddNode] success",
-		log.String("operator", md["Token-User"]),
-		log.String("node_id", nodeidstr),
-		log.String("node_name", req.NodeName),
-		log.String("node_data", req.NodeData))
+	slog.InfoContext(ctx, "[AddNode] success",
+		slog.String("operator", md["Token-User"]),
+		slog.String("node_id", nodeidstr),
+		slog.String("node_name", req.NodeName),
+		slog.String("node_data", req.NodeData))
 	return &api.AddNodeResp{NodeId: nodeid}, nil
 }
 func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.UpdateNodeResp, error) {
@@ -277,45 +277,45 @@ func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[UpdateNode] operator's token format wrong", log.String("operator", md["Token-User"]))
+		slog.ErrorContext(ctx, "[UpdateNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	oldnode, e := s.permissionDao.MongoUpdateNode(ctx, operator, nodeid, req.NewNodeName, req.NewNodeData)
 	if e != nil {
-		log.Error(ctx, "[UpdateNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("node_id", nodeid),
-			log.String("new_node_name", req.NewNodeName),
-			log.String("new_node_data", req.NewNodeData),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[UpdateNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("node_id", nodeid),
+			slog.String("new_node_name", req.NewNodeName),
+			slog.String("new_node_data", req.NewNodeData),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	if oldnode.NodeName != req.NewNodeName && oldnode.NodeData != req.NewNodeData {
-		log.Info(ctx, "[UpdateNode] success",
-			log.String("operator", md["Token-User"]),
-			log.String("node_id", nodeid),
-			log.String("old_node_name", oldnode.NodeName),
-			log.String("new_node_name", req.NewNodeName),
-			log.String("old_node_data", oldnode.NodeData),
-			log.String("new_node_data", req.NewNodeData))
+		slog.InfoContext(ctx, "[UpdateNode] success",
+			slog.String("operator", md["Token-User"]),
+			slog.String("node_id", nodeid),
+			slog.String("old_node_name", oldnode.NodeName),
+			slog.String("new_node_name", req.NewNodeName),
+			slog.String("old_node_data", oldnode.NodeData),
+			slog.String("new_node_data", req.NewNodeData))
 	} else if oldnode.NodeName != req.NewNodeName {
-		log.Info(ctx, "[UpdateNode] success",
-			log.String("operator", md["Token-User"]),
-			log.String("node_id", nodeid),
-			log.String("old_node_name", oldnode.NodeName),
-			log.String("new_node_name", req.NewNodeName))
+		slog.InfoContext(ctx, "[UpdateNode] success",
+			slog.String("operator", md["Token-User"]),
+			slog.String("node_id", nodeid),
+			slog.String("old_node_name", oldnode.NodeName),
+			slog.String("new_node_name", req.NewNodeName))
 	} else if oldnode.NodeData != req.NewNodeData {
-		log.Info(ctx, "[UpdateNode] success",
-			log.String("operator", md["Token-User"]),
-			log.String("node_id", nodeid),
-			log.String("old_node_data", oldnode.NodeData),
-			log.String("new_node_data", req.NewNodeData))
+		slog.InfoContext(ctx, "[UpdateNode] success",
+			slog.String("operator", md["Token-User"]),
+			slog.String("node_id", nodeid),
+			slog.String("old_node_data", oldnode.NodeData),
+			slog.String("new_node_data", req.NewNodeData))
 	} else {
-		log.Info(ctx, "[UpdateNode] success,nothing changed",
-			log.String("operator", md["Token-User"]),
-			log.String("node_id", nodeid),
-			log.String("node_name", oldnode.NodeName),
-			log.String("node_data", oldnode.NodeData))
+		slog.InfoContext(ctx, "[UpdateNode] success,nothing changed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("node_id", nodeid),
+			slog.String("node_name", oldnode.NodeName),
+			slog.String("node_data", oldnode.NodeData))
 	}
 	return &api.UpdateNodeResp{}, nil
 }
@@ -377,22 +377,22 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[MoveNode] operator's token format wrong", log.String("operator", md["Token-User"]))
+		slog.ErrorContext(ctx, "[MoveNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	newnodeid, e := s.permissionDao.MongoMoveNode(ctx, operator, nodeid, pnodeid)
 	if e != nil {
-		log.Error(ctx, "[MoveNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("node_id", nodeid),
-			log.String("new_parent_node_id", pnodeid),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[MoveNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("node_id", nodeid),
+			slog.String("new_parent_node_id", pnodeid),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	log.Info(ctx, "[MoveNode] success",
-		log.String("operator", md["Token-User"]),
-		log.String("node_id", nodeid),
-		log.String("new_node_id", newnodeid))
+	slog.InfoContext(ctx, "[MoveNode] success",
+		slog.String("operator", md["Token-User"]),
+		slog.String("node_id", nodeid),
+		slog.String("new_node_id", newnodeid))
 	return &api.MoveNodeResp{}, nil
 }
 func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNodeResp, error) {
@@ -413,7 +413,7 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[DelNode] operator's token format failed", log.String("operator", md["Token-User"]))
+		slog.ErrorContext(ctx, "[DelNode] operator's token format failed", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	buf := bpool.Get(0)
@@ -428,17 +428,17 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 
 	node, e := s.permissionDao.MongoDeleteNode(ctx, operator, nodeid)
 	if e != nil {
-		log.Error(ctx, "[DelNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("node_id", nodeid),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[DelNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("node_id", nodeid),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	log.Info(ctx, "[DelNode] success",
-		log.String("operator", md["Token-User"]),
-		log.String("node_id", nodeid),
-		log.String("node_name", node.NodeName),
-		log.String("node_data", node.NodeData))
+	slog.InfoContext(ctx, "[DelNode] success",
+		slog.String("operator", md["Token-User"]),
+		slog.String("node_id", nodeid),
+		slog.String("node_name", node.NodeName),
+		slog.String("node_data", node.NodeData))
 	return &api.DelNodeResp{}, nil
 }
 func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*api.ListUserNodeResp, error) {
@@ -458,7 +458,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[ListUserNode] operator's token format wrong", log.String("operator", md["Token-User"]))
+		slog.ErrorContext(ctx, "[ListUserNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	var target primitive.ObjectID
@@ -470,7 +470,7 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		//list other user's
 		target, e = primitive.ObjectIDFromHex(req.UserId)
 		if e != nil {
-			log.Error(ctx, "[ListUserNode] target's userid format wrong", log.String("user_id", req.UserId))
+			slog.ErrorContext(ctx, "[ListUserNode] target's userid format wrong", slog.String("user_id", req.UserId))
 			return nil, ecode.ErrReq
 		}
 	}
@@ -480,10 +480,10 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 		//permission check
 		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[ListUserNode] get operator's permission info failed",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", projectid),
-				log.CError(e))
+			slog.ErrorContext(ctx, "[ListUserNode] get operator's permission info failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("error", e.Error()))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !canread && !admin {
@@ -493,11 +493,11 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	//logic
 	root, e := s.permissionDao.MongoGetNode(ctx, projectid)
 	if e != nil {
-		log.Error(ctx, "[ListUserNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("project_id", projectid),
-			log.String("user_id", req.UserId),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[ListUserNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("user_id", req.UserId),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	if root == nil {
@@ -505,32 +505,32 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	}
 	children, e := s.permissionDao.MongoListChildrenNodes(ctx, projectid, true)
 	if e != nil {
-		log.Error(ctx, "[ListUserNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("project_id", projectid),
-			log.String("user_id", req.UserId),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[ListUserNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("user_id", req.UserId),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	var usernodes model.UserNodes
 	if !target.IsZero() {
 		if usernodes, e = s.permissionDao.MongoGetUserNodes(ctx, target, projectid, nil); e != nil {
-			log.Error(ctx, "[ListUserNode] db op failed",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", projectid),
-				log.String("user_id", req.UserId),
-				log.CError(e))
+			slog.ErrorContext(ctx, "[ListUserNode] db op failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("user_id", req.UserId),
+				slog.String("error", e.Error()))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 	}
 	var userrolenodes map[string]model.RoleNodes
 	if !target.IsZero() && req.NeedUserRoleNode {
 		if userrolenodes, e = s.permissionDao.MongoGetUserRoleNodes(ctx, target, projectid, nil); e != nil {
-			log.Error(ctx, "[ListUserNode] db op failed",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", projectid),
-				log.String("user_id", req.UserId),
-				log.CError(e))
+			slog.ErrorContext(ctx, "[ListUserNode] db op failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("user_id", req.UserId),
+				slog.String("error", e.Error()))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 	}
@@ -568,11 +568,11 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	for _, node := range children {
 		nodeid, e := util.ParseNodeIDstr(node.NodeId)
 		if e != nil {
-			log.Error(ctx, "[ListUserNode] target's node's nodeid format wrong",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", projectid),
-				log.String("user_id", req.UserId),
-				log.String("node_id", node.NodeId))
+			slog.ErrorContext(ctx, "[ListUserNode] target's node's nodeid format wrong",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("user_id", req.UserId),
+				slog.String("node_id", node.NodeId))
 			return nil, ecode.ErrSystem
 		}
 		tmp := &api.NodeInfo{
@@ -625,17 +625,17 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	md := metadata.GetMetadata(ctx)
 	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
-		log.Error(ctx, "[ListRoleNode] operator's token format wrong", log.String("operator", md["Token-User"]))
+		slog.ErrorContext(ctx, "[ListRoleNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
 	if !operator.IsZero() {
 		//permission check
 		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, projectid+model.UserAndRoleControl, true)
 		if e != nil {
-			log.Error(ctx, "[ListRoleNode] get operator's permission info failed",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", projectid),
-				log.CError(e))
+			slog.ErrorContext(ctx, "[ListRoleNode] get operator's permission info failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("error", e.Error()))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 		}
 		if !canread && !admin {
@@ -646,11 +646,11 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	//logic
 	root, e := s.permissionDao.MongoGetNode(ctx, projectid)
 	if e != nil {
-		log.Error(ctx, "[ListRoleNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("project_id", projectid),
-			log.String("role_name", req.RoleName),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[ListRoleNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("role_name", req.RoleName),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	if root == nil {
@@ -658,20 +658,20 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	}
 	children, e := s.permissionDao.MongoListChildrenNodes(ctx, projectid, true)
 	if e != nil {
-		log.Error(ctx, "[ListRoleNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("project_id", projectid),
-			log.String("role_name", req.RoleName),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[ListRoleNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("role_name", req.RoleName),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	rolenodes, e := s.permissionDao.MongoGetRoleNodes(ctx, projectid, req.RoleName, nil)
 	if e != nil {
-		log.Error(ctx, "[ListRoleNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("project_id", projectid),
-			log.String("role_name", req.RoleName),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[ListRoleNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("role_name", req.RoleName),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectnode := &api.NodeInfo{
@@ -687,11 +687,11 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	for _, node := range children {
 		nodeid, e := util.ParseNodeIDstr(node.NodeId)
 		if e != nil {
-			log.Error(ctx, "[ListRoleNode] role's node's nodeid format wrong",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", projectid),
-				log.String("role_name", req.RoleName),
-				log.String("node_id", node.NodeId))
+			slog.ErrorContext(ctx, "[ListRoleNode] role's node's nodeid format wrong",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("role_name", req.RoleName),
+				slog.String("node_id", node.NodeId))
 			return nil, ecode.ErrSystem
 		}
 		tmp := &api.NodeInfo{
@@ -724,10 +724,10 @@ func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeR
 
 	root, e := s.permissionDao.MongoGetNode(ctx, projectid)
 	if e != nil {
-		log.Error(ctx, "[ListProjectNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("project_id", projectid),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[ListProjectNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("error", e.Error()))
 		return nil, e
 	}
 	if root == nil {
@@ -735,10 +735,10 @@ func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeR
 	}
 	children, e := s.permissionDao.MongoListChildrenNodes(ctx, projectid, true)
 	if e != nil {
-		log.Error(ctx, "[ListProjectNode] db op failed",
-			log.String("operator", md["Token-User"]),
-			log.String("project_id", projectid),
-			log.CError(e))
+		slog.ErrorContext(ctx, "[ListProjectNode] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	projectnode := &api.NodeInfo{
@@ -753,10 +753,10 @@ func (s *Service) ListProjectNode(ctx context.Context, req *api.ListProjectNodeR
 	for _, node := range children {
 		nodeid, e := util.ParseNodeIDstr(node.NodeId)
 		if e != nil {
-			log.Error(ctx, "[ListProjectNode] project's node's nodeid format wrong",
-				log.String("operator", md["Token-User"]),
-				log.String("project_id", projectid),
-				log.String("node_id", node.NodeId))
+			slog.ErrorContext(ctx, "[ListProjectNode] project's node's nodeid format wrong",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("node_id", node.NodeId))
 			return nil, ecode.ErrSystem
 		}
 		addTreeNode(projectnode, &api.NodeInfo{

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref,watch } from 'vue'
-import * as permissionAPI from './api/admin_permission_browser_toc'
+import * as permissionAPI from './api/admin_permission_browser'
 const props=defineProps<{
 	pnode:permissionAPI.NodeInfo|null
 	node:permissionAPI.NodeInfo

@@ -58,7 +58,7 @@
 			"user_name":"",
 			"password":"",
 			"auth_db":"",
-			"replica_set":"",
+			"replica_set":"rs",
 			"max_open":256,
 			"max_conn_idletime":"5m",
 			"io_timeout":"500ms",

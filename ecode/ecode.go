@@ -28,30 +28,31 @@ var (
 	ErrBan               = cerror.ErrBan               //10010 // http code 403
 	ErrBusy              = cerror.ErrBusy              //10011 // http code 503
 	ErrNotExist          = cerror.ErrNotExist          //10012 // http code 404
-	ErrPasswordWrong     = cerror.ErrPasswordWrong     //10013 // http code 400
-	ErrPasswordLength    = cerror.ErrPasswordLength    //10014 // http code 400
+	ErrAlreadyExist      = cerror.ErrAlreadyExist      //10013 // http code 400
+	ErrPasswordWrong     = cerror.ErrPasswordWrong     //10014 // http code 400
+	ErrPasswordLength    = cerror.ErrPasswordLength    //10015 // http code 400
 
-	ErrNotInited           = cerror.MakeError(20001, http.StatusBadRequest, "not inited")
-	ErrAlreadyInited       = cerror.MakeError(20002, http.StatusBadRequest, "already inited")
-	ErrProjectNotExist     = cerror.MakeError(20003, http.StatusBadRequest, "project doesn't exist")
-	ErrProjectAlreadyExist = cerror.MakeError(20004, http.StatusBadRequest, "project already exist")
+	ErrNotInited           = cerror.MakeCError(20001, http.StatusBadRequest, "not inited")
+	ErrAlreadyInited       = cerror.MakeCError(20002, http.StatusBadRequest, "already inited")
+	ErrProjectNotExist     = cerror.MakeCError(20003, http.StatusBadRequest, "project doesn't exist")
+	ErrProjectAlreadyExist = cerror.MakeCError(20004, http.StatusBadRequest, "project already exist")
 
-	ErrAppNotExist           = cerror.MakeError(20010, http.StatusBadRequest, "app doesn't exist")
-	ErrAppPermissionMissing  = cerror.MakeError(20011, http.StatusBadRequest, "app's permission node id missing")
-	ErrKeyNotExist           = cerror.MakeError(20012, http.StatusBadRequest, "key doesn't exist")
-	ErrAppAlreadyExist       = cerror.MakeError(20013, http.StatusBadRequest, "app already exist")
-	ErrKeyAlreadyExist       = cerror.MakeError(20014, http.StatusBadRequest, "key already exist")
-	ErrIndexNotExist         = cerror.MakeError(20015, http.StatusBadRequest, "config index doesn't exist")
-	ErrProxyPathNotExist     = cerror.MakeError(20016, http.StatusBadRequest, "proxy path doesn't exist")
-	ErrProxyPathAlreadyExist = cerror.MakeError(20017, http.StatusBadRequest, "proxy path already exist")
+	ErrAppNotExist           = cerror.MakeCError(20010, http.StatusBadRequest, "app doesn't exist")
+	ErrAppPermissionMissing  = cerror.MakeCError(20011, http.StatusBadRequest, "app's permission node id missing")
+	ErrKeyNotExist           = cerror.MakeCError(20012, http.StatusBadRequest, "key doesn't exist")
+	ErrAppAlreadyExist       = cerror.MakeCError(20013, http.StatusBadRequest, "app already exist")
+	ErrKeyAlreadyExist       = cerror.MakeCError(20014, http.StatusBadRequest, "key already exist")
+	ErrIndexNotExist         = cerror.MakeCError(20015, http.StatusBadRequest, "config index doesn't exist")
+	ErrProxyPathNotExist     = cerror.MakeCError(20016, http.StatusBadRequest, "proxy path doesn't exist")
+	ErrProxyPathAlreadyExist = cerror.MakeCError(20017, http.StatusBadRequest, "proxy path already exist")
 
-	ErrNodeNotExist       = cerror.MakeError(20100, http.StatusBadRequest, "node not exist")
-	ErrPNodeNotExist      = cerror.MakeError(20101, http.StatusBadRequest, "parent node not exist")
-	ErrRoleNotExist       = cerror.MakeError(20102, http.StatusBadRequest, "role doesn't exist")
-	ErrRoleAlreadyExist   = cerror.MakeError(20103, http.StatusBadRequest, "role already exist")
-	ErrUserNotExist       = cerror.MakeError(20104, http.StatusBadRequest, "user not exist")
-	ErrUserAlreadyInvited = cerror.MakeError(20105, http.StatusBadRequest, "user already invited")
-	ErrUserNotInProject   = cerror.MakeError(20106, http.StatusBadRequest, "user not in project")
+	ErrNodeNotExist       = cerror.MakeCError(20100, http.StatusBadRequest, "node not exist")
+	ErrPNodeNotExist      = cerror.MakeCError(20101, http.StatusBadRequest, "parent node not exist")
+	ErrRoleNotExist       = cerror.MakeCError(20102, http.StatusBadRequest, "role doesn't exist")
+	ErrRoleAlreadyExist   = cerror.MakeCError(20103, http.StatusBadRequest, "role already exist")
+	ErrUserNotExist       = cerror.MakeCError(20104, http.StatusBadRequest, "user not exist")
+	ErrUserAlreadyInvited = cerror.MakeCError(20105, http.StatusBadRequest, "user already invited")
+	ErrUserNotInProject   = cerror.MakeCError(20106, http.StatusBadRequest, "user not in project")
 )
 
 func ReturnEcode(originerror error, defaulterror *cerror.Error) error {

@@ -4,12 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/chenjie199234/admin/config"
-
-	"github.com/chenjie199234/Corelib/log"
 )
 
 var DingDingToken string
@@ -64,18 +63,18 @@ func getDingDingToken() (*getDingDingTokenResp, error) {
 	reqbody, _ := json.Marshal(req)
 	resp, e := DingDingWebClient.Post(context.Background(), "/v1.0/oauth2/accessToken", "", header, nil, reqbody)
 	if e != nil {
-		log.Error(nil, "[getDingDingToken] call failed", log.CError(e))
+		slog.ErrorContext(nil, "[getDingDingToken] call failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	defer resp.Body.Close()
 	respbody, e := io.ReadAll(resp.Body)
 	if e != nil {
-		log.Error(nil, "[getDingDingToken] read response body failed", log.CError(e))
+		slog.ErrorContext(nil, "[getDingDingToken] read response body failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	r := &getDingDingTokenResp{}
 	if e = json.Unmarshal(respbody, r); e != nil {
-		log.Error(nil, "[getDingDingToken] response body decode failed", log.CError(e))
+		slog.ErrorContext(nil, "[getDingDingToken] response body decode failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	return r, nil

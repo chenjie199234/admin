@@ -5,13 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"os"
 
 	"github.com/chenjie199234/admin/model"
 
-	"github.com/chenjie199234/Corelib/log"
-	"github.com/chenjie199234/Corelib/log/trace"
 	"github.com/chenjie199234/Corelib/secure"
+	"github.com/chenjie199234/Corelib/trace"
 	"github.com/chenjie199234/Corelib/util/common"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,21 +24,21 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	var ac []byte
 	var sc []byte
 	if ac, e = os.ReadFile("./AppConfig.json"); e != nil {
-		log.Error(nil, "[InitDatabase] read ./AppConfig.json failed", log.CError(e))
+		slog.ErrorContext(nil, "[InitDatabase] read ./AppConfig.json failed", slog.String("error", e.Error()))
 		return
 	}
 	if sc, e = os.ReadFile("./SourceConfig.json"); e != nil {
-		log.Error(nil, "[InitDatabase] read ./SourceConfig.json failed", log.CError(e))
+		slog.ErrorContext(nil, "[InitDatabase] read ./SourceConfig.json failed", slog.String("error", e.Error()))
 		return
 	}
 	bufapp := bytes.NewBuffer(nil)
 	if e = json.Compact(bufapp, ac); e != nil {
-		log.Error(nil, "[InitDatabase] ./AppConfig.json format wrong", log.CError(e))
+		slog.ErrorContext(nil, "[InitDatabase] ./AppConfig.json format wrong", slog.String("error", e.Error()))
 		return
 	}
 	bufsource := bytes.NewBuffer(nil)
 	if e = json.Compact(bufsource, sc); e != nil {
-		log.Error(nil, "[InitDatabase] ./SourceConfig.json format wrong", log.CError(e))
+		slog.ErrorContext(nil, "[InitDatabase] ./SourceConfig.json format wrong", slog.String("error", e.Error()))
 		return e
 	}
 	appconfig := ""
@@ -56,13 +56,13 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	var needcommit bool
 	var s mongo.Session
 	if s, e = db.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local())); e != nil {
-		log.Error(nil, "[InitDatabase] start mongo session failed", log.String("mongo", "admin_mongo"), log.CError(e))
+		slog.ErrorContext(nil, "[InitDatabase] start mongo session failed", slog.String("mongo", "admin_mongo"), slog.String("error", e.Error()))
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
 	if e = s.StartTransaction(); e != nil {
-		log.Error(nil, "[InitDatabase] start mongo transaction failed", log.String("mongo", "admin_mongo"), log.CError(e))
+		slog.ErrorContext(nil, "[InitDatabase] start mongo transaction failed", slog.String("mongo", "admin_mongo"), slog.String("error", e.Error()))
 		return
 	}
 	defer func() {
@@ -70,7 +70,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 			s.AbortTransaction(sctx)
 		} else if e = s.CommitTransaction(sctx); e != nil {
 			s.AbortTransaction(sctx)
-			log.Error(nil, "[InitDatabase] commit mongo failed", log.String("mongo", "admin_mongo"), log.CError(e))
+			slog.ErrorContext(nil, "[InitDatabase] commit mongo failed", slog.String("mongo", "admin_mongo"), slog.String("error", e.Error()))
 		}
 	}()
 
@@ -80,14 +80,14 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	existProjectIndex := &model.ProjectIndex{}
 	e = db.Database("permission").Collection("projectindex").FindOne(sctx, bson.M{"project_id": model.AdminProjectID}).Decode(existProjectIndex)
 	if e != nil && e != mongo.ErrNoDocuments {
-		log.Error(nil, "[InitDatabase] get project index failed", log.String("project_id", model.AdminProjectID), log.CError(e))
+		slog.ErrorContext(nil, "[InitDatabase] get project index failed", slog.String("project_id", model.AdminProjectID), slog.String("error", e.Error()))
 		return
 	}
 	if e == nil && existProjectIndex.ProjectName != model.Project {
-		log.Error(nil, "[InitDatabase] already inited with other project name",
-			log.String("project_id", model.AdminProjectID),
-			log.String("exist_project_name", existProjectIndex.ProjectName),
-			log.String("current_project_name", model.Project))
+		slog.ErrorContext(nil, "[InitDatabase] already inited with other project name",
+			slog.String("project_id", model.AdminProjectID),
+			slog.String("exist_project_name", existProjectIndex.ProjectName),
+			slog.String("current_project_name", model.Project))
 		e = errors.New("conflict")
 		return
 	}
@@ -107,16 +107,16 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 		var c *mongo.Cursor
 		c, e = db.Database("permission").Collection("node").Find(sctx, nodefilter)
 		if e != nil {
-			log.Error(nil, "[InitDatabase] get nodes failed", log.CError(e))
+			slog.ErrorContext(nil, "[InitDatabase] get nodes failed", slog.String("error", e.Error()))
 			return
 		}
 		nodes := make([]*model.Node, 0, c.RemainingBatchLength())
 		if e = c.All(sctx, &nodes); e != nil {
-			log.Error(nil, "[InitDatabase] get nodes failed", log.CError(e))
+			slog.ErrorContext(nil, "[InitDatabase] get nodes failed", slog.String("error", e.Error()))
 			return
 		}
 		if len(nodes) != 5 {
-			log.Error(nil, "[InitDatabase] basic nodes missing")
+			slog.ErrorContext(nil, "[InitDatabase] basic nodes missing")
 			e = errors.New("dirty")
 			return
 		}
@@ -145,7 +145,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 				}
 			}
 			if dirty {
-				log.Error(nil, "[InitDatabase] basic node data dirty")
+				slog.ErrorContext(nil, "[InitDatabase] basic node data dirty")
 				e = errors.New("dirty")
 				return
 			}
@@ -164,34 +164,34 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	if existProjectIndex.ProjectName == "" && e != mongo.ErrNoDocuments {
 		//project not exist,the app should not exist too
 		if e == nil {
-			log.Error(nil, "[InitDatabase] project not exist but app already exist",
-				log.String("project_id", model.AdminProjectID),
-				log.String("group", model.Group),
-				log.String("app", model.Name))
+			slog.ErrorContext(nil, "[InitDatabase] project not exist but app already exist",
+				slog.String("project_id", model.AdminProjectID),
+				slog.String("group", model.Group),
+				slog.String("app", model.Name))
 			e = errors.New("dirty")
 		} else {
-			log.Error(nil, "[InitDatabase] get app failed",
-				log.String("project_id", model.AdminProjectID),
-				log.String("group", model.Group),
-				log.String("app", model.Name),
-				log.CError(e))
+			slog.ErrorContext(nil, "[InitDatabase] get app failed",
+				slog.String("project_id", model.AdminProjectID),
+				slog.String("group", model.Group),
+				slog.String("app", model.Name),
+				slog.String("error", e.Error()))
 		}
 		return
 	}
 	if existProjectIndex.ProjectName != "" && e != nil {
 		//project exist,the app should exist too
 		if e == mongo.ErrNoDocuments {
-			log.Error(nil, "[InitDatabase] project exist but app not exist",
-				log.String("project_id", model.AdminProjectID),
-				log.String("group", model.Group),
-				log.String("app", model.Name))
+			slog.ErrorContext(nil, "[InitDatabase] project exist but app not exist",
+				slog.String("project_id", model.AdminProjectID),
+				slog.String("group", model.Group),
+				slog.String("app", model.Name))
 			e = errors.New("dirty")
 		} else {
-			log.Error(nil, "[InitDatabase] get app failed",
-				log.String("project_id", model.AdminProjectID),
-				log.String("group", model.Group),
-				log.String("app", model.Name),
-				log.CError(e))
+			slog.ErrorContext(nil, "[InitDatabase] get app failed",
+				slog.String("project_id", model.AdminProjectID),
+				slog.String("group", model.Group),
+				slog.String("app", model.Name),
+				slog.String("error", e.Error()))
 		}
 		return
 	}
@@ -199,11 +199,11 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 		//project exist,the app should exist too
 		//check secret
 		if e = secure.SignCheck(secret, existAppSummary.Value); e != nil {
-			log.Error(nil, "[InitDatabase] secret check failed",
-				log.String("project_id", model.AdminProjectID),
-				log.String("group", model.Group),
-				log.String("app", model.Name),
-				log.CError(e))
+			slog.ErrorContext(nil, "[InitDatabase] secret check failed",
+				slog.String("project_id", model.AdminProjectID),
+				slog.String("group", model.Group),
+				slog.String("app", model.Name),
+				slog.String("error", e.Error()))
 			return
 		}
 	}
@@ -217,10 +217,10 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 
 	//init project index
 	if _, e = db.Database("permission").Collection("projectindex").InsertOne(sctx, bson.M{"project_name": model.Project, "project_id": model.AdminProjectID}); e != nil {
-		log.Error(nil, "[InitDatabase] init project index failed",
-			log.String("project_id", model.AdminProjectID),
-			log.String("project_name", model.Project),
-			log.CError(e))
+		slog.ErrorContext(nil, "[InitDatabase] init project index failed",
+			slog.String("project_id", model.AdminProjectID),
+			slog.String("project_name", model.Project),
+			slog.String("error", e.Error()))
 		return
 	}
 	//init node
@@ -267,10 +267,10 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	nodeids = append(nodeids, model.AdminProjectID+model.AppControl+",1")
 	if _, e = db.Database("permission").Collection("node").InsertMany(sctx, docs); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
-			log.Error(nil, "[InitDatabase] project and app not exist but some permission nodes already exist", log.Any("node_ids", nodeids), log.CError(e))
+			slog.ErrorContext(nil, "[InitDatabase] project and app not exist but some permission nodes already exist", slog.Any("node_ids", nodeids), slog.String("error", e.Error()))
 			e = errors.New("dirty")
 		} else {
-			log.Error(nil, "[InitDatabase] init permission nodes failed", log.Any("node_ids", nodeids), log.CError(e))
+			slog.ErrorContext(nil, "[InitDatabase] init permission nodes failed", slog.Any("node_ids", nodeids), slog.String("error", e.Error()))
 		}
 		return
 	}
@@ -292,7 +292,6 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 		DnsHost:      "",
 		DnsInterval:  0,
 		StaticAddrs:  nil,
-		Paths:        map[string]*model.ProxyPath{},
 		Keys: map[string]*model.KeySummary{
 			"AppConfig": {
 				CurIndex:     1,
@@ -334,17 +333,17 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	})
 	if _, e = db.Database("app").Collection("config").InsertMany(sctx, docs); e != nil {
 		if mongo.IsDuplicateKeyError(e) {
-			log.Error(nil, "[InitDatabase] project not exist but app already exist",
-				log.String("project_id", model.AdminProjectID),
-				log.String("group", model.Group),
-				log.String("app", model.Name))
+			slog.ErrorContext(nil, "[InitDatabase] project not exist but app already exist",
+				slog.String("project_id", model.AdminProjectID),
+				slog.String("group", model.Group),
+				slog.String("app", model.Name))
 			e = errors.New("dirty")
 		} else {
-			log.Error(nil, "[InitDatabase] init app failed",
-				log.String("project_id", model.AdminProjectID),
-				log.String("group", model.Group),
-				log.String("app", model.Name),
-				log.CError(e))
+			slog.ErrorContext(nil, "[InitDatabase] init app failed",
+				slog.String("project_id", model.AdminProjectID),
+				slog.String("group", model.Group),
+				slog.String("app", model.Name),
+				slog.String("error", e.Error()))
 		}
 	}
 	return

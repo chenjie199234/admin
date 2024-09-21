@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"time"
 
 	"github.com/chenjie199234/admin/config"
 
 	"github.com/chenjie199234/Corelib/cerror"
-	"github.com/chenjie199234/Corelib/log"
 )
 
 var WXWorkAccessToken string
@@ -55,23 +55,23 @@ func getWXWorkAccessToken() (*getWXWorkAccessTokenResp, error) {
 	query := "corpid=" + config.AC.Service.WXWorkCorpID + "&corpsecret=" + config.AC.Service.WXWorkCorpSecret
 	resp, e := WXWorkWebClient.Get(context.Background(), "/cgi-bin/gettoken", query, nil, nil)
 	if e != nil {
-		log.Error(nil, "[getWXWorkAccessToken] call failed", log.CError(e))
+		slog.ErrorContext(nil, "[getWXWorkAccessToken] call failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	defer resp.Body.Close()
 	respbody, e := io.ReadAll(resp.Body)
 	if e != nil {
-		log.Error(nil, "[getWXWorkAccessToken] read response body failed", log.CError(e))
+		slog.ErrorContext(nil, "[getWXWorkAccessToken] read response body failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	r := &getWXWorkAccessTokenResp{}
 	if e = json.Unmarshal(respbody, r); e != nil {
-		log.Error(nil, "[getWXWorkAccessToken] response body decode failed", log.CError(e))
+		slog.ErrorContext(nil, "[getWXWorkAccessToken] response body decode failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	if r.Code != 0 {
-		e = cerror.MakeError(r.Code, 500, r.Msg)
-		log.Error(nil, "[getWXWorkAccessToken] failed", log.CError(e))
+		e = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+		slog.ErrorContext(nil, "[getWXWorkAccessToken] failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	return r, nil

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref,onMounted} from 'vue'
 
-import * as initializeAPI from './api/admin_initialize_browser_toc'
-import * as userAPI from './api/admin_user_browser_toc'
+import * as initializeAPI from './api/admin_initialize_browser'
+import * as userAPI from './api/admin_user_browser'
 import * as state from './state'
 import * as client from './client'
 

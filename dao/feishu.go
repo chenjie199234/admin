@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/chenjie199234/admin/config"
 
 	"github.com/chenjie199234/Corelib/cerror"
-	"github.com/chenjie199234/Corelib/log"
 )
 
 var FeiShuAppToken string
@@ -67,23 +67,23 @@ func getFeiShuAppToken() (*getFeiShuAppTokenResp, error) {
 	reqbody, _ := json.Marshal(req)
 	resp, e := FeiShuWebClient.Post(context.Background(), "/open-apis/auth/v3/app_access_token/internal", "", header, nil, reqbody)
 	if e != nil {
-		log.Error(nil, "[getFeiShuAppToken] call failed", log.CError(e))
+		slog.ErrorContext(nil, "[getFeiShuAppToken] call failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	defer resp.Body.Close()
 	respbody, e := io.ReadAll(resp.Body)
 	if e != nil {
-		log.Error(nil, "[getFeiShuAppToken] read respone body failed", log.CError(e))
+		slog.ErrorContext(nil, "[getFeiShuAppToken] read respone body failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	r := &getFeiShuAppTokenResp{}
 	if e = json.Unmarshal(respbody, r); e != nil {
-		log.Error(nil, "[getFeiShuAppToken] response body decode failed", log.CError(e))
+		slog.ErrorContext(nil, "[getFeiShuAppToken] response body decode failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	if r.Code != 0 {
-		e = cerror.MakeError(r.Code, 500, r.Msg)
-		log.Error(nil, "[GetFeiShuAppToken] failed", log.CError(e))
+		e = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+		slog.ErrorContext(nil, "[GetFeiShuAppToken] failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	return r, nil

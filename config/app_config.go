@@ -15,12 +15,12 @@ type AppConfig struct {
 	WebPathRewrite map[string]map[string]string         `json:"web_path_rewrite"` //first key method(GET,POST,PUT,PATCH,DELETE),second key origin url,value new url
 	HandlerRate    publicmids.MultiPathRateConfigs      `json:"handler_rate"`     //key:path
 	Accesses       publicmids.MultiPathAccessConfigs    `json:"accesses"`         //key:path
-	TokenSecret    string                               `json:"token_secret"`     //if don't need token check,this can be ingored
+	TokenSecret    string                               `json:"token_secret"`
 	Service        *ServiceConfig                       `json:"service"`
 }
 type ServiceConfig struct {
 	//add your config here
-	TokenExpire ctime.Duration `json:"token_expire"` //if don't need session and token check,this can be ignored
+	TokenExpire ctime.Duration `json:"token_expire"`
 
 	//https://login.dingtalk.com/oauth2/auth?redirect_uri={REDIRECT_URI}&response_type=code&client_id={CLIENTID}&scope=openid&state=DingDing&prompt=consent
 	DingDingOauth2       string `json:"dingding_oauth2"`

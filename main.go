@@ -13,6 +13,7 @@ import (
 	"github.com/chenjie199234/admin/dao"
 	"github.com/chenjie199234/admin/server/xcrpc"
 	"github.com/chenjie199234/admin/server/xgrpc"
+	"github.com/chenjie199234/admin/server/xraw"
 	"github.com/chenjie199234/admin/server/xweb"
 	"github.com/chenjie199234/admin/service"
 
@@ -139,6 +140,15 @@ func main() {
 		}
 		wg.Done()
 	}()
+	wg.Add(1)
+	go func() {
+		xraw.StartRawServer()
+		select {
+		case ch <- syscall.SIGTERM:
+		default:
+		}
+		wg.Done()
+	}()
 	signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	<-ch
 	config.StopInternal()
@@ -158,6 +168,11 @@ func main() {
 	wg.Add(1)
 	go func() {
 		xgrpc.StopCGrpcServer()
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		xraw.StopRawServer()
 		wg.Done()
 	}()
 	wg.Wait()

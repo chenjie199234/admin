@@ -80,7 +80,7 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 		slog.ErrorContext(ctx, "[RootLogin] sign check failed", slog.String("error", e.Error()))
 		return nil, e
 	}
-	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, user.ID.Hex(), "")
+	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, user.ID.Hex(), "", config.AC.Service.TokenExpire.StdDuration())
 	return &api.RootLoginResp{Token: tokenstr}, nil
 }
 

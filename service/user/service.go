@@ -85,7 +85,7 @@ func (s *Service) UserLogin(ctx context.Context, req *api.UserLoginReq) (*api.Us
 		slog.ErrorContext(ctx, "[UserLogin] db op failed", slog.String("oauth2_service", req.SrcType), slog.String("code", req.Code), slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, userid.Hex(), "")
+	tokenstr := publicmids.MakeToken(ctx, "corelib", *config.EC.DeployEnv, *config.EC.RunEnv, userid.Hex(), "", config.AC.Service.TokenExpire.StdDuration())
 	return &api.UserLoginResp{Token: tokenstr}, nil
 }
 func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.LoginInfoResp, error) {

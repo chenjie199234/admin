@@ -5,12 +5,17 @@ import (
 	"github.com/chenjie199234/admin/service/app"
 	"github.com/chenjie199234/admin/service/initialize"
 	"github.com/chenjie199234/admin/service/permission"
+	"github.com/chenjie199234/admin/service/raw"
 	"github.com/chenjie199234/admin/service/status"
 	"github.com/chenjie199234/admin/service/user"
 )
 
 // SvcStatus one specify sub service
 var SvcStatus *status.Service
+
+// SvcRaw one specify sub service
+var SvcRaw *raw.Service
+
 var SvcApp *app.Service
 var SvcUser *user.Service
 var SvcPermission *permission.Service
@@ -23,6 +28,7 @@ func StartService() error {
 	}
 	//start sub service
 	SvcStatus = status.Start()
+	SvcRaw = raw.Start()
 	SvcApp = app.Start()
 	SvcUser = user.Start()
 	SvcPermission = permission.Start()
@@ -34,6 +40,7 @@ func StartService() error {
 func StopService() {
 	//stop sub service
 	SvcStatus.Stop()
+	SvcRaw.Stop()
 	SvcApp.Stop()
 	SvcUser.Stop()
 	SvcPermission.Stop()

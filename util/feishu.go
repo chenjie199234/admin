@@ -69,7 +69,7 @@ func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile 
 			return
 		}
 		if r.Code != 0 {
-			e = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+			e = cerror.MakeCError(r.Code, 500, r.Msg)
 			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] failed", slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
@@ -100,7 +100,7 @@ func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile 
 			return
 		}
 		if r.Code != 0 {
-			e = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+			e = cerror.MakeCError(r.Code, 500, r.Msg)
 			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] failed", slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}

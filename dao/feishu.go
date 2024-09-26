@@ -82,7 +82,7 @@ func getFeiShuAppToken() (*getFeiShuAppTokenResp, error) {
 		return nil, e
 	}
 	if r.Code != 0 {
-		e = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+		e = cerror.MakeCError(r.Code, 500, r.Msg)
 		slog.ErrorContext(nil, "[GetFeiShuAppToken] failed", slog.String("error", e.Error()))
 		return nil, e
 	}

@@ -55,7 +55,7 @@ func GetWXWorkOAuth2(ctx context.Context, code string) (username string, mobile 
 			return
 		}
 		if r.Code != 0 {
-			e = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+			e = cerror.MakeCError(r.Code, 500, r.Msg)
 			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] failed", slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
@@ -94,7 +94,7 @@ func GetWXWorkOAuth2(ctx context.Context, code string) (username string, mobile 
 			return err
 		}
 		if r.Code != 0 {
-			err = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+			err = cerror.MakeCError(r.Code, 500, r.Msg)
 			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.username] failed", slog.String("code", code), slog.String("error", err.Error()))
 			return err
 		}
@@ -127,7 +127,7 @@ func GetWXWorkOAuth2(ctx context.Context, code string) (username string, mobile 
 			return err
 		}
 		if r.Code != 0 {
-			err = cerror.MakeCError(int64(r.Code), 500, r.Msg)
+			err = cerror.MakeCError(r.Code, 500, r.Msg)
 			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.usermobile] failed", slog.String("code", code), slog.String("error", err.Error()))
 			return err
 		}

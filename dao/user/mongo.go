@@ -7,15 +7,14 @@ import (
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
-func (d *Dao) MongoUserLogin(ctx context.Context, mobile, oauth2username, oauth2type string) (primitive.ObjectID, error) {
+func (d *Dao) MongoUserLogin(ctx context.Context, mobile, oauth2username, oauth2type string) (bson.ObjectID, error) {
 	filter := bson.M{"mobile": mobile}
 	updater := bson.M{}
 	if oauth2type == "FeiShu" {
@@ -25,26 +24,26 @@ func (d *Dao) MongoUserLogin(ctx context.Context, mobile, oauth2username, oauth2
 	} else if oauth2type == "WXWork" {
 		updater["wxwork_user_name"] = oauth2username
 	} else {
-		return primitive.NilObjectID, ecode.ErrReq
+		return bson.NilObjectID, ecode.ErrReq
 	}
 	opts := options.FindOneAndUpdate().SetUpsert(true).SetProjection(bson.M{"_id": 1})
 	user := &model.User{}
 	e := d.mongo.Database("user").Collection("user").FindOneAndUpdate(ctx, filter, bson.M{"$set": updater}, opts).Decode(user)
 	if e != nil && e != mongo.ErrNoDocuments {
-		return primitive.NilObjectID, e
+		return bson.NilObjectID, e
 	}
 	if e == nil {
 		return user.ID, nil
 	}
 	e = d.mongo.Database("user").Collection("user").FindOne(ctx, filter, options.FindOne().SetProjection(bson.M{"_id": 1})).Decode(user)
 	if e != nil {
-		return primitive.NilObjectID, e
+		return bson.NilObjectID, e
 	}
 	return user.ID, nil
 }
 
-func (d *Dao) MongoInvite(ctx context.Context, operator primitive.ObjectID, projectid string, target primitive.ObjectID) error {
-	if target == primitive.NilObjectID {
+func (d *Dao) MongoInvite(ctx context.Context, operator bson.ObjectID, projectid string, target bson.ObjectID) error {
+	if target == bson.NilObjectID {
 		return ecode.ErrReq
 	}
 	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 {
@@ -55,21 +54,20 @@ func (d *Dao) MongoInvite(ctx context.Context, operator primitive.ObjectID, proj
 	_, e := d.mongo.Database("user").Collection("user").UpdateOne(ctx, filter, updater)
 	return e
 }
-func (d *Dao) MongoKick(ctx context.Context, operator primitive.ObjectID, projectid string, target primitive.ObjectID) (e error) {
-	if target == primitive.NilObjectID {
+func (d *Dao) MongoKick(ctx context.Context, operator bson.ObjectID, projectid string, target bson.ObjectID) (e error) {
+	if target == bson.NilObjectID {
 		return ecode.ErrReq
 	}
 	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 {
 		return ecode.ErrReq
 	}
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -96,13 +94,13 @@ func (d *Dao) MongoKick(ctx context.Context, operator primitive.ObjectID, projec
 	return
 }
 
-func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (map[primitive.ObjectID]*model.User, error) {
+func (d *Dao) MongoGetUsers(ctx context.Context, userids []bson.ObjectID) (map[bson.ObjectID]*model.User, error) {
 	cursor, e := d.mongo.Database("user").Collection("user").Find(ctx, bson.M{"_id": bson.M{"$in": userids}})
 	if e != nil {
 		return nil, e
 	}
 	defer cursor.Close(ctx)
-	result := make(map[primitive.ObjectID]*model.User, cursor.RemainingBatchLength())
+	result := make(map[bson.ObjectID]*model.User, cursor.RemainingBatchLength())
 	for cursor.Next(ctx) {
 		tmp := &model.User{}
 		if e := cursor.Decode(tmp); e != nil {
@@ -114,7 +112,7 @@ func (d *Dao) MongoGetUsers(ctx context.Context, userids []primitive.ObjectID) (
 }
 
 // page: 0:means return all,>0:means return the required page,if page overflow,the last page will return
-func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, pagesize, page int64) (map[primitive.ObjectID]*model.User, int64, int64, error) {
+func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, pagesize, page int64) (map[bson.ObjectID]*model.User, int64, int64, error) {
 	filter := bson.M{}
 	if name != "" {
 		filter["$or"] = bson.A{
@@ -131,7 +129,7 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, page
 		return nil, 0, 0, e
 	}
 	if totalsize == 0 {
-		return make(map[primitive.ObjectID]*model.User), 0, 0, nil
+		return make(map[bson.ObjectID]*model.User), 0, 0, nil
 	}
 	opts := options.Find().SetSort(bson.M{"_id": -1})
 	if page != 0 {
@@ -151,7 +149,7 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, page
 		return nil, 0, 0, e
 	}
 	defer cursor.Close(ctx)
-	result := make(map[primitive.ObjectID]*model.User, cursor.RemainingBatchLength())
+	result := make(map[bson.ObjectID]*model.User, cursor.RemainingBatchLength())
 	for cursor.Next(ctx) {
 		tmp := &model.User{}
 		if e := cursor.Decode(tmp); e != nil {
@@ -162,7 +160,7 @@ func (d *Dao) MongoSearchUsers(ctx context.Context, projectid, name string, page
 	return result, page, totalsize, cursor.Err()
 }
 
-func (d *Dao) MongoUpdateUser(ctx context.Context, userid primitive.ObjectID, newname string) (*model.User, error) {
+func (d *Dao) MongoUpdateUser(ctx context.Context, userid bson.ObjectID, newname string) (*model.User, error) {
 	user := &model.User{}
 	filter := bson.M{"_id": userid}
 	updater := bson.M{"$set": bson.M{"oauth2_user_name": newname}}
@@ -173,15 +171,14 @@ func (d *Dao) MongoUpdateUser(ctx context.Context, userid primitive.ObjectID, ne
 	return user, e
 }
 
-func (d *Dao) MongoDelUsers(ctx context.Context, userids []primitive.ObjectID) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+func (d *Dao) MongoDelUsers(ctx context.Context, userids []bson.ObjectID) (e error) {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -266,14 +263,13 @@ func (d *Dao) MongoUpdateRole(ctx context.Context, projectid, name, newcomment s
 }
 
 func (d *Dao) MongoDelRoles(ctx context.Context, projectid string, rolenames []string) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -295,15 +291,14 @@ func (d *Dao) MongoDelRoles(ctx context.Context, projectid string, rolenames []s
 	return
 }
 
-func (d *Dao) MongoAddUserRole(ctx context.Context, userid primitive.ObjectID, projectid, rolename string) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+func (d *Dao) MongoAddUserRole(ctx context.Context, userid bson.ObjectID, projectid, rolename string) (e error) {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -327,7 +322,7 @@ func (d *Dao) MongoAddUserRole(ctx context.Context, userid primitive.ObjectID, p
 	_, e = d.mongo.Database("user").Collection("user").UpdateOne(sctx, filter, updater)
 	return
 }
-func (d *Dao) MongoDelUserRole(ctx context.Context, userid primitive.ObjectID, projectid, rolename string) error {
+func (d *Dao) MongoDelUserRole(ctx context.Context, userid bson.ObjectID, projectid, rolename string) error {
 	filter := bson.M{"_id": userid}
 	updater := bson.M{"$pull": bson.M{"projects." + projectid: rolename}}
 	r, e := d.mongo.Database("user").Collection("user").UpdateOne(ctx, filter, updater)

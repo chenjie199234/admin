@@ -8,15 +8,14 @@ import (
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
-func (d *Dao) MongoGetUserPermission(ctx context.Context, userid primitive.ObjectID, nodeid string, withrole bool) (canread, canwrite, admin bool, e error) {
+func (d *Dao) MongoGetUserPermission(ctx context.Context, userid bson.ObjectID, nodeid string, withrole bool) (canread, canwrite, admin bool, e error) {
 	if userid.IsZero() {
 		return true, true, true, nil
 	}
@@ -90,7 +89,7 @@ func (d *Dao) MongoGetRolePermission(ctx context.Context, projectid, rolename, n
 // if admin is true,canread and canwrite will be ignore
 // if admin is false and canread is false too,means delete this user from this node
 // if admin is false and canwrite is true,then canread must be tree too
-func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operator, target primitive.ObjectID, nodeid string, admin, canread, canwrite bool) (e error) {
+func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operator, target bson.ObjectID, nodeid string, admin, canread, canwrite bool) (e error) {
 	if !strings.HasPrefix(nodeid, "0,") {
 		return ecode.ErrReq
 	}
@@ -102,14 +101,13 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operator, target pr
 		e = ecode.ErrReq
 		return
 	}
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -200,7 +198,7 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operator, target pr
 	//all check success
 	filter := bson.M{"user_id": target, "node_id": nodeid}
 	updater := bson.M{"$set": bson.M{"r": canread, "w": canwrite, "x": admin}}
-	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateOne(sctx, filter, updater, options.Update().SetUpsert(true)); e != nil {
+	if _, e = d.mongo.Database("permission").Collection("usernode").UpdateOne(sctx, filter, updater, options.UpdateOne().SetUpsert(true)); e != nil {
 		return
 	}
 	if admin {
@@ -213,7 +211,7 @@ func (d *Dao) MongoUpdateUserPermission(ctx context.Context, operator, target pr
 }
 
 // if nodeids are not empty or nil,only the node in the required nodeids will return
-func (d *Dao) MongoGetUserNodes(ctx context.Context, userid primitive.ObjectID, projectid string, nodeids []string) (model.UserNodes, error) {
+func (d *Dao) MongoGetUserNodes(ctx context.Context, userid bson.ObjectID, projectid string, nodeids []string) (model.UserNodes, error) {
 	filter := bson.M{"user_id": userid}
 	nodeidfilter := bson.M{"$regex": "^" + projectid}
 	if len(nodeids) > 0 {
@@ -234,7 +232,7 @@ func (d *Dao) MongoGetUserNodes(ctx context.Context, userid primitive.ObjectID, 
 // if admin is true,canread and canwrite will be ignore
 // if admin is false and canread is false too,means delete this user from this node
 // if admin is false and canwrite is true,then canread must be tree too
-func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.ObjectID, projectid, rolename string, nodeid string, admin, canread, canwrite bool) (e error) {
+func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator bson.ObjectID, projectid, rolename string, nodeid string, admin, canread, canwrite bool) (e error) {
 	//role belong's to project,so the nodeid must belong to this project
 	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 || strings.Count(nodeid, ",") < 2 || !strings.HasPrefix(nodeid+",", projectid+",") {
 		return ecode.ErrReq
@@ -247,14 +245,13 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.
 		e = ecode.ErrReq
 		return
 	}
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -334,7 +331,7 @@ func (d *Dao) MongoUpdateRolePermission(ctx context.Context, operator primitive.
 	//all check success
 	filter := bson.M{"project_id": projectid, "role_name": rolename, "node_id": nodeid}
 	updater := bson.M{"$set": bson.M{"r": canread, "w": canwrite, "x": admin}}
-	if _, e = d.mongo.Database("permission").Collection("rolenode").UpdateOne(sctx, filter, updater, options.Update().SetUpsert(true)); e != nil {
+	if _, e = d.mongo.Database("permission").Collection("rolenode").UpdateOne(sctx, filter, updater, options.UpdateOne().SetUpsert(true)); e != nil {
 		return
 	}
 	if admin {
@@ -374,7 +371,7 @@ func (d *Dao) MongoGetRoleNodes(ctx context.Context, projectid, rolename string,
 }
 
 // if nodeids are not empty or nil,only the node in the required nodeids will return
-func (d *Dao) MongoGetUserRoleNodes(ctx context.Context, userid primitive.ObjectID, projectid string, nodeids []string) (map[string]model.RoleNodes, error) {
+func (d *Dao) MongoGetUserRoleNodes(ctx context.Context, userid bson.ObjectID, projectid string, nodeids []string) (map[string]model.RoleNodes, error) {
 	r := d.mongo.Database("user").Collection("user").FindOne(ctx, bson.M{"_id": userid})
 	if e := r.Err(); e != nil {
 		if r.Err() == mongo.ErrNoDocuments {
@@ -482,15 +479,14 @@ func (d *Dao) MongoListChildrenNodes(ctx context.Context, pnodeid string, all bo
 	e = cursor.All(ctx, &nodes)
 	return nodes, e
 }
-func (d *Dao) MongoAddNode(ctx context.Context, operator primitive.ObjectID, pnodeid string, name, data string) (nodeid string, e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+func (d *Dao) MongoAddNode(ctx context.Context, operator bson.ObjectID, pnodeid string, name, data string) (nodeid string, e error) {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -526,15 +522,14 @@ func (d *Dao) MongoAddNode(ctx context.Context, operator primitive.ObjectID, pno
 	})
 	return
 }
-func (d *Dao) MongoUpdateNode(ctx context.Context, operator primitive.ObjectID, nodeid string, newname, newdata string) (node *model.Node, e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+func (d *Dao) MongoUpdateNode(ctx context.Context, operator bson.ObjectID, nodeid string, newname, newdata string) (node *model.Node, e error) {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -563,7 +558,7 @@ func (d *Dao) MongoUpdateNode(ctx context.Context, operator primitive.ObjectID, 
 	}
 	return
 }
-func (d *Dao) MongoMoveNode(ctx context.Context, operator primitive.ObjectID, nodeid, pnodeid string) (newnodeid string, e error) {
+func (d *Dao) MongoMoveNode(ctx context.Context, operator bson.ObjectID, nodeid, pnodeid string) (newnodeid string, e error) {
 	//nodeid and pnodeid must in same project
 	if !strings.HasPrefix(nodeid, "0,") || strings.Count(nodeid, ",") == 1 || !strings.HasPrefix(pnodeid, "0,") {
 		return "", ecode.ErrReq
@@ -577,14 +572,13 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operator primitive.ObjectID, no
 			return "", ecode.ErrReq
 		}
 	}
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -663,15 +657,14 @@ func (d *Dao) MongoMoveNode(ctx context.Context, operator primitive.ObjectID, no
 	}
 	return
 }
-func (d *Dao) MongoDeleteNode(ctx context.Context, operator primitive.ObjectID, nodeid string) (node *model.Node, e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+func (d *Dao) MongoDeleteNode(ctx context.Context, operator bson.ObjectID, nodeid string) (node *model.Node, e error) {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {

@@ -20,7 +20,7 @@ import (
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/graceful"
 	"github.com/chenjie199234/Corelib/util/name"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
 	//"github.com/chenjie199234/Corelib/web"
@@ -88,7 +88,7 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 func (s *Service) UpdateRootPassword(ctx context.Context, req *api.UpdateRootPasswordReq) (*api.UpdateRootPasswordResp, error) {
 	md := metadata.GetMetadata(ctx)
 	//only super admin can change password
-	if md["Token-User"] != primitive.NilObjectID.Hex() {
+	if md["Token-User"] != bson.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
 	if e := s.initializeDao.MongoUpdateRootPassword(ctx, req.OldPassword, req.NewPassword); e != nil {
@@ -107,7 +107,7 @@ func (s *Service) CreateProject(ctx context.Context, req *api.CreateProjectReq) 
 	}
 	md := metadata.GetMetadata(ctx)
 	//only super admin can create project
-	if md["Token-User"] != primitive.NilObjectID.Hex() {
+	if md["Token-User"] != bson.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
 	projectidstr, e := s.initializeDao.MongoCreateProject(ctx, req.ProjectName, req.ProjectData)
@@ -139,7 +139,7 @@ func (s *Service) UpdateProject(ctx context.Context, req *api.UpdateProjectReq) 
 	}
 	md := metadata.GetMetadata(ctx)
 	//only super admin can update project
-	if md["Token-User"] != primitive.NilObjectID.Hex() {
+	if md["Token-User"] != bson.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
 	buf := bpool.Get(0)
@@ -212,13 +212,13 @@ func (s *Service) ListProject(ctx context.Context, req *api.ListProjectReq) (*ap
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
 	var user *model.User
-	if md["Token-User"] != primitive.NilObjectID.Hex() {
-		operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	if md["Token-User"] != bson.NilObjectID.Hex() {
+		operator, e := bson.ObjectIDFromHex(md["Token-User"])
 		if e != nil {
 			slog.ErrorContext(ctx, "[ListProject] operator's token format wrong", slog.String("operator", md["Token-User"]))
 			return nil, ecode.ErrToken
 		}
-		users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
+		users, e := s.userDao.MongoGetUsers(ctx, []bson.ObjectID{operator})
 		if e != nil {
 			slog.ErrorContext(ctx, "[ListProject] get operator's user info failed", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -268,7 +268,7 @@ func (s *Service) DeleteProject(ctx context.Context, req *api.DeleteProjectReq) 
 	}
 	md := metadata.GetMetadata(ctx)
 	//only super admin can create project
-	if md["Token-User"] != primitive.NilObjectID.Hex() {
+	if md["Token-User"] != bson.NilObjectID.Hex() {
 		return nil, ecode.ErrPermission
 	}
 	buf := bpool.Get(0)

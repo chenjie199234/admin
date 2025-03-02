@@ -64,7 +64,11 @@ type DiscoverSdk struct {
 // ADMIN_SERVICE_WEB_HOST
 // ADMIN_SERVICE_WEB_PORT
 // ADMIN_SERVICE_DISCOVER_ACCESS_KEY
-func NewAdminDiscover(selfproject, selfgroup, selfapp string, targetproject, targetgroup, targetapp string, tlsc *tls.Config) (cdiscover.DI, error) {
+func NewAdminDiscover(targetproject, targetgroup, targetapp string, tlsc *tls.Config) (cdiscover.DI, error) {
+	if e := name.HasSelfFullName(); e != nil {
+		slog.Error("new admin discover sdk failed,please call github.com/chenjie199234/admin/sdk.Init() first")
+		return nil, e
+	}
 	targetfullname, e := name.MakeFullName(targetproject, targetgroup, targetapp)
 	if e != nil {
 		return nil, e
@@ -77,7 +81,7 @@ func NewAdminDiscover(selfproject, selfgroup, selfapp string, targetproject, tar
 	if e != nil {
 		return nil, e
 	}
-	tmpclient, e := web.NewWebClient(nil, di, selfproject, selfgroup, selfapp, project, group, "admin", tlsc)
+	tmpclient, e := web.NewWebClient(nil, di, project, group, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}

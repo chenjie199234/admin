@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/util/egroup"
+	"github.com/chenjie199234/Corelib/util/name"
 	"github.com/chenjie199234/Corelib/web"
 )
 
@@ -36,7 +38,11 @@ var (
 // ADMIN_SERVICE_WEB_HOST
 // ADMIN_SERVICE_WEB_PORT
 // ADMIN_SERVICE_PERMISSION_ACCESS_KEY
-func NewPermissionSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*PermissionSdk, error) {
+func NewPermissionSdk(tlsc *tls.Config) (*PermissionSdk, error) {
+	if e := name.HasSelfFullName(); e != nil {
+		slog.Error("new admin permission sdk failed,please call github.com/chenjie199234/admin/sdk.Init() first")
+		return nil, e
+	}
 	project, group, host, port, accesskey, e := env()
 	if e != nil {
 		return nil, e
@@ -45,7 +51,7 @@ func NewPermissionSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) 
 	if e != nil {
 		return nil, e
 	}
-	tmpclient, e := web.NewWebClient(nil, di, selfproject, selfgroup, selfapp, project, group, "admin", tlsc)
+	tmpclient, e := web.NewWebClient(nil, di, project, group, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}

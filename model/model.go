@@ -18,15 +18,12 @@ var Project = os.Getenv("PROJECT")
 
 func init() {
 	if Group == "" || Group == "<GROUP>" {
-		panic("missing GROUP env")
+		panic("missing env:GROUP")
 	}
-	if name.SingleCheck(Group, false) != nil {
-		panic("env:GROUP format wrong")
+	if Project == "" || Project == "<PROJECT>" {
+		panic("missing env:PROJECT ")
 	}
-	if Project == "" || Project == "<PROJECT_ID>" {
-		panic("missing PROJECT env")
-	}
-	if name.SingleCheck(Project, false) != nil {
-		panic("env:PROJECT format wrong")
+	if e := name.SetSelfFullName(Project, Group, Name); e != nil {
+		panic(e)
 	}
 }

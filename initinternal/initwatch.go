@@ -3,6 +3,7 @@ package initinternal
 import (
 	"context"
 	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -16,19 +17,17 @@ import (
 	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/crpc"
 	"github.com/chenjie199234/Corelib/discover"
-	"github.com/chenjie199234/Corelib/trace"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 type InternalSdk struct {
 	secret string
 	db     *mongo.Client
-	start  *primitive.Timestamp
+	start  *bson.Timestamp
 
 	lker          *sync.RWMutex
 	apps          map[string]*app //key: projectid-group.app
@@ -51,7 +50,7 @@ func InitWatch(secret string, db *mongo.Client) (*InternalSdk, error) {
 	sdk := &InternalSdk{
 		secret: secret,
 		db:     db,
-		start:  &primitive.Timestamp{T: uint32(time.Now().Unix() - 1), I: 0},
+		start:  &bson.Timestamp{T: uint32(time.Now().Unix() - 1), I: 0},
 
 		lker:          &sync.RWMutex{},
 		apps:          make(map[string]*app, 10), //mongodb _id为key
@@ -255,9 +254,8 @@ func (s *InternalSdk) mongoGetAllApp() error {
 }
 func (s *InternalSdk) watch() {
 	var stream *mongo.ChangeStream
-	ctx, span := trace.NewSpan(context.Background(), "InitWatch", trace.Client, nil)
-	defer span.Finish(nil)
-	ctx, s.stopwatch = context.WithCancel(ctx)
+	var ctx context.Context
+	ctx, s.stopwatch = context.WithCancel(context.Background())
 	for {
 		for stream == nil {
 			if s.closing {
@@ -380,14 +378,7 @@ func (s *InternalSdk) watch() {
 						len(exist.summary.StaticAddrs) != len(summary.StaticAddrs)
 					if !discoverchanged {
 						for _, a := range exist.summary.StaticAddrs {
-							find := false
-							for _, b := range summary.StaticAddrs {
-								if a == b {
-									find = true
-									break
-								}
-							}
-							if !find {
+							if !slices.Contains(summary.StaticAddrs, a) {
 								discoverchanged = true
 								break
 							}
@@ -686,7 +677,7 @@ func (s *InternalSdk) PingByPrjoectID(ctx context.Context, pid, g, a string, for
 				return nil, e
 			}
 		}
-		app.client, e = crpc.NewCrpcClient(nil, app.di, model.Project, model.Group, model.Name, app.summary.ProjectName, app.summary.Group, app.summary.App, nil)
+		app.client, e = crpc.NewCrpcClient(nil, app.di, app.summary.ProjectName, app.summary.Group, app.summary.App, nil)
 		if e != nil {
 			app.Unlock()
 			return nil, e
@@ -750,7 +741,7 @@ func (s *InternalSdk) PingByPrjoectName(ctx context.Context, pname, g, a string,
 				return nil, e
 			}
 		}
-		app.client, e = crpc.NewCrpcClient(nil, app.di, model.Project, model.Group, model.Name, app.summary.ProjectName, app.summary.Group, app.summary.App, nil)
+		app.client, e = crpc.NewCrpcClient(nil, app.di, app.summary.ProjectName, app.summary.Group, app.summary.App, nil)
 		if e != nil {
 			app.Unlock()
 			return nil, e

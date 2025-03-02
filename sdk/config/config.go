@@ -17,6 +17,7 @@ import (
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/common"
+	"github.com/chenjie199234/Corelib/util/name"
 	"github.com/chenjie199234/Corelib/web"
 )
 
@@ -54,7 +55,11 @@ var (
 // ADMIN_SERVICE_CONFIG_ACCESS_KEY
 // option env:
 // REMOTE_CONFIG_SECRET
-func NewConfigSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*ConfigSdk, error) {
+func NewConfigSdk(tlsc *tls.Config) (*ConfigSdk, error) {
+	if e := name.HasSelfFullName(); e != nil {
+		slog.Error("new admin config sdk failed,please call github.com/chenjie199234/admin/sdk.Init() first")
+		return nil, e
+	}
 	project, group, host, port, secret, accesskey, e := env()
 	if e != nil {
 		return nil, e
@@ -63,7 +68,7 @@ func NewConfigSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*Co
 	if e != nil {
 		return nil, e
 	}
-	tmpclient, e := web.NewWebClient(nil, di, selfproject, selfgroup, selfapp, project, group, "admin", tlsc)
+	tmpclient, e := web.NewWebClient(nil, di, project, group, "admin", tlsc)
 	if e != nil {
 		return nil, e
 	}
@@ -75,7 +80,7 @@ func NewConfigSdk(selfproject, selfgroup, selfapp string, tlsc *tls.Config) (*Co
 		keys:       make(map[string]*api.WatchData),
 		keysnotice: make(map[string]NoticeHandler),
 	}
-	go instance.watch(selfproject, selfgroup, selfapp)
+	go instance.watch(name.GetSelfProject(), name.GetSelfGroup(), name.GetSelfApp())
 	return instance, nil
 }
 func env() (projectname string, group string, host string, port int, secret string, accesskey string, e error) {

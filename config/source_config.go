@@ -237,7 +237,6 @@ func initcrpcclient() {
 			sc.CrpcClient.HeartProbe = ctime.Duration(time.Second * 5)
 		}
 	}
-
 }
 func initwebserver() {
 	if sc.WebServer == nil {

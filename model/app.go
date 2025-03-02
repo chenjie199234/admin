@@ -1,7 +1,7 @@
 package model
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // AppSummary and Log exist in same collection
@@ -10,7 +10,7 @@ import (
 // project+group+app+key+index add unique index
 // permission_node_id add sparse index
 type AppSummary struct {
-	ID               primitive.ObjectID     `bson:"_id,omitempty"`
+	ID               bson.ObjectID          `bson:"_id,omitempty"`
 	ProjectID        string                 `bson:"project_id"`
 	ProjectName      string                 `bson:"project_name"`
 	Group            string                 `bson:"group"`

@@ -10,23 +10,21 @@ import (
 	"github.com/chenjie199234/admin/model"
 
 	"github.com/chenjie199234/Corelib/secure"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -37,14 +35,14 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 		}
 	}()
 	sign, _ := secure.SignMake(password)
-	if _, e = d.mongo.Database("user").Collection("user").InsertOne(sctx, bson.M{"_id": primitive.NilObjectID, "password": sign, "projects": map[string][]string{}}); e != nil && !mongo.IsDuplicateKeyError(e) {
+	if _, e = d.mongo.Database("user").Collection("user").InsertOne(sctx, bson.M{"_id": bson.NilObjectID, "password": sign, "projects": map[string][]string{}}); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	} else if e != nil {
 		e = ecode.ErrAlreadyInited
 		return
 	}
 	if _, e = d.mongo.Database("permission").Collection("usernode").InsertOne(sctx, &model.UserNode{
-		UserId: primitive.NilObjectID,
+		UserId: bson.NilObjectID,
 		NodeId: "0",
 		R:      true,
 		W:      true,
@@ -59,7 +57,7 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 }
 func (d *Dao) MongoRootLogin(ctx context.Context) (*model.User, error) {
 	user := &model.User{}
-	if e := d.mongo.Database("user").Collection("user").FindOne(ctx, bson.M{"_id": primitive.NilObjectID}).Decode(user); e != nil {
+	if e := d.mongo.Database("user").Collection("user").FindOne(ctx, bson.M{"_id": bson.NilObjectID}).Decode(user); e != nil {
 		if e == mongo.ErrNoDocuments {
 			e = ecode.ErrNotInited
 		}
@@ -68,14 +66,13 @@ func (d *Dao) MongoRootLogin(ctx context.Context) (*model.User, error) {
 	return user, nil
 }
 func (d *Dao) MongoUpdateRootPassword(ctx context.Context, oldpassword, newpassword string) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -88,7 +85,7 @@ func (d *Dao) MongoUpdateRootPassword(ctx context.Context, oldpassword, newpassw
 	nonce := make([]byte, 16)
 	rand.Read(nonce)
 	user := &model.User{}
-	filter := bson.M{"_id": primitive.NilObjectID}
+	filter := bson.M{"_id": bson.NilObjectID}
 	sign, _ := secure.SignMake(newpassword)
 	updater := bson.M{"password": sign}
 	if e = d.mongo.Database("user").Collection("user").FindOneAndUpdate(sctx, filter, bson.M{"$set": updater}).Decode(user); e != nil {
@@ -101,14 +98,13 @@ func (d *Dao) MongoUpdateRootPassword(ctx context.Context, oldpassword, newpassw
 	return
 }
 func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata string) (projectid string, e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -178,14 +174,13 @@ func (d *Dao) MongoUpdateProject(ctx context.Context, projectid, newname, newdat
 	if !strings.HasPrefix(projectid, "0,") || strings.Count(projectid, ",") != 1 {
 		return nil, ecode.ErrReq
 	}
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -234,14 +229,13 @@ func (d *Dao) MongoListProject(ctx context.Context) ([]*model.Node, error) {
 	return result, e
 }
 func (d *Dao) MongoDelProject(ctx context.Context, projectid string) (node *model.Node, e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {

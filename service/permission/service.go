@@ -19,7 +19,7 @@ import (
 	"github.com/chenjie199234/Corelib/pool/bpool"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/graceful"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
 	//"github.com/chenjie199234/Corelib/web"
@@ -56,7 +56,7 @@ func (s *Service) GetUserPermission(ctx context.Context, req *api.GetUserPermiss
 	}
 	nodeid := common.BTS(buf)
 
-	target, e := primitive.ObjectIDFromHex(req.UserId)
+	target, e := bson.ObjectIDFromHex(req.UserId)
 	if e != nil {
 		slog.ErrorContext(ctx, "[GetUserPermission] target's userid format wrong", slog.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
@@ -93,12 +93,12 @@ func (s *Service) UpdateUserPermission(ctx context.Context, req *api.UpdateUserP
 	projectid := common.BTS(buf2)
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[UpdateUserPermission] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	target, e := primitive.ObjectIDFromHex(req.UserId)
+	target, e := bson.ObjectIDFromHex(req.UserId)
 	if e != nil {
 		slog.ErrorContext(ctx, "[UpdateUserPermission] target's userid format wrong", slog.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
@@ -162,7 +162,7 @@ func (s *Service) UpdateRolePermission(ctx context.Context, req *api.UpdateRoleP
 	projectid := common.BTS(buf2)
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[UpdateRolePermission] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -226,7 +226,7 @@ func (s *Service) AddNode(ctx context.Context, req *api.AddNodeReq) (*api.AddNod
 	pnodeid := common.BTS(buf)
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[AddNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -275,7 +275,7 @@ func (s *Service) UpdateNode(ctx context.Context, req *api.UpdateNodeReq) (*api.
 	nodeid := common.BTS(buf)
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[UpdateNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -375,7 +375,7 @@ func (s *Service) MoveNode(ctx context.Context, req *api.MoveNodeReq) (*api.Move
 	pnodeid := common.BTS(buf2)
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[MoveNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -411,7 +411,7 @@ func (s *Service) DelNode(ctx context.Context, req *api.DelNodeReq) (*api.DelNod
 		return nil, ecode.ErrPermission
 	}
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[DelNode] operator's token format failed", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -456,19 +456,19 @@ func (s *Service) ListUserNode(ctx context.Context, req *api.ListUserNodeReq) (*
 	projectid := common.BTS(buf)
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[ListUserNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	var target primitive.ObjectID
+	var target bson.ObjectID
 	if req.UserId == "" || req.UserId == md["Token-User"] {
 		//list self's
 		req.UserId = md["Token-User"]
 		target = operator
 	} else {
 		//list other user's
-		target, e = primitive.ObjectIDFromHex(req.UserId)
+		target, e = bson.ObjectIDFromHex(req.UserId)
 		if e != nil {
 			slog.ErrorContext(ctx, "[ListUserNode] target's userid format wrong", slog.String("user_id", req.UserId))
 			return nil, ecode.ErrReq
@@ -623,7 +623,7 @@ func (s *Service) ListRoleNode(ctx context.Context, req *api.ListRoleNodeReq) (*
 	projectid := common.BTS(buf)
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[ListRoleNode] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -802,7 +802,7 @@ func sortTreeNodes(nodes []*api.NodeInfo) {
 		} else if len(nodes[i].NodeId) > len(nodes[j].NodeId) {
 			return false
 		}
-		for k := 0; k < len(nodes[i].NodeId); k++ {
+		for k := range len(nodes[i].NodeId) {
 			if nodes[i].NodeId[k] < nodes[j].NodeId[k] {
 				return true
 			}

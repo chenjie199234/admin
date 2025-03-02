@@ -20,7 +20,7 @@ import (
 	"github.com/chenjie199234/Corelib/pool/bpool"
 	"github.com/chenjie199234/Corelib/util/common"
 	"github.com/chenjie199234/Corelib/util/graceful"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	//"github.com/chenjie199234/Corelib/web"
 	//"github.com/chenjie199234/Corelib/cgrpc"
 	//"github.com/chenjie199234/Corelib/crpc"
@@ -66,7 +66,7 @@ func (s *Service) GetOauth2(ctx context.Context, req *api.GetOauth2Req) (*api.Ge
 	return nil, ecode.ErrReq
 }
 func (s *Service) UserLogin(ctx context.Context, req *api.UserLoginReq) (*api.UserLoginResp, error) {
-	var userid primitive.ObjectID
+	var userid bson.ObjectID
 	var e error
 	var oauth2username, oauth2mobile string
 	switch req.SrcType {
@@ -90,7 +90,7 @@ func (s *Service) UserLogin(ctx context.Context, req *api.UserLoginReq) (*api.Us
 }
 func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.LoginInfoResp, error) {
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[LoginInfo] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -99,7 +99,7 @@ func (s *Service) LoginInfo(ctx context.Context, req *api.LoginInfoReq) (*api.Lo
 		slog.ErrorContext(ctx, "[LoginInfo] root shouldn't send this request", slog.String("operator", md["Token-User"]))
 		return &api.LoginInfoResp{User: nil}, nil
 	}
-	users, e := s.userDao.MongoGetUsers(ctx, []primitive.ObjectID{operator})
+	users, e := s.userDao.MongoGetUsers(ctx, []bson.ObjectID{operator})
 	if e != nil {
 		slog.ErrorContext(ctx, "[LoginInfo] db op failed", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
@@ -141,12 +141,12 @@ func (s *Service) InviteProject(ctx context.Context, req *api.InviteProjectReq) 
 	}
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[InviteProject] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	target, e := primitive.ObjectIDFromHex(req.UserId)
+	target, e := bson.ObjectIDFromHex(req.UserId)
 	if e != nil {
 		slog.ErrorContext(ctx, "[InviteProject] target's userid format wrong", slog.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
@@ -197,12 +197,12 @@ func (s *Service) KickProject(ctx context.Context, req *api.KickProjectReq) (*ap
 	}
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[KickProject] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	target, e := primitive.ObjectIDFromHex(req.UserId)
+	target, e := bson.ObjectIDFromHex(req.UserId)
 	if e != nil {
 		slog.ErrorContext(ctx, "[KickProject] target's userid format wrong", slog.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
@@ -267,7 +267,7 @@ func (s *Service) SearchUsers(ctx context.Context, req *api.SearchUsersReq) (*ap
 	}
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[SearchUsers] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -366,7 +366,7 @@ func (s *Service) CreateRole(ctx context.Context, req *api.CreateRoleReq) (*api.
 	}
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[CreateRole] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -419,7 +419,7 @@ func (s *Service) SearchRoles(ctx context.Context, req *api.SearchRolesReq) (*ap
 	}
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[SearchRoles] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -489,7 +489,7 @@ func (s *Service) UpdateRole(ctx context.Context, req *api.UpdateRoleReq) (*api.
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[UpdateRole] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -549,7 +549,7 @@ func (s *Service) DelRoles(ctx context.Context, req *api.DelRolesReq) (*api.DelR
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[DelRoles] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
@@ -599,12 +599,12 @@ func (s *Service) AddUserRole(ctx context.Context, req *api.AddUserRoleReq) (*ap
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[AddUserRole] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	target, e := primitive.ObjectIDFromHex(req.UserId)
+	target, e := bson.ObjectIDFromHex(req.UserId)
 	if e != nil {
 		slog.ErrorContext(ctx, "[AddUserRole] target's userid format wrong", slog.String("user_id", req.UserId))
 		return nil, ecode.ErrReq
@@ -657,12 +657,12 @@ func (s *Service) DelUserRole(ctx context.Context, req *api.DelUserRoleReq) (*ap
 	}
 	//permission check
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[DelUserRole] operator's token format wrong", slog.String("operator", md["Token-User"]))
 		return nil, ecode.ErrToken
 	}
-	target, e := primitive.ObjectIDFromHex(req.UserId)
+	target, e := bson.ObjectIDFromHex(req.UserId)
 	if e != nil {
 		slog.ErrorContext(ctx, "[DelUserRole] target's userid format wrong", slog.String("user_id", req.UserId))
 		return nil, ecode.ErrReq

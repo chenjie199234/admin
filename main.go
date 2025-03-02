@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"strings"
@@ -11,19 +13,19 @@ import (
 
 	"github.com/chenjie199234/admin/config"
 	"github.com/chenjie199234/admin/dao"
+	_ "github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/server/xcrpc"
 	"github.com/chenjie199234/admin/server/xgrpc"
 	"github.com/chenjie199234/admin/server/xraw"
 	"github.com/chenjie199234/admin/server/xweb"
 	"github.com/chenjie199234/admin/service"
 
+	"github.com/chenjie199234/Corelib/cotel"
 	publicmids "github.com/chenjie199234/Corelib/mids"
-	_ "github.com/chenjie199234/Corelib/monitor"
-	"github.com/chenjie199234/Corelib/trace"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/redis/go-redis/v9"
-	_ "go.mongodb.org/mongo-driver/mongo"
+	_ "go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type LogHandler struct {
@@ -31,32 +33,23 @@ type LogHandler struct {
 }
 
 func (l *LogHandler) Handle(ctx context.Context, record slog.Record) error {
-	var traceattr *slog.Attr
 	if record.NumAttrs() > 0 {
 		attrs := make([]slog.Attr, 0, record.NumAttrs())
 		record.Attrs(func(a slog.Attr) bool {
-			if a.Key == "traceid" {
-				traceattr = &a
-			}
 			attrs = append(attrs, a)
 			return true
 		})
+		if record.Message == "trace" {
+			record.PC = 0
+		}
 		record = slog.NewRecord(record.Time, record.Level, record.Message, record.PC)
 		record.AddAttrs(slog.Attr{
 			Key:   "msg_kvs",
 			Value: slog.GroupValue(attrs...),
 		})
 	}
-	if trace.LogTrace() {
-		if traceattr == nil {
-			if span := trace.SpanFromContext(ctx); span != nil {
-				tmp := slog.String("traceid", span.GetSelfSpanData().GetTid().String())
-				traceattr = &tmp
-			}
-		}
-		if traceattr != nil {
-			record.AddAttrs(*traceattr)
-		}
+	if traceid := cotel.TraceIDFromContext(ctx); traceid != "" {
+		record.AddAttrs(slog.String("traceid", traceid))
 	}
 	return l.Handler.Handle(ctx, record)
 }
@@ -81,6 +74,7 @@ func main() {
 			},
 		}),
 	}))
+	cotel.Init()
 	config.InitInternal()
 	config.Init(func(ac *config.AppConfig) {
 		//this is a notice callback every time appconfig changes
@@ -149,6 +143,21 @@ func main() {
 		}
 		wg.Done()
 	}()
+	//this is the server for pprof and prometheus(if METRIC env is prometheus)
+	//this server should not be exposed to the public internet
+	pserver := &http.Server{Addr: ":6060"}
+	wg.Add(1)
+	go func() {
+		if h := cotel.GetPrometheusHandler(); h != nil {
+			http.Handle("/metrics", h)
+		}
+		pserver.ListenAndServe()
+		select {
+		case ch <- syscall.SIGTERM:
+		default:
+		}
+		wg.Done()
+	}()
 	signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	<-ch
 	config.StopInternal()
@@ -157,17 +166,17 @@ func main() {
 	//stop low level net service
 	wg.Add(1)
 	go func() {
-		xcrpc.StopCrpcServer()
+		xcrpc.StopCrpcServer(false)
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
-		xweb.StopWebServer()
+		xweb.StopWebServer(false)
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
-		xgrpc.StopCGrpcServer()
+		xgrpc.StopCGrpcServer(false)
 		wg.Done()
 	}()
 	wg.Add(1)
@@ -175,5 +184,11 @@ func main() {
 		xraw.StopRawServer()
 		wg.Done()
 	}()
+	wg.Add(1)
+	go func() {
+		pserver.Shutdown(context.Background())
+		wg.Done()
+	}()
 	wg.Wait()
+	cotel.Stop()
 }

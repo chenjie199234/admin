@@ -9,11 +9,11 @@ import (
 
 	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/common"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 func (d *Dao) MongoCheckSecret(ctx context.Context, projectid, gname, aname, secret string) error {
@@ -93,18 +93,16 @@ func (d *Dao) MongoCreateApp(
 	cgrpcport,
 	webport uint32) (nodeid string, e error) {
 	var sign string
-	sign, e = secure.SignMake(secret)
-	if e != nil {
-		return "", e
+	if sign, e = secure.SignMake(secret); e != nil {
+		return
 	}
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -205,14 +203,13 @@ func (d *Dao) MongoUpdateApp(
 	return
 }
 func (d *Dao) MongoDelApp(ctx context.Context, projectid, gname, aname, secret string) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -256,14 +253,13 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 	if e != nil {
 		return
 	}
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -451,14 +447,13 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 	return keysummary, log, nil
 }
 func (d *Dao) MongoSetKeyConfig(ctx context.Context, projectid, gname, aname, key, secret, value, valuetype string, newkey bool) (newindex, newversion uint32, e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -509,7 +504,7 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 	}
 	filterLog := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": key, "index": keysummary.CurIndex}
 	updaterLog := bson.M{"$set": bson.M{"value": value, "value_type": valuetype}}
-	if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterLog, updaterLog, options.Update().SetUpsert(true)); e != nil {
+	if _, e = d.mongo.Database("app").Collection("config").UpdateOne(sctx, filterLog, updaterLog, options.UpdateOne().SetUpsert(true)); e != nil {
 		return
 	}
 	newindex = keysummary.CurIndex
@@ -517,14 +512,13 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 	return
 }
 func (d *Dao) MongoDelKey(ctx context.Context, projectid, gname, aname, key, secret string) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {
@@ -552,14 +546,13 @@ func (d *Dao) MongoDelKey(ctx context.Context, projectid, gname, aname, key, sec
 	return
 }
 func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, projectid, gname, aname, key, secret string, index uint32) (e error) {
-	var s mongo.Session
-	s, e = d.mongo.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local()))
-	if e != nil {
+	var s *mongo.Session
+	if s, e = d.mongo.StartSession(); e != nil {
 		return
 	}
 	defer s.EndSession(ctx)
 	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		return
 	}
 	defer func() {

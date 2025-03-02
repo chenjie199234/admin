@@ -11,13 +11,13 @@ import (
 	"github.com/chenjie199234/admin/model"
 
 	"github.com/chenjie199234/Corelib/secure"
-	"github.com/chenjie199234/Corelib/trace"
+	// "github.com/chenjie199234/Corelib/trace"
 	"github.com/chenjie199234/Corelib/util/common"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 func InitDatabase(secret string, db *mongo.Client) (e error) {
@@ -50,18 +50,16 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 		appconfig = common.BTS(bufapp.Bytes())
 		sourceconfig = common.BTS(bufsource.Bytes())
 	}
-	ctx, span := trace.NewSpan(context.Background(), "InitDatabase", trace.Client, nil)
-	defer span.Finish(e)
 
 	var needcommit bool
-	var s mongo.Session
-	if s, e = db.StartSession(options.Session().SetDefaultReadPreference(readpref.Primary()).SetDefaultReadConcern(readconcern.Local())); e != nil {
+	var s *mongo.Session
+	if s, e = db.StartSession(); e != nil {
 		slog.ErrorContext(nil, "[InitDatabase] start mongo session failed", slog.String("mongo", "admin_mongo"), slog.String("error", e.Error()))
 		return
 	}
-	defer s.EndSession(ctx)
-	sctx := mongo.NewSessionContext(ctx, s)
-	if e = s.StartTransaction(); e != nil {
+	defer s.EndSession(context.Background())
+	sctx := mongo.NewSessionContext(context.Background(), s)
+	if e = s.StartTransaction(options.Transaction().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())); e != nil {
 		slog.ErrorContext(nil, "[InitDatabase] start mongo transaction failed", slog.String("mongo", "admin_mongo"), slog.String("error", e.Error()))
 		return
 	}

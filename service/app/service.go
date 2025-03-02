@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -24,7 +25,7 @@ import (
 	"github.com/chenjie199234/Corelib/util/egroup"
 	"github.com/chenjie199234/Corelib/util/graceful"
 	"github.com/chenjie199234/Corelib/util/name"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	// "github.com/chenjie199234/Corelib/web"
 	// "github.com/chenjie199234/Corelib/crpc"
 	// "github.com/chenjie199234/Corelib/cgrpc"
@@ -52,7 +53,7 @@ func Start() *Service {
 
 func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppResp, error) {
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[GetApp] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ErrToken
@@ -141,7 +142,7 @@ func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppRe
 
 func (s *Service) SetApp(ctx context.Context, req *api.SetAppReq) (*api.SetAppResp, error) {
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[SetApp] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ErrToken
@@ -306,7 +307,7 @@ func (s *Service) SetApp(ctx context.Context, req *api.SetAppReq) (*api.SetAppRe
 
 func (s *Service) DelApp(ctx context.Context, req *api.DelAppReq) (*api.DelAppResp, error) {
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[DelApp] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ErrToken
@@ -391,7 +392,7 @@ func (s *Service) UpdateAppSecret(ctx context.Context, req *api.UpdateAppSecretR
 	}
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[UpdateAppSecret] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ErrToken
@@ -465,7 +466,7 @@ func (s *Service) DelKey(ctx context.Context, req *api.DelKeyReq) (*api.DelKeyRe
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[DelKey] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ErrToken
@@ -550,7 +551,7 @@ func (s *Service) GetKeyConfig(ctx context.Context, req *api.GetKeyConfigReq) (*
 	}
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[GetKeyConfig] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ErrToken
@@ -630,7 +631,7 @@ func (s *Service) SetKeyConfig(ctx context.Context, req *api.SetKeyConfigReq) (*
 	}
 
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[SetKeyConfig] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ErrToken
@@ -762,7 +763,7 @@ func (s *Service) Rollback(ctx context.Context, req *api.RollbackReq) (*api.Roll
 		return nil, ecode.ErrReq
 	}
 	md := metadata.GetMetadata(ctx)
-	operator, e := primitive.ObjectIDFromHex(md["Token-User"])
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
 	if e != nil {
 		slog.ErrorContext(ctx, "[Rollback] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
 		return nil, ecode.ErrToken
@@ -942,26 +943,12 @@ func (s *Service) WatchDiscover(ctx context.Context, req *api.WatchDiscoverReq) 
 					needreturn = app.DnsHost != req.CurDnsHost || app.DnsInterval != req.CurDnsInterval
 				} else if app.DiscoverMode == "static" {
 					for _, addr := range app.StaticAddrs {
-						find := false
-						for _, v := range req.CurStaticAddrs {
-							if addr == v {
-								find = true
-								break
-							}
-						}
-						if !find {
+						if !slices.Contains(req.CurStaticAddrs, addr) {
 							needreturn = true
 						}
 					}
 					for _, addr := range req.CurStaticAddrs {
-						find := false
-						for _, v := range app.StaticAddrs {
-							if addr == v {
-								find = true
-								break
-							}
-						}
-						if !find {
+						if !slices.Contains(app.StaticAddrs, addr) {
 							needreturn = true
 						}
 					}

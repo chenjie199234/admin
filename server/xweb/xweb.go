@@ -3,10 +3,11 @@ package xweb
 import (
 	"crypto/tls"
 	"log/slog"
+	"sync/atomic"
+	"unsafe"
 
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/config"
-	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/service"
 
 	"github.com/chenjie199234/Corelib/util/ctime"
@@ -25,22 +26,24 @@ func StartWebServer() {
 		for cert, key := range c.Certs {
 			temp, e := tls.LoadX509KeyPair(cert, key)
 			if e != nil {
-				slog.ErrorContext(nil, "[xweb] load cert failed", slog.String("cert", cert), slog.String("key", key), slog.String("error", e.Error()))
+				slog.ErrorContext(nil, "[xweb] load cert failed:", slog.String("cert", cert), slog.String("key", key), slog.String("error", e.Error()))
 				return
 			}
 			certificates = append(certificates, temp)
 		}
 		tlsc = &tls.Config{Certificates: certificates}
 	}
-	var e error
-	if s, e = web.NewWebServer(c.ServerConfig, model.Project, model.Group, model.Name, tlsc); e != nil {
+	server, e := web.NewWebServer(c.ServerConfig, tlsc)
+	if e != nil {
 		slog.ErrorContext(nil, "[xweb] new server failed", slog.String("error", e.Error()))
 		return
 	}
+	//avoid race when build/run in -race mode
+	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&s)), unsafe.Pointer(server))
 	UpdateHandlerTimeout(config.AC.HandlerTimeout)
 	UpdateWebPathRewrite(config.AC.WebPathRewrite)
 
-	r := s.NewRouter()
+	r := server.NewRouter()
 
 	//this place can register global midwares
 	//r.Use(globalmidwares)
@@ -54,8 +57,8 @@ func StartWebServer() {
 	//example
 	//api.RegisterExampleWebServer(r, service.SvcExample, mids.AllMids())
 
-	s.SetRouter(r)
-	if e = s.StartWebServer(":8000"); e != nil && e != web.ErrServerClosed {
+	server.SetRouter(r)
+	if e = server.StartWebServer(":8000"); e != nil && e != web.ErrServerClosed {
 		slog.ErrorContext(nil, "[xweb] start server failed", slog.String("error", e.Error()))
 		return
 	}
@@ -65,22 +68,28 @@ func StartWebServer() {
 // UpdateHandlerTimeout -
 // first key path,second key method,value timeout duration
 func UpdateHandlerTimeout(timeout map[string]map[string]ctime.Duration) {
-	if s != nil {
-		s.UpdateHandlerTimeout(timeout)
+	//avoid race when build/run in -race mode
+	tmps := (*web.WebServer)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&s))))
+	if tmps != nil {
+		tmps.UpdateHandlerTimeout(timeout)
 	}
 }
 
 // UpdateWebPathRewrite -
-// key origin url,value rewrite url
+// first key method,second key origin url,value rewrite url
 func UpdateWebPathRewrite(rewrite map[string]map[string]string) {
-	if s != nil {
-		s.UpdateHandlerRewrite(rewrite)
+	//avoid race when build/run in -race mode
+	tmps := (*web.WebServer)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&s))))
+	if tmps != nil {
+		tmps.UpdateHandlerRewrite(rewrite)
 	}
 }
 
-// StopWebServer -
-func StopWebServer() {
-	if s != nil {
-		s.StopWebServer(false)
+// StopWebServer force - false(graceful),true(not graceful)
+func StopWebServer(force bool) {
+	//avoid race when build/run in -race mode
+	tmps := (*web.WebServer)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&s))))
+	if tmps != nil {
+		tmps.StopWebServer(force)
 	}
 }

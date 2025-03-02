@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Node struct {
@@ -18,11 +18,11 @@ type ProjectIndex struct {
 	ProjectID   string `bson:"project_id"`
 }
 type UserNode struct {
-	UserId primitive.ObjectID `bson:"user_id"`
-	NodeId string             `bson:"node_id"`
-	R      bool               `bson:"r"`
-	W      bool               `bson:"w"`
-	X      bool               `bson:"x"`
+	UserId bson.ObjectID `bson:"user_id"`
+	NodeId string        `bson:"node_id"`
+	R      bool          `bson:"r"`
+	W      bool          `bson:"w"`
+	X      bool          `bson:"x"`
 }
 type RoleNode struct {
 	ProjectID string `bson:"project_id"`

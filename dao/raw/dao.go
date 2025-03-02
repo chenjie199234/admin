@@ -23,4 +23,3 @@ func NewDao(mysql *cmysql.Client, redis *credis.Client, mongo *cmongo.Client) *D
 		mongo: mongo,
 	}
 }
-

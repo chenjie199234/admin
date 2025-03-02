@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 
 	"github.com/chenjie199234/admin/config"
-	"github.com/chenjie199234/admin/model"
 
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/web"
@@ -46,7 +45,7 @@ func NewApi() error {
 	_ = cgrpcc //avoid unuse
 
 	//init cgrpc client below
-	//examplecgrpc, e = cgrpc.NewCGrpcClient(cgrpcc, examplediscover, model.Project, model.Group, model.Name, "exampleproject", "examplegroup", "examplename", nil)
+	//examplecgrpc, e = cgrpc.NewCGrpcClient(cgrpcc, examplediscover, "exampleproject", "examplegroup", "examplename", nil)
 	//if e != nil {
 	//         return e
 	//}
@@ -56,7 +55,7 @@ func NewApi() error {
 	_ = crpcc //avoid unuse
 
 	//init crpc client below
-	//examplecrpc, e = crpc.NewCrpcClient(crpcc, examplediscover, model.Project, model.Group, model.Name, "exampleproject", "examplegroup", "examplename", nil)
+	//examplecrpc, e = crpc.NewCrpcClient(crpcc, examplediscover, "exampleproject", "examplegroup", "examplename", nil)
 	//if e != nil {
 	// 	return e
 	//}
@@ -66,7 +65,7 @@ func NewApi() error {
 	_ = webc //avoid unuse
 
 	//init web client below
-	//exampleweb, e = web.NewWebClient(webc, examplediscover, model.Project, model.Group, model.Name, "exampleproject", "examplegroup", "examplename", nil)
+	//exampleweb, e = web.NewWebClient(webc, examplediscover, "exampleproject", "examplegroup", "examplename", nil)
 	//if e != nil {
 	// 	return e
 	//}
@@ -77,7 +76,7 @@ func NewApi() error {
 	if e != nil {
 		return e
 	}
-	DingDingWebClient, e = web.NewWebClient(webc, DingTalkStaticDiscover, model.Project, model.Group, model.Name, "ali", "dingtalk", "oauth2", &tls.Config{})
+	DingDingWebClient, e = web.NewWebClient(webc, DingTalkStaticDiscover, "ali", "dingtalk", "oauth2", &tls.Config{})
 	if e != nil {
 		return e
 	}
@@ -88,7 +87,7 @@ func NewApi() error {
 	if e != nil {
 		return e
 	}
-	FeiShuWebClient, e = web.NewWebClient(webc, FeiShuStaticDiscover, model.Project, model.Group, model.Name, "bytedance", "feishu", "oauth2", &tls.Config{})
+	FeiShuWebClient, e = web.NewWebClient(webc, FeiShuStaticDiscover, "bytedance", "feishu", "oauth2", &tls.Config{})
 	if e != nil {
 		return e
 	}
@@ -99,7 +98,7 @@ func NewApi() error {
 	if e != nil {
 		return e
 	}
-	WXWorkWebClient, e = web.NewWebClient(webc, WXWorkStaticDiscover, model.Project, model.Group, model.Name, "tencent", "wxwork", "oauth2", &tls.Config{})
+	WXWorkWebClient, e = web.NewWebClient(webc, WXWorkStaticDiscover, "tencent", "wxwork", "oauth2", &tls.Config{})
 	if e != nil {
 		return e
 	}

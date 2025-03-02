@@ -11,7 +11,7 @@ admin是一个微服务.
 
 ## 服务端口
 ```
-6060                                    MONITOR AND PPROF
+6060                                    PPROF and prometheus(if METRIC is prometheus)
 7000                                    RAW TCP OR WEBSOCKET
 8000                                    WEB
 9000                                    CRPC
@@ -20,12 +20,16 @@ admin是一个微服务.
 
 ## 环境变量
 ```
-LOG_TRACE                               是否开启链路追踪,1-开启,0-关闭(default)
-PROJECT                                 该项目所属的项目,[a-z][0-9],第一个字符必须[a-z]
-GROUP                                   该项目所属的组,[a-z][0-9],第一个字符必须[a-z]
+PROJECT                                 该项目所属的项目,[a-z][0-9],第一个字符必须是[a-z]
+GROUP                                   该项目所属的项目下的小组,[a-z][0-9],第一个字符必须是[a-z]
 RUN_ENV                                 当前运行环境,如:test,pre,prod
 DEPLOY_ENV                              部署环境,如:ali-kube-shanghai-1,ali-host-hangzhou-1
-MONITOR                                 是否开启系统监控采集,0关闭,1开启
+TRACE                                   是否开启链路追踪,空-不启用,不空-trace输出方式,[log,otlphttp,otlpgrpc,zipkin]
+ZIPKIN_URL                              当TRACE为zipkin时,该变量为zipkin服务器的推送url
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT      当TRACE为otlphttp或otlpgrpc时,该变量为otlp服务器的推送url
+METRIC                                  是否开启系统监控采集,空-不启用,不空-metric输出方式,[log,otlphttp,otlpgrpc,prometheus]
+OTEL_EXPORTER_OTLP_METRICS_ENDPOINT     当METRIC为otlphttp或otlpgrpc时,该变量为otlp服务器的推送url
+OTEL_EXPORTER_OTLP_ENDPOINT             二合一,可取代OTEL_EXPORTER_OTLP_TRACES_ENDPOINT和OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,但优先级比前两者低
 CONFIG_SECRET                           配置中心配置的密钥,用于加密和解密配置中心中自身的配置数据
 ```
 

@@ -10,7 +10,7 @@ import (
 	statusdao "github.com/chenjie199234/admin/dao/status"
 	//"github.com/chenjie199234/admin/ecode"
 
-	"github.com/chenjie199234/Corelib/monitor"
+	"github.com/chenjie199234/Corelib/cotel"
 	"github.com/chenjie199234/Corelib/util/graceful"
 	"github.com/chenjie199234/Corelib/util/host"
 	//"github.com/chenjie199234/Corelib/cgrpc"
@@ -46,15 +46,15 @@ func (s *Service) Ping(ctx context.Context, in *api.Pingreq) (*api.Pingresp, err
 	//if _, ok := ctx.(*web.Context); ok {
 	//        Slog.InfoContext("this is a web call")
 	//}
-	totalmem, lastmem, maxmem := monitor.GetMEM()
-	lastcpu, maxcpu, avgcpu := monitor.GetCPU()
+	totalmem, lastmem, maxmem := cotel.GetMEM()
+	lastcpu, maxcpu, avgcpu := cotel.GetCPU()
 	return &api.Pingresp{
 		ClientTimestamp: in.Timestamp,
 		ServerTimestamp: time.Now().UnixNano(),
 		TotalMem:        totalmem,
 		CurMemUsage:     lastmem,
 		MaxMemUsage:     maxmem,
-		CpuNum:          monitor.CPUNum,
+		CpuNum:          cotel.CPUNum,
 		CurCpuUsage:     lastcpu,
 		AvgCpuUsage:     avgcpu,
 		MaxCpuUsage:     maxcpu,

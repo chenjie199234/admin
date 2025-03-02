@@ -187,9 +187,10 @@ func InitInternal() {
 	if mongoc.MaxConnIdletime <= 0 {
 		mongoc.MaxConnIdletime = ctime.Duration(time.Minute * 5)
 	}
-	if mongoc.IOTimeout <= 0 {
-		mongoc.IOTimeout = ctime.Duration(time.Millisecond * 500)
-	}
+	// if mongoc.IOTimeout <= 0 {
+	// 	mongoc.IOTimeout = ctime.Duration(time.Millisecond * 500)
+	// }
+	mongoc.IOTimeout = 0 //we need to use the change stream,if this is not 0,the change stream will disconnect
 	if mongoc.DialTimeout <= 0 {
 		mongoc.DialTimeout = ctime.Duration(time.Millisecond * 250)
 	}

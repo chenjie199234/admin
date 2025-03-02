@@ -60,7 +60,9 @@ func InitWatch(secret string, db *mongo.Client) (*InternalSdk, error) {
 	if e := sdk.mongoGetAllApp(); e != nil {
 		return nil, e
 	}
-	go sdk.watch()
+	var ctx context.Context
+	ctx, sdk.stopwatch = context.WithCancel(context.Background())
+	go sdk.watch(ctx)
 	go sdk.timeout()
 	return sdk, nil
 }
@@ -221,8 +223,8 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 func (s *InternalSdk) mongoGetAllApp() error {
 	filter := bson.M{"key": "", "index": 0}
 	var cursor *mongo.Cursor
-	primarylocalOPTS := options.Collection().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())
-	cursor, e := s.db.Database("app").Collection("config", primarylocalOPTS).Find(context.Background(), filter)
+	opts := options.Collection().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())
+	cursor, e := s.db.Database("app").Collection("config", opts).Find(context.Background(), filter)
 	if e != nil {
 		slog.ErrorContext(nil, "[InitWatch] get all app config failed", slog.String("error", e.Error()))
 		return e
@@ -252,10 +254,8 @@ func (s *InternalSdk) mongoGetAllApp() error {
 	}
 	return nil
 }
-func (s *InternalSdk) watch() {
+func (s *InternalSdk) watch(ctx context.Context) {
 	var stream *mongo.ChangeStream
-	var ctx context.Context
-	ctx, s.stopwatch = context.WithCancel(context.Background())
 	for {
 		for stream == nil {
 			if s.closing {

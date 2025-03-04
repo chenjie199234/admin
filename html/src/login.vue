@@ -143,6 +143,7 @@ function do_login_user(){
 					trigger="hover"
 					:hoverOverTimeout="0"
 					:hoverOutTimeout="100"
+					style="flex:1"
 				>
 					<template #option='{option,selectOption}'>
 						<VaHover stateful @click="selectOption(option)">
@@ -166,7 +167,7 @@ function do_login_user(){
 				<VaCardContent style="font-size:20px"><b>Root User Login</b></VaCardContent>
 			</VaCard>
 			<div style="display:flex;align-items:end;margin-top:20px">
-				<VaInput :type="t_password?'text':'password'" style="width:300px" label="Root Password*" v-model="password" :max-length="32">
+				<VaInput :type="t_password?'text':'password'" style="flex:1" label="Root Password*" v-model="password" :max-length="32">
 					<template #appendInner>
 						<VaIcon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
 					</template>

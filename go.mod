@@ -1,13 +1,13 @@
 module github.com/chenjie199234/admin
 
-go 1.24.0
+go 1.24.1
 
 require (
-	github.com/chenjie199234/Corelib v0.0.133-0.20250304093423-6d22c32e22ed
+	github.com/chenjie199234/Corelib v0.0.133-0.20250305135535-51903525b8b9
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/redis/go-redis/v9 v9.7.1
 	go.mongodb.org/mongo-driver/v2 v2.1.0
-	google.golang.org/grpc v1.70.0
+	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.5
 )
 
@@ -46,7 +46,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
-	github.com/prometheus/client_golang v1.21.0 // indirect
+	github.com/prometheus/client_golang v1.21.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
@@ -75,7 +75,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/oauth2 v0.24.0 // indirect
+	golang.org/x/oauth2 v0.25.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/term v0.29.0 // indirect

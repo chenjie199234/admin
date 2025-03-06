@@ -74,7 +74,10 @@ func main() {
 			},
 		}),
 	}))
-	cotel.Init()
+	if e := cotel.Init(); e != nil {
+		slog.Error("init cotel failed", slog.String("error", e.Error()))
+		return
+	}
 	config.InitInternal()
 	config.Init(func(ac *config.AppConfig) {
 		//this is a notice callback every time appconfig changes

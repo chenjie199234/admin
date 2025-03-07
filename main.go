@@ -78,6 +78,7 @@ func main() {
 		slog.Error("init cotel failed", slog.String("error", e.Error()))
 		return
 	}
+	defer cotel.Stop()
 	config.InitInternal()
 	config.Init(func(ac *config.AppConfig) {
 		//this is a notice callback every time appconfig changes
@@ -193,5 +194,4 @@ func main() {
 		wg.Done()
 	}()
 	wg.Wait()
-	cotel.Stop()
 }

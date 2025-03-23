@@ -26,17 +26,13 @@ func initFeiShu() {
 			case <-tmer.C:
 			case <-trigerFeiShu:
 			}
-			if tmer.Stop() {
-				for len(tmer.C) > 0 {
-					<-tmer.C
-				}
-			}
-			if config.AC.Service.FeiShuOauth2 == "" || config.AC.Service.FeiShuAppID == "" || config.AC.Service.FeiShuAppSecret == "" {
-				continue
-			}
+			tmer.Stop()
 			r, e := getFeiShuAppToken()
 			if e != nil {
 				tmer.Reset(time.Millisecond * 500)
+			} else if r == nil {
+				FeiShuAppToken = ""
+				continue
 			} else {
 				FeiShuAppToken = r.AppAccessToken
 				tmer.Reset(time.Duration(r.ExpireIn-600) * time.Second)
@@ -58,11 +54,15 @@ type getFeiShuAppTokenResp struct {
 }
 
 func getFeiShuAppToken() (*getFeiShuAppTokenResp, error) {
+	c := config.AC.Service
+	if c.FeiShuOauth2 == "" || c.FeiShuAppID == "" || c.FeiShuAppSecret == "" {
+		return nil, nil
+	}
 	header := make(http.Header)
 	header.Set("Content-Type", "application/json; charset=utf-8")
 	req := &getFeiShuTokenReq{
-		AppID:     config.AC.Service.FeiShuAppID,
-		AppSecret: config.AC.Service.FeiShuAppSecret,
+		AppID:     c.FeiShuAppID,
+		AppSecret: c.FeiShuAppSecret,
 	}
 	reqbody, _ := json.Marshal(req)
 	resp, e := FeiShuWebClient.Post(context.Background(), "/open-apis/auth/v3/app_access_token/internal", "", header, nil, reqbody)

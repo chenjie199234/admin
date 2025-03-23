@@ -24,18 +24,13 @@ func initDingDing() {
 			case <-tmer.C:
 			case <-trigerDingDing:
 			}
-			if tmer.Stop() {
-				for len(tmer.C) > 0 {
-					<-tmer.C
-				}
-			}
-			if config.AC.Service.DingDingOauth2 == "" || config.AC.Service.DingDingClientID == "" || config.AC.Service.DingDingClientSecret == "" {
-				DingDingToken = ""
-				continue
-			}
+			tmer.Stop()
 			r, e := getDingDingToken()
 			if e != nil {
 				tmer.Reset(time.Millisecond * 500)
+			} else if r == nil {
+				DingDingToken = ""
+				continue
 			} else {
 				DingDingToken = r.AccessToken
 				tmer.Reset(time.Duration(r.ExpireIn-600) * time.Second)
@@ -54,11 +49,15 @@ type getDingDingTokenResp struct {
 }
 
 func getDingDingToken() (*getDingDingTokenResp, error) {
+	c := config.AC.Service
+	if c.DingDingOauth2 == "" || c.DingDingClientID == "" || c.DingDingClientSecret == "" {
+		return nil, nil
+	}
 	header := make(http.Header)
 	header.Set("Content-Type", "application/json")
 	req := &getDingDingTokenReq{
-		AppKey:    config.AC.Service.DingDingClientID,
-		AppSecret: config.AC.Service.DingDingClientSecret,
+		AppKey:    c.DingDingClientID,
+		AppSecret: c.DingDingClientSecret,
 	}
 	reqbody, _ := json.Marshal(req)
 	resp, e := DingDingWebClient.Post(context.Background(), "/v1.0/oauth2/accessToken", "", header, nil, reqbody)

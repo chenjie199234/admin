@@ -25,17 +25,13 @@ func initWXWork() {
 			case <-tmer.C:
 			case <-trigerWXWork:
 			}
-			if tmer.Stop() {
-				for len(tmer.C) > 0 {
-					<-tmer.C
-				}
-			}
-			if config.AC.Service.WXWorkOauth2 == "" || config.AC.Service.WXWorkCorpID == "" || config.AC.Service.WXWorkCorpSecret == "" {
-				continue
-			}
+			tmer.Stop()
 			r, e := getWXWorkAccessToken()
 			if e != nil {
 				tmer.Reset(time.Millisecond * 500)
+			} else if r == nil {
+				WXWorkAccessToken = ""
+				continue
 			} else {
 				WXWorkAccessToken = r.AccessToken
 				tmer.Reset(time.Duration(r.ExpireIn) * time.Second)
@@ -52,7 +48,11 @@ type getWXWorkAccessTokenResp struct {
 }
 
 func getWXWorkAccessToken() (*getWXWorkAccessTokenResp, error) {
-	query := "corpid=" + config.AC.Service.WXWorkCorpID + "&corpsecret=" + config.AC.Service.WXWorkCorpSecret
+	c := config.AC.Service
+	if c.WXWorkOauth2 == "" || c.WXWorkCorpID == "" || c.WXWorkCorpSecret == "" {
+		return nil, nil
+	}
+	query := "corpid=" + c.WXWorkCorpID + "&corpsecret=" + c.WXWorkCorpSecret
 	resp, e := WXWorkWebClient.Get(context.Background(), "/cgi-bin/gettoken", query, nil, nil)
 	if e != nil {
 		slog.ErrorContext(nil, "[getWXWorkAccessToken] call failed", slog.String("error", e.Error()))

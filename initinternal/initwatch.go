@@ -12,7 +12,6 @@ import (
 	"github.com/chenjie199234/admin/api"
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/crpc"
@@ -22,6 +21,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 type InternalSdk struct {
@@ -698,13 +699,23 @@ func (s *InternalSdk) PingByPrjoectID(ctx context.Context, pid, g, a string, for
 	app.Unlock()
 	in, _ := proto.Marshal(&api.Pingreq{Timestamp: time.Now().UnixNano()})
 	var resp *api.Pingresp
-	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".status/ping", in, func(cctx *crpc.CallContext) error {
-		out, e := cctx.Recv()
+	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".status/ping", in, crpc.Encoder_Protobuf, func(cctx *crpc.CallContext) error {
+		out, encoder, e := cctx.Recv()
 		if e != nil {
 			return e
 		}
-		resp = &api.Pingresp{}
-		if e := proto.Unmarshal(out, resp); e != nil {
+		switch encoder {
+		case crpc.Encoder_Protobuf:
+			resp = &api.Pingresp{}
+			if e := proto.Unmarshal(out, resp); e != nil {
+				return ecode.ErrResp
+			}
+		case crpc.Encoder_Json:
+			resp = &api.Pingresp{}
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(out, resp); e != nil {
+				return ecode.ErrResp
+			}
+		default:
 			return ecode.ErrResp
 		}
 		return nil
@@ -762,13 +773,23 @@ func (s *InternalSdk) PingByPrjoectName(ctx context.Context, pname, g, a string,
 	app.Unlock()
 	in, _ := proto.Marshal(&api.Pingreq{Timestamp: time.Now().UnixNano()})
 	var resp *api.Pingresp
-	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".status/ping", in, func(cctx *crpc.CallContext) error {
-		out, e := cctx.Recv()
+	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".status/ping", in, crpc.Encoder_Protobuf, func(cctx *crpc.CallContext) error {
+		out, encoder, e := cctx.Recv()
 		if e != nil {
 			return e
 		}
-		resp = &api.Pingresp{}
-		if e := proto.Unmarshal(out, resp); e != nil {
+		switch encoder {
+		case crpc.Encoder_Protobuf:
+			resp = &api.Pingresp{}
+			if e := proto.Unmarshal(out, resp); e != nil {
+				return ecode.ErrResp
+			}
+		case crpc.Encoder_Json:
+			resp = &api.Pingresp{}
+			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(out, resp); e != nil {
+				return ecode.ErrResp
+			}
+		default:
 			return ecode.ErrResp
 		}
 		return nil

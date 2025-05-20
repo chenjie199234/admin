@@ -35,13 +35,13 @@ type Service struct {
 }
 
 // Start -
-func Start() *Service {
+func Start() (*Service, error) {
 	return &Service{
 		stop: graceful.New(),
 
 		initializeDao: initializedao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		userDao:       userdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
-	}
+	}, nil
 }
 
 // 初始化状态

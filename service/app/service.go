@@ -41,14 +41,14 @@ type Service struct {
 }
 
 // Start -
-func Start() *Service {
+func Start() (*Service, error) {
 	return &Service{
 		stop: graceful.New(),
 
 		appDao:        appdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		permissionDao: permissiondao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		initializeDao: initializedao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
-	}
+	}, nil
 }
 
 func (s *Service) GetApp(ctx context.Context, req *api.GetAppReq) (*api.GetAppResp, error) {

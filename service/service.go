@@ -23,16 +23,29 @@ var SvcInitialize *initialize.Service
 
 // StartService start the whole service
 func StartService() error {
-	if e := dao.NewApi(); e != nil {
+	var e error
+	if e = dao.NewApi(); e != nil {
 		return e
 	}
 	//start sub service
-	SvcStatus = status.Start()
-	SvcRaw = raw.Start()
-	SvcApp = app.Start()
-	SvcUser = user.Start()
-	SvcPermission = permission.Start()
-	SvcInitialize = initialize.Start()
+	if SvcStatus, e = status.Start(); e != nil {
+		return e
+	}
+	if SvcRaw, e = raw.Start(); e != nil {
+		return e
+	}
+	if SvcApp, e = app.Start(); e != nil {
+		return e
+	}
+	if SvcUser, e = user.Start(); e != nil {
+		return e
+	}
+	if SvcPermission, e = permission.Start(); e != nil {
+		return e
+	}
+	if SvcInitialize, e = initialize.Start(); e != nil {
+		return e
+	}
 	return nil
 }
 

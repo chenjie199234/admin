@@ -34,13 +34,13 @@ type Service struct {
 }
 
 // Start -
-func Start() *Service {
+func Start() (*Service, error) {
 	return &Service{
 		stop: graceful.New(),
 
 		userDao:       userdao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
 		permissionDao: permissiondao.NewDao(nil, nil, config.GetMongo("admin_mongo")),
-	}
+	}, nil
 }
 func (s *Service) GetUserPermission(ctx context.Context, req *api.GetUserPermissionReq) (*api.GetUserPermissionResp, error) {
 	if req.NodeId[0] != 0 {

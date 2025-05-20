@@ -1,9 +1,9 @@
 module github.com/chenjie199234/admin
 
-go 1.24.1
+go 1.24.3
 
 require (
-	github.com/chenjie199234/Corelib v0.0.138-0.20250520075748-1c871e469c4c
+	github.com/chenjie199234/Corelib v0.0.138
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/redis/go-redis/v9 v9.8.0
 	go.mongodb.org/mongo-driver/v2 v2.2.1

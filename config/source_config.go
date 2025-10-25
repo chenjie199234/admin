@@ -125,26 +125,10 @@ func initsource() {
 	initwebserver()
 	initwebclient()
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		initredis()
-		wg.Done()
-	}()
-	wg.Add(1)
-	go func() {
-		initmongo()
-		wg.Done()
-	}()
-	wg.Add(1)
-	go func() {
-		initmysql()
-		wg.Done()
-	}()
-	wg.Add(1)
-	go func() {
-		initemail()
-		wg.Done()
-	}()
+	wg.Go(initredis)
+	wg.Go(initmongo)
+	wg.Go(initmysql)
+	wg.Go(initemail)
 	wg.Wait()
 }
 func initraw() {
@@ -267,7 +251,7 @@ func initwebserver() {
 		}
 	} else {
 		if sc.WebServer.WaitCloseMode != 0 && sc.WebServer.WaitCloseMode != 1 {
-			slog.ErrorContext(nil, "[config.initwebserver] wait_close_mode must be 0 or 1")
+			slog.Error("[config.initwebserver] wait_close_mode must be 0 or 1")
 			os.Exit(1)
 		}
 		if sc.WebServer.ConnectTimeout <= 0 {
@@ -327,9 +311,7 @@ func initredis() {
 			continue
 		}
 		redisc := v
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			var tlsc *tls.Config
 			if redisc.TLS {
 				tlsc = &tls.Config{}
@@ -338,12 +320,12 @@ func initredis() {
 					for _, certpath := range redisc.SpecificCAPaths {
 						cert, e := os.ReadFile(certpath)
 						if e != nil {
-							slog.ErrorContext(nil, "[config.initredis] read specific cert failed",
+							slog.Error("[config.initredis] read specific cert failed",
 								slog.String("redis", redisc.RedisName), slog.String("cert_path", certpath), slog.String("error", e.Error()))
 							os.Exit(1)
 						}
 						if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
-							slog.ErrorContext(nil, "[config.initredis] specific cert load failed",
+							slog.Error("[config.initredis] specific cert load failed",
 								slog.String("redis", redisc.RedisName), slog.String("cert_path", certpath), slog.String("error", e.Error()))
 							os.Exit(1)
 						}
@@ -352,13 +334,13 @@ func initredis() {
 			}
 			c, e := redis.NewRedis(redisc.Config, tlsc)
 			if e != nil {
-				slog.ErrorContext(nil, "[config.initredis] failed", slog.String("redis", redisc.RedisName), slog.String("error", e.Error()))
+				slog.Error("[config.initredis] failed", slog.String("redis", redisc.RedisName), slog.String("error", e.Error()))
 				os.Exit(1)
 			}
 			lker.Lock()
 			rediss[redisc.RedisName] = c
 			lker.Unlock()
-		}()
+		})
 	}
 	wg.Wait()
 }
@@ -386,9 +368,7 @@ func initmongo() {
 			continue
 		}
 		mongoc := v
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			var tlsc *tls.Config
 			if mongoc.TLS {
 				tlsc = &tls.Config{}
@@ -397,12 +377,12 @@ func initmongo() {
 					for _, certpath := range mongoc.SpecificCAPaths {
 						cert, e := os.ReadFile(certpath)
 						if e != nil {
-							slog.ErrorContext(nil, "[config.initmongo] read specific cert failed",
+							slog.Error("[config.initmongo] read specific cert failed",
 								slog.String("mongo", mongoc.MongoName), slog.String("cert_path", certpath), slog.String("error", e.Error()))
 							os.Exit(1)
 						}
 						if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
-							slog.ErrorContext(nil, "[config.initmongo] specific cert load failed",
+							slog.Error("[config.initmongo] specific cert load failed",
 								slog.String("mongo", mongoc.MongoName), slog.String("cert_path", certpath), slog.String("error", e.Error()))
 							os.Exit(1)
 						}
@@ -411,13 +391,13 @@ func initmongo() {
 			}
 			c, e := mongo.NewMongo(mongoc.Config, tlsc)
 			if e != nil {
-				slog.ErrorContext(nil, "[config.initmongo] failed", slog.String("mongo", mongoc.MongoName), slog.String("error", e.Error()))
+				slog.Error("[config.initmongo] failed", slog.String("mongo", mongoc.MongoName), slog.String("error", e.Error()))
 				os.Exit(1)
 			}
 			lker.Lock()
 			mongos[mongoc.MongoName] = c
 			lker.Unlock()
-		}()
+		})
 	}
 	wg.Wait()
 }
@@ -442,9 +422,7 @@ func initmysql() {
 			continue
 		}
 		mysqlc := v
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			var tlsc *tls.Config
 			if mysqlc.TLS {
 				tlsc = &tls.Config{}
@@ -453,12 +431,12 @@ func initmysql() {
 					for _, certpath := range mysqlc.SpecificCAPaths {
 						cert, e := os.ReadFile(certpath)
 						if e != nil {
-							slog.ErrorContext(nil, "[config.initmysql] read specific cert failed",
+							slog.Error("[config.initmysql] read specific cert failed",
 								slog.String("mysql", mysqlc.MysqlName), slog.String("cert_path", certpath), slog.String("error", e.Error()))
 							os.Exit(1)
 						}
 						if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
-							slog.ErrorContext(nil, "[config.initmysql] specific cert load failed",
+							slog.Error("[config.initmysql] specific cert load failed",
 								slog.String("mysql", mysqlc.MysqlName), slog.String("cert_path", certpath), slog.String("error", e.Error()))
 							os.Exit(1)
 						}
@@ -467,13 +445,13 @@ func initmysql() {
 			}
 			c, e := mysql.NewMysql(mysqlc.Config, tlsc)
 			if e != nil {
-				slog.ErrorContext(nil, "[config.initmysql] failed", slog.String("mysql", mysqlc.MysqlName), slog.String("error", e.Error()))
+				slog.Error("[config.initmysql] failed", slog.String("mysql", mysqlc.MysqlName), slog.String("error", e.Error()))
 				os.Exit(1)
 			}
 			lker.Lock()
 			mysqls[mysqlc.MysqlName] = c
 			lker.Unlock()
-		}()
+		})
 	}
 	wg.Wait()
 }
@@ -495,18 +473,16 @@ func initemail() {
 			continue
 		}
 		emailc := v
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			c, e := email.NewEmail(emailc)
 			if e != nil {
-				slog.ErrorContext(nil, "[config.initemail] failed", slog.String("email", emailc.EmailName), slog.String("error", e.Error()))
+				slog.Error("[config.initemail] failed", slog.String("email", emailc.EmailName), slog.String("error", e.Error()))
 				os.Exit(1)
 			}
 			lker.Lock()
 			emails[emailc.EmailName] = c
 			lker.Unlock()
-		}()
+		})
 	}
 	wg.Wait()
 }

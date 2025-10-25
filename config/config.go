@@ -37,12 +37,12 @@ func Init(notice func(c *AppConfig)) {
 	if str, ok := os.LookupEnv("RUN_ENV"); ok && str != "<RUN_ENV>" && str != "" {
 		EC.RunEnv = &str
 	} else {
-		slog.WarnContext(nil, "[config.Init] missing env RUN_ENV")
+		slog.Warn("[config.Init] missing env RUN_ENV")
 	}
 	if str, ok := os.LookupEnv("DEPLOY_ENV"); ok && str != "<DEPLOY_ENV>" && str != "" {
 		EC.DeployEnv = &str
 	} else {
-		slog.WarnContext(nil, "[config.Init] missing env DEPLOY_ENV")
+		slog.Warn("[config.Init] missing env DEPLOY_ENV")
 	}
 	var secret string
 	if str, ok := os.LookupEnv("CONFIG_SECRET"); ok && str != "<CONFIG_SECRET>" && str != "" {
@@ -55,7 +55,7 @@ func Init(notice func(c *AppConfig)) {
 		var appversion, sourceversion uint32
 		ch, cancel, e := Sdk.GetNoticeByProjectID(model.AdminProjectID, model.Group, model.Name)
 		if e != nil {
-			slog.ErrorContext(nil, "[config.Init] get notice failed", slog.String("error", e.Error()))
+			slog.Error("[config.Init] get notice failed", slog.String("error", e.Error()))
 			os.Exit(1)
 		}
 		defer cancel()
@@ -66,24 +66,24 @@ func Init(notice func(c *AppConfig)) {
 				if e == ecode.ErrServerClosing {
 					return
 				}
-				slog.ErrorContext(nil, "[config.Init] get app config failed", slog.String("error", e.Error()))
+				slog.Error("[config.Init] get app config failed", slog.String("error", e.Error()))
 				continue
 			}
 			appkey, ok := app.Keys["AppConfig"]
 			if !ok {
-				slog.ErrorContext(nil, "[config.Init] key: AppConfig missing")
+				slog.Error("[config.Init] key: AppConfig missing")
 				continue
 			}
 			sourcekey, ok := app.Keys["SourceConfig"]
 			if !ok {
-				slog.ErrorContext(nil, "[config.Init] key: SourceConfig missing")
+				slog.Error("[config.Init] key: SourceConfig missing")
 				continue
 			}
 			if appkey.CurVersion == appversion && sourcekey.CurVersion == sourceversion {
 				continue
 			}
 			if appkey.CurValueType != "json" || sourcekey.CurValueType != "json" {
-				slog.ErrorContext(nil, "[config.Init] config data can only support json format")
+				slog.Error("[config.Init] config data can only support json format")
 				continue
 			}
 			if appkey.CurVersion != appversion {
@@ -91,7 +91,7 @@ func Init(notice func(c *AppConfig)) {
 				if secret != "" {
 					plaintxt, e = secure.AesDecrypt(secret, appkey.CurValue)
 					if e != nil {
-						slog.ErrorContext(nil, "[config.Init] decrypt failed", slog.String("error", e.Error()))
+						slog.Error("[config.Init] decrypt failed", slog.String("error", e.Error()))
 						continue
 					}
 				} else {
@@ -99,12 +99,12 @@ func Init(notice func(c *AppConfig)) {
 				}
 				c := &AppConfig{}
 				if e := json.Unmarshal(plaintxt, c); e != nil {
-					slog.ErrorContext(nil, "[config.Init] key: AppConfig data format wrong", slog.String("error", e.Error()))
+					slog.Error("[config.Init] key: AppConfig data format wrong", slog.String("error", e.Error()))
 					continue
 				}
 				validateAppConfig(c)
 				AC = c
-				slog.InfoContext(nil, "[config.Init] update app config success", slog.Any("config", AC))
+				slog.Info("[config.Init] update app config success", slog.Any("config", AC))
 				if notice != nil {
 					notice(AC)
 				}
@@ -120,7 +120,7 @@ func Init(notice func(c *AppConfig)) {
 				if secret != "" {
 					plaintxt, e = secure.AesDecrypt(secret, sourcekey.CurValue)
 					if e != nil {
-						slog.ErrorContext(nil, "[config.Init] decrypt failed", slog.String("error", e.Error()))
+						slog.Error("[config.Init] decrypt failed", slog.String("error", e.Error()))
 						continue
 					}
 				} else {
@@ -128,10 +128,10 @@ func Init(notice func(c *AppConfig)) {
 				}
 				c := &sourceConfig{}
 				if e := json.Unmarshal(plaintxt, c); e != nil {
-					slog.ErrorContext(nil, "[config.Init] key: SourceConfig data format wrong", slog.String("error", e.Error()))
+					slog.Error("[config.Init] key: SourceConfig data format wrong", slog.String("error", e.Error()))
 					continue
 				}
-				slog.InfoContext(nil, "[config.remote.source] update source config success", slog.Any("config", c))
+				slog.Info("[config.remote.source] update source config success", slog.Any("config", c))
 				sc = c
 				sourceversion = sourcekey.CurVersion
 				initsource()
@@ -147,7 +147,7 @@ func Init(notice func(c *AppConfig)) {
 		case <-appch:
 		case <-sourcech:
 		case <-tmer.C:
-			slog.ErrorContext(nil, "[config.Init] timeout")
+			slog.Error("[config.Init] timeout")
 			os.Exit(1)
 		}
 		if AC != nil && sc != nil {
@@ -162,22 +162,22 @@ func InitInternal() {
 		secret = str
 	}
 	if len(secret) >= 32 {
-		slog.ErrorContext(nil, "[config.InitInternal] env CONFIG_SECRET length must < 32")
+		slog.Error("[config.InitInternal] env CONFIG_SECRET length must < 32")
 		os.Exit(1)
 	}
 	sctemplate, e := os.ReadFile("./SourceConfig.json")
 	if e != nil {
-		slog.ErrorContext(nil, "[config.InitInternal] read ./SourceConfig.json failed", slog.String("error", e.Error()))
+		slog.Error("[config.InitInternal] read ./SourceConfig.json failed", slog.String("error", e.Error()))
 		os.Exit(1)
 	}
 	tmpsc := &sourceConfig{}
 	if e := json.Unmarshal(sctemplate, tmpsc); e != nil {
-		slog.ErrorContext(nil, "[config.InitInternal] ./SourceConfig.json format wrong", slog.String("error", e.Error()))
+		slog.Error("[config.InitInternal] ./SourceConfig.json format wrong", slog.String("error", e.Error()))
 		os.Exit(1)
 	}
 	mongoc, ok := tmpsc.Mongo["admin_mongo"]
 	if !ok {
-		slog.ErrorContext(nil, "[config.InitInternal] ./SourceConfig.json missing mongo config for 'admin_mongo'")
+		slog.Error("[config.InitInternal] ./SourceConfig.json missing mongo config for 'admin_mongo'")
 		os.Exit(1)
 	}
 	mongoc.MongoName = "admin_mongo"
@@ -202,14 +202,14 @@ func InitInternal() {
 			for _, certpath := range mongoc.SpecificCAPaths {
 				cert, e := os.ReadFile(certpath)
 				if e != nil {
-					slog.ErrorContext(nil, "[config.InitInternal] read specific cert failed",
+					slog.Error("[config.InitInternal] read specific cert failed",
 						slog.String("mongo", "admin_mongo"),
 						slog.String("cert_path", certpath),
 						slog.String("error", e.Error()))
 					os.Exit(1)
 				}
 				if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
-					slog.ErrorContext(nil, "[config.InitInternal] specific cert load failed",
+					slog.Error("[config.InitInternal] specific cert load failed",
 						slog.String("mongo", "admin_mongo"),
 						slog.String("cert_path", certpath),
 						slog.String("error", e.Error()))
@@ -220,7 +220,7 @@ func InitInternal() {
 	}
 	db, e := mongo.NewMongo(mongoc.Config, tlsc)
 	if e != nil {
-		slog.ErrorContext(nil, "[config.InitInternal] new mongo failed", slog.String("mongo", "admin_mongo"), slog.String("error", e.Error()))
+		slog.Error("[config.InitInternal] new mongo failed", slog.String("mongo", "admin_mongo"), slog.String("error", e.Error()))
 		os.Exit(1)
 	}
 	if initinternal.InitDatabase(secret, db.Client) != nil {
@@ -229,7 +229,6 @@ func InitInternal() {
 	if Sdk, e = initinternal.InitWatch(secret, db.Client); e != nil {
 		os.Exit(1)
 	}
-	return
 }
 func StopInternal() {
 	Sdk.Stop()

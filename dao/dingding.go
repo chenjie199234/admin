@@ -62,18 +62,18 @@ func getDingDingToken() (*getDingDingTokenResp, error) {
 	reqbody, _ := json.Marshal(req)
 	resp, e := DingDingWebClient.Post(context.Background(), "/v1.0/oauth2/accessToken", "", header, nil, reqbody)
 	if e != nil {
-		slog.ErrorContext(nil, "[getDingDingToken] call failed", slog.String("error", e.Error()))
+		slog.Error("[getDingDingToken] call failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	defer resp.Body.Close()
 	respbody, e := io.ReadAll(resp.Body)
 	if e != nil {
-		slog.ErrorContext(nil, "[getDingDingToken] read response body failed", slog.String("error", e.Error()))
+		slog.Error("[getDingDingToken] read response body failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	r := &getDingDingTokenResp{}
 	if e = json.Unmarshal(respbody, r); e != nil {
-		slog.ErrorContext(nil, "[getDingDingToken] response body decode failed", slog.String("error", e.Error()))
+		slog.Error("[getDingDingToken] response body decode failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	return r, nil

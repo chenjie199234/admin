@@ -17,13 +17,14 @@ import (
 func (d *Dao) MongoUserLogin(ctx context.Context, mobile, oauth2username, oauth2type string) (bson.ObjectID, error) {
 	filter := bson.M{"mobile": mobile}
 	updater := bson.M{}
-	if oauth2type == "FeiShu" {
+	switch oauth2type {
+	case "FeiShu":
 		updater["feishu_user_name"] = oauth2username
-	} else if oauth2type == "DingDing" {
+	case "DingDing":
 		updater["dingding_user_name"] = oauth2username
-	} else if oauth2type == "WXWork" {
+	case "WXWork":
 		updater["wxwork_user_name"] = oauth2username
-	} else {
+	default:
 		return bson.NilObjectID, ecode.ErrReq
 	}
 	opts := options.FindOneAndUpdate().SetUpsert(true).SetProjection(bson.M{"_id": 1})

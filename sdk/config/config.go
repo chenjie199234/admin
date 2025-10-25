@@ -138,7 +138,7 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 		resp, e := instance.client.WatchConfig(instance.ctx, &api.WatchConfigReq{ProjectName: selfprojectname, GName: selfappgroup, AName: selfappname, Keys: keys}, header)
 		if e != nil {
 			if !cerror.Equal(e, cerror.ErrCanceled) {
-				slog.ErrorContext(nil, "[ConfigSdk.watch] failed", slog.Any("watch_keys", keys), slog.String("error", e.Error()))
+				slog.Error("[ConfigSdk.watch] failed", slog.Any("watch_keys", keys), slog.String("error", e.Error()))
 				time.Sleep(time.Millisecond * 100)
 			}
 			instance.cancel()
@@ -158,14 +158,14 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 			}
 			if data.Version == 0 {
 				broken = true
-				slog.ErrorContext(nil, "[ConfigSdk.watch] key's value's version == 0", slog.String("key", data.Key))
+				slog.Error("[ConfigSdk.watch] key's value's version == 0", slog.String("key", data.Key))
 				continue
 			}
 			if instance.secret != "" {
 				plaintext, e := secure.AesDecrypt(instance.secret, data.Value)
 				if e != nil {
 					broken = true
-					slog.ErrorContext(nil, "[ConfigSdk.watch] decrypt keys's value failed", slog.String("key", data.Key), slog.String("error", e.Error()))
+					slog.Error("[ConfigSdk.watch] decrypt keys's value failed", slog.String("key", data.Key), slog.String("error", e.Error()))
 					continue
 				}
 				data.Value = common.BTS(plaintext)

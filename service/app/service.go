@@ -939,9 +939,10 @@ func (s *Service) WatchDiscover(ctx context.Context, req *api.WatchDiscoverReq) 
 			}
 			needreturn := app.DiscoverMode != req.CurDiscoverMode || app.CrpcPort != req.CurCrpcPort || app.WebPort != req.CurWebPort || app.CGrpcPort != req.CurCgrpcPort
 			if !needreturn {
-				if app.DiscoverMode == "dns" {
+				switch app.DiscoverMode {
+				case "dns":
 					needreturn = app.DnsHost != req.CurDnsHost || app.DnsInterval != req.CurDnsInterval
-				} else if app.DiscoverMode == "static" {
+				case "static":
 					for _, addr := range app.StaticAddrs {
 						if !slices.Contains(req.CurStaticAddrs, addr) {
 							needreturn = true
@@ -952,7 +953,7 @@ func (s *Service) WatchDiscover(ctx context.Context, req *api.WatchDiscoverReq) 
 							needreturn = true
 						}
 					}
-				} else if app.DiscoverMode == "kubernetes" {
+				case "kubernetes":
 					needreturn = app.KubernetesNs != req.CurKubernetesNamespace ||
 						app.KubernetesFS != req.CurKubernetesFieldselector ||
 						app.KubernetesLS != req.CurKubernetesLabelselector

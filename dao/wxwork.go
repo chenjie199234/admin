@@ -55,23 +55,23 @@ func getWXWorkAccessToken() (*getWXWorkAccessTokenResp, error) {
 	query := "corpid=" + c.WXWorkCorpID + "&corpsecret=" + c.WXWorkCorpSecret
 	resp, e := WXWorkWebClient.Get(context.Background(), "/cgi-bin/gettoken", query, nil, nil)
 	if e != nil {
-		slog.ErrorContext(nil, "[getWXWorkAccessToken] call failed", slog.String("error", e.Error()))
+		slog.Error("[getWXWorkAccessToken] call failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	defer resp.Body.Close()
 	respbody, e := io.ReadAll(resp.Body)
 	if e != nil {
-		slog.ErrorContext(nil, "[getWXWorkAccessToken] read response body failed", slog.String("error", e.Error()))
+		slog.Error("[getWXWorkAccessToken] read response body failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	r := &getWXWorkAccessTokenResp{}
 	if e = json.Unmarshal(respbody, r); e != nil {
-		slog.ErrorContext(nil, "[getWXWorkAccessToken] response body decode failed", slog.String("error", e.Error()))
+		slog.Error("[getWXWorkAccessToken] response body decode failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	if r.Code != 0 {
 		e = cerror.MakeCError(r.Code, 500, r.Msg)
-		slog.ErrorContext(nil, "[getWXWorkAccessToken] failed", slog.String("error", e.Error()))
+		slog.Error("[getWXWorkAccessToken] failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	return r, nil

@@ -177,22 +177,22 @@ func (s *DiscoverSdk) watch(project, group, app string, once chan *struct{}) {
 			if cerror.Equal(e, cerror.ErrCanceled) {
 				return
 			}
-			slog.ErrorContext(nil, "[discover.admin] watch failed", slog.String("target", s.target), slog.String("error", e.Error()))
+			slog.Error("[discover.admin] watch failed", slog.String("target", s.target), slog.String("error", e.Error()))
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
 		if resp.DiscoverMode == "dns" && (resp.DnsHost == "" || resp.DnsInterval == 0) {
-			slog.ErrorContext(nil, "[discover.admin] dns setting broken", slog.String("target", s.target))
+			slog.Error("[discover.admin] dns setting broken", slog.String("target", s.target))
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
 		if resp.DiscoverMode == "Static" && len(resp.StaticAddrs) == 0 {
-			slog.ErrorContext(nil, "[discover.admin] static setting broken", slog.String("target", s.target))
+			slog.Error("[discover.admin] static setting broken", slog.String("target", s.target))
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
 		if resp.DiscoverMode == "kubernetes" && (resp.KubernetesNamespace == "" || (resp.KubernetesFieldselector == "" && resp.KubernetesLabelselector == "")) {
-			slog.ErrorContext(nil, "[discover.admin] kubernetes setting broken", slog.String("target", s.target))
+			slog.Error("[discover.admin] kubernetes setting broken", slog.String("target", s.target))
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
@@ -232,13 +232,13 @@ func (s *DiscoverSdk) run(project, group, app string, once chan *struct{}) {
 			case "kubernetes":
 				s.di, e = cdiscover.NewKubernetesDiscover(project, group, app, s.kubernetesns, s.kubernetesfs, s.kubernetesls, int(s.crpcport), int(s.cgrpcport), int(s.webport))
 			default:
-				slog.ErrorContext(nil, "[discover.admin] unknown discover type", slog.String("target", s.target))
+				slog.Error("[discover.admin] unknown discover type", slog.String("target", s.target))
 				time.Sleep(time.Millisecond * 100)
 				s.lker.Unlock()
 				continue
 			}
 			if e != nil {
-				slog.ErrorContext(nil, "[discover.admin] create discover failed", slog.String("target", s.target))
+				slog.Error("[discover.admin] create discover failed", slog.String("target", s.target))
 				time.Sleep(time.Millisecond * 100)
 				s.lker.Unlock()
 				continue

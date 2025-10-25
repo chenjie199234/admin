@@ -131,7 +131,7 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 	switch summary.DiscoverMode {
 	case "kubernetes":
 		if summary.KubernetesNs == "" || summary.KubernetesLS == "" {
-			slog.ErrorContext(nil, "[InitWatch] discover info broken",
+			slog.Error("[InitWatch] discover info broken",
 				slog.String("project_id", summary.ProjectID),
 				slog.String("project_name", summary.ProjectName),
 				slog.String("group", summary.Group),
@@ -149,7 +149,7 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 				int(summary.CGrpcPort),
 				int(summary.WebPort))
 			if e != nil {
-				slog.ErrorContext(nil, "[InitWatch] new discover failed",
+				slog.Error("[InitWatch] new discover failed",
 					slog.String("project_id", summary.ProjectID),
 					slog.String("project_name", summary.ProjectName),
 					slog.String("group", summary.Group),
@@ -161,7 +161,7 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 		}
 	case "dns":
 		if summary.DnsHost == "" || summary.DnsInterval <= 0 {
-			slog.ErrorContext(nil, "[InitWatch] discover info broken",
+			slog.Error("[InitWatch] discover info broken",
 				slog.String("project_id", summary.ProjectID),
 				slog.String("project_name", summary.ProjectName),
 				slog.String("group", summary.Group),
@@ -179,7 +179,7 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 				int(summary.CGrpcPort),
 				int(summary.WebPort))
 			if e != nil {
-				slog.ErrorContext(nil, "[InitWatch] new discover failed",
+				slog.Error("[InitWatch] new discover failed",
 					slog.String("project_id", summary.ProjectID),
 					slog.String("project_name", summary.ProjectName),
 					slog.String("group", summary.Group),
@@ -191,7 +191,7 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 		}
 	case "static":
 		if len(summary.StaticAddrs) == 0 {
-			slog.ErrorContext(nil, "[InitWatch] discover info broken",
+			slog.Error("[InitWatch] discover info broken",
 				slog.String("project_id", summary.ProjectID),
 				slog.String("project_name", summary.ProjectName),
 				slog.String("group", summary.Group),
@@ -207,7 +207,7 @@ func createdi(summary *model.AppSummary) (discover.DI, error) {
 				int(summary.CGrpcPort),
 				int(summary.WebPort))
 			if e != nil {
-				slog.ErrorContext(nil, "[InitWatch] new discover failed",
+				slog.Error("[InitWatch] new discover failed",
 					slog.String("project_id", summary.ProjectID),
 					slog.String("project_name", summary.ProjectName),
 					slog.String("group", summary.Group),
@@ -227,13 +227,13 @@ func (s *InternalSdk) mongoGetAllApp() error {
 	opts := options.Collection().SetReadPreference(readpref.Primary()).SetReadConcern(readconcern.Local())
 	cursor, e := s.db.Database("app").Collection("config", opts).Find(context.Background(), filter)
 	if e != nil {
-		slog.ErrorContext(nil, "[InitWatch] get all app config failed", slog.String("error", e.Error()))
+		slog.Error("[InitWatch] get all app config failed", slog.String("error", e.Error()))
 		return e
 	}
 	defer cursor.Close(context.Background())
 	apps := make([]*model.AppSummary, 0, cursor.RemainingBatchLength())
 	if e := cursor.All(context.Background(), &apps); e != nil {
-		slog.ErrorContext(nil, "[InitWatch] get all app config failed", slog.String("error", e.Error()))
+		slog.Error("[InitWatch] get all app config failed", slog.String("error", e.Error()))
 		return e
 	}
 	for _, v := range apps {
@@ -266,7 +266,7 @@ func (s *InternalSdk) watch(ctx context.Context) {
 			var e error
 			opts := options.ChangeStream().SetFullDocument(options.UpdateLookup).SetStartAtOperationTime(s.start)
 			if stream, e = s.db.Database("app").Collection("config").Watch(ctx, mongo.Pipeline{}, opts); e != nil {
-				slog.ErrorContext(nil, "[InitWatch] get stream failed", slog.String("error", e.Error()))
+				slog.Error("[InitWatch] get stream failed", slog.String("error", e.Error()))
 				stream = nil
 				time.Sleep(time.Millisecond * 100)
 				continue
@@ -278,7 +278,7 @@ func (s *InternalSdk) watch(ctx context.Context) {
 			switch stream.Current.Lookup("operationType").StringValue() {
 			case "drop":
 				//drop collection
-				slog.ErrorContext(nil, "[InitWatch] all configs deleted")
+				slog.Error("[InitWatch] all configs deleted")
 				s.lker.Lock()
 				for _, v := range s.apps {
 					app := v
@@ -324,14 +324,14 @@ func (s *InternalSdk) watch(ctx context.Context) {
 				//this is the app summary
 				summary := &model.AppSummary{}
 				if e := stream.Current.Lookup("fullDocument").Unmarshal(summary); e != nil {
-					slog.ErrorContext(nil, "[InitWatch] document format wrong",
+					slog.Error("[InitWatch] document format wrong",
 						slog.String("project_id", projectid),
 						slog.String("group", gname),
 						slog.String("app", aname),
 						slog.String("error", e.Error()))
 					continue
 				}
-				slog.DebugContext(nil, "[InitWatch] updated",
+				slog.Debug("[InitWatch] updated",
 					slog.String("project_id", summary.ProjectID),
 					slog.String("group", summary.Group),
 					slog.String("app", summary.App),
@@ -386,7 +386,7 @@ func (s *InternalSdk) watch(ctx context.Context) {
 						}
 					}
 					if discoverchanged {
-						slog.DebugContext(nil, "[InitWatch] discover changed",
+						slog.Debug("[InitWatch] discover changed",
 							slog.String("project_id", projectid),
 							slog.String("group", gname),
 							slog.String("app", aname))
@@ -434,7 +434,7 @@ func (s *InternalSdk) watch(ctx context.Context) {
 				delete(s.appsIDIndex, exist.summary.ProjectID+"-"+exist.summary.Group+"."+exist.summary.App)
 				exist.Lock()
 				s.lker.Unlock()
-				slog.DebugContext(nil, "[InitWatch] deleted",
+				slog.Debug("[InitWatch] deleted",
 					slog.String("project_id", exist.summary.ProjectID),
 					slog.String("group", exist.summary.Group),
 					slog.String("app", exist.summary.App))
@@ -456,9 +456,9 @@ func (s *InternalSdk) watch(ctx context.Context) {
 			}
 		}
 		if stream.Err() != nil {
-			slog.ErrorContext(nil, "[InitWatch] stream disconnected", slog.String("error", stream.Err().Error()))
+			slog.Error("[InitWatch] stream disconnected", slog.String("error", stream.Err().Error()))
 		}
-		stream.Close(nil)
+		stream.Close(context.Background())
 		stream = nil
 	}
 }

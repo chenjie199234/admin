@@ -3,10 +3,10 @@ module github.com/chenjie199234/admin
 go 1.25.0
 
 require (
-	github.com/chenjie199234/Corelib v0.0.140-0.20251025141436-3f92ac8c580e
+	github.com/chenjie199234/Corelib v0.0.140-0.20251113043021-20f17acf4a9d
 	github.com/go-sql-driver/mysql v1.9.3
-	github.com/redis/go-redis/v9 v9.14.1
-	go.mongodb.org/mongo-driver/v2 v2.3.1
+	github.com/redis/go-redis/v9 v9.16.0
+	go.mongodb.org/mongo-driver/v2 v2.4.0
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
@@ -49,7 +49,7 @@ require (
 	github.com/prometheus/common v0.66.0 // indirect
 	github.com/prometheus/otlptranslator v0.0.2 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
-	github.com/shirou/gopsutil/v4 v4.25.9 // indirect
+	github.com/shirou/gopsutil/v4 v4.25.10 // indirect
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
@@ -78,7 +78,7 @@ require (
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/term v0.34.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.9.0 // indirect

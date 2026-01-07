@@ -46,20 +46,18 @@ func (s *Service) Ping(ctx context.Context, in *api.Pingreq) (*api.Pingresp, err
 	//if _, ok := ctx.(*web.Context); ok {
 	//        Slog.InfoContext("this is a web call")
 	//}
-	totalmem, lastmem, maxmem := cotel.GetMEM()
-	lastcpu, maxcpu, avgcpu := cotel.GetCPU()
+	cpu, cpuu, cput, mem, memu, memt := cotel.GetCpuMemUsage()
 	return &api.Pingresp{
 		ClientTimestamp: in.Timestamp,
 		ServerTimestamp: time.Now().UnixNano(),
-		TotalMem:        totalmem,
-		CurMemUsage:     lastmem,
-		MaxMemUsage:     maxmem,
-		CpuNum:          cotel.CPUNum,
-		CurCpuUsage:     lastcpu,
-		AvgCpuUsage:     avgcpu,
-		MaxCpuUsage:     maxcpu,
 		Host:            host.Hostname,
 		Ip:              host.Hostip,
+		CpuNum:          cpu,
+		CpuUsage:        cpuu,
+		CpuType:         cput,
+		MemTotal:        mem,
+		MemUsage:        memu,
+		MemType:         memt,
 	}, nil
 }
 

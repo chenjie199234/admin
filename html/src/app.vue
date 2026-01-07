@@ -1146,17 +1146,17 @@ function is_json_obj(str :string):boolean{
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuUsage</span>
 						<VaDivider vertical />
-						<span>{{(instances.get(instanceaddr)!.cur_cpu_usage*100).toFixed(2)}}%</span>
+						<span>{{(instances.get(instanceaddr)!.cpu_usage).toFixed(2)}}%</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemTotal</span>
 						<VaDivider vertical />
-						<span>{{(Number(instances.get(instanceaddr)!.total_mem)/1024/1024).toFixed(2)}}MB</span>
+						<span>{{(Number(instances.get(instanceaddr)!.mem_total)/1024/1024).toFixed(2)}}MB</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemUsage</span>
 						<VaDivider vertical />
-						<span>{{(Number(instances.get(instanceaddr)!.cur_mem_usage)/Number(instances.get(instanceaddr)!.total_mem)*100).toFixed(2)}}%</span>
+						<span>{{(instances.get(instanceaddr)!.mem_usage).toFixed(2)}}%</span>
 					</div>
 				</div>
 			</div>

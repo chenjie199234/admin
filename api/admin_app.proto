@@ -255,10 +255,12 @@ message watch_discover_resp{
 //instance
 message instance_info{
 	string name=1;
-	uint64 total_mem=2;
-	uint64 cur_mem_usage=3;
-	double cpu_num=4;
-	double cur_cpu_usage=5;
+	double cpu_num=2;
+	double cpu_usage=3;
+	string cpu_type=4;
+	uint64 mem_total=5;
+	double mem_usage=6;
+	string mem_type=7;
 }
 message get_instances_req{
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];

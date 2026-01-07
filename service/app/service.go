@@ -1035,11 +1035,13 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 				return nil
 			}
 			resp.Instances[addr] = &api.InstanceInfo{
-				Name:        r.Host,
-				TotalMem:    r.TotalMem,
-				CurMemUsage: r.CurMemUsage,
-				CpuNum:      r.CpuNum,
-				CurCpuUsage: r.CurCpuUsage,
+				Name:     r.Host,
+				CpuNum:   r.CpuNum,
+				CpuUsage: r.CpuUsage,
+				CpuType:  r.CpuType,
+				MemTotal: r.MemTotal,
+				MemUsage: r.MemUsage,
+				MemType:  r.MemType,
 			}
 			return nil
 		})
@@ -1082,11 +1084,13 @@ func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoR
 	}
 	return &api.GetInstanceInfoResp{
 		Info: &api.InstanceInfo{
-			Name:        r.Host,
-			TotalMem:    r.TotalMem,
-			CurMemUsage: r.CurMemUsage,
-			CpuNum:      r.CpuNum,
-			CurCpuUsage: r.CurCpuUsage,
+			Name:     r.Host,
+			CpuNum:   r.CpuNum,
+			CpuUsage: r.CpuUsage,
+			CpuType:  r.CpuType,
+			MemTotal: r.MemTotal,
+			MemUsage: r.MemUsage,
+			MemType:  r.MemType,
 		},
 	}, nil
 }

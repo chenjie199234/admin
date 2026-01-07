@@ -152,6 +152,7 @@ function get_instances(withinfo: boolean){
 		state.set_alert("error",e.code,e.msg)
 	},(resp: appAPI.GetInstancesResp)=>{
 		if(resp.instances){
+		console.log(resp.instances)
 			instances.value=new Map()
 			let tmp = [...resp.instances.entries()].sort()
 			for(let i=0;i<tmp.length;i++){
@@ -1121,7 +1122,7 @@ function is_json_obj(str :string):boolean{
 				No Instances
 			</div>
 			<div v-for="instanceaddr of instances.keys()"
-				style="position:relative;width:300px;height:150px;margin:5px;border:1px solid var(--va-primary);border-radius:5px">
+				style="position:relative;width:300px;height:170px;margin:5px;border:1px solid var(--va-primary);border-radius:5px">
 				<VaButton style="position:absolute;right:1px;top:1px" size="small" gradient @click="get_instance(instanceaddr)">refresh</VaButton>
 				<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-around">
 					<div style="margin:1px;display:flex">
@@ -1139,6 +1140,11 @@ function is_json_obj(str :string):boolean{
 						</div>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">CpuType</span>
+						<VaDivider vertical />
+						<span>{{instances.get(instanceaddr)!.cpu_type}}</span>
+					</div>
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuNum</span>
 						<VaDivider vertical />
 						<span>{{instances.get(instanceaddr)!.cpu_num}}</span>
@@ -1146,7 +1152,12 @@ function is_json_obj(str :string):boolean{
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuUsage</span>
 						<VaDivider vertical />
-						<span>{{(instances.get(instanceaddr)!.cpu_usage).toFixed(2)}}%</span>
+						<span>{{Number(instances.get(instanceaddr)!.cpu_usage).toFixed(2)}}%</span>
+					</div>
+					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">MemType</span>
+						<VaDivider vertical />
+						<span>{{instances.get(instanceaddr)!.mem_type}}</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemTotal</span>
@@ -1156,7 +1167,7 @@ function is_json_obj(str :string):boolean{
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemUsage</span>
 						<VaDivider vertical />
-						<span>{{(instances.get(instanceaddr)!.mem_usage).toFixed(2)}}%</span>
+						<span>{{Number(instances.get(instanceaddr)!.mem_usage).toFixed(2)}}%</span>
 					</div>
 				</div>
 			</div>

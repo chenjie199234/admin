@@ -179,6 +179,5 @@ goto :eof
 	echo    kube                      Update kubernetes config.
 	echo    html                      Create html template.
 	echo    h/-h/help/-help/--help    Show this message.
-
 :end
 exit /b 0

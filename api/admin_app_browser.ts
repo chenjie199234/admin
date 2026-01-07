@@ -297,7 +297,7 @@ export class GetKeyConfigResp{
 	}
 }
 export class InstanceInfo{
-	name: string = ''//only name now
+	name: string = ''
 	cpu_num: number = 0
 	cpu_usage: number = 0
 	cpu_type: string = ''

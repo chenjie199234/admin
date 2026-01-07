@@ -1687,7 +1687,7 @@ func (x *WatchDiscoverResp) GetWebPort() uint32 {
 // instance
 type InstanceInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` //only name now
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	CpuNum        float64                `protobuf:"fixed64,2,opt,name=cpu_num,json=cpuNum,proto3" json:"cpu_num,omitempty"`
 	CpuUsage      float64                `protobuf:"fixed64,3,opt,name=cpu_usage,json=cpuUsage,proto3" json:"cpu_usage,omitempty"`
 	CpuType       string                 `protobuf:"bytes,4,opt,name=cpu_type,json=cpuType,proto3" json:"cpu_type,omitempty"`

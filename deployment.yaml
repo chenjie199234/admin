@@ -23,6 +23,18 @@ spec:
       labels:
         app: admin
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{.AppName}}
+              topologyKey: kubernetes.io/hostname
       containers:
         - name: admin
           image: <IMAGE>
@@ -87,8 +99,6 @@ spec:
             periodSeconds: 1
             successThreshold: 1
             failureThreshold: 3
-      imagePullSecrets:
-        - name: <PROJECT>-<GROUP>-image-pull-secret
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -109,19 +119,23 @@ spec:
       resource:
         name: memory
         target:
+          # the Utilization is based on the requests not the limits
+          # so we use AverageValue and set the value close to the limits
           type: AverageValue
           averageValue: 3500Mi
     - type: Resource
       resource:
         name: cpu
         target:
+          # the Utilization is based on the requests not the limits
+          # so we use AverageValue and set the value close to the limits
           type: AverageValue
           averageValue: 3400m
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: admin-headless
+  name: admin-service-headless
   namespace: <PROJECT>-<GROUP>
   labels:
     app: admin
@@ -141,7 +155,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: admin
+  name: admin-service
   namespace: <PROJECT>-<GROUP>
   labels:
     app: admin
@@ -168,7 +182,7 @@ spec:
     - host: <HOST>
       http:
         paths:
-          - path: /admin.*
+          - path: /admin\..*
             pathType: Prefix
             backend:
               service:

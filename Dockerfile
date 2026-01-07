@@ -1,4 +1,4 @@
-FROM golang:1.25.0 as builder
+FROM golang:1.25.5 as builder
 ENV GOSUMDB='off' \
 	GOOS='linux' \
 	GOARCH='amd64' \
@@ -9,8 +9,8 @@ ADD . /code
 WORKDIR /code
 RUN echo "start build" && go mod tidy && go build -o main && echo "end build"
 
-FROM debian:stable
-RUN apt-get update && apt-get install -y ca-certificates curl inetutils-telnet inetutils-ping inetutils-traceroute dnsutils iproute2 procps net-tools neovim && mkdir /root/app
+FROM alpine:3.23.2
+RUN mkdir /root/app
 WORKDIR /root/app
 EXPOSE 6060 7000 8000 9000 10000
 COPY --from=builder /code/main /code/AppConfig.json /code/SourceConfig.json ./

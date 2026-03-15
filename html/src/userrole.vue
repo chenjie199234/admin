@@ -1,9 +1,63 @@
 <script setup lang="ts">
 import {ref,computed} from 'vue'
-import * as userAPI from './api/admin_user_browser'
-import * as permissionAPI from './api/admin_permission_browser'
 import * as state from './state'
-import * as client from './client'
+
+import {UserInfo} from '@api/browser_message_admin_UserInfo'
+import {RoleInfo} from '@api/browser_message_admin_RoleInfo'
+import {NodeInfo} from '@api/browser_message_admin_NodeInfo'
+import {ProjectRoles} from '@api/browser_message_admin_ProjectRoles'
+
+import {SearchUsersReq} from '@api/browser_message_admin_SearchUsersReq'
+import {SearchUsersResp} from '@api/browser_message_admin_SearchUsersResp'
+import {SearchUsers} from '@api/browser_method_admin_User_SearchUsers'
+
+import {SearchRolesReq} from '@api/browser_message_admin_SearchRolesReq'
+import {SearchRolesResp} from '@api/browser_message_admin_SearchRolesResp'
+import {SearchRoles} from '@api/browser_method_admin_User_SearchRoles'
+
+import {InviteProjectReq} from '@api/browser_message_admin_InviteProjectReq'
+import {InviteProjectResp} from '@api/browser_message_admin_InviteProjectResp'
+import {InviteProject} from '@api/browser_method_admin_User_InviteProject'
+
+import {KickProjectReq} from '@api/browser_message_admin_KickProjectReq'
+import {KickProjectResp} from '@api/browser_message_admin_KickProjectResp'
+import {KickProject} from '@api/browser_method_admin_User_KickProject'
+
+import {CreateRoleReq} from '@api/browser_message_admin_CreateRoleReq'
+import {CreateRoleResp} from '@api/browser_message_admin_CreateRoleResp'
+import {CreateRole} from '@api/browser_method_admin_User_CreateRole'
+
+import {UpdateRoleReq} from '@api/browser_message_admin_UpdateRoleReq'
+import {UpdateRoleResp} from '@api/browser_message_admin_UpdateRoleResp'
+import {UpdateRole} from '@api/browser_method_admin_User_UpdateRole'
+
+import {DelRolesReq} from '@api/browser_message_admin_DelRolesReq'
+import {DelRolesResp} from '@api/browser_message_admin_DelRolesResp'
+import {DelRoles} from '@api/browser_method_admin_User_DelRoles'
+
+import {DelUserRoleReq} from '@api/browser_message_admin_DelUserRoleReq'
+import {DelUserRoleResp} from '@api/browser_message_admin_DelUserRoleResp'
+import {DelUserRole} from '@api/browser_method_admin_User_DelUserRole'
+
+import {AddUserRoleReq} from '@api/browser_message_admin_AddUserRoleReq'
+import {AddUserRoleResp} from '@api/browser_message_admin_AddUserRoleResp'
+import {AddUserRole} from '@api/browser_method_admin_User_AddUserRole'
+
+import {ListUserNodeReq} from '@api/browser_message_admin_ListUserNodeReq'
+import {ListUserNodeResp} from '@api/browser_message_admin_ListUserNodeResp'
+import {ListUserNode} from '@api/browser_method_admin_Permission_ListUserNode'
+
+import {UpdateUserPermissionReq} from '@api/browser_message_admin_UpdateUserPermissionReq'
+import {UpdateUserPermissionResp} from '@api/browser_message_admin_UpdateUserPermissionResp'
+import {UpdateUserPermission} from '@api/browser_method_admin_Permission_UpdateUserPermission'
+
+import {ListRoleNodeReq} from '@api/browser_message_admin_ListRoleNodeReq'
+import {ListRoleNodeResp} from '@api/browser_message_admin_ListRoleNodeResp'
+import {ListRoleNode} from '@api/browser_method_admin_Permission_ListRoleNode'
+
+import {UpdateRolePermissionReq} from '@api/browser_message_admin_UpdateRolePermissionReq'
+import {UpdateRolePermissionResp} from '@api/browser_message_admin_UpdateRolePermissionResp'
+import {UpdateRolePermission} from '@api/browser_method_admin_Permission_UpdateRolePermission'
 
 import nodetree from './nodetree.vue'
 
@@ -19,10 +73,10 @@ const target=ref<string>("User")
 const range=ref<string>("This Project")
 const search=ref<string>("")
 
-const users=ref<userAPI.UserInfo[]>([])
-const userhover=ref<userAPI.UserInfo|null>(null)
-function user_bindstyle(user: userAPI.UserInfo){
-	let style={}
+const users=ref<UserInfo[]>([])
+const userhover=ref<UserInfo|null>(null)
+function user_bindstyle(user: UserInfo){
+	let style:Record<string, string>={}
 	if(user==userhover.value&&invited(user)){
 		style["background-color"]="var(--va-shadow)"
 	}else{
@@ -33,19 +87,19 @@ function user_bindstyle(user: userAPI.UserInfo){
 	}
 	return style
 }
-const roles=ref<userAPI.RoleInfo[]>([])
-const rolehover=ref<userAPI.RoleInfo|null>(null)
+const roles=ref<RoleInfo[]>([])
+const rolehover=ref<RoleInfo|null>(null)
 const page=ref<number>(1)//start from 1
 const pagesize=ref<number>(0)
 const totalsize=ref<number>(0)
-function user_has_role(user: userAPI.UserInfo,role: userAPI.RoleInfo):boolean{
+function user_has_role(user: UserInfo,role: RoleInfo):boolean{
 	if(!user.project_roles![0]!.roles){
 		return false
 	}
-	return user.project_roles![0]!.roles!.includes(role.role_name)
+	return user.project_roles![0]!.roles!.includes(role.role_name!)
 }
 
-function invited(user: userAPI.UserInfo):boolean{
+function invited(user: UserInfo):boolean{
 	if(!user){
 		return false
 	}
@@ -67,29 +121,29 @@ function invited(user: userAPI.UserInfo):boolean{
 }
 
 //user
-const cur_user=ref<userAPI.UserInfo|null>(null)
-const invite_kick_user=ref<userAPI.UserInfo|null>(null)
+const cur_user=ref<UserInfo|null>(null)
+const invite_kick_user=ref<UserInfo|null>(null)
 const update_user_delete_role_rolename=ref<string>("")
 
 //role
 const create_role_name=ref<string>("")
 const create_role_comment=ref<string>("")
 
-const cur_role=ref<userAPI.RoleInfo|null>(null)
-const del_role=ref<userAPI.RoleInfo|null>(null)
-const update_role=ref<userAPI.RoleInfo|null>(null)
+const cur_role=ref<RoleInfo|null>(null)
+const del_role=ref<RoleInfo|null>(null)
+const update_role=ref<RoleInfo|null>(null)
 const update_role_comment=ref<string>("")
 
 //add user role
 const add_user_role_search=ref<string>("")
-const add_user_role_user=ref<userAPI.UserInfo|null>(null)
-const add_user_role_role=ref<userAPI.RoleInfo|null>(null)
+const add_user_role_user=ref<UserInfo|null>(null)
+const add_user_role_role=ref<RoleInfo|null>(null)
 
 //permission node
 const node_from=ref<string|null>(null)//empty means from current user,not empty means from specific role
-const user_node=ref<permissionAPI.NodeInfo|null>(null)
-const role_node=ref<permissionAPI.NodeInfo|null>(null)
-const update_node=ref<permissionAPI.NodeInfo|null>(null)
+const user_node=ref<NodeInfo|null>(null)
+const role_node=ref<NodeInfo|null>(null)
+const update_node=ref<NodeInfo|null>(null)
 const canread=ref<boolean>(false)
 const canwrite=ref<boolean>(false)
 const admin=ref<boolean>(false)
@@ -102,293 +156,319 @@ function op(){
 	}
 	switch(optype.value){
 		case "search_user":{
-			let req=new userAPI.SearchUsersReq()
+			let req=new SearchUsersReq()
 			req.project_id=state.project.info!.project_id
 			req.user_name=search.value
 			req.only_project=range.value=="This Project"
 			req.page=page.value
-			client.userClient.search_users({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
+			SearchUsers(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof SearchUsersResp){
+				  roles.value=[]
+				  if(resp.users){
+					  let tmp:UserInfo[]=[]
+					  for(let i=0;i<resp.users.length;i++){
+						  if(resp.users[i]){
+							  tmp.push(resp.users[i]!)
+						  }
+					  }
+					  users.value=tmp
+				  }else{
+					  users.value=[]
+				  }
+				  page.value=resp.page!
+				  pagesize.value=resp.pagesize!
+				  totalsize.value=resp.totalsize!
+				  cur_user.value=null
+				  cur_role.value=null
+				  state.clear_load()
+			  }else{
 				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(resp :userAPI.SearchUsersResp)=>{
-				roles.value=[]
-				if(resp.users){
-					let tmp:userAPI.UserInfo[]=[]
-					for(let i=0;i<resp.users.length;i++){
-						if(resp.users[i]){
-							tmp.push(resp.users[i]!)
-						}
-					}
-					users.value=tmp
-				}else{
-					users.value=[]
-				}
-				page.value=resp.page
-				pagesize.value=resp.pagesize
-				totalsize.value=resp.totalsize
-				cur_user.value=null
-				cur_role.value=null
-				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "search_role":{
-			let req=new userAPI.SearchRolesReq()
+			let req=new SearchRolesReq()
 			req.project_id=state.project.info!.project_id
 			req.role_name=search.value
 			req.page=page.value
-			client.userClient.search_roles({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(resp :userAPI.SearchRolesResp)=>{
+			SearchRoles(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof SearchRolesResp){
 				users.value=[]
 				if(resp.roles){
-					let tmp:userAPI.RoleInfo[]=[]
-					for(let i=0;i<resp.roles.length;i++){
-						if(resp.roles[i]){
-							tmp.push(resp.roles[i]!)
-						}
+				  let tmp:RoleInfo[]=[]
+				  for(let i=0;i<resp.roles.length;i++){
+					if(resp.roles[i]){
+					  tmp.push(resp.roles[i]!)
 					}
-					roles.value=tmp
+				  }
+				  roles.value=tmp
 				}else{
-					roles.value=[]
+				  roles.value=[]
 				}
-				page.value=resp.page
-				pagesize.value=resp.pagesize
-				totalsize.value=resp.totalsize
+				page.value=resp.page!
+				pagesize.value=resp.pagesize!
+				totalsize.value=resp.totalsize!
 				cur_role.value=null
 				cur_user.value=null
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "invite":{
-			let req=new userAPI.InviteProjectReq()
+			let req=new InviteProjectReq()
 			req.project_id=state.project.info!.project_id
 			req.user_id=invite_kick_user.value!.user_id
-			client.userClient.invite_project({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: userAPI.InviteProjectResp)=>{
-				let tmp = new userAPI.ProjectRoles()
+			InviteProject(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof InviteProjectResp){
+				let tmp = new ProjectRoles()
 				tmp.project_id=state.project.info!.project_id
 				tmp.roles=[]
 				invite_kick_user.value!.project_roles=[tmp]
 				ing.value=false
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "kick":{
-			let req=new userAPI.KickProjectReq()
+			let req=new KickProjectReq()
 			req.project_id=state.project.info!.project_id
 			req.user_id=invite_kick_user.value!.user_id
-			client.userClient.kick_project({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: userAPI.KickProjectResp)=>{
+			KickProject(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof KickProjectResp){
 				if(range.value=="This Project"){
-					for(let i=0;i<users.value.length;i++){
-						if(users.value[i].user_id==invite_kick_user.value!.user_id){
-							users.value.splice(i,1)
-							break
-						}
+				  for(let i=0;i<users.value.length;i++){
+					if(users.value[i].user_id==invite_kick_user.value!.user_id){
+					  users.value.splice(i,1)
+					  break
 					}
-					if(cur_user.value&&cur_user.value.user_id==invite_kick_user.value!.user_id){
-						cur_user.value=null
-					}
+				  }
+				  if(cur_user.value&&cur_user.value.user_id==invite_kick_user.value!.user_id){
+					cur_user.value=null
+				  }
 				}else{
-					for(let i=0;i<invite_kick_user.value!.project_roles!.length;i++){
-						if(!invite_kick_user.value!.project_roles![i]){
-							continue
-						}
-						if(!invite_kick_user.value!.project_roles![i]!.project_id){
-							continue
-						}
-						if(invite_kick_user.value!.project_roles![i]!.project_id![1]==state.project.info!.project_id![1]){
-							invite_kick_user.value!.project_roles!.splice(i,1)
-							break
-						}
+				  for(let i=0;i<invite_kick_user.value!.project_roles!.length;i++){
+					if(!invite_kick_user.value!.project_roles![i]){
+					  continue
 					}
+					if(!invite_kick_user.value!.project_roles![i]!.project_id){
+					  continue
+					}
+					if(invite_kick_user.value!.project_roles![i]!.project_id![1]==state.project.info!.project_id![1]){
+					  invite_kick_user.value!.project_roles!.splice(i,1)
+					  break
+					}
+				  }
 				}
 				ing.value=false
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "create_role":{
-			let req=new userAPI.CreateRoleReq()
+			let req=new CreateRoleReq()
 			req.project_id=state.project.info!.project_id
 			req.role_name=create_role_name.value
 			req.comment=create_role_comment.value
-			client.userClient.create_role({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: userAPI.CreateRoleResp)=>{
+			CreateRole(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof CreateRoleResp){
 				create_role_name.value=""
 				create_role_comment.value=""
 				ing.value=false
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "update_role":{
-			let req=new userAPI.UpdateRoleReq()
+			let req=new UpdateRoleReq()
 			req.project_id=state.project.info!.project_id
 			req.role_name=update_role.value!.role_name
 			req.new_comment=update_role_comment.value
-			client.userClient.update_role({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: userAPI.UpdateRoleResp)=>{
+			UpdateRole(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof UpdateRoleResp){
 				update_role.value!.comment=update_role_comment.value
 				update_role_comment.value=""
 				ing.value=false
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "del_role":{
-			let req=new userAPI.DelRolesReq()
+			let req=new DelRolesReq()
 			req.project_id=state.project.info!.project_id
-			req.role_names=[del_role.value!.role_name]
-			client.userClient.del_roles({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: userAPI.DelRolesResp)=>{
+			req.role_names=[del_role.value!.role_name!]
+			DelRoles(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof DelRolesResp){
 				for(let i=0;i<roles.value.length;i++){
-					if(roles.value[i]==del_role.value){
-						roles.value.splice(i,1)
-						break
-					}
+				  if(roles.value[i]==del_role.value){
+					roles.value.splice(i,1)
+					break
+				  }
 				}
 				if(del_role.value==cur_role.value){
-					cur_role.value=null
+				  cur_role.value=null
 				}
 				del_role.value=null
 				ing.value=false
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "del_user_role":{
-			let req=new userAPI.DelUserRoleReq()
+			let req=new DelUserRoleReq()
 			req.project_id=state.project.info!.project_id
 			req.user_id=cur_user.value!.user_id
 			req.role_name=update_user_delete_role_rolename.value
-			client.userClient.del_user_role({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: userAPI.DelUserRoleResp)=>{
+			DelUserRole(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof DelUserRoleResp){
 				let index=cur_user.value!.project_roles![0]!.roles!.indexOf(update_user_delete_role_rolename.value)
 				if(index!=-1){
-					cur_user.value!.project_roles![0]!.roles!.splice(index,1)
+				  cur_user.value!.project_roles![0]!.roles!.splice(index,1)
 				}
 				if(node_from.value==update_user_delete_role_rolename.value){
-					node_from.value=null
+				  node_from.value=null
 				}
 				ing.value=false
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "add_user_role_missinguser":
 		case "add_user_role_missingrole":{
-			let req=new userAPI.AddUserRoleReq()
+			let req=new AddUserRoleReq()
 			req.project_id=state.project.info!.project_id
 			req.user_id=add_user_role_user.value!.user_id
 			req.role_name=add_user_role_role.value!.role_name
-			client.userClient.add_user_role({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: userAPI.AddUserRoleResp)=>{
+			AddUserRole(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof AddUserRoleResp){
 				if(!add_user_role_user.value!.project_roles![0]!.roles){
-					add_user_role_user.value!.project_roles![0]!.roles=[add_user_role_role.value!.role_name]
-				}else if(!add_user_role_user.value!.project_roles![0]!.roles!.includes(add_user_role_role.value!.role_name)){
-					add_user_role_user.value!.project_roles![0]!.roles!.push(add_user_role_role.value!.role_name)
+				  add_user_role_user.value!.project_roles![0]!.roles=[add_user_role_role.value!.role_name!]
+				}else if(!add_user_role_user.value!.project_roles![0]!.roles!.includes(add_user_role_role.value!.role_name!)){
+				  add_user_role_user.value!.project_roles![0]!.roles!.push(add_user_role_role.value!.role_name!)
 				}
 				add_user_role_user.value=null
 				add_user_role_role.value=null
 				ing.value=false
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "get_user_permission":{
-			let req=new permissionAPI.ListUserNodeReq()
+			let req=new ListUserNodeReq()
 			req.project_id=state.project.info!.project_id
 			req.user_id=cur_user.value!.user_id
 			req.need_user_role_node=false
-			client.permissionClient.list_user_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(resp: permissionAPI.ListUserNodeResp)=>{
+			ListUserNode(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof ListUserNodeResp){
 				if(resp.node){
-					user_node.value=resp.node
+				  user_node.value=resp.node
 				}else{
-					user_node.value=null
+				  user_node.value=null
 				}
 				node_from.value=""
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "update_user_permission":{
-			let req=new permissionAPI.UpdateUserPermissionReq()
+			let req=new UpdateUserPermissionReq()
 			req.user_id=cur_user.value!.user_id
 			req.node_id=update_node.value!.node_id
 			req.admin=admin.value
 			req.canread=canread.value
 			req.canwrite=canwrite.value
-			client.permissionClient.update_user_permission({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp :permissionAPI.UpdateUserPermissionResp)=>{
+			UpdateUserPermission(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof UpdateUserPermissionResp){
 				update_node.value!.canread=canread.value
 				update_node.value!.canwrite=canwrite.value
 				update_node.value!.admin=admin.value
 				update_node.value=null
 				ing.value=false
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "get_role_permission":{
-			let req=new permissionAPI.ListRoleNodeReq()
+			let req=new ListRoleNodeReq()
 			req.project_id=state.project.info!.project_id
 			req.role_name=cur_role.value!.role_name
-			client.permissionClient.list_role_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(resp: permissionAPI.ListRoleNodeResp)=>{
+			ListRoleNode(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof ListRoleNodeResp){
 				if(resp.node){
-					role_node.value=resp.node
+				  role_node.value=resp.node
 				}else{
-					role_node.value=null
+				  role_node.value=null
 				}
-				node_from.value=cur_role.value!.role_name
+				node_from.value=cur_role.value!.role_name!
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
 		case "update_role_permission":{
-			let req=new permissionAPI.UpdateRolePermissionReq()
+			let req=new UpdateRolePermissionReq()
 			req.project_id=state.project.info!.project_id
 			req.role_name=cur_role.value!.role_name
 			req.node_id=update_node.value!.node_id
 			req.admin=admin.value
 			req.canread=canread.value
 			req.canwrite=canwrite.value
-			client.permissionClient.update_role_permission({"Token":state.user.token},req,client.timeout,(e :permissionAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp :permissionAPI.UpdateRolePermissionResp)=>{
+			UpdateRolePermission(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+			  if(resp instanceof UpdateRolePermissionResp){
 				update_node.value!.canread=canread.value
 				update_node.value!.canwrite=canwrite.value
 				update_node.value!.admin=admin.value
 				update_node.value=null
 				ing.value=false
 				state.clear_load()
+			  }else{
+				state.clear_load()
+				state.set_alert("error",resp.code,resp.msg)
+			  }
 			})
 			break
 		}
@@ -411,27 +491,29 @@ function assign_search_users(part: string){
 		if(!state.set_load()){
 			return
 		}
-		let req=new userAPI.SearchUsersReq()
+		let req=new SearchUsersReq()
 		req.project_id=state.project.info!.project_id
 		req.user_name=add_user_role_search.value
 		req.only_project=true
 		req.page=0
-		client.userClient.search_users({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-			state.clear_load()
-			state.set_alert("error",e.code,e.msg)
-		},(resp :userAPI.SearchUsersResp)=>{
+		SearchUsers(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		  if(resp instanceof SearchUsersResp){
 			if(resp.users){
-				let tmp:userAPI.UserInfo[]=[]
-				for(let i=0;i<resp.users.length;i++){
-					if(resp.users[i]&&!user_has_role(resp.users[i]!,add_user_role_role.value!)){
-						tmp.push(resp.users[i]!)
-					}
+			  let tmp:UserInfo[]=[]
+			  for(let i=0;i<resp.users.length;i++){
+				if(resp.users[i]&&!user_has_role(resp.users[i]!,add_user_role_role.value!)){
+				  tmp.push(resp.users[i]!)
 				}
-				users.value=tmp
+			  }
+			  users.value=tmp
 			}else{
-				users.value=[]
+			  users.value=[]
 			}
 			state.clear_load()
+		  }else{
+			state.clear_load()
+			state.set_alert("error",resp.code,resp.msg)
+		  }
 		})
 	}, 500)
 }
@@ -446,26 +528,28 @@ function assign_search_roles(part: string){
 		if(!state.set_load()){
 			return
 		}
-		let req=new userAPI.SearchRolesReq()
+		let req=new SearchRolesReq()
 		req.project_id=state.project.info!.project_id
 		req.role_name=add_user_role_search.value
 		req.page=0
-		client.userClient.search_roles({"Token":state.user.token},req,client.timeout,(e :userAPI.LogicError)=>{
-			state.clear_load()
-			state.set_alert("error",e.code,e.msg)
-		},(resp :userAPI.SearchRolesResp)=>{
+		SearchRoles(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		  if(resp instanceof SearchRolesResp){
 			if(resp.roles){
-				let tmp: userAPI.RoleInfo[]=[]
-				for(let i=0;i<resp.roles.length;i++){
-					if(resp.roles[i]&&!user_has_role(add_user_role_user.value!,resp.roles[i]!)){
-						tmp.push(resp.roles[i]!)
-					}
+			  let tmp: RoleInfo[]=[]
+			  for(let i=0;i<resp.roles.length;i++){
+				if(resp.roles[i]&&!user_has_role(add_user_role_user.value!,resp.roles[i]!)){
+				  tmp.push(resp.roles[i]!)
 				}
-				roles.value=tmp
+			  }
+			  roles.value=tmp
 			}else{
-				roles.value=[]
+			  roles.value=[]
 			}
 			state.clear_load()
+		  }else{
+			state.clear_load()
+			state.set_alert("error",resp.code,resp.msg)
+		  }
 		})
 	}, 500)
 }
@@ -498,7 +582,8 @@ function parsetime(timestamp :number):string{
 }
 </script>
 <template>
-	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
+	<!-- <VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el:HTMLElement)=>{el.querySelector('.va-modal__dialog').style.width='auto'}"> -->
+	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px">
 		<template #default>
 			<div v-if="optype=='invite'" style="display:flex;flex-direction:column">
 				<VaCard  style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
@@ -795,7 +880,7 @@ function parsetime(timestamp :number):string{
 					<span v-if="user.wxwork_user_name" style="padding:12px 0px 12px 20px;color:var(--pa-primary)">{{user.wxwork_user_name}}(wxwork)</span>
 					<span style="padding:12px 20px;color:green">{{user.user_id}}</span>
 					<span style="flex:1"></span>
-					<span style="padding:12px;color:green">Create Time: {{parsetime(user.ctime)}}</span>
+					<span style="padding:12px;color:green">Create Time: {{parsetime(user.ctime!)}}</span>
 					<VaButton
 						v-if="state.page.node!.admin&&invited(user)"
 						style="min-width:60px;height:30px;margin:0 10px"
@@ -849,7 +934,7 @@ function parsetime(timestamp :number):string{
 									<div
 										style="display:flex;align-items:center;cursor:pointer"
 										:style="{'background-color':hover?'var(--va-shadow)':node_from==rolename?'#b6d7a8':'var(--va-background-element)'}"
-										@click="cur_role=new userAPI.RoleInfo();
+										@click="cur_role=new RoleInfo();
 											cur_role.project_id=state.project.info!.project_id;
 											cur_role.role_name=rolename;
 											cur_role.comment='';
@@ -882,7 +967,7 @@ function parsetime(timestamp :number):string{
 								:node="user_node"
 								:deep="0"
 								:disabled="false"
-								@permissionevent="(updatenode,r,w,a)=>{
+								@permissionevent="(updatenode:NodeInfo,r:boolean,w:boolean,a:boolean)=>{
 									update_node=updatenode;
 									canread=r;
 									canwrite=w;
@@ -931,7 +1016,7 @@ function parsetime(timestamp :number):string{
 					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{ cur_role==role?'-':'+' }}</span>
 					<span style="padding:12px 20px;color:var(--va-primary)">{{role.role_name}}</span>
 					<span style="flex:1"></span>
-					<span style="padding:12px;color:green">Create Time: {{parsetime(role.ctime)}}</span>
+					<span style="padding:12px;color:green">Create Time: {{parsetime(role.ctime!)}}</span>
 					<VaButton
 						v-if="state.page.node!.admin"
 						style="width:60px;height:30px;margin:0 10px"
@@ -949,7 +1034,7 @@ function parsetime(timestamp :number):string{
 						gradient
 						@mouseover.stop=""
 						@mouseout.stop=""
-						@click.stop="update_role=role;update_role_comment=role.comment;optype='update_role';ing=true"
+						@click.stop="update_role=role;update_role_comment=role.comment!;optype='update_role';ing=true"
 					>
 						Update
 					</VaButton>
@@ -979,7 +1064,7 @@ function parsetime(timestamp :number):string{
 							:node="child"
 							:deep="0"
 							:disabled="false"
-							@permissionevent="(updatenode,r,w,a)=>{
+							@permissionevent="(updatenode:NodeInfo,r:boolean,w:boolean,a:boolean)=>{
 								update_node=updatenode;
 								canread=r;
 								canwrite=w;

@@ -1,100 +1,134 @@
 <script setup lang="ts">
 import {ref,onMounted} from 'vue'
-
-import * as initializeAPI from './api/admin_initialize_browser'
-import * as permissionAPI from './api/admin_permission_browser'
-
 import * as state from './state'
-import * as client from './client'
+
+import {NodeInfo} from '@api/browser_message_admin_NodeInfo'
+import {ProjectInfo} from '@api/browser_message_admin_ProjectInfo'
+
+import {ListProjectReq} from '@api/browser_message_admin_ListProjectReq'
+import {ListProjectResp} from '@api/browser_message_admin_ListProjectResp'
+import {ListProject} from '@api/browser_method_admin_Initialize_ListProject'
+
+import {ListUserNodeReq} from '@api/browser_message_admin_ListUserNodeReq'
+import {ListUserNodeResp} from '@api/browser_message_admin_ListUserNodeResp'
+import {ListUserNode} from '@api/browser_method_admin_Permission_ListUserNode'
+
+import {CreateProjectReq} from '@api/browser_message_admin_CreateProjectReq'
+import {CreateProjectResp} from '@api/browser_message_admin_CreateProjectResp'
+import {CreateProject} from '@api/browser_method_admin_Initialize_CreateProject'
+
+import {UpdateProjectReq} from '@api/browser_message_admin_UpdateProjectReq'
+import {UpdateProjectResp} from '@api/browser_message_admin_UpdateProjectResp'
+import {UpdateProject} from '@api/browser_method_admin_Initialize_UpdateProject'
+
+import {DeleteProjectReq} from '@api/browser_message_admin_DeleteProjectReq'
+import {DeleteProjectResp} from '@api/browser_message_admin_DeleteProjectResp'
+import {DeleteProject} from '@api/browser_method_admin_Initialize_DeleteProject'
+
+import {AddNodeReq} from '@api/browser_message_admin_AddNodeReq'
+import {AddNodeResp} from '@api/browser_message_admin_AddNodeResp'
+import {AddNode} from '@api/browser_method_admin_Permission_AddNode'
+
+import {UpdateNodeReq} from '@api/browser_message_admin_UpdateNodeReq'
+import {UpdateNodeResp} from '@api/browser_message_admin_UpdateNodeResp'
+import {UpdateNode} from '@api/browser_method_admin_Permission_UpdateNode'
+
+import {DelNodeReq} from '@api/browser_message_admin_DelNodeReq'
+import {DelNodeResp} from '@api/browser_message_admin_DelNodeResp'
+import {DelNode} from '@api/browser_method_admin_Permission_DelNode'
 
 import menutree from './menutree.vue'
 
 onMounted(()=>{
-	get_projects()
+  get_projects()
 })
 
-const allprojects=ref<initializeAPI.ProjectInfo[]>([])
+const allprojects=ref<ProjectInfo[]>([])
 
 function get_projects(){
-	if(!state.set_load()){
-		return
+  if(!state.set_load()){
+	return
+  }
+  let req = new ListProjectReq()
+  ListProject(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+	if(resp instanceof ListProjectResp){
+	  if(resp.projects){
+		let tmp: ProjectInfo[] = []
+		for(let i=0;i<resp.projects.length;i++){
+		  if(resp.projects[i]){
+			tmp.push(resp.projects[i]!)
+		  }
+		}
+		allprojects.value = tmp
+	  }else{
+		allprojects.value=[]
+	  }
+	  //if the selected project doesn't exist,sidemenu need to be reset
+	  if(state.project.info){
+		let find: boolean=false
+		for(let i=0;i<allprojects.value.length;i++){
+		  if(!allprojects.value[i].project_id){
+			continue
+		  }
+		  if(same_node_id(allprojects.value[i].project_id!,state.project.info!.project_id!)){
+			find=true
+			state.project.info = allprojects.value[i]
+			break
+		  }
+		}
+		if(!find){
+		  state.clear_project()
+		  projectnodes.value=null
+		}
+	  }
+	  state.clear_load()
+	}else{
+	  state.clear_load()
+	  state.set_alert("error",resp.code,resp.msg)
 	}
-	let req = new initializeAPI.ListProjectReq()
-	client.initializeClient.list_project({"Token":state.user.token},req,client.timeout,(e: initializeAPI.LogicError)=>{
-		state.clear_load()
-		state.set_alert("error",e.code,e.msg)
-	},(resp: initializeAPI.ListProjectResp)=>{
-		if(resp.projects){
-			let tmp: initializeAPI.ProjectInfo[] = []
-			for(let i=0;i<resp.projects.length;i++){
-				if(resp.projects[i]){
-					tmp.push(resp.projects[i]!)
-				}
-			}
-			allprojects.value = tmp
-		}else{
-			allprojects.value=[]
-		}
-		//if the selected project doesn't exist,sidemenu need to be reset
-		if(state.project.info){
-			let find: boolean=false
-			for(let i=0;i<allprojects.value.length;i++){
-				if(!allprojects.value[i].project_id){
-					continue
-				}
-				if(same_node_id(allprojects.value[i].project_id!,state.project.info!.project_id!)){
-					find=true
-					state.project.info = allprojects.value[i]
-					break
-				}
-			}
-			if(!find){
-				state.clear_project()
-				projectnodes.value=null
-			}
-		}
-		state.clear_load()
-	})
+  })
 }
 
 function selfproject():boolean{
-	if(!state.project.info){
-		return false
-	}
-	if(!state.project.info.project_id){
-		return false
-	}
-	return state.project.info!.project_id![0]==0&&state.project.info!.project_id![1]==1
+  if(!state.project.info){
+	return false
+  }
+  if(!state.project.info.project_id){
+	return false
+  }
+  return state.project.info!.project_id![0]==0&&state.project.info!.project_id![1]==1
 }
 
-const projectnodes=ref<permissionAPI.NodeInfo|null>(null)
+const projectnodes=ref<NodeInfo|null>(null)
 
 function select_project(){
-	if(!state.project.info){
-		return
-	}
-	if(!state.set_load()){
-		return
-	}
-	let req = new permissionAPI.ListUserNodeReq()
-	req.project_id=state.project.info!.project_id
-	req.user_id=""
-	req.need_user_role_node=true
-	client.permissionClient.list_user_node({"Token":state.user.token},req,client.timeout,(e: permissionAPI.LogicError)=>{
+  if(!state.project.info){
+	return
+  }
+  if(!state.set_load()){
+	return
+  }
+  let req = new ListUserNodeReq()
+  req.project_id=state.project.info!.project_id
+  req.user_id=""
+  req.need_user_role_node=true
+  ListUserNode(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+	if(resp instanceof ListUserNodeResp){
+	  if(resp.node){
+		projectnodes.value=resp.node!
+	  }else{
 		projectnodes.value=null
-		state.clear_project()
-		state.clear_page()
-		state.clear_load()
-		state.set_alert("error",e.code,e.msg)
-	},(resp: permissionAPI.ListUserNodeResp)=>{
-		if(resp.node){
-			projectnodes.value=resp.node!
-		}else{
-			projectnodes.value=null
-		}
-		state.clear_page()
-		state.clear_load()
-	})
+	  }
+	  state.clear_page()
+	  state.clear_load()
+	}else{
+	  projectnodes.value=null
+	  state.clear_project()
+	  state.clear_page()
+	  state.clear_load()
+	  state.set_alert("error",resp.code,resp.msg)
+	}
+  })
 }
 
 const node_ing=ref<boolean>(false)
@@ -104,183 +138,195 @@ const optype=ref<string>("")
 const project_name=ref<string>("")
 
 function project_update_able():boolean{
-	return project_name.value!=state.project.info!.project_name
+  return project_name.value!=state.project.info!.project_name
 }
 
 function project_op(){
-	if(!state.set_load()){
-		return
+  if(!state.set_load()){
+	return
+  }
+  switch(optype.value){
+	case 'add':{
+	  let req = new CreateProjectReq()
+	  req.project_name=project_name.value
+	  req.project_data=""
+	  CreateProject(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof CreateProjectResp){
+		  project_name.value=''
+		  project_ing.value=false
+		  state.clear_load()
+		  get_projects()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
 	}
-	switch(optype.value){
-		case 'add':{
-			let req = new initializeAPI.CreateProjectReq()
-			req.project_name=project_name.value
-			req.project_data=""
-			client.initializeClient.create_project({"Token":state.user.token},req,client.timeout,(e: initializeAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: initializeAPI.CreateProjectResp)=>{
-				project_name.value=''
-				project_ing.value=false
-				state.clear_load()
-				get_projects()
-			})
-			break
+	case 'update':{
+	  let req = new UpdateProjectReq()
+	  req.project_id=state.project.info!.project_id
+	  req.new_project_name=project_name.value
+	  req.new_project_data=""
+	  UpdateProject(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof UpdateProjectResp){
+		  project_name.value=''
+		  project_ing.value=false
+		  state.clear_load()
+		  get_projects()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
 		}
-		case 'update':{
-			let req = new initializeAPI.UpdateProjectReq()
-			req.project_id=state.project.info!.project_id
-			req.new_project_name=project_name.value
-			req.new_project_data=""
-			client.initializeClient.update_project({"Token":state.user.token},req,client.timeout,(e: initializeAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: initializeAPI.UpdateProjectResp)=>{
-				project_name.value=''
-				project_ing.value=false
-				state.clear_load()
-				get_projects()
-			})
-			break
-		}
-		case 'del':{
-			let req = new initializeAPI.DeleteProjectReq()
-			req.project_id=state.project.info!.project_id
-			client.initializeClient.delete_project({"Token":state.user.token},req,client.timeout,(e :initializeAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp :initializeAPI.DeleteProjectResp)=>{
-				project_ing.value=false
-				state.clear_project()
-				projectnodes.value=null
-				state.clear_load()
-				get_projects()
-			})
-			break
-		}
-		default:{
-			state.clear_load()
-			state.set_alert("error",-2,"unknown operation")
-		}
+	  })
+	  break
 	}
+	case 'del':{
+	  let req = new DeleteProjectReq()
+	  req.project_id=state.project.info!.project_id
+	  DeleteProject(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof DeleteProjectResp){
+		  project_ing.value=false
+		  state.clear_project()
+		  projectnodes.value=null
+		  state.clear_load()
+		  get_projects()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
+	}
+	default:{
+	  state.clear_load()
+	  state.set_alert("error",-2,"unknown operation")
+	}
+  }
 }
 
-const ptarget=ref<permissionAPI.NodeInfo|null>(null)
-const target=ref<permissionAPI.NodeInfo|null>(null)
+const ptarget=ref<NodeInfo|null>(null)
+const target=ref<NodeInfo|null>(null)
 const node_name=ref<string>("")
 const node_url=ref<string>("")
 
 function node_update_able():boolean{
-	if(!target.value){
-		return false
-	}
-	return node_name.value!=target.value!.node_name || node_url.value!=target.value!.node_data
+  if(!target.value){
+	return false
+  }
+  return node_name.value!=target.value!.node_name || node_url.value!=target.value!.node_data
 }
 
 function node_op(){
-	if(!state.project.info){
-		return
+  if(!state.project.info){
+	return
+  }
+  if(!state.set_load()){
+	return
+  }
+  switch(optype.value){
+	case 'add':{
+	  let req=new AddNodeReq() 
+	  req.pnode_id=target.value!.node_id
+	  req.node_name=node_name.value
+	  req.node_data=node_url.value
+	  AddNode(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof AddNodeResp){
+		  node_ing.value=false
+		  let tmp = new NodeInfo()
+		  tmp.node_id=resp.node_id
+		  tmp.node_name=node_name.value
+		  tmp.node_data=node_url.value
+		  tmp.canread=true
+		  tmp.canwrite=true
+		  tmp.admin=true
+		  tmp.children=[]
+		  if(!target.value!.children){
+			target.value!.children=[]
+		  }
+		  target.value!.children!.push(tmp)
+		  target.value=null
+		  node_name.value=""
+		  node_url.value=""
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
 	}
-	if(!state.set_load()){
-		return
+	case 'update':{
+	  let req=new UpdateNodeReq()
+	  req.node_id=target.value!.node_id
+	  req.new_node_name=node_name.value
+	  req.new_node_data=node_url.value
+	  UpdateNode(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof UpdateNodeResp){
+		  node_ing.value=false
+		  target.value!.node_name=node_name.value
+		  target.value!.node_data=node_url.value
+		  target.value=null
+		  node_name.value=""
+		  node_url.value=""
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
 	}
-	switch(optype.value){
-		case 'add':{
-			let req=new permissionAPI.AddNodeReq() 
-			req.pnode_id=target.value!.node_id
-			req.node_name=node_name.value
-			req.node_data=node_url.value
-			client.permissionClient.add_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(resp :permissionAPI.AddNodeResp)=>{
-				node_ing.value=false
-				let tmp = new permissionAPI.NodeInfo()
-				tmp.node_id=resp.node_id
-				tmp.node_name=node_name.value
-				tmp.node_data=node_url.value
-				tmp.canread=true
-				tmp.canwrite=true
-				tmp.admin=true
-				tmp.children=[]
-				if(!target.value!.children){
-					target.value!.children=[]
-				}
-				target.value!.children!.push(tmp)
-				target.value=null
-				node_name.value=""
-				node_url.value=""
-				state.clear_load()
-			})
-			break
+	case 'del':{
+	  let req=new DelNodeReq()
+	  req.node_id=target.value!.node_id
+	  DelNode(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof DelNodeResp){
+		  node_ing.value=false
+		  for(let i=0;i<ptarget.value!.children!.length;i++){
+			if (ptarget.value!.children![i]==target.value!){
+			  ptarget.value!.children!.splice(i,1)
+			  break
+			}
+		  }
+		  if(state.page.node){
+			let needcleanpage=true
+			for(let i=0;i<target.value!.node_id!.length;i++){
+			  if(target.value!.node_id![i]!=state.page.node!.node_id![i]){
+				needcleanpage=true
+				break
+			  }
+			}
+			if(needcleanpage){
+			  state.clear_page()
+			}
+		  }
+		  ptarget.value=null
+		  target.value=null
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
 		}
-		case 'update':{
-			let req=new permissionAPI.UpdateNodeReq()
-			req.node_id=target.value!.node_id
-			req.new_node_name=node_name.value
-			req.new_node_data=node_url.value
-			client.permissionClient.update_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp :permissionAPI.UpdateNodeResp)=>{
-				node_ing.value=false
-				target.value!.node_name=node_name.value
-				target.value!.node_data=node_url.value
-				target.value=null
-				node_name.value=""
-				node_url.value=""
-				state.clear_load()
-			})
-			break
-		}
-		case 'del':{
-			let req=new permissionAPI.DelNodeReq()
-			req.node_id=target.value!.node_id
-			client.permissionClient.del_node({"Token":state.user.token},req,client.timeout,(e :permissionAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp :permissionAPI.DelNodeResp)=>{
-				node_ing.value=false
-				for(let i=0;i<ptarget.value!.children!.length;i++){
-					if (ptarget.value!.children![i]==target.value!){
-						ptarget.value!.children!.splice(i,1)
-						break
-					}
-				}
-				if(state.page.node){
-					let needcleanpage=true
-					for(let i=0;i<target.value!.node_id!.length;i++){
-						if(target.value!.node_id![i]!=state.page.node!.node_id![i]){
-							needcleanpage=true
-							break
-						}
-					}
-					if(needcleanpage){
-						state.clear_page()
-					}
-				}
-				ptarget.value=null
-				target.value=null
-				state.clear_load()
-			})
-			break
-		}
-		default:{
-			state.clear_load()
-			state.set_alert("error",-2,"unknown operation")
-		}
+	  })
+	  break
 	}
+	default:{
+	  state.clear_load()
+	  state.set_alert("error",-2,"unknown operation")
+	}
+  }
 }
 function create_main_menu_able():boolean{
-	if(!state.project.info){
-		return false
-	}
-	if(state.project.info.project_id![1]==1){
-		//admin project don't need this
-		return false
-	}
-	//need this button when have admin permission on this project
-	return projectnodes.value!=null&&projectnodes.value.admin
+  if(!state.project.info){
+	return false
+  }
+  if(state.project.info.project_id![1]==1){
+	//admin project don't need this
+	return false
+  }
+  //need this button when have admin permission on this project
+  return projectnodes.value!=null&&projectnodes.value.admin!
 }
 function same_node_id(a:number[],b:number[]):boolean{
 	if(!Boolean(a)&&!Boolean(b)){
@@ -302,7 +348,8 @@ function same_node_id(a:number[],b:number[]):boolean{
 }
 </script>
 <template>
-	<VaModal v-model="project_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
+	<!-- <VaModal v-model="project_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el:HTMLElement)=>{el.querySelector('.va-modal__dialog').style.width='auto'}"> -->
+	<VaModal v-model="project_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px">
 		<template #default>
 			<div v-if="optype=='add'" style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
@@ -338,7 +385,8 @@ function same_node_id(a:number[],b:number[]):boolean{
 			</div>
 		</template>
 	</VaModal>
-	<VaModal v-model="node_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
+	<!-- <VaModal v-model="node_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el:HTMLElement)=>{el.querySelector('.va-modal__dialog').style.width='auto'}"> -->
+	<VaModal v-model="node_ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px">
 		<template #default>
 			<div v-if="optype=='del'" style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
@@ -397,9 +445,9 @@ function same_node_id(a:number[],b:number[]):boolean{
 						<template #default="{hover}">
 							<div
 								style="padding:10px;cursor:pointer"
-								:style="{'background-color':hover?'var(--va-background-border)':'',color:state.project.info&&option&&state.project.info.project_name==option['project_name']?'green':'black'}"
+								:style="{'background-color':hover?'var(--va-background-border)':'',color:state.project.info&&option&&state.project.info.project_name==(option as ProjectInfo)['project_name']?'green':'black'}"
 							>
-								{{option?option["project_name"]:''}}
+								{{option?(option as ProjectInfo)['project_name']:''}}
 							</div>
 						</template>
 					</VaHover>
@@ -416,7 +464,7 @@ function same_node_id(a:number[],b:number[]):boolean{
 						<div
 							style="padding:10px 15px;cursor:pointer"
 							:style="{'background-color':hover?'var(--va-shadow)':undefined}"
-							@click="optype='update';project_name=state.project.info.project_name;project_ing=true"
+							@click="optype='update';project_name=state.project.info.project_name!;project_ing=true"
 						>
 							<b>◉</b>
 						</div>
@@ -455,10 +503,10 @@ function same_node_id(a:number[],b:number[]):boolean{
 				v-if="Boolean(projectnodes)&&Boolean(projectnodes!.children)&&projectnodes!.children!.length>0"
 				:pnode="projectnodes!"
 				:deep="0"
-				@nodeevent="(pnode,node,type)=>{
+				@nodeevent="(pnode:NodeInfo,node:NodeInfo,type:string)=>{
 					if(type=='update'){
-						node_name=node.node_name;
-						node_url=node.node_data;
+						node_name=node.node_name!;
+						node_url=node.node_data!;
 					}else{
 						node_name='';
 						node_url='';

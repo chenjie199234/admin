@@ -8,7 +8,8 @@ import pageright from './pageright.vue'
 </script>
 
 <template>
-	<VaModal v-model="state.load.ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" noPadding @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
+	<!-- <VaModal v-model="state.load.ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" noPadding @beforeOpen="(el:HTMLElement)=>{el.querySelector('.va-modal__dialog').style.width='auto'}"> -->
+	<VaModal v-model="state.load.ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" noPadding>
 		<template #default>
 			<VaInnerLoading icon="❃" loading :size="60" style="width:100px;height:100px"/>
 		</template>

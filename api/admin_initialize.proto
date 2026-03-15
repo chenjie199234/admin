@@ -1,15 +1,18 @@
-syntax="proto3";
+edition = "2024";
 
-//this is the proto package name,all proto in this project must use this name as the proto package name
-package admin;
+package admin;//this is the proto package name,all proto in this project must use this name as the proto package name
 //this is the golang's package name,all proto in this project must use this name as the golang's package name
 option go_package="github.com/chenjie199234/admin/api;api";
+//all other imports should put before this line
+//all pbex options on response will not be checked automatically
 //https://github.com/chenjie199234/Corelib/blob/main/pbex/pbex.proto
-import "pbex/pbex.proto";
+import option "pbex/pbex.proto";
 
-//this is the proto file for init service
-service initialize{
-	//rpc example(examplereq)returns(exampleresp){
+//this is the proto file for initialize service
+service Initialize{
+	//for web server the response's 'Content-Type' always be 'application/json' when response code is not 200
+	//for web server,you can set request's 'Accept' header to 'application/x-protobuf' to get the response data encoded by protobuf,and the response's 'Content-Type' will be setted to 'application/x-protobuf' otherwise it is setted to 'application/json'
+	//rpc Example(ExampleReq)returns(RxampleResp){
 	//	option (pbex.method)="get";
 	//	option (pbex.method)="crpc";
 	//	option (pbex.method)="grpc";//can be set to one of (get,delete,post,put,patch) or crpc or grpc
@@ -24,110 +27,127 @@ service initialize{
 	//	option (pbex.cgrpc_midwares)="a";//this function on grpc protocol has 3 midwares,it's order is b,c,a
 	//}
 
+	//you can use the stream mode for both client and server on crpc and grpc
+	//rpc ExampleStreamCrpcGrpc(stream ExampleReq)returns(stream ExampleResp){
+	//	option (pbex.method)="crpc";
+	//	option (pbex.method)="grpc";//can be set to one of (get,delete,post,put,patch) or crpc or grpc
+	//	option (pbex.crpc_midwares)="b";
+	//	option (pbex.crpc_midwares)="c";
+	//	option (pbex.crpc_midwares)="a";//this function on crpc protocol has 3 midwares,it's order is b,c,a
+	//	option (pbex.cgrpc_midwares)="b";
+	//	option (pbex.cgrpc_midwares)="c";
+	//	option (pbex.cgrpc_midwares)="a";//this function on grpc protocol has 3 midwares,it's order is b,c,a
+	//}
+
+	//1.for web server,you can only use the stream mode on server(Server Sent Events,SSE mode)
+	//2.unfortunate,javascript's 'EventSource' can't set header and must use GET,so you need to use 'fetch' to simulate 'EventSource' if need to set header or use other method like POST
+	//3.response's 'Content-Type' always be 'application/json' when code is not 200 and always be 'text/event-stream' when code is 200.
+	//4.only event:message(default) and event:error will be used,and event:error always be the last,after error,the connection will be closed
+	//rpc ExampleStreamWeb(ExampleReq)returns(stream ExampleResp){
+	//	option (pbex.method)="get";
+	//	option (pbex.web_midwares)="b";
+	//	option (pbex.web_midwares)="c";
+	//	option (pbex.web_midwares)="a";//this function on web protocol has 3 midwares,it's order is b,c,a
+	//}
+
 	//初始化状态
-	rpc init_status(init_status_req)returns(init_status_resp){
+	rpc InitStatus(InitStatusReq)returns(InitStatusResp){
 		option (pbex.method)="post";
 	}
 	//初始化
-	rpc init(init_req)returns(init_resp){
+	rpc Init(InitReq)returns(InitResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="accesskey";
 	}
 	//登录
-	rpc root_login(root_login_req)returns(root_login_resp){
+	rpc RootLogin(RootLoginReq)returns(RootLoginResp){
 		option (pbex.method)="post";
 	}
 	//更新密码
-	rpc update_root_password(update_root_password_req)returns(update_root_password_resp){
+	rpc UpdateRootPassword(UpdateRootPasswordReq)returns(UpdateRootPasswordResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 	//创建项目
-	rpc create_project(create_project_req)returns(create_project_resp){
+	rpc CreateProject(CreateProjectReq)returns(CreateProjectResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 	//更新项目
-	rpc update_project(update_project_req)returns(update_project_resp){
+	rpc UpdateProject(UpdateProjectReq)returns(UpdateProjectResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 	//获取项目列表
-	rpc list_project(list_project_req)returns(list_project_resp){
+	rpc ListProject(ListProjectReq)returns(ListProjectResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 	//删除项目
-	rpc delete_project(delete_project_req)returns(delete_project_resp){
+	rpc DeleteProject(DeleteProjectReq)returns(DeleteProjectResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 }
+
 //req can be set with pbex extentions
-//message examplereq{
+//message ExampleReq{
 	//int64 example_for_extentions=1[(pbex.int_gt)=1,(pbex.int_lt)=100];
 //}
 //resp's pbex extentions will be ignore
-//message exampleresp{
+//message ExampleResp{
 	//int64 example_resp=1;
 //}
 
-message init_status_req{
-
+message InitStatusReq{
 }
-message init_status_resp{
+message InitStatusResp{
 	bool status=1;//true-already inited,false-not inited
 }
-message init_req{
+message InitReq{
 	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
 }
-message init_resp{
+message InitResp{
 
 }
-message root_login_req{
+message RootLoginReq{
 	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
 }
-message root_login_resp{
+message RootLoginResp{
 	string token=1;
 }
-message update_root_password_req{
+message UpdateRootPasswordReq{
 	string old_password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
 	string new_password=2[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
 }
-message update_root_password_resp{
+message UpdateRootPasswordResp{
 }
-message create_project_req{
+message CreateProjectReq{
 	string project_name=1[(pbex.string_bytes_len_not_eq)=0];
 	string project_data=2;
 }
-message create_project_resp{
+message CreateProjectResp{
 	repeated uint32 project_id=1;
 }
-message update_project_req{
+message UpdateProjectReq{
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string new_project_name=2[(pbex.string_bytes_len_not_eq)=0];//if didn't change,set this with the old value
 	string new_project_data=3;//if didn't change,set this with the old value
 }
-message update_project_resp{
+message UpdateProjectResp{
 }
-message get_project_id_by_name_req{
-	string project_name=1[(pbex.string_bytes_len_not_eq)=0];
-}
-message get_project_id_by_name_resp{
-	repeated uint32 project_id=1;
-}
-message project_info{
+message ProjectInfo{
 	repeated uint32 project_id=1;
 	string project_name=2;
 	string project_data=3;
 }
-message list_project_req{
+message ListProjectReq{
 }
-message list_project_resp{
-	repeated project_info projects=1;
+message ListProjectResp{
+	repeated ProjectInfo projects=1;
 }
-message delete_project_req{
+message DeleteProjectReq{
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 }
-message delete_project_resp{
+message DeleteProjectResp{
 }

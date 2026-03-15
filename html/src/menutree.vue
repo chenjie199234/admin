@@ -1,80 +1,80 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-import * as permissionAPI from './api/admin_permission_browser'
-
 import * as state from './state'
 
+import {NodeInfo} from '@api/browser_message_admin_NodeInfo'
+
 defineProps<{
-	pnode:permissionAPI.NodeInfo
-	deep:number
+  pnode:NodeInfo
+  deep:number
 }>()
 
 const open=ref<{[k:string]:boolean}>({})
-const hovernode=ref<permissionAPI.NodeInfo|null>(null)
-function bindstyle(node :permissionAPI.NodeInfo){
-	let style={}
-	if(node==hovernode.value && jumpable(node)){
-		style["background-color"] = "var(--va-shadow)"
-	}else if(state.page.node==node){
-		style["background-color"] = "#b6d7a8"
-	}
-	if(jumpable(node)){
-		style["cursor"] = "pointer"
-	}
-	return style
+const hovernode=ref<NodeInfo|null>(null)
+function bindstyle(node :NodeInfo){
+  let style:Record<string, string>={}
+  if(node==hovernode.value && jumpable(node)){
+	style['background-color'] = "var(--va-shadow)"
+  }else if(state.page.node==node){
+	style['background-color'] = "#b6d7a8"
+  }
+  if(jumpable(node)){
+	style["cursor"] = "pointer"
+  }
+  return style
 }
-function need_button(node: permissionAPI.NodeInfo|null|undefined):boolean{
-	if(!node){
-		return false
-	}
-	if(!node.node_id){
-		return false
-	}
-	if(node.node_id.length>=3&&(node.node_id[2]==1||node.node_id[2]==2)){
-		//system node don't need button
-		return false
-	}
-	return node.admin
+function need_button(node: NodeInfo|null|undefined):boolean{
+  if(!node){
+	return false
+  }
+  if(!node.node_id){
+	return false
+  }
+  if(node.node_id.length>=3&&(node.node_id[2]==1||node.node_id[2]==2)){
+	//system node don't need button
+	return false
+  }
+  return node.admin!
 }
-function has_children(node: permissionAPI.NodeInfo|null|undefined):boolean{
-	if(!node){
-		return false
-	}
-	if(!node.node_id){
-		return false
-	}
-	if(node.node_id.length>=3&&(node.node_id[2]==1||node.node_id[2]==2)){
-		//system node hide children
-		return false
-	}
-	return node.children!=null&&node.children!=undefined&&node.children.length>0
+function has_children(node: NodeInfo|null|undefined):boolean{
+  if(!node){
+	return false
+  }
+  if(!node.node_id){
+	return false
+  }
+  if(node.node_id.length>=3&&(node.node_id[2]==1||node.node_id[2]==2)){
+	//system node hide children
+	return false
+  }
+  return node.children!=null&&node.children!=undefined&&node.children.length>0
 }
-function jumpable(node: permissionAPI.NodeInfo|null|undefined):boolean{
-	if(!node){
-		return false
-	}
-	if(!node.node_id){
-		return false
-	}
-	if(node.node_id.length==3&&(node.node_id[2]==1||node.node_id[2]==2)){
-		//system node can jump
-		return true
-	}
-	return node.canread&&node.node_data!=''
-}
-function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
-	if(!node){
-		return false
-	}
-	if(!node.node_id){
-		return false
-	}
-	if(node.node_id.length>3&&(node.node_id[2]==1||node.node_id[2]==2)){
-		//system node's child need to be hide
-		//but system node self need to be show
-		return false
-	}
+function jumpable(node: NodeInfo|null|undefined):boolean{
+  if(!node){
+	return false
+  }
+  if(!node.node_id){
+	return false
+  }
+  if(node.node_id.length==3&&(node.node_id[2]==1||node.node_id[2]==2)){
+	//system node can jump
 	return true
+  }
+  return node.canread!&&node.node_data!=''
+}
+function showable(node: NodeInfo|null|undefined):boolean{
+  if(!node){
+	return false
+  }
+  if(!node.node_id){
+	return false
+  }
+  if(node.node_id.length>3&&(node.node_id[2]==1||node.node_id[2]==2)){
+	//system node's child need to be hide
+	//but system node self need to be show
+	return false
+  }
+  return true
 }
 </script>
 <template>
@@ -172,7 +172,7 @@ function showable(node: permissionAPI.NodeInfo|null|undefined):boolean{
 						</VaHover>
 					</div>
 				</div>
-				<menutree v-if="showable(node)&&open[node!.node_id!.toString()]&&has_children(node)" :pnode="node!" :deep="deep+1" @nodeevent="(pnode,node,type)=>{$emit('nodeevent',pnode,node,type)}"></menutree>
+				<menutree v-if="showable(node)&&open[node!.node_id!.toString()]&&has_children(node)" :pnode="node!" :deep="deep+1" @nodeevent="(pnode:NodeInfo,node:NodeInfo,type:string)=>{$emit('nodeevent',pnode,node,type)}"></menutree>
 			</template>
 		</div>
 	</div>

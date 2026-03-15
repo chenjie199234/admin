@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-
-import * as initializeAPI from './api/admin_initialize_browser'
 import * as state from './state'
-import * as client from './client'
+
+import {UpdateRootPasswordReq} from '@api/browser_message_admin_UpdateRootPasswordReq'
+import {UpdateRootPasswordResp} from '@api/browser_message_admin_UpdateRootPasswordResp'
+import {UpdateRootPassword} from '@api/browser_method_admin_Initialize_UpdateRootPassword'
 
 import app from './app.vue'
 import userrole from './userrole.vue'
@@ -14,41 +15,44 @@ const t_oldpassword = ref<boolean>(false)
 const newpassword = ref<string>("")
 const t_newpassword = ref<boolean>(false)
 function change_root_password_able():boolean{
-	return oldpassword.value.length>=10 && oldpassword.value.length<=32 && newpassword.value.length>=10 && newpassword.value.length<=32
+  return oldpassword.value.length>=10 && oldpassword.value.length<=32 && newpassword.value.length>=10 && newpassword.value.length<=32
 }
 function do_change_root_password(){
-	if(!state.user.root || state.user.token==""){
-		return
+  if(!state.user.root || state.user.token==""){
+	return
+  }
+  if(!change_root_password_able()){
+	state.set_alert("error",-2,"Root Password length must in [10,32]!")
+	return
+  }
+  if(!state.set_load()){
+	return
+  }
+  let req=new UpdateRootPasswordReq()
+  req.old_password=oldpassword.value
+  req.new_password=newpassword.value
+  UpdateRootPassword(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+	if(resp instanceof UpdateRootPasswordResp){
+	  oldpassword.value=""
+	  newpassword.value=""
+	  t_oldpassword.value=false
+	  t_newpassword.value=false
+	  password_changing.value=false
+	  state.logout()
+	  state.clear_load()
+	}else{
+	  state.clear_load()
+	  state.set_alert("error",resp.code,resp.msg)
 	}
-	if(!change_root_password_able()){
-		state.set_alert("error",-2,"Root Password length must in [10,32]!")
-		return
-	}
-	if(!state.set_load()){
-		return
-	}
-	let req=new initializeAPI.UpdateRootPasswordReq()
-	req.old_password=oldpassword.value
-	req.new_password=newpassword.value
-	client.initializeClient.update_root_password({"Token":state.user.token},req,client.timeout,(e: initializeAPI.LogicError)=>{
-		state.clear_load()
-		state.set_alert("error",e.code,e.msg)
-	},(_resp: initializeAPI.UpdateRootPasswordResp)=>{
-		oldpassword.value=""
-		newpassword.value=""
-		t_oldpassword.value=false
-		t_newpassword.value=false
-		password_changing.value=false
-		state.logout()
-		state.clear_load()
-	})
+  })
 }
 function iframeload(){
 	console.log("iframe")
 }
 </script>
 <template>
-	<VaModal v-model="password_changing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
+	<!-- <VaModal v-model="password_changing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" @beforeOpen="(el:HTMLElement)=>{el.querySelector('.va-modal__dialog').style.width='auto'}"> -->
+	<VaModal v-model="password_changing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px">
 		<template #default>
 			<div style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;width:auto;text-align:center" color="primary" gradient>

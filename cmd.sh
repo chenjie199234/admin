@@ -6,7 +6,7 @@ cd $(dirname $0)
 help() {
 	echo "cmd.sh — every thing you need"
 	echo "         please install git"
-	echo "         please install golang(1.25.0+)"
+	echo "         please install golang(1.26.1+)"
 	echo "         please install protoc           (github.com/protocolbuffers/protobuf)"
 	echo "         please install protoc-gen-go    (github.com/protocolbuffers/protobuf-go)"
 	echo "         please install codegen          (github.com/chenjie199234/Corelib)"
@@ -38,8 +38,7 @@ pb() {
 	protoc -I ./ -I $corelib --go-cgrpc_out=paths=source_relative:. ./api/*.proto
 	protoc -I ./ -I $corelib --go-crpc_out=paths=source_relative:. ./api/*.proto
 	protoc -I ./ -I $corelib --go-web_out=paths=source_relative:. ./api/*.proto
-	protoc -I ./ -I $corelib --markdown_out=paths=source_relative:. ./api/*.proto
-	protoc -I ./ -I $corelib --browser_out=paths=source_relative:. ./api/*.proto
+	protoc -I ./ -I $corelib --browser_out=outdir=api:. ./api/*.proto
 	go mod tidy
 }
 
@@ -81,27 +80,27 @@ update() {
 	cd $workdir
 }
 
-if !(type git >/dev/null 2>&1);then
+if ! command -v git >/dev/null 2>&1;then
 	echo "missing dependence: git"
 	exit 1
 fi
 
-if !(type go >/dev/null 2>&1);then
+if ! command -v go >/dev/null 2>&1;then
 	echo "missing dependence: golang"
 	exit 1
 fi
 
-if !(type protoc >/dev/null 2>&1);then
+if ! command -v protoc >/dev/null 2>&1;then
 	echo "missing dependence: protoc"
 	exit 1
 fi
 
-if !(type protoc-gen-go >/dev/null 2>&1);then
+if ! command -v protoc-gen-go >/dev/null 2>&1;then
 	echo "missing dependence: protoc-gen-go"
 	exit 1
 fi
 
-if !(type codegen >/dev/null 2>&1);then
+if ! command -v codegen >/dev/null 2>&1;then
 	echo "missing dependence: codegen"
 	exit 1
 fi

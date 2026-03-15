@@ -124,7 +124,7 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 		instance.lker.Lock()
 		keys := make(map[string]uint32)
 		for k, v := range instance.keys {
-			keys[k] = v.Version
+			keys[k] = v.GetVersion()
 		}
 		if len(keys) == 0 {
 			instance.lker.Unlock()
@@ -135,7 +135,12 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 		instance.lker.Unlock()
 		header := make(http.Header)
 		header.Set("Access-Key", instance.accesskey)
-		resp, e := instance.client.WatchConfig(instance.ctx, &api.WatchConfigReq{ProjectName: selfprojectname, GName: selfappgroup, AName: selfappname, Keys: keys}, header)
+		req := &api.WatchConfigReq{}
+		req.SetProjectName(selfprojectname)
+		req.SetGName(selfappgroup)
+		req.SetAName(selfappname)
+		req.SetKeys(keys)
+		resp, e := instance.client.WatchConfig(instance.ctx, req, header)
 		if e != nil {
 			if !cerror.Equal(e, cerror.ErrCanceled) {
 				slog.Error("[ConfigSdk.watch] failed", slog.Any("watch_keys", keys), slog.String("error", e.Error()))
@@ -146,8 +151,8 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 		}
 		broken := false
 		instance.lker.Lock()
-		for key, data := range resp.Datas {
-			if keys[key] == data.Version {
+		for key, data := range resp.GetDatas() {
+			if keys[key] == data.GetVersion() {
 				//didn't changed
 				continue
 			}
@@ -156,26 +161,27 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 				//already deleted
 				continue
 			}
-			if data.Version == 0 {
+			if data.GetVersion() == 0 {
 				broken = true
-				slog.Error("[ConfigSdk.watch] key's value's version == 0", slog.String("key", data.Key))
+				slog.Error("[ConfigSdk.watch] key's value's version == 0", slog.String("key", data.GetKey()))
 				continue
 			}
 			if instance.secret != "" {
-				plaintext, e := secure.AesDecrypt(instance.secret, data.Value)
+				plaintext, e := secure.AesDecrypt(instance.secret, data.GetValue())
 				if e != nil {
 					broken = true
-					slog.Error("[ConfigSdk.watch] decrypt keys's value failed", slog.String("key", data.Key), slog.String("error", e.Error()))
+					slog.Error("[ConfigSdk.watch] decrypt keys's value failed",
+						slog.String("key", data.GetKey()), slog.String("error", e.Error()))
 					continue
 				}
-				data.Value = common.BTS(plaintext)
+				data.SetValue(common.BTS(plaintext))
 			}
 			instance.keys[key] = data
 			notice, ok := instance.keysnotice[key]
 			if !ok || notice == nil {
 				continue
 			}
-			notice(key, data.Value, data.ValueType)
+			notice(key, data.GetValue(), data.GetValueType())
 		}
 		instance.lker.Unlock()
 		if broken {
@@ -205,12 +211,12 @@ func (instance *ConfigSdk) Watch(key string, notice NoticeHandler) (cancel func(
 			instance.lker.Unlock()
 		}
 	}
-	instance.keys[key] = &api.WatchData{
-		Key:       key,
-		Value:     "",
-		ValueType: "raw",
-		Version:   0,
-	}
+	data := &api.WatchData{}
+	data.SetKey(key)
+	data.SetValue("")
+	data.SetValueType("raw")
+	data.SetVersion(0)
+	instance.keys[key] = data
 	instance.keysnotice[key] = notice
 	if instance.cancel != nil {
 		instance.cancel()

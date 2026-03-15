@@ -1,15 +1,18 @@
-syntax="proto3";
+edition = "2024";
 
-//this is the proto package name,all proto in this project must use this name as the proto package name
-package admin;
+package admin;//this is the proto package name,all proto in this project must use this name as the proto package name
 //this is the golang's package name,all proto in this project must use this name as the golang's package name
 option go_package="github.com/chenjie199234/admin/api;api";
+//all other imports should put before this line
+//all pbex options on response will not be checked automatically
 //https://github.com/chenjie199234/Corelib/blob/main/pbex/pbex.proto
-import "pbex/pbex.proto";
+import option "pbex/pbex.proto";
 
 //this is the proto file for user service
-service user{
-	//rpc example(examplereq)returns(exampleresp){
+service User{
+	//for web server the response's 'Content-Type' always be 'application/json' when response code is not 200
+	//for web server,you can set request's 'Accept' header to 'application/x-protobuf' to get the response data encoded by protobuf,and the response's 'Content-Type' will be setted to 'application/x-protobuf' otherwise it is setted to 'application/json'
+	//rpc Example(ExampleReq)returns(RxampleResp){
 	//	option (pbex.method)="get";
 	//	option (pbex.method)="crpc";
 	//	option (pbex.method)="grpc";//can be set to one of (get,delete,post,put,patch) or crpc or grpc
@@ -24,128 +27,144 @@ service user{
 	//	option (pbex.cgrpc_midwares)="a";//this function on grpc protocol has 3 midwares,it's order is b,c,a
 	//}
 
-	rpc get_oauth2(get_oauth2_req)returns(get_oauth2_resp){
+	//you can use the stream mode for both client and server on crpc and grpc
+	//rpc ExampleStreamCrpcGrpc(stream ExampleReq)returns(stream ExampleResp){
+	//	option (pbex.method)="crpc";
+	//	option (pbex.method)="grpc";//can be set to one of (get,delete,post,put,patch) or crpc or grpc
+	//	option (pbex.crpc_midwares)="b";
+	//	option (pbex.crpc_midwares)="c";
+	//	option (pbex.crpc_midwares)="a";//this function on crpc protocol has 3 midwares,it's order is b,c,a
+	//	option (pbex.cgrpc_midwares)="b";
+	//	option (pbex.cgrpc_midwares)="c";
+	//	option (pbex.cgrpc_midwares)="a";//this function on grpc protocol has 3 midwares,it's order is b,c,a
+	//}
+
+	//1.for web server,you can only use the stream mode on server(Server Sent Events,SSE mode)
+	//2.unfortunate,javascript's 'EventSource' can't set header and must use GET,so you need to use 'fetch' to simulate 'EventSource' if need to set header or use other method like POST
+	//3.response's 'Content-Type' always be 'application/json' when code is not 200 and always be 'text/event-stream' when code is 200.
+	//4.only event:message(default) and event:error will be used,and event:error always be the last,after error,the connection will be closed
+	//rpc ExampleStreamWeb(ExampleReq)returns(stream ExampleResp){
+	//	option (pbex.method)="get";
+	//	option (pbex.web_midwares)="b";
+	//	option (pbex.web_midwares)="c";
+	//	option (pbex.web_midwares)="a";//this function on web protocol has 3 midwares,it's order is b,c,a
+	//}
+
+	rpc GetOauth2(GetOauth2Req)returns(GetOauth2Resp){
 		option (pbex.method)="post";
 	}
 
-	rpc user_login(user_login_req)returns(user_login_resp){
+	rpc UserLogin(UserLoginReq)returns(UserLoginResp){
 		option (pbex.method)="post";
 	}
 
-	rpc login_info(login_info_req)returns(login_info_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
-	rpc invite_project(invite_project_req)returns(invite_project_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
-	rpc kick_project(kick_project_req)returns(kick_project_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
-	rpc search_users(search_users_req)returns(search_users_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
-	rpc create_role(create_role_req)returns(create_role_resp){
-		option (pbex.method)="post";
-		option (pbex.web_midwares)="token";
-	}
-
-	rpc search_roles(search_roles_req)returns(search_roles_resp){
+	rpc LoginInfo(LoginInfoReq)returns(LoginInfoResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc update_role(update_role_req)returns(update_role_resp){
+	rpc InviteProject(InviteProjectReq)returns(InviteProjectResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc del_roles(del_roles_req)returns(del_roles_resp){
+	rpc KickProject(KickProjectReq)returns(KickProjectResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc add_user_role(add_user_role_req)returns(add_user_role_resp){
+	rpc SearchUsers(SearchUsersReq)returns(SearchUsersResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 
-	rpc del_user_role(del_user_role_req)returns(del_user_role_resp){
+	rpc CreateRole(CreateRoleReq)returns(CreateRoleResp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc SearchRoles(SearchRolesReq)returns(SearchRolesResp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc UpdateRole(UpdateRoleReq)returns(UpdateRoleResp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc DelRoles(DelRolesReq)returns(DelRolesResp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc AddUserRole(AddUserRoleReq)returns(AddUserRoleResp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
+
+	rpc DelUserRole(DelUserRoleReq)returns(DelUserRoleResp){
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
 }
+
 //req can be set with pbex extentions
-//message examplereq{
+//message ExampleReq{
 	//int64 example_for_extentions=1[(pbex.int_gt)=1,(pbex.int_lt)=100];
 //}
 //resp's pbex extentions will be ignore
-//message exampleresp{
+//message ExampleResp{
 	//int64 example_resp=1;
 //}
 
-message get_oauth2_req{
+message GetOauth2Req{
 	string src_type=1[(pbex.string_bytes_in)="DingDing",(pbex.string_bytes_in)="FeiShu",(pbex.string_bytes_in)="WXWork"];
 }
-message get_oauth2_resp{
+message GetOauth2Resp{
 	string url=1;
 }
 
-message user_info {
+message UserInfo {
 	string user_id=1;
 	string feishu_user_name=2;
 	string dingding_user_name=3;
 	string wxwork_user_name=4;
 	uint32 ctime=5;//timestamp,uint seconds
-	repeated project_roles project_roles=6;
+	repeated ProjectRoles project_roles=6;
 }
-message project_roles{
+message ProjectRoles{
 	repeated uint32 project_id=1;
 	repeated string roles=2;
 }
-message role_info {
-	repeated uint32 project_id=1;
-	string role_name=2;
-	string comment=3;
-	uint32 ctime=4;
-}
 
-message user_login_req {
+message UserLoginReq {
 	string src_type=1[(pbex.string_bytes_in)="DingDing",(pbex.string_bytes_in)="FeiShu",(pbex.string_bytes_in)="WXWork"];
 	string code=2[(pbex.string_bytes_len_not_eq)=0];
 }
-message user_login_resp {
+message UserLoginResp {
 	string token=1;
 }
-message login_info_req{
+message LoginInfoReq{
 }
-message login_info_resp{
-	user_info user=1;
+message LoginInfoResp{
+	UserInfo user=1;
 }
-message invite_project_req{
+message InviteProjectReq{
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
 }
-message invite_project_resp{
-
+message InviteProjectResp{
 }
-message kick_project_req{
+message KickProjectReq{
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
 }
-message kick_project_resp{
-
+message KickProjectResp{
 }
-message search_users_req {
+message SearchUsersReq {
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_name=2;//fuzzy search
@@ -154,65 +173,67 @@ message search_users_req {
 	bool only_project=3;
 	uint32 page=4;//if page is 0,means return all result
 }
-message search_users_resp {
-	repeated user_info users=1;//key userid,value userinfo(only contains the required project's roles)
+message SearchUsersResp {
+	repeated UserInfo users=1;//key userid,value userinfo(only contains the required project's roles)
 	uint32 page=2;
 	uint32 pagesize=3;
 	uint32 totalsize=4;
 }
-message create_role_req {
+message CreateRoleReq {
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string comment=3;
 }
-message create_role_resp {
-
+message CreateRoleResp {
 }
-message search_roles_req {
+message SearchRolesReq {
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string role_name=2;//fuzzy search
 	uint32 page=3;//page starts from 1,if page is 0,means return all result
 }
-message search_roles_resp {
-	repeated role_info roles=1;
+
+message RoleInfo {
+	repeated uint32 project_id=1;
+	string role_name=2;
+	string comment=3;
+	uint32 ctime=4;
+}
+message SearchRolesResp {
+	repeated RoleInfo roles=1;
 	uint32 page=2;
 	uint32 pagesize=3;
 	uint32 totalsize=4;
 }
-message update_role_req {
+message UpdateRoleReq {
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string role_name=2[(pbex.string_bytes_len_not_eq)=0];
 	string new_comment=3;//if didn't change,set this with the old value
 }
-message update_role_resp {
-
+message UpdateRoleResp {
 }
-message del_roles_req {
+message DelRolesReq {
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	repeated string role_names=2[(pbex.map_repeated_len_not_eq)=0,(pbex.string_bytes_len_not_eq)=0];
 }
-message del_roles_resp {
-
+message DelRolesResp {
 }
-message add_user_role_req {
+message AddUserRoleReq {
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
 	string role_name=3[(pbex.string_bytes_len_not_eq)=0];
 }
-message add_user_role_resp {
-
+message AddUserRoleResp {
 }
-message del_user_role_req {
+message DelUserRoleReq {
 	//first element must be 0
 	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
 	string user_id=2[(pbex.string_bytes_len_not_eq)=0];
 	string role_name=3[(pbex.string_bytes_len_not_eq)=0];
 }
-message del_user_role_resp {
-
+message DelUserRoleResp {
 }

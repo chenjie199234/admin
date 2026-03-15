@@ -697,22 +697,24 @@ func (s *InternalSdk) PingByPrjoectID(ctx context.Context, pid, g, a string, for
 	//copy the client pointer
 	client := app.client
 	app.Unlock()
-	in, _ := proto.Marshal(&api.Pingreq{Timestamp: time.Now().UnixNano()})
+	req := &api.Pingreq{}
+	req.SetTimestamp(time.Now().UnixNano())
+	in, _ := proto.Marshal(req)
 	var resp *api.Pingresp
-	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".status/ping", in, crpc.Encoder_Protobuf, func(cctx *crpc.CallContext) error {
+	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".Status/Ping", in, crpc.Encoder_PROTOBUF, func(cctx *crpc.CallContext) error {
 		out, encoder, e := cctx.Recv()
 		if e != nil {
 			return e
 		}
 		switch encoder {
-		case crpc.Encoder_Protobuf:
+		case crpc.Encoder_PROTOBUF:
 			resp = &api.Pingresp{}
 			if e := proto.Unmarshal(out, resp); e != nil {
 				return ecode.ErrResp
 			}
-		case crpc.Encoder_Json:
+		case crpc.Encoder_JSON:
 			resp = &api.Pingresp{}
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(out, resp); e != nil {
+			if e := protojson.Unmarshal(out, resp); e != nil {
 				return ecode.ErrResp
 			}
 		default:
@@ -771,22 +773,24 @@ func (s *InternalSdk) PingByPrjoectName(ctx context.Context, pname, g, a string,
 	//copy the client pointer
 	client := app.client
 	app.Unlock()
-	in, _ := proto.Marshal(&api.Pingreq{Timestamp: time.Now().UnixNano()})
+	req := &api.Pingreq{}
+	req.SetTimestamp(time.Now().UnixNano())
+	in, _ := proto.Marshal(req)
 	var resp *api.Pingresp
-	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".status/ping", in, crpc.Encoder_Protobuf, func(cctx *crpc.CallContext) error {
+	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".Status/Ping", in, crpc.Encoder_PROTOBUF, func(cctx *crpc.CallContext) error {
 		out, encoder, e := cctx.Recv()
 		if e != nil {
 			return e
 		}
 		switch encoder {
-		case crpc.Encoder_Protobuf:
+		case crpc.Encoder_PROTOBUF:
 			resp = &api.Pingresp{}
 			if e := proto.Unmarshal(out, resp); e != nil {
 				return ecode.ErrResp
 			}
-		case crpc.Encoder_Json:
+		case crpc.Encoder_JSON:
 			resp = &api.Pingresp{}
-			if e := (protojson.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}).Unmarshal(out, resp); e != nil {
+			if e := protojson.Unmarshal(out, resp); e != nil {
 				return ecode.ErrResp
 			}
 		default:

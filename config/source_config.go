@@ -47,7 +47,6 @@ type RawServerConfig struct {
 	//each group's connections' heart probe check is in an independence goroutine
 	//small group num will increase to lock conflict
 	//big group num will increate the goroutine num
-	//default 100
 	GroupNum uint16 `json:"group_num"`
 }
 
@@ -157,9 +156,6 @@ func initgrpcserver() {
 		if sc.CGrpcServer.ConnectTimeout <= 0 {
 			sc.CGrpcServer.ConnectTimeout = ctime.Duration(time.Millisecond * 500)
 		}
-		if sc.CGrpcServer.GlobalTimeout <= 0 {
-			sc.CGrpcServer.GlobalTimeout = ctime.Duration(time.Millisecond * 500)
-		}
 		if sc.CGrpcServer.HeartProbe <= 0 {
 			sc.CGrpcServer.HeartProbe = ctime.Duration(time.Second * 5)
 		}
@@ -178,9 +174,6 @@ func initgrpcclient() {
 	} else {
 		if sc.CGrpcClient.ConnectTimeout <= 0 {
 			sc.CGrpcClient.ConnectTimeout = ctime.Duration(time.Millisecond * 500)
-		}
-		if sc.CGrpcClient.GlobalTimeout < 0 {
-			sc.CGrpcClient.GlobalTimeout = 0
 		}
 		if sc.CGrpcClient.HeartProbe <= 0 {
 			sc.CGrpcClient.HeartProbe = ctime.Duration(time.Second * 5)
@@ -201,9 +194,6 @@ func initcrpcserver() {
 		if sc.CrpcServer.ConnectTimeout <= 0 {
 			sc.CrpcServer.ConnectTimeout = ctime.Duration(time.Millisecond * 500)
 		}
-		if sc.CrpcServer.GlobalTimeout <= 0 {
-			sc.CrpcServer.GlobalTimeout = ctime.Duration(time.Millisecond * 500)
-		}
 		if sc.CrpcServer.HeartProbe <= 0 {
 			sc.CrpcServer.HeartProbe = ctime.Duration(time.Second * 5)
 		}
@@ -222,9 +212,6 @@ func initcrpcclient() {
 	} else {
 		if sc.CrpcClient.ConnectTimeout <= 0 {
 			sc.CrpcClient.ConnectTimeout = ctime.Duration(time.Millisecond * 500)
-		}
-		if sc.CrpcClient.GlobalTimeout < 0 {
-			sc.CrpcClient.GlobalTimeout = 0
 		}
 		if sc.CrpcClient.HeartProbe <= 0 {
 			sc.CrpcClient.HeartProbe = ctime.Duration(time.Second * 5)
@@ -257,9 +244,6 @@ func initwebserver() {
 		if sc.WebServer.ConnectTimeout <= 0 {
 			sc.WebServer.ConnectTimeout = ctime.Duration(time.Millisecond * 500)
 		}
-		if sc.WebServer.GlobalTimeout <= 0 {
-			sc.WebServer.GlobalTimeout = ctime.Duration(time.Millisecond * 500)
-		}
 		if sc.WebServer.IdleTimeout <= 0 {
 			sc.WebServer.IdleTimeout = ctime.Duration(time.Second * 5)
 		}
@@ -278,9 +262,6 @@ func initwebclient() {
 	} else {
 		if sc.WebClient.ConnectTimeout <= 0 {
 			sc.WebClient.ConnectTimeout = ctime.Duration(time.Millisecond * 500)
-		}
-		if sc.WebClient.GlobalTimeout < 0 {
-			sc.WebClient.GlobalTimeout = 0
 		}
 		if sc.WebClient.IdleTimeout <= 0 {
 			sc.WebClient.IdleTimeout = ctime.Duration(time.Second * 5)
@@ -326,7 +307,7 @@ func initredis() {
 						}
 						if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
 							slog.Error("[config.initredis] specific cert load failed",
-								slog.String("redis", redisc.RedisName), slog.String("cert_path", certpath), slog.String("error", e.Error()))
+								slog.String("redis", redisc.RedisName), slog.String("cert_path", certpath))
 							os.Exit(1)
 						}
 					}
@@ -334,7 +315,8 @@ func initredis() {
 			}
 			c, e := redis.NewRedis(redisc.Config, tlsc)
 			if e != nil {
-				slog.Error("[config.initredis] failed", slog.String("redis", redisc.RedisName), slog.String("error", e.Error()))
+				slog.Error("[config.initredis] failed",
+					slog.String("redis", redisc.RedisName), slog.String("error", e.Error()))
 				os.Exit(1)
 			}
 			lker.Lock()
@@ -383,7 +365,7 @@ func initmongo() {
 						}
 						if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
 							slog.Error("[config.initmongo] specific cert load failed",
-								slog.String("mongo", mongoc.MongoName), slog.String("cert_path", certpath), slog.String("error", e.Error()))
+								slog.String("mongo", mongoc.MongoName), slog.String("cert_path", certpath))
 							os.Exit(1)
 						}
 					}
@@ -437,7 +419,7 @@ func initmysql() {
 						}
 						if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
 							slog.Error("[config.initmysql] specific cert load failed",
-								slog.String("mysql", mysqlc.MysqlName), slog.String("cert_path", certpath), slog.String("error", e.Error()))
+								slog.String("mysql", mysqlc.MysqlName), slog.String("cert_path", certpath))
 							os.Exit(1)
 						}
 					}

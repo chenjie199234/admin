@@ -37,28 +37,28 @@ func Start() (*Service, error) {
 
 // Ping -
 func (s *Service) Ping(ctx context.Context, in *api.Pingreq) (*api.Pingresp, error) {
-	//if _, ok := ctx.(*crpc.NoStreamServerContext); ok {
-	//        slog.InfoContext("this is a crpc call")
+	//if _, ok := ctx.(crpc.NoStreamServerContext); ok {
+	//        slog.InfoContext(ctx, "this is a crpc call")
 	//}
-	//if _, ok := ctx.(*cgrpc.NoStreamServerContext); ok {
-	//        slog.InfoContext("this is a cgrpc call")
+	//if _, ok := ctx.(cgrpc.NoStreamServerContext); ok {
+	//        slog.InfoContext(ctx, "this is a cgrpc call")
 	//}
-	//if _, ok := ctx.(*web.Context); ok {
-	//        Slog.InfoContext("this is a web call")
+	//if _, ok := ctx.(web.NoStreamServerContext); ok {
+	//        slog.InfoContext(ctx, "this is a web call")
 	//}
 	cpu, cpuu, cput, mem, memu, memt := cotel.GetCpuMemUsage()
-	return &api.Pingresp{
-		ClientTimestamp: in.Timestamp,
-		ServerTimestamp: time.Now().UnixNano(),
-		Host:            host.Hostname,
-		Ip:              host.Hostip,
-		CpuNum:          cpu,
-		CpuUsage:        cpuu,
-		CpuType:         cput,
-		MemTotal:        mem,
-		MemUsage:        memu,
-		MemType:         memt,
-	}, nil
+	resp := &api.Pingresp{}
+	resp.SetClientTimestamp(in.GetTimestamp())
+	resp.SetServerTimestamp(time.Now().UnixNano())
+	resp.SetHost(host.Hostname)
+	resp.SetIp(host.Hostip)
+	resp.SetCpuNum(cpu)
+	resp.SetCpuUsage(cpuu)
+	resp.SetCpuType(cput)
+	resp.SetMemTotal(mem)
+	resp.SetMemUsage(memu)
+	resp.SetMemType(memt)
+	return resp, nil
 }
 
 // Stop -

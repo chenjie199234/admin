@@ -187,10 +187,6 @@ func InitInternal() {
 	if mongoc.MaxConnIdletime <= 0 {
 		mongoc.MaxConnIdletime = ctime.Duration(time.Minute * 5)
 	}
-	// if mongoc.IOTimeout <= 0 {
-	// 	mongoc.IOTimeout = ctime.Duration(time.Millisecond * 500)
-	// }
-	mongoc.IOTimeout = 0 //we need to use the change stream,if this is not 0,the change stream will disconnect
 	if mongoc.DialTimeout <= 0 {
 		mongoc.DialTimeout = ctime.Duration(time.Millisecond * 250)
 	}
@@ -211,8 +207,7 @@ func InitInternal() {
 				if ok := tlsc.RootCAs.AppendCertsFromPEM(cert); !ok {
 					slog.Error("[config.InitInternal] specific cert load failed",
 						slog.String("mongo", "admin_mongo"),
-						slog.String("cert_path", certpath),
-						slog.String("error", e.Error()))
+						slog.String("cert_path", certpath))
 					os.Exit(1)
 				}
 			}

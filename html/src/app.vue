@@ -1,32 +1,73 @@
 <script setup lang="ts">
 import { ref,computed } from 'vue'
-import * as appAPI from './api/admin_app_browser'
-import * as permissionAPI from './api/admin_permission_browser'
 import * as state from './state'
-import * as client from './client'
+
+import {KeyConfigInfo} from '@api/browser_message_admin_KeyConfigInfo'
+import {InstanceInfo} from '@api/browser_message_admin_InstanceInfo'
+import {NodeInfo} from '@api/browser_message_admin_NodeInfo'
+
+import {GetAppReq} from '@api/browser_message_admin_GetAppReq'
+import {GetAppResp} from '@api/browser_message_admin_GetAppResp'
+import {GetApp} from '@api/browser_method_admin_App_GetApp'
+
+import {GetInstancesReq} from '@api/browser_message_admin_GetInstancesReq'
+import {GetInstancesResp} from '@api/browser_message_admin_GetInstancesResp'
+import {GetInstances} from '@api/browser_method_admin_App_GetInstances'
+
+import {GetInstanceInfoReq} from '@api/browser_message_admin_GetInstanceInfoReq'
+import {GetInstanceInfoResp} from '@api/browser_message_admin_GetInstanceInfoResp'
+import {GetInstanceInfo} from '@api/browser_method_admin_App_GetInstanceInfo'
+
+import {DelAppReq} from '@api/browser_message_admin_DelAppReq'
+import {DelAppResp} from '@api/browser_message_admin_DelAppResp'
+import {DelApp} from '@api/browser_method_admin_App_DelApp'
+
+import {SetAppReq} from '@api/browser_message_admin_SetAppReq'
+import {SetAppResp} from '@api/browser_message_admin_SetAppResp'
+import {SetApp} from '@api/browser_method_admin_App_SetApp'
+
+import {UpdateAppSecretReq} from '@api/browser_message_admin_UpdateAppSecretReq'
+import {UpdateAppSecretResp} from '@api/browser_message_admin_UpdateAppSecretResp'
+import {UpdateAppSecret} from '@api/browser_method_admin_App_UpdateAppSecret'
+
+import {GetKeyConfigReq} from '@api/browser_message_admin_GetKeyConfigReq'
+import {GetKeyConfigResp} from '@api/browser_message_admin_GetKeyConfigResp'
+import {GetKeyConfig} from '@api/browser_method_admin_App_GetKeyConfig'
+
+import {SetKeyConfigReq} from '@api/browser_message_admin_SetKeyConfigReq'
+import {SetKeyConfigResp} from '@api/browser_message_admin_SetKeyConfigResp'
+import {SetKeyConfig} from '@api/browser_method_admin_App_SetKeyConfig'
+
+import {RollbackReq} from '@api/browser_message_admin_RollbackReq'
+import {RollbackResp} from '@api/browser_message_admin_RollbackResp'
+import {Rollback} from '@api/browser_method_admin_App_Rollback'
+
+import {DelKeyReq} from '@api/browser_message_admin_DelKeyReq'
+import {DelKeyResp} from '@api/browser_message_admin_DelKeyResp'
+import {DelKey} from '@api/browser_method_admin_App_DelKey'
 
 const all=computed(()=>{
-	let tmp: {[k:string]: {[k:string]:permissionAPI.NodeInfo}} = {}
-	if(!state.page.node!.children){
-		return tmp
-	}
-	for(let n of state.page.node!.children){
-		if(!n){
-			continue
-		}
-		let pieces:string[]=n.node_name.split(".")
-		if(pieces.length!=2){
-			state.set_alert("error",-1,"app's permission node's nodename format wrong,should be 'group.app',nodeid:"+n.node_id!.toString())
-			continue
-		}
-		if(tmp[pieces[0]]){
-			tmp[pieces[0]][pieces[1]] = n
-		}else{
-			tmp[pieces[0]]={}
-			tmp[pieces[0]][pieces[1]] = n
-		}
-	}
+  let tmp: {[k:string]: {[k:string]:NodeInfo}} = {}
+  if(!state.page.node!.children){
 	return tmp
+  }
+  for(let n of state.page.node!.children){
+	if(!n){
+	  continue
+	}
+	let pieces:string[]=n.node_name!.split(".")
+	if(pieces.length!=2){
+	  state.set_alert("error",-1,"app's permission node's nodename format wrong,should be 'group.app',nodeid:"+n.node_id!.toString())
+	  continue
+	}
+	if(tmp[pieces[0]]){
+	  tmp[pieces[0]][pieces[1]] = n
+	}else{
+	  tmp[pieces[0]]={}
+	  tmp[pieces[0]][pieces[1]] = n
+	}
+  }
+  return tmp
 })
 
 const curg=ref<string>("")
@@ -39,10 +80,10 @@ function selfapp():boolean{
 	return nodeid![1]==1&&nodeid![2]==2&&nodeid![3]==1
 }
 function canwrite():boolean{
-	return all.value[curg.value][cura.value].canwrite||all.value[curg.value][cura.value].admin
+	return all.value[curg.value][cura.value].canwrite||all.value[curg.value][cura.value].admin!
 }
 function mustadmin():boolean{
-	return all.value[curg.value][cura.value].admin
+	return all.value[curg.value][cura.value].admin!
 }
 
 const config_instance=ref<string>("")
@@ -58,11 +99,11 @@ const crpc_port=ref<number>(0)
 const cgrpc_port=ref<number>(0)
 const web_port=ref<number>(0)
 
-const keys=ref<Map<string,appAPI.KeyConfigInfo>>(new Map())
+const keys=ref<Map<string,KeyConfigInfo>>(new Map())
 const t_keys_hover=ref<boolean>(false)
 const keyhover=ref<string>("")
 
-const instances=ref<Map<string,appAPI.InstanceInfo|null>>(new Map())
+const instances=ref<Map<string,InstanceInfo|null>>(new Map())
 const t_instances_hover=ref<boolean>(false)
 
 const get_app_status=ref<boolean>(false)
@@ -97,98 +138,104 @@ function get_app(){
 	if(!state.set_load()){
 		return
 	}
-	let req=new appAPI.GetAppReq()
+	let req=new GetAppReq()
 	req.project_id=state.project.info!.project_id
 	req.g_name=curg.value
 	req.a_name=cura.value
 	req.secret=tmpsecret.value
-	client.appClient.get_app({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-		state.clear_load()
-		state.set_alert("error",e.code,e.msg)
-	},(resp: appAPI.GetAppResp)=>{
+	GetApp(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+	  if(resp instanceof GetAppResp){
 		secret.value=tmpsecret.value
 		tmpsecret.value=""
 		if(resp.keys){
-			keys.value=new Map()
-			let tmp = [...resp.keys.entries()].sort()
-			for(let i=0;i<tmp.length;i++){
-				if(tmp[i][1]){
-					keys.value.set(tmp[i][0],tmp[i][1]!)
-				}
+		  keys.value=new Map()
+		  let tmp = [...resp.keys.entries()].sort()
+		  for(let i=0;i<tmp.length;i++){
+			if(tmp[i][1]){
+			  keys.value.set(tmp[i][0],tmp[i][1]!)
 			}
+		  }
 		}else{
-			keys.value = new Map()
+		  keys.value = new Map()
 		}
-		discovermode.value=resp.discover_mode
-		kubernetesns.value=resp.kubernetes_namespace
-		kubernetesls.value=resp.kubernetes_labelselector
-		kubernetesfs.value=resp.kubernetes_fieldselector
-		dnshost.value=resp.dns_host
-		dnsinterval.value=resp.dns_interval
+		discovermode.value=resp.discover_mode!
+		kubernetesns.value=resp.kubernetes_namespace!
+		kubernetesls.value=resp.kubernetes_labelselector!
+		kubernetesfs.value=resp.kubernetes_fieldselector!
+		dnshost.value=resp.dns_host!
+		dnsinterval.value=resp.dns_interval!
 		if(resp.static_addrs){
-			staticaddrs.value=resp.static_addrs
+		  staticaddrs.value=resp.static_addrs
 		}else{
-			staticaddrs.value=[]
+		  staticaddrs.value=[]
 		}
-		crpc_port.value=resp.crpc_port
-		cgrpc_port.value=resp.cgrpc_port
-		web_port.value=resp.web_port
+		crpc_port.value=resp.crpc_port!
+		cgrpc_port.value=resp.cgrpc_port!
+		web_port.value=resp.web_port!
 		get_app_status.value=true
 		state.clear_load()
+	  }else{
+		state.clear_load()
+		state.set_alert("error",resp.code,resp.msg)
+	  }
 	})
 }
 function get_instances(withinfo: boolean){
 	if(!state.set_load()){
 		return
 	}
-	let req=new appAPI.GetInstancesReq()
+	let req=new GetInstancesReq()
 	req.project_id=state.project.info!.project_id
 	req.g_name=curg.value
 	req.a_name=cura.value
 	req.secret=secret.value
 	req.with_info=withinfo
-	client.appClient.get_instances({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-		state.clear_load()
-		state.set_alert("error",e.code,e.msg)
-	},(resp: appAPI.GetInstancesResp)=>{
+	GetInstances(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+	  if(resp instanceof GetInstancesResp){
 		if(resp.instances){
-		console.log(resp.instances)
-			instances.value=new Map()
-			let tmp = [...resp.instances.entries()].sort()
-			for(let i=0;i<tmp.length;i++){
-				if(tmp[i][1]){
-					instances.value.set(tmp[i][0],tmp[i][1]!)
-				}else{
-					instances.value.set(tmp[i][0],null)
-				}
+		  instances.value=new Map()
+		  let tmp = [...resp.instances.entries()].sort()
+		  for(let i=0;i<tmp.length;i++){
+			if(tmp[i][1]){
+			  instances.value.set(tmp[i][0],tmp[i][1]!)
+			}else{
+			  instances.value.set(tmp[i][0],null)
 			}
+		  }
 		}else{
-			instances.value=new Map()
+		  instances.value=new Map()
 		}
 		state.clear_load()
+	  }else{
+		state.clear_load()
+		state.set_alert("error",resp.code,resp.msg)
+	  }
 	})
+	
 }
 function get_instance(addr: string){
 	if(!state.set_load()){
 		return
 	}
-	let req=new appAPI.GetInstanceInfoReq()
+	let req=new GetInstanceInfoReq()
 	req.project_id=state.project.info!.project_id
 	req.g_name=curg.value
 	req.a_name=cura.value
 	req.secret=secret.value
 	req.addr=addr
-	client.appClient.get_instance_info({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-		state.clear_load()
-		state.set_alert("error",e.code,e.msg)
-	},(resp: appAPI.GetInstanceInfoResp)=>{
+	GetInstanceInfo(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+	  if(resp instanceof GetInstanceInfoResp){
 		if(resp.info){
-			if(!instances.value){
-				instances.value=new Map()
-			}
-			instances.value.set(addr,resp.info)
+		  if(!instances.value){
+			instances.value=new Map()
+		  }
+		  instances.value.set(addr,resp.info)
 		}
 		state.clear_load()
+	  }else{
+		state.clear_load()
+		state.set_alert("error",resp.code,resp.msg)
+	  }
 	})
 }
 
@@ -211,46 +258,46 @@ const new_crpc_port=ref<number>(0)
 const new_cgrpc_port=ref<number>(0)
 const new_web_port=ref<number>(0)
 function reset_new_app(){
-	new_kubernetesns.value=''
-	new_kubernetesls.value=''
-	new_kubernetesfs.value=''
-	new_dnshost.value=''
-	new_dnsinterval.value=0
-	new_staticaddrs.value=[]
-	new_staticaddr.value=''
-	new_crpc_port.value=0
-	new_cgrpc_port.value=0
-	new_web_port.value=0
+  new_kubernetesns.value=''
+  new_kubernetesls.value=''
+  new_kubernetesfs.value=''
+  new_dnshost.value=''
+  new_dnsinterval.value=0
+  new_staticaddrs.value=[]
+  new_staticaddr.value=''
+  new_crpc_port.value=0
+  new_cgrpc_port.value=0
+  new_web_port.value=0
 }
 function add_app_able() :boolean{
-	if(new_g.value==''){
-		return false
-	}
-	if(new_a.value==''){
-		return false
-	}
-	if(new_discovermode.value==''){
-		return false
-	}
-	if(new_discovermode.value=='kubernetes'&&(new_kubernetesns.value==''||(new_kubernetesls.value==''&&new_kubernetesfs.value==''))){
-		return false
-	}
-	if(new_discovermode.value=='dns'&&new_dnshost.value==''){
-		return false
-	}
-	if(new_discovermode.value=='static'&&new_staticaddrs.value.length==0){
-		return false
-	}
-	if(new_crpc_port.value==0){
-		return false
-	}
-	if(new_cgrpc_port.value==0){
-		return false
-	}
-	if(new_web_port.value==0){
-		return false
-	}
-	return true
+  if(new_g.value==''){
+	return false
+  }
+  if(new_a.value==''){
+	return false
+  }
+  if(new_discovermode.value==''){
+	return false
+  }
+  if(new_discovermode.value=='kubernetes'&&(new_kubernetesns.value==''||(new_kubernetesls.value==''&&new_kubernetesfs.value==''))){
+	return false
+  }
+  if(new_discovermode.value=='dns'&&new_dnshost.value==''){
+	return false
+  }
+  if(new_discovermode.value=='static'&&new_staticaddrs.value.length==0){
+	return false
+  }
+  if(new_crpc_port.value==0){
+	return false
+  }
+  if(new_cgrpc_port.value==0){
+	return false
+  }
+  if(new_web_port.value==0){
+	return false
+  }
+  return true
 }
 
 //update app
@@ -267,76 +314,76 @@ const update_new_crpc_port=ref<number>(0)
 const update_new_cgrpc_port=ref<number>(0)
 const update_new_web_port=ref<number>(0)
 function update_secret_able():boolean{
-	return update_new_secret.value != secret.value
+  return update_new_secret.value != secret.value
 }
 function reset_update_discover(dname:string){
-	if(dname!=''){
-		update_new_discovermode.value=dname
-	}
-	update_new_kubernetesns.value=''
-	update_new_kubernetesls.value=''
-	update_new_kubernetesfs.value=''
-	update_new_dnshost.value=''
-	update_new_dnsinterval.value=0
-	update_new_staticaddrs.value=[]
-	update_new_staticaddr.value=''
-	update_new_crpc_port.value=crpc_port.value
-	update_new_cgrpc_port.value=cgrpc_port.value
-	update_new_web_port.value=web_port.value
-	if(update_new_discovermode.value=="kubernetes"){
-		update_new_kubernetesns.value=kubernetesns.value
-		update_new_kubernetesls.value=kubernetesls.value
-		update_new_kubernetesfs.value=kubernetesfs.value
-	}else if(update_new_discovermode.value=="dns"){
-		update_new_dnshost.value=dnshost.value
-		update_new_dnsinterval.value=dnsinterval.value
-	}else if(update_new_discovermode.value=="static"){
-		update_new_staticaddrs.value=[...staticaddrs.value]
-	}
+  if(dname!=''){
+	update_new_discovermode.value=dname
+  }
+  update_new_kubernetesns.value=''
+  update_new_kubernetesls.value=''
+  update_new_kubernetesfs.value=''
+  update_new_dnshost.value=''
+  update_new_dnsinterval.value=0
+  update_new_staticaddrs.value=[]
+  update_new_staticaddr.value=''
+  update_new_crpc_port.value=crpc_port.value
+  update_new_cgrpc_port.value=cgrpc_port.value
+  update_new_web_port.value=web_port.value
+  if(update_new_discovermode.value=="kubernetes"){
+	update_new_kubernetesns.value=kubernetesns.value
+	update_new_kubernetesls.value=kubernetesls.value
+	update_new_kubernetesfs.value=kubernetesfs.value
+  }else if(update_new_discovermode.value=="dns"){
+	update_new_dnshost.value=dnshost.value
+	update_new_dnsinterval.value=dnsinterval.value
+  }else if(update_new_discovermode.value=="static"){
+	update_new_staticaddrs.value=[...staticaddrs.value]
+  }
 }
 function update_discover_able():boolean{
-	if(update_new_discovermode.value==''){
-		return false
+  if(update_new_discovermode.value==''){
+	return false
+  }
+  if(update_new_crpc_port.value==0){
+	return false
+  }
+  if(update_new_cgrpc_port.value==0){
+	return false
+  }
+  if(update_new_web_port.value==0){
+	return false
+  }
+  let sameport = update_new_crpc_port.value==crpc_port.value&&update_new_cgrpc_port.value==cgrpc_port.value&&update_new_web_port.value==web_port.value
+  if(update_new_discovermode.value=='kubernetes'){
+	if(update_new_kubernetesns.value==''||(update_new_kubernetesls.value==''&&update_new_kubernetesfs.value=='')){
+	  return false
 	}
-	if(update_new_crpc_port.value==0){
-		return false
+	let samekubernetes = update_new_kubernetesns.value==kubernetesns.value&&
+	  update_new_kubernetesls.value==kubernetesls.value&&
+	  update_new_kubernetesfs.value==kubernetesfs.value
+	return !sameport || !samekubernetes
+  }
+  if(update_new_discovermode.value=='dns'){
+	if(update_new_dnshost.value==''){
+	  return false
 	}
-	if(update_new_cgrpc_port.value==0){
-		return false
+	let samedns = update_new_dnshost.value==dnshost.value&&update_new_dnsinterval.value==dnsinterval.value
+	return !sameport || !samedns
+  }
+  if(update_new_discovermode.value=='static'){
+	if(update_new_staticaddrs.value.length==0){
+	  return false
 	}
-	if(update_new_web_port.value==0){
-		return false
+	let sameaddr = update_new_staticaddrs.value.length==staticaddrs.value.length
+	if(sameaddr){
+	  sameaddr = staticaddrs.value.every(function(v,i){return v==update_new_staticaddrs.value[i]})
 	}
-	let sameport = update_new_crpc_port.value==crpc_port.value&&update_new_cgrpc_port.value==cgrpc_port.value&&update_new_web_port.value==web_port.value
-	if(update_new_discovermode.value=='kubernetes'){
-		if(update_new_kubernetesns.value==''||(update_new_kubernetesls.value==''&&update_new_kubernetesfs.value=='')){
-			return false
-		}
-		let samekubernetes = update_new_kubernetesns.value==kubernetesns.value&&
-			update_new_kubernetesls.value==kubernetesls.value&&
-			update_new_kubernetesfs.value==kubernetesfs.value
-		return !sameport || !samekubernetes
-	}
-	if(update_new_discovermode.value=='dns'){
-		if(update_new_dnshost.value==''){
-			return false
-		}
-		let samedns = update_new_dnshost.value==dnshost.value&&update_new_dnsinterval.value==dnsinterval.value
-		return !sameport || !samedns
-	}
-	if(update_new_discovermode.value=='static'){
-		if(update_new_staticaddrs.value.length==0){
-			return false
-		}
-		let sameaddr = update_new_staticaddrs.value.length==staticaddrs.value.length
-		if(sameaddr){
-			sameaddr = staticaddrs.value.every(function(v,i){return v==update_new_staticaddrs.value[i]})
-		}
-		console.log(sameport)
-		console.log(sameaddr)
-		return !sameport || !sameaddr
-	}
-	return true
+	console.log(sameport)
+	console.log(sameaddr)
+	return !sameport || !sameaddr
+  }
+  return true
 }
 
 //add key config
@@ -345,21 +392,21 @@ const config_value_type=ref<string>("json")
 const config_value=ref<string>("{\n}")
 const config_key=ref<string>("")
 function reset_add_key(){
-	config_key.value=""
-	config_value.value="{\n}"
-	config_value_type.value="json"
+  config_key.value=""
+  config_value.value="{\n}"
+  config_value_type.value="json"
 }
 function add_key_able():boolean{
-	if(config_key.value==''){
-		return false
-	}
-	if(keys.value.has(config_key.value)){
-		return false
-	}
-	if(!is_json_obj(config_value.value)){
-		return false
-	}
-	return true
+  if(config_key.value==''){
+	return false
+  }
+  if(keys.value.has(config_key.value)){
+	return false
+  }
+  if(!is_json_obj(config_value.value)){
+	return false
+  }
+  return true
 }
 
 const cur_key=ref<string>("")
@@ -373,265 +420,283 @@ const rollback_key_value_type=ref<string>("")
 const edit_key_value=ref<string>("")
 const edit_key_value_type=ref<string>("")
 function edit_commit_able():boolean{
-	if(edit_key_value_type.value=="json"){
-		if(!is_json_obj(edit_key_value.value)){
-			return false
-		}
-		return JSON.stringify(JSON.parse(edit_key_value.value),null,4)!=JSON.stringify(JSON.parse(keys.value.get(cur_key.value)!.cur_value),null,4)
+  if(edit_key_value_type.value=="json"){
+	if(!is_json_obj(edit_key_value.value)){
+	  return false
 	}
-	return edit_key_value.value!=keys.value.get(cur_key.value)!.cur_value
+	return JSON.stringify(JSON.parse(edit_key_value.value),null,4)!=JSON.stringify(JSON.parse(keys.value.get(cur_key.value)!.cur_value!),null,4)
+  }
+  return edit_key_value.value!=keys.value.get(cur_key.value)!.cur_value
 }
 
 function app_op(){
-	if(!state.set_load()){
-		return
+  if(!state.set_load()){
+	  return
+  }
+  switch(optype.value){
+	case 'del_app':{
+	  let req=new DelAppReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=curg.value
+	  req.a_name=cura.value
+	  req.secret=secret.value
+	  DelApp(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof DelAppResp){
+		  let node = all.value[curg.value][cura.value]
+		  if(state.page.node!.children){
+			for(let i=0;i<state.page.node!.children!.length;i++){
+			  if(node == state.page.node!.children![i]){
+				state.page.node!.children!.splice(i,1)
+				break
+			  }
+			}
+		  }
+		  curg.value=""
+		  cura.value=""
+		  secret.value=""
+		  discovermode.value=""
+		  keys.value=new Map()
+		  get_app_status.value=false
+		  config_instance.value=""
+		  ing.value=false
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
 	}
-	switch(optype.value){
-		case 'del_app':{
-			let req=new appAPI.DelAppReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			client.appClient.del_app({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: appAPI.DelAppResp)=>{
-				let node = all.value[curg.value][cura.value]
-				if(state.page.node!.children){
-					for(let i=0;i<state.page.node!.children!.length;i++){
-						if(node == state.page.node!.children![i]){
-							state.page.node!.children!.splice(i,1)
-							break
-						}
-					}
-				}
-				curg.value=""
-				cura.value=""
-				secret.value=""
-				discovermode.value=""
-				keys.value=new Map()
-				get_app_status.value=false
-				config_instance.value=""
-				ing.value=false
-				state.clear_load()
-			})
-			break
+	case 'add_app':{
+	  let req=new SetAppReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=new_g.value
+	  req.a_name=new_a.value
+	  req.secret=new_secret.value
+	  req.discover_mode=new_discovermode.value
+	  req.kubernetes_namespace=new_kubernetesns.value
+	  req.kubernetes_labelselector=new_kubernetesls.value
+	  req.kubernetes_fieldselector=new_kubernetesfs.value
+	  req.dns_host=new_dnshost.value
+	  req.dns_interval=new_dnsinterval.value
+	  req.static_addrs=new_staticaddrs.value
+	  req.crpc_port=new_crpc_port.value
+	  req.cgrpc_port=new_cgrpc_port.value
+	  req.web_port=new_web_port.value
+	  req.new_app=true
+	  SetApp(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof SetAppResp){
+		  if(all.value[new_g.value] && all.value[new_g.value][new_a.value]){
+			return
+		  }
+		  let tmp = new NodeInfo()
+		  tmp.node_id=resp.node_id
+		  tmp.node_name=new_g.value+"."+new_a.value
+		  tmp.node_data=""
+		  tmp.canread=true
+		  tmp.canwrite=true
+		  tmp.admin=true
+		  tmp.children=[]
+		  if(!state.page.node!.children){
+			state.page.node!.children=[]
+		  }
+		  state.page.node!.children!.push(tmp)
+		  new_g.value=""
+		  new_a.value=""
+		  new_secret.value=""
+		  new_discovermode.value=""
+		  ing.value=false
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
 		}
-		case 'add_app':{
-			let req=new appAPI.SetAppReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=new_g.value
-			req.a_name=new_a.value
-			req.secret=new_secret.value
-			req.discover_mode=new_discovermode.value
-			req.kubernetes_namespace=new_kubernetesns.value
-			req.kubernetes_labelselector=new_kubernetesls.value
-			req.kubernetes_fieldselector=new_kubernetesfs.value
-			req.dns_host=new_dnshost.value
-			req.dns_interval=new_dnsinterval.value
-			req.static_addrs=new_staticaddrs.value
-			req.crpc_port=new_crpc_port.value
-			req.cgrpc_port=new_cgrpc_port.value
-			req.web_port=new_web_port.value
-			req.new_app=true
-			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.SetAppResp)=>{
-				if(all.value[new_g.value] && all.value[new_g.value][new_a.value]){
-					return
-				}
-				let tmp = new permissionAPI.NodeInfo()
-				tmp.node_id=resp.node_id
-				tmp.node_name=new_g.value+"."+new_a.value
-				tmp.node_data=""
-				tmp.canread=true
-				tmp.canwrite=true
-				tmp.admin=true
-				tmp.children=[]
-				if(!state.page.node!.children){
-					state.page.node!.children=[]
-				}
-				state.page.node!.children!.push(tmp)
-				new_g.value=""
-				new_a.value=""
-				new_secret.value=""
-				new_discovermode.value=""
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
-		case 'update_discover':{
-			let req=new appAPI.SetAppReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			req.discover_mode=update_new_discovermode.value
-			req.kubernetes_namespace=update_new_kubernetesns.value
-			req.kubernetes_labelselector=update_new_kubernetesls.value
-			req.kubernetes_fieldselector=update_new_kubernetesfs.value
-			req.dns_host=update_new_dnshost.value
-			req.dns_interval=update_new_dnsinterval.value
-			req.static_addrs=update_new_staticaddrs.value
-			req.crpc_port=update_new_crpc_port.value
-			req.cgrpc_port=update_new_cgrpc_port.value
-			req.web_port=update_new_web_port.value
-			req.new_app=false
-			client.appClient.set_app({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_: appAPI.SetAppResp)=>{
-				discovermode.value=update_new_discovermode.value
-				kubernetesns.value=update_new_kubernetesns.value
-				kubernetesls.value=update_new_kubernetesls.value
-				dnshost.value=update_new_dnshost.value
-				dnsinterval.value=update_new_dnsinterval.value
-				staticaddrs.value=update_new_staticaddrs.value
-				update_new_discovermode.value=""
-				crpc_port.value=update_new_crpc_port.value,
-				cgrpc_port.value=update_new_cgrpc_port.value,
-				web_port.value=update_new_web_port.value,
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
-		case 'update_secret':{
-			let req=new appAPI.UpdateAppSecretReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.old_secret=secret.value
-			req.new_secret=update_new_secret.value
-			client.appClient.update_app_secret({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: appAPI.UpdateAppSecretResp)=>{
-				secret.value=update_new_secret.value
-				update_new_secret.value=""
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
-		case 'get_rollback_key':{
-			let req=new appAPI.GetKeyConfigReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			req.key=cur_key.value
-			req.index=rollback_key_index.value
-			client.appClient.get_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(resp: appAPI.GetKeyConfigResp)=>{
-				if(resp.value){
-					rollback_key_value.value=resp.value
-					rollback_key_value_type.value=resp.value_type
-				}else{
-					rollback_key_value.value="{}"
-					rollback_key_value_type.value="json"
-				}
-				state.clear_load()
-			})
-			break
-		}
-		case 'add_key':{
-			let req=new appAPI.SetKeyConfigReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			req.key=config_key.value
-			req.value=config_value.value
-			req.value_type=config_value_type.value
-			req.new_key=true
-			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: appAPI.SetKeyConfigResp)=>{
-				let tmp = new appAPI.KeyConfigInfo()
-				tmp.cur_index=1
-				tmp.max_index=1
-				tmp.cur_version=1
-				tmp.cur_value=config_value.value
-				tmp.cur_value_type=config_value_type.value
-				keys.value.set(config_key.value,tmp)
-				config_key.value = ''
-				config_value.value = '{\n}'
-				config_value_type.value = 'json'
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
-		case 'update_key':{
-			let req=new appAPI.SetKeyConfigReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			req.key=cur_key.value
-			req.value=edit_key_value.value
-			req.value_type=edit_key_value_type.value
-			req.new_key=false
-			client.appClient.set_key_config({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: appAPI.SetKeyConfigResp)=>{
-				edit_key_value_type.value=''
-				ing.value=false
-				state.clear_load()
-				get_app()
-			})
-			break
-		}
-		case 'rollback_key':{
-			let req=new appAPI.RollbackReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			req.key=cur_key.value
-			req.index=rollback_key_index.value
-			client.appClient.rollback({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: appAPI.RollbackResp)=>{
-				rollback_key_index.value=0
-				ing.value=false
-				state.clear_load()
-				get_app()
-			})
-			break
-		}
-		case 'del_key':{
-			let req=new appAPI.DelKeyReq()
-			req.project_id=state.project.info!.project_id
-			req.g_name=curg.value
-			req.a_name=cura.value
-			req.secret=secret.value
-			req.key=cur_key.value
-			client.appClient.del_key({"Token":state.user.token},req,client.timeout,(e: appAPI.LogicError)=>{
-				state.clear_load()
-				state.set_alert("error",e.code,e.msg)
-			},(_resp: appAPI.DelKeyResp)=>{
-				keys.value.delete(cur_key.value)
-				cur_key.value=""
-				ing.value=false
-				state.clear_load()
-			})
-			break
-		}
-		default:{
-			state.clear_load()
-			state.set_alert("error",-2,"unknown operation")
-		}
+	  })
+	  break
 	}
+	case 'update_discover':{
+	  let req=new SetAppReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=curg.value
+	  req.a_name=cura.value
+	  req.secret=secret.value
+	  req.discover_mode=update_new_discovermode.value
+	  req.kubernetes_namespace=update_new_kubernetesns.value
+	  req.kubernetes_labelselector=update_new_kubernetesls.value
+	  req.kubernetes_fieldselector=update_new_kubernetesfs.value
+	  req.dns_host=update_new_dnshost.value
+	  req.dns_interval=update_new_dnsinterval.value
+	  req.static_addrs=update_new_staticaddrs.value
+	  req.crpc_port=update_new_crpc_port.value
+	  req.cgrpc_port=update_new_cgrpc_port.value
+	  req.web_port=update_new_web_port.value
+	  req.new_app=false
+	  SetApp(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof SetAppResp){
+		  discovermode.value=update_new_discovermode.value
+		  kubernetesns.value=update_new_kubernetesns.value
+		  kubernetesls.value=update_new_kubernetesls.value
+		  dnshost.value=update_new_dnshost.value
+		  dnsinterval.value=update_new_dnsinterval.value
+		  staticaddrs.value=update_new_staticaddrs.value
+		  update_new_discovermode.value=""
+		  crpc_port.value=update_new_crpc_port.value,
+		  cgrpc_port.value=update_new_cgrpc_port.value,
+		  web_port.value=update_new_web_port.value,
+		  ing.value=false
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
+	}
+	case 'update_secret':{
+	  let req=new UpdateAppSecretReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=curg.value
+	  req.a_name=cura.value
+	  req.old_secret=secret.value
+	  req.new_secret=update_new_secret.value
+	  UpdateAppSecret(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof UpdateAppSecretResp){
+		  secret.value=update_new_secret.value
+		  update_new_secret.value=""
+		  ing.value=false
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
+	}
+	case 'get_rollback_key':{
+	  let req=new GetKeyConfigReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=curg.value
+	  req.a_name=cura.value
+	  req.secret=secret.value
+	  req.key=cur_key.value
+	  req.index=rollback_key_index.value
+	  GetKeyConfig(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof GetKeyConfigResp){
+		  if(resp.value){
+			rollback_key_value.value=resp.value
+			rollback_key_value_type.value=resp.value_type!
+		  }else{
+			rollback_key_value.value="{}"
+			rollback_key_value_type.value="json"
+		  }
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
+	}
+	case 'add_key':{
+	  let req=new SetKeyConfigReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=curg.value
+	  req.a_name=cura.value
+	  req.secret=secret.value
+	  req.key=config_key.value
+	  req.value=config_value.value
+	  req.value_type=config_value_type.value
+	  req.new_key=true
+	  SetKeyConfig(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof SetKeyConfigResp){
+		  let tmp = new KeyConfigInfo()
+		  tmp.cur_index=1
+		  tmp.max_index=1
+		  tmp.cur_version=1
+		  tmp.cur_value=config_value.value
+		  tmp.cur_value_type=config_value_type.value
+		  keys.value.set(config_key.value,tmp)
+		  config_key.value = ''
+		  config_value.value = '{\n}'
+		  config_value_type.value = 'json'
+		  ing.value=false
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
+	}
+	case 'update_key':{
+	  let req=new SetKeyConfigReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=curg.value
+	  req.a_name=cura.value
+	  req.secret=secret.value
+	  req.key=cur_key.value
+	  req.value=edit_key_value.value
+	  req.value_type=edit_key_value_type.value
+	  req.new_key=false
+	  SetKeyConfig(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof SetKeyConfigResp){
+		  edit_key_value_type.value=''
+		  ing.value=false
+		  state.clear_load()
+		  get_app()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
+	}
+	case 'rollback_key':{
+	  let req=new RollbackReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=curg.value
+	  req.a_name=cura.value
+	  req.secret=secret.value
+	  req.key=cur_key.value
+	  req.index=rollback_key_index.value
+	  Rollback(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof RollbackResp){
+		  rollback_key_index.value=0
+		  ing.value=false
+		  state.clear_load()
+		  get_app()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
+	}
+	case 'del_key':{
+	  let req=new DelKeyReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=curg.value
+	  req.a_name=cura.value
+	  req.secret=secret.value
+	  req.key=cur_key.value
+	  DelKey(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof DelKeyResp){
+		  keys.value.delete(cur_key.value)
+		  cur_key.value=""
+		  ing.value=false
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
+	}
+	default:{
+	  state.clear_load()
+	  state.set_alert("error",-2,"unknown operation")
+	}
+  }
 }
 function is_json_obj(str :string):boolean{
 	if(str.length<2){
@@ -649,7 +714,8 @@ function is_json_obj(str :string):boolean{
 }
 </script>
 <template>
-	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el)=>{el.querySelector('.va-modal__dialog').style.width='auto'}">
+	<!-- <VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el:HTMLElement)=>{el.querySelector('.va-modal__dialog').style.width='auto'}"> -->
+	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px">
 		<template #default>
 			<div v-if="optype=='del_app'" style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
@@ -963,7 +1029,7 @@ function is_json_obj(str :string):boolean{
 					<div style="flex:1;display:flex;flex-direction:column">
 						<textarea
 							style="border:1px solid var(--va-background-element);border-radius:5px;flex:1;overflow-y:auto;resize:none"
-							readonly>{{JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)}}</textarea>
+							readonly>{{JSON.stringify(JSON.parse(keys.get(key)!.cur_value!),null,4)}}</textarea>
 						<div style="align-self:center;display:flex;align-items:center">
 							<b style="color:var(--va-primary);margin:2px 10px">Current Version:  {{ keys.get(key)!.cur_version}}</b>
 							<b style="color:var(--va-primary);margin:2px 10px">Current ID:  {{ keys.get(key)!.cur_index }}</b>
@@ -983,10 +1049,10 @@ function is_json_obj(str :string):boolean{
 											size="small"
 											gradient
 											style="height:24px;width:42px;padding:5px 0;margin:2px;cursor:pointer"
-											:disabled="keys.get(key)!.cur_index==keys.get(key)!.max_index-index+1"
-											@click="rollback_key_index=keys.get(key)!.max_index-index+1;optype='get_rollback_key';app_op()"
+											:disabled="keys.get(key)!.cur_index==keys.get(key)!.max_index!-index+1"
+											@click="rollback_key_index=keys.get(key)!.max_index!-index+1;optype='get_rollback_key';app_op()"
 										>
-											{{keys.get(key)!.max_index-index+1}}
+											{{keys.get(key)!.max_index!-index+1}}
 										</VaButton>
 									</div>
 								</VaDropdownContent>
@@ -1000,11 +1066,11 @@ function is_json_obj(str :string):boolean{
 								@click="()=>{
 									if(keys.get(key)!.cur_value){
 										if(keys.get(key)!.cur_value_type=='json'){
-											edit_key_value=JSON.stringify(JSON.parse(keys.get(key)!.cur_value),null,4)
+											edit_key_value=JSON.stringify(JSON.parse(keys.get(key)!.cur_value!),null,4)
 										}else{
-											edit_key_value=keys.get(key)!.cur_value
+											edit_key_value=keys.get(key)!.cur_value!
 										}
-										edit_key_value_type=keys.get(key)!.cur_value_type
+										edit_key_value_type=keys.get(key)!.cur_value_type!
 									}else{
 										edit_key_value='{\n}'
 										edit_key_value_type='json'

@@ -68,7 +68,6 @@
 			"replica_set":"rs",
 			"max_open":256,
 			"max_conn_idletime":"5m",
-			"io_timeout":"500ms",
 			"dial_timeout":"250ms"
 		}
 	},
@@ -88,7 +87,7 @@
 			},
 			"max_open":256,
 			"max_conn_idletime":"5m",
-			"io_timeout":"500ms",
+			"io_timeout":"3s",
 			"dial_timeout":"250ms",
 			"charset":"",
 			"collation":"",
@@ -107,8 +106,18 @@
 			"read_write_split":true,
 			"max_open":256,
 			"max_conn_idletime":"5m",
-			"io_timeout":"500ms",
+			"io_timeout":"1s",
 			"dial_timeout":"250ms"
+		}
+	},
+	"email":{
+		"example_email":{
+			"max_open":100,
+			"max_conn_idletime":"3m",
+			"host":"smtp.example.com",
+			"port":587,
+			"account":"account@example.com",
+			"password":"xxx"
 		}
 	}
 }

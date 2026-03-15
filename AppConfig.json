@@ -1,56 +1,56 @@
 {
 	"handler_timeout":{
-		"/admin.status/ping":{
+		"/admin.Status/Ping":{
 			"GET":"200ms",
 			"CRPC":"200ms",
 			"GRPC":"200ms"
 		},
-		"/admin.app/watch_config":{
+		"/admin.App/WatchConfig":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.app/watch_discover":{
+		"/admin.App/WatchDiscover":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.initialize/delete_project":{
+		"/admin.Initialize/DeleteProject":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.initialize/update_project":{
+		"/admin.Initialize/UpdateProject":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.app/del_app":{
+		"/admin.App/DelApp":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.app/update_app_secret":{
+		"/admin.App/UpdateAppSecret":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.app/proxy":{
+		"/admin.App/Proxy":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.app/del_proxy":{
+		"/admin.App/DelProxy":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.permission/del_node":{
+		"/admin.Permission/DelNode":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
 		},
-		"/admin.permission/move_node":{
+		"/admin.Permission/MoveNode":{
 			"POST":"0s",
 			"CRPC":"0s",
 			"GRPC":"0s"
@@ -76,34 +76,27 @@
 	},
 	"accesses":{
 		"/admin.exampleservice/examplemethod":[{
+			"methods":["POST"],
+			"accesses":["accesskey1","accesskey2"]
+		},{
+			"methods":["GRPC","CRPC"],
+			"accesses":["accesskey3","accesskey4"]
+		}],
+		"/admin.Initialize/Init":[{
 			"methods":["POST","GRPC","CRPC"],
-			"accesses":{
-				"accessid":"accesskey"
-			}
+			"accesses":["accesskey_init"]
 		}],
-		"/admin.initialize/init":[{
-			"methods":["POST","GRPC","CRPC"],
-			"accesses":{
-				"accessid":"accesskey_init"
-			}
-		}],
-		"/admin.app/watch_config":[{
+		"/admin.App/WatchConfig":[{
 			"methods":["POST"],
-			"accesses":{
-				"examplecaller":"accesskey_watch_config"
-			}
+			"accesses":["accesskey_watch_config"]
 		}],
-		"/admin.app/watch_discover":[{
+		"/admin.App/WatchDiscover":[{
 			"methods":["POST"],
-			"accesses":{
-				"examplecaller":"accesskey_watch_discover"
-			}
+			"accesses":["accesskey_watch_discover"]
 		}],
-		"/admin.permission/get_user_permission":[{
+		"/admin.Permission/GetUserPermission":[{
 			"methods":["POST"],
-			"accesses":{
-				"examplecaller":"accesskey_get_user_permission"
-			}
+			"accesses":["accesskey_get_user_permission"]
 		}]
 	},
 	"token_secret":"test",

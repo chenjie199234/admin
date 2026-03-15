@@ -158,21 +158,21 @@ func (s *DiscoverSdk) watch(project, group, app string, once chan *struct{}) {
 	for {
 		header := make(http.Header)
 		header.Set("Access-Key", s.accesskey)
-		resp, e := s.client.WatchDiscover(s.ctx, &api.WatchDiscoverReq{
-			ProjectName:                project,
-			GName:                      group,
-			AName:                      app,
-			CurDiscoverMode:            s.discovermode,
-			CurDnsHost:                 s.dnshost,
-			CurDnsInterval:             s.dnsinterval,
-			CurStaticAddrs:             s.staticaddrs,
-			CurKubernetesNamespace:     s.kubernetesns,
-			CurKubernetesLabelselector: s.kubernetesls,
-			CurKubernetesFieldselector: s.kubernetesfs,
-			CurCrpcPort:                s.crpcport,
-			CurCgrpcPort:               s.cgrpcport,
-			CurWebPort:                 s.webport,
-		}, header)
+		req := &api.WatchDiscoverReq{}
+		req.SetProjectName(project)
+		req.SetGName(group)
+		req.SetAName(app)
+		req.SetCurDiscoverMode(s.discovermode)
+		req.SetCurDnsHost(s.dnshost)
+		req.SetCurDnsInterval(s.dnsinterval)
+		req.SetCurStaticAddrs(s.staticaddrs)
+		req.SetCurKubernetesNamespace(s.kubernetesns)
+		req.SetCurKubernetesLabelselector(s.kubernetesls)
+		req.SetCurKubernetesFieldselector(s.kubernetesfs)
+		req.SetCurCrpcPort(s.crpcport)
+		req.SetCurCgrpcPort(s.cgrpcport)
+		req.SetCurWebPort(s.webport)
+		resp, e := s.client.WatchDiscover(s.ctx, req, header)
 		if e != nil {
 			if cerror.Equal(e, cerror.ErrCanceled) {
 				return
@@ -181,32 +181,33 @@ func (s *DiscoverSdk) watch(project, group, app string, once chan *struct{}) {
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
-		if resp.DiscoverMode == "dns" && (resp.DnsHost == "" || resp.DnsInterval == 0) {
+		if resp.GetDiscoverMode() == "dns" && (resp.GetDnsHost() == "" || resp.GetDnsInterval() == 0) {
 			slog.Error("[discover.admin] dns setting broken", slog.String("target", s.target))
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
-		if resp.DiscoverMode == "Static" && len(resp.StaticAddrs) == 0 {
+		if resp.GetDiscoverMode() == "Static" && len(resp.GetStaticAddrs()) == 0 {
 			slog.Error("[discover.admin] static setting broken", slog.String("target", s.target))
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
-		if resp.DiscoverMode == "kubernetes" && (resp.KubernetesNamespace == "" || (resp.KubernetesFieldselector == "" && resp.KubernetesLabelselector == "")) {
+		if resp.GetDiscoverMode() == "kubernetes" &&
+			(resp.GetKubernetesNamespace() == "" || (resp.GetKubernetesFieldselector() == "" && resp.GetKubernetesLabelselector() == "")) {
 			slog.Error("[discover.admin] kubernetes setting broken", slog.String("target", s.target))
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
 		s.lker.Lock()
-		s.discovermode = resp.DiscoverMode
-		s.dnshost = resp.DnsHost
-		s.dnsinterval = resp.DnsInterval
-		s.staticaddrs = resp.StaticAddrs
-		s.kubernetesns = resp.KubernetesNamespace
-		s.kubernetesls = resp.KubernetesLabelselector
-		s.kubernetesfs = resp.KubernetesFieldselector
-		s.crpcport = resp.CrpcPort
-		s.cgrpcport = resp.CgrpcPort
-		s.webport = resp.WebPort
+		s.discovermode = resp.GetDiscoverMode()
+		s.dnshost = resp.GetDnsHost()
+		s.dnsinterval = resp.GetDnsInterval()
+		s.staticaddrs = resp.GetStaticAddrs()
+		s.kubernetesns = resp.GetKubernetesNamespace()
+		s.kubernetesls = resp.GetKubernetesLabelselector()
+		s.kubernetesfs = resp.GetKubernetesFieldselector()
+		s.crpcport = resp.GetCrpcPort()
+		s.cgrpcport = resp.GetCgrpcPort()
+		s.webport = resp.GetWebPort()
 		if s.di != nil {
 			olddi := s.di
 			s.di = nil

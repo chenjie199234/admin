@@ -1,75 +1,77 @@
 <script setup lang="ts">
 import { ref,watch } from 'vue'
-import * as permissionAPI from './api/admin_permission_browser'
+
+import {NodeInfo} from '@api/browser_message_admin_NodeInfo'
+
 const props=defineProps<{
-	pnode:permissionAPI.NodeInfo|null
-	node:permissionAPI.NodeInfo
-	deep:number
-	disabled:boolean
+  pnode:NodeInfo|null
+  node:NodeInfo
+  deep:number
+  disabled:boolean
 }>()
 const new_canread=ref<boolean>(false)
 const new_canwrite=ref<boolean>(false)
 const new_admin=ref<boolean>(false)
 watch(()=>props.node.admin,(newval,oldval)=>{
-	new_canread.value=props.node.canread
-	new_canwrite.value=props.node.canwrite
-	new_admin.value=props.node.admin
-	if(newval){
-		if(!props.node.children){
-			return
-		}
-		for(let child of props.node.children){
-			if(!child){
-				continue
-			}
-			child.canread=true
-			child.canwrite=true
-			child.admin=true
-		}
-	}else if(oldval){
-		if(!props.node.children){
-			return
-		}
-		for(let child of props.node.children){
-			if(!child){
-				continue
-			}
-			child.canread=false
-			child.canwrite=false
-			child.admin=false
-		}
+  new_canread.value=props.node.canread!
+  new_canwrite.value=props.node.canwrite!
+  new_admin.value=props.node.admin!
+  if(newval){
+	if(!props.node.children){
+	  return
 	}
+	for(let child of props.node.children){
+	  if(!child){
+		continue
+	  }
+	  child.canread=true
+	  child.canwrite=true
+	  child.admin=true
+	}
+  }else if(oldval){
+	if(!props.node.children){
+	  return
+	}
+	for(let child of props.node.children){
+	  if(!child){
+		continue
+	  }
+	  child.canread=false
+	  child.canwrite=false
+	  child.admin=false
+	}
+  }
 },{immediate: true})
 const open=ref<boolean>(false)
 const hover=ref<boolean>(false)
 function permission_update(t :string){
-	switch(t){
-		case "read":{
-			if(!new_canread.value){
-				new_canwrite.value=false
-				new_admin.value=false
-			}
-			break
-		}
-		case "write":{
-			if(!new_canwrite.value){
-				new_admin.value=false
-			}else{
-				new_canread.value=true
-			}
-			break
-		}
-		case "admin":{
-			if(new_admin.value){
-				new_canread.value=true
-				new_canwrite.value=true
-			}
-			break
-		}
+  switch(t){
+	case "read":{
+	  if(!new_canread.value){
+		new_canwrite.value=false
+		new_admin.value=false
+	  }
+	  break
 	}
+	case "write":{
+	  if(!new_canwrite.value){
+		new_admin.value=false
+	  }else{
+		new_canread.value=true
+	  }
+	  break
+	}
+	case "admin":{
+	  if(new_admin.value){
+		new_canread.value=true
+		new_canwrite.value=true
+	  }
+	  break
+	}
+  }
 }
 function permission_same():boolean{
-	return new_canread.value==props.node.canread&&new_canwrite.value==props.node.canwrite&&new_admin.value==props.node.admin
+  return new_canread.value==props.node.canread&&new_canwrite.value==props.node.canwrite&&new_admin.value==props.node.admin
 }
 </script>
 <template>
@@ -129,7 +131,7 @@ function permission_same():boolean{
 					:node="child!"
 					:deep="deep+1"
 					:disabled="disabled"
-					@permissionevent="(updatenode,r,w,a)=>{$emit('permissionevent',updatenode,r,w,a)}"/>
+					@permissionevent="(updatenode:NodeInfo,r:boolean,w:boolean,a:boolean)=>{$emit('permissionevent',updatenode,r,w,a)}"/>
 			</template>
 		</div>
 	</div>

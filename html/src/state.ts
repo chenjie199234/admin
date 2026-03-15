@@ -1,7 +1,13 @@
 import { reactive,ref } from 'vue'
-import * as userAPI from './api/admin_user_browser'
-import * as permissionAPI from './api/admin_permission_browser'
-import * as initializeAPI from './api/admin_initialize_browser'
+import {UserInfo} from '@api/browser_message_admin_UserInfo'
+import {NodeInfo} from '@api/browser_message_admin_NodeInfo'
+import {ProjectInfo} from '@api/browser_message_admin_ProjectInfo'
+// import * as userAPI from './api/admin_user_browser'
+// import * as permissionAPI from './api/admin_permission_browser'
+// import * as initializeAPI from './api/admin_initialize_browser'
+
+export const baseurl: string = "http://localhost:8000"
+export const expire: number = 3000//unit ms
 
 //-------------------------------------------------------------------------------
 export const inited = ref<boolean|null>(null)
@@ -63,7 +69,7 @@ export const user = reactive<{
 	root:boolean
 	oauth2:string
 	token:string
-	info:userAPI.UserInfo|null
+	info:UserInfo|null
 }>({
 	root:false,
 	oauth2:"",
@@ -81,11 +87,11 @@ export function avatar():string{
 	}
 	if(user.info){
 		if(user.oauth2 == "FeiShu"){
-			return user.info.feishu_user_name.substr(0,1)
+			return user.info.feishu_user_name!.substr(0,1)
 		}else if(user.oauth2 == "DingDing"){
-			return user.info.dingding_user_name.substr(0,1)
+			return user.info.dingding_user_name!.substr(0,1)
 		}else if(user.oauth2 == "WXWork"){
-			return user.info.wxwork_user_name.substr(0,1)
+			return user.info.wxwork_user_name!.substr(0,1)
 		}
 	}
 	return ""
@@ -102,7 +108,7 @@ export function logout(){
 
 //-------------------------------------------------------------------------------
 export const project = reactive<{
-	info:initializeAPI.ProjectInfo|null
+	info:ProjectInfo|null
 }>({
 	info:null,
 })
@@ -112,11 +118,11 @@ export function clear_project(){
 
 //-------------------------------------------------------------------------------
 export const page = reactive<{
-	node:permissionAPI.NodeInfo|null
+	node:NodeInfo|null
 }>({
 	node:null,
 })
-export function set_page(node:permissionAPI.NodeInfo){
+export function set_page(node:NodeInfo){
 	page.node=node
 }
 export function clear_page(){

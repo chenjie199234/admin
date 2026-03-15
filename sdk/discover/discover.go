@@ -177,7 +177,6 @@ func (s *DiscoverSdk) watch(project, group, app string, once chan *struct{}) {
 			if cerror.Equal(e, cerror.ErrCanceled) {
 				return
 			}
-			slog.Error("[discover.admin] watch failed", slog.String("target", s.target), slog.String("error", e.Error()))
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}

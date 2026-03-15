@@ -13,7 +13,6 @@ import (
 
 	"github.com/chenjie199234/admin/api"
 
-	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/secure"
 	"github.com/chenjie199234/Corelib/util/common"
@@ -142,10 +141,6 @@ func (instance *ConfigSdk) watch(selfprojectname, selfappgroup, selfappname stri
 		req.SetKeys(keys)
 		resp, e := instance.client.WatchConfig(instance.ctx, req, header)
 		if e != nil {
-			if !cerror.Equal(e, cerror.ErrCanceled) {
-				slog.Error("[ConfigSdk.watch] failed", slog.Any("watch_keys", keys), slog.String("error", e.Error()))
-				time.Sleep(time.Millisecond * 100)
-			}
 			instance.cancel()
 			continue
 		}

@@ -4186,6 +4186,7 @@ type InstanceInfo struct {
 	xxx_hidden_MemTotal    uint64                 `protobuf:"varint,5,opt,name=mem_total,json=memTotal"`
 	xxx_hidden_MemUsage    float64                `protobuf:"fixed64,6,opt,name=mem_usage,json=memUsage"`
 	xxx_hidden_MemType     *string                `protobuf:"bytes,7,opt,name=mem_type,json=memType"`
+	xxx_hidden_Version     *string                `protobuf:"bytes,8,opt,name=version"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -4275,39 +4276,54 @@ func (x *InstanceInfo) GetMemType() string {
 	return ""
 }
 
+func (x *InstanceInfo) GetVersion() string {
+	if x != nil {
+		if x.xxx_hidden_Version != nil {
+			return *x.xxx_hidden_Version
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *InstanceInfo) SetName(v string) {
 	x.xxx_hidden_Name = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
 }
 
 func (x *InstanceInfo) SetCpuNum(v float64) {
 	x.xxx_hidden_CpuNum = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 8)
 }
 
 func (x *InstanceInfo) SetCpuUsage(v float64) {
 	x.xxx_hidden_CpuUsage = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 8)
 }
 
 func (x *InstanceInfo) SetCpuType(v string) {
 	x.xxx_hidden_CpuType = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
 }
 
 func (x *InstanceInfo) SetMemTotal(v uint64) {
 	x.xxx_hidden_MemTotal = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
 }
 
 func (x *InstanceInfo) SetMemUsage(v float64) {
 	x.xxx_hidden_MemUsage = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 8)
 }
 
 func (x *InstanceInfo) SetMemType(v string) {
 	x.xxx_hidden_MemType = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 8)
+}
+
+func (x *InstanceInfo) SetVersion(v string) {
+	x.xxx_hidden_Version = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 8)
 }
 
 func (x *InstanceInfo) HasName() bool {
@@ -4359,6 +4375,13 @@ func (x *InstanceInfo) HasMemType() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
 }
 
+func (x *InstanceInfo) HasVersion() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
+}
+
 func (x *InstanceInfo) ClearName() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Name = nil
@@ -4394,6 +4417,11 @@ func (x *InstanceInfo) ClearMemType() {
 	x.xxx_hidden_MemType = nil
 }
 
+func (x *InstanceInfo) ClearVersion() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
+	x.xxx_hidden_Version = nil
+}
+
 type InstanceInfo_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -4404,6 +4432,7 @@ type InstanceInfo_builder struct {
 	MemTotal *uint64
 	MemUsage *float64
 	MemType  *string
+	Version  *string
 }
 
 func (b0 InstanceInfo_builder) Build() *InstanceInfo {
@@ -4411,32 +4440,36 @@ func (b0 InstanceInfo_builder) Build() *InstanceInfo {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Name != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
 		x.xxx_hidden_Name = b.Name
 	}
 	if b.CpuNum != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 8)
 		x.xxx_hidden_CpuNum = *b.CpuNum
 	}
 	if b.CpuUsage != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 8)
 		x.xxx_hidden_CpuUsage = *b.CpuUsage
 	}
 	if b.CpuType != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
 		x.xxx_hidden_CpuType = b.CpuType
 	}
 	if b.MemTotal != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
 		x.xxx_hidden_MemTotal = *b.MemTotal
 	}
 	if b.MemUsage != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 8)
 		x.xxx_hidden_MemUsage = *b.MemUsage
 	}
 	if b.MemType != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 8)
 		x.xxx_hidden_MemType = b.MemType
+	}
+	if b.Version != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 8)
+		x.xxx_hidden_Version = b.Version
 	}
 	return m0
 }
@@ -5472,7 +5505,7 @@ const file_api_admin_app_proto_rawDesc = "" +
 	"\n" +
 	"cgrpc_port\x18\t \x01(\rB\x06\xb0\x91N\x80\x80\x04R\tcgrpcPort\x12!\n" +
 	"\bweb_port\x18\n" +
-	" \x01(\rB\x06\xb0\x91N\x80\x80\x04R\awebPort\"\xc8\x01\n" +
+	" \x01(\rB\x06\xb0\x91N\x80\x80\x04R\awebPort\"\xe2\x01\n" +
 	"\fInstanceInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x17\n" +
 	"\acpu_num\x18\x02 \x01(\x01R\x06cpuNum\x12\x1b\n" +
@@ -5480,7 +5513,8 @@ const file_api_admin_app_proto_rawDesc = "" +
 	"\bcpu_type\x18\x04 \x01(\tR\acpuType\x12\x1b\n" +
 	"\tmem_total\x18\x05 \x01(\x04R\bmemTotal\x12\x1b\n" +
 	"\tmem_usage\x18\x06 \x01(\x01R\bmemUsage\x12\x19\n" +
-	"\bmem_type\x18\a \x01(\tR\amemType\"\xa5\x01\n" +
+	"\bmem_type\x18\a \x01(\tR\amemType\x12\x18\n" +
+	"\aversion\x18\b \x01(\tR\aversion\"\xa5\x01\n" +
 	"\x0fGetInstancesReq\x12#\n" +
 	"\n" +
 	"project_id\x18\x01 \x03(\rB\x04\x88\x90N\x02R\tprojectId\x12\x1b\n" +

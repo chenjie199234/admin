@@ -50,6 +50,12 @@ if "%1" == "help" (
 if "%1" == "-help" (
 	goto :help
 )
+if "%1" == "run" (
+	goto :run
+)
+if "%1" == "build" (
+	goto :build
+)
 if "%1" == "pb" (
 	goto :pb
 )
@@ -67,6 +73,16 @@ if "%1" == "sub" (
 )
 
 goto :help
+
+:run
+	for /f "delims=" %%i in ('powershell -Command "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'"') do set "dt=%%i"
+	go run -ldflags="-X 'main.version=%dt%'" main.go
+goto :end
+
+:build
+	for /f "delims=" %%i in ('powershell -Command "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'"') do set "dt=%%i"
+	go build -ldflags="-X 'main.version=%dt%'" main.go
+goto :end
 
 :pb
 	del >nul 2>nul .\api\*.pb.go
@@ -143,6 +159,8 @@ goto :eof
 	echo    ./cmd.bat ^<option^>
 	echo.
 	echo Options:
+	echo    run                       go run with -ldflags.
+	echo    build                     go build with -ldflags.
 	echo    pb                        Generate the proto in this program.
 	echo    sub ^<sub service name^>    Create a new sub service.
 	echo    kube                      Update kubernetes config.

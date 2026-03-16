@@ -109,6 +109,7 @@ type Pingresp struct {
 	xxx_hidden_MemTotal        uint64                 `protobuf:"varint,8,opt,name=mem_total,json=memTotal"`
 	xxx_hidden_MemUsage        float64                `protobuf:"fixed64,9,opt,name=mem_usage,json=memUsage"`
 	xxx_hidden_MemType         *string                `protobuf:"bytes,10,opt,name=mem_type,json=memType"`
+	xxx_hidden_Version         *string                `protobuf:"bytes,11,opt,name=version"`
 	XXX_raceDetectHookData     protoimpl.RaceDetectHookData
 	XXX_presence               [1]uint32
 	unknownFields              protoimpl.UnknownFields
@@ -222,54 +223,69 @@ func (x *Pingresp) GetMemType() string {
 	return ""
 }
 
+func (x *Pingresp) GetVersion() string {
+	if x != nil {
+		if x.xxx_hidden_Version != nil {
+			return *x.xxx_hidden_Version
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *Pingresp) SetClientTimestamp(v int64) {
 	x.xxx_hidden_ClientTimestamp = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 11)
 }
 
 func (x *Pingresp) SetServerTimestamp(v int64) {
 	x.xxx_hidden_ServerTimestamp = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 11)
 }
 
 func (x *Pingresp) SetHost(v string) {
 	x.xxx_hidden_Host = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 11)
 }
 
 func (x *Pingresp) SetIp(v string) {
 	x.xxx_hidden_Ip = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 11)
 }
 
 func (x *Pingresp) SetCpuNum(v float64) {
 	x.xxx_hidden_CpuNum = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 11)
 }
 
 func (x *Pingresp) SetCpuUsage(v float64) {
 	x.xxx_hidden_CpuUsage = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 11)
 }
 
 func (x *Pingresp) SetCpuType(v string) {
 	x.xxx_hidden_CpuType = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 11)
 }
 
 func (x *Pingresp) SetMemTotal(v uint64) {
 	x.xxx_hidden_MemTotal = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 11)
 }
 
 func (x *Pingresp) SetMemUsage(v float64) {
 	x.xxx_hidden_MemUsage = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 11)
 }
 
 func (x *Pingresp) SetMemType(v string) {
 	x.xxx_hidden_MemType = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 9, 10)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 9, 11)
+}
+
+func (x *Pingresp) SetVersion(v string) {
+	x.xxx_hidden_Version = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 10, 11)
 }
 
 func (x *Pingresp) HasClientTimestamp() bool {
@@ -342,6 +358,13 @@ func (x *Pingresp) HasMemType() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 9)
 }
 
+func (x *Pingresp) HasVersion() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 10)
+}
+
 func (x *Pingresp) ClearClientTimestamp() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_ClientTimestamp = 0
@@ -392,6 +415,11 @@ func (x *Pingresp) ClearMemType() {
 	x.xxx_hidden_MemType = nil
 }
 
+func (x *Pingresp) ClearVersion() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 10)
+	x.xxx_hidden_Version = nil
+}
+
 type Pingresp_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -405,6 +433,7 @@ type Pingresp_builder struct {
 	MemTotal        *uint64
 	MemUsage        *float64
 	MemType         *string
+	Version         *string
 }
 
 func (b0 Pingresp_builder) Build() *Pingresp {
@@ -412,44 +441,48 @@ func (b0 Pingresp_builder) Build() *Pingresp {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.ClientTimestamp != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 11)
 		x.xxx_hidden_ClientTimestamp = *b.ClientTimestamp
 	}
 	if b.ServerTimestamp != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 11)
 		x.xxx_hidden_ServerTimestamp = *b.ServerTimestamp
 	}
 	if b.Host != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 11)
 		x.xxx_hidden_Host = b.Host
 	}
 	if b.Ip != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 11)
 		x.xxx_hidden_Ip = b.Ip
 	}
 	if b.CpuNum != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 11)
 		x.xxx_hidden_CpuNum = *b.CpuNum
 	}
 	if b.CpuUsage != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 11)
 		x.xxx_hidden_CpuUsage = *b.CpuUsage
 	}
 	if b.CpuType != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 11)
 		x.xxx_hidden_CpuType = b.CpuType
 	}
 	if b.MemTotal != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 11)
 		x.xxx_hidden_MemTotal = *b.MemTotal
 	}
 	if b.MemUsage != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 11)
 		x.xxx_hidden_MemUsage = *b.MemUsage
 	}
 	if b.MemType != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 9, 10)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 9, 11)
 		x.xxx_hidden_MemType = b.MemType
+	}
+	if b.Version != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 10, 11)
+		x.xxx_hidden_Version = b.Version
 	}
 	return m0
 }
@@ -460,7 +493,7 @@ const file_api_admin_status_proto_rawDesc = "" +
 	"\n" +
 	"\x16api/admin_status.proto\x12\x05admin\"-\n" +
 	"\aPingreq\x12\"\n" +
-	"\ttimestamp\x18\x01 \x01(\x03B\x04\x80\x92N\x00R\ttimestamp\"\xaa\x02\n" +
+	"\ttimestamp\x18\x01 \x01(\x03B\x04\x80\x92N\x00R\ttimestamp\"\xc4\x02\n" +
 	"\bPingresp\x12)\n" +
 	"\x10client_timestamp\x18\x01 \x01(\x03R\x0fclientTimestamp\x12)\n" +
 	"\x10server_timestamp\x18\x02 \x01(\x03R\x0fserverTimestamp\x12\x12\n" +
@@ -472,7 +505,8 @@ const file_api_admin_status_proto_rawDesc = "" +
 	"\tmem_total\x18\b \x01(\x04R\bmemTotal\x12\x1b\n" +
 	"\tmem_usage\x18\t \x01(\x01R\bmemUsage\x12\x19\n" +
 	"\bmem_type\x18\n" +
-	" \x01(\tR\amemType2J\n" +
+	" \x01(\tR\amemType\x12\x18\n" +
+	"\aversion\x18\v \x01(\tR\aversion2J\n" +
 	"\x06Status\x12@\n" +
 	"\x04Ping\x12\x0e.admin.Pingreq\x1a\x0f.admin.Pingresp\"\x17\x8a\x9fI\x03get\x8a\x9fI\x04crpc\x8a\x9fI\x04grpcB(Z&github.com/chenjie199234/admin/api;apib\beditionsp\xe9\az\x0fpbex/pbex.proto"
 

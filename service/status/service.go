@@ -8,6 +8,7 @@ import (
 	//"github.com/chenjie199234/admin/config"
 	"github.com/chenjie199234/admin/api"
 	statusdao "github.com/chenjie199234/admin/dao/status"
+	"github.com/chenjie199234/admin/model"
 	//"github.com/chenjie199234/admin/ecode"
 
 	"github.com/chenjie199234/Corelib/cotel"
@@ -58,6 +59,7 @@ func (s *Service) Ping(ctx context.Context, in *api.Pingreq) (*api.Pingresp, err
 	resp.SetMemTotal(mem)
 	resp.SetMemUsage(memu)
 	resp.SetMemType(memt)
+	resp.SetVersion(model.Version)
 	return resp, nil
 }
 

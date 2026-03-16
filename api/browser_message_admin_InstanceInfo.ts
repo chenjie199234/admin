@@ -16,6 +16,7 @@ export class InstanceInfo{
 	mem_total?: bigint
 	mem_usage?: number
 	mem_type?: string
+	version?: string
 
 	constructor(){}
 
@@ -63,6 +64,12 @@ export class InstanceInfo{
 				throw "response parse failed"
 			}
 			this.mem_type=obj["mem_type"]
+		}
+		if("version" in obj){
+			if(typeof obj["version"] != 'string'){
+				throw "response parse failed"
+			}
+			this.version=obj["version"]
 		}
 	}
 }

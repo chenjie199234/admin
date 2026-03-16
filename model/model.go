@@ -15,6 +15,8 @@ const Name = "admin"
 var Group = os.Getenv("GROUP")
 var Project = os.Getenv("PROJECT")
 
+var Version = ""
+
 func init() {
 	if Group == "" || Group == "<GROUP>" {
 		panic("missing env:GROUP")

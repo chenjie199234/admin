@@ -1260,7 +1260,7 @@ function is_json_obj(str :string):boolean{
 				No Instances
 			</div>
 			<div v-for="instanceaddr of instances.keys()"
-				style="position:relative;width:300px;height:170px;margin:5px;border:1px solid var(--va-primary);border-radius:5px">
+				style="position:relative;width:300px;height:200px;margin:5px;border:1px solid var(--va-primary);border-radius:5px">
 				<VaButton style="position:absolute;right:1px;top:1px" size="small" gradient @click="get_instance(instanceaddr)">refresh</VaButton>
 				<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-around">
 					<div style="margin:1px;display:flex">
@@ -1268,44 +1268,45 @@ function is_json_obj(str :string):boolean{
 						<VaDivider vertical />
 						<span>{{instanceaddr}}</span>
 					</div>
-					<div v-if="!instances.get(instanceaddr)||instances.get(instanceaddr)!.cpu_num==0" style="margin:1px;display:flex">
-						<span style="width:90px;margin-left:10px">SysInfo</span>
+					<div style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">Name</span>
 						<VaDivider vertical />
-						<div style="display:flex;flex-direction:column">
-							<span>instance offline</span>
-							<span>or</span>
-							<span>monitor closed</span>
-						</div>
+						<span style="max-width:179px;overflow-x:auto;overflow-y:hidden">{{instances.get(instanceaddr)!.name?instances.get(instanceaddr)!.name:"unknown"}}</span>
+					</div>
+					<div style="margin:1px;display:flex">
+						<span style="width:90px;margin-left:10px">Version</span>
+						<VaDivider vertical />
+						<span>{{instances.get(instanceaddr)!.version?instances.get(instanceaddr)!.version:"unknown"}}</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuType</span>
 						<VaDivider vertical />
-						<span>{{instances.get(instanceaddr)!.cpu_type}}</span>
+						<span>{{instances.get(instanceaddr)!.cpu_type?instances.get(instanceaddr)!.cpu_type:"unknwon"}}</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuNum</span>
 						<VaDivider vertical />
-						<span>{{instances.get(instanceaddr)!.cpu_num}}</span>
+						<span>{{instances.get(instanceaddr)!.cpu_num?instances.get(instanceaddr)!.cpu_num:"unknwon"}}</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">CpuUsage</span>
 						<VaDivider vertical />
-						<span>{{Number(instances.get(instanceaddr)!.cpu_usage).toFixed(2)}}%</span>
+						<span>{{instances.get(instanceaddr)!.cpu_usage?Number(instances.get(instanceaddr)!.cpu_usage).toFixed(2)+"%":"unknwon"}}</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemType</span>
 						<VaDivider vertical />
-						<span>{{instances.get(instanceaddr)!.mem_type}}</span>
+						<span>{{instances.get(instanceaddr)!.mem_type?instances.get(instanceaddr)!.mem_type:"unknown"}}</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemTotal</span>
 						<VaDivider vertical />
-						<span>{{(Number(instances.get(instanceaddr)!.mem_total)/1024/1024).toFixed(2)}}MB</span>
+						<span>{{instances.get(instanceaddr)!.mem_total?(Number(instances.get(instanceaddr)!.mem_total)/1024/1024).toFixed(2)+"MB":"unknown"}}</span>
 					</div>
 					<div v-if="instances.get(instanceaddr)&&instances.get(instanceaddr)!.cpu_num!=0" style="margin:1px;display:flex">
 						<span style="width:90px;margin-left:10px">MemUsage</span>
 						<VaDivider vertical />
-						<span>{{Number(instances.get(instanceaddr)!.mem_usage).toFixed(2)}}%</span>
+						<span>{{instances.get(instanceaddr)!.mem_usage?Number(instances.get(instanceaddr)!.mem_usage).toFixed(2)+"%":"unknown"}}</span>
 					</div>
 				</div>
 				<VaButton v-if="canwrite()" style="position:absolute;right:1px;bottom:1px" size="small" gradint @click="reset_proxy(instanceaddr);optype='proxy_call';ing=true">

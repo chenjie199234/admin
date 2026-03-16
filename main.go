@@ -14,7 +14,7 @@ import (
 
 	"github.com/chenjie199234/admin/config"
 	"github.com/chenjie199234/admin/dao"
-	_ "github.com/chenjie199234/admin/model"
+	"github.com/chenjie199234/admin/model"
 	"github.com/chenjie199234/admin/server/xcrpc"
 	"github.com/chenjie199234/admin/server/xgrpc"
 	"github.com/chenjie199234/admin/server/xraw"
@@ -55,7 +55,11 @@ func (l *LogHandler) Handle(ctx context.Context, record slog.Record) error {
 	return l.Handler.Handle(ctx, record)
 }
 
+// inject by go build -ldflags "-X"
+var version string
+
 func main() {
+	model.Version = version
 	slog.SetDefault(slog.New(&LogHandler{
 		slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			AddSource: true,

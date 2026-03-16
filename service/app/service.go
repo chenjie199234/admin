@@ -1019,6 +1019,7 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 			info.SetMemTotal(r.GetMemTotal())
 			info.SetMemUsage(r.GetMemUsage())
 			info.SetMemType(r.GetMemType())
+			info.SetVersion(r.GetVersion())
 			instances[addr] = info
 			return nil
 		})
@@ -1100,6 +1101,7 @@ func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoR
 	info.SetMemTotal(r.GetMemTotal())
 	info.SetMemUsage(r.GetMemUsage())
 	info.SetMemType(r.GetMemType())
+	info.SetVersion(r.GetVersion())
 	resp.SetInfo(info)
 	return resp, nil
 }

@@ -906,13 +906,13 @@ function is_json_obj(str :string):boolean{
 				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
 					<VaCardContent style="font-size:20px"><b>Add Key Config</b></VaCardContent>
 				</VaCard>
-				<VaInput type="text" label="Key Name *" style="margin-top:10px" v-model.trim="config_key" :rules="[(v:string)=>v.length>0]"/>
+				<VaInput type="text" label="Key Name *" style="margin-top:10px" v-model.trim="config_key"/>
 				<VaRadio
 					style="margin-top:10px;display:flex;justify-content:space-evenly;align-items:center"
 					:options='["json","raw","yaml","toml"]'
 					v-model="config_value_type"
 					disabled />
-				<VaTextarea label="Content *" v-model.trim="config_value" style="margin-top:10px;height:300px" :resize="false" :rules="[is_json_obj]" />
+				<VaTextarea label="Content *" v-model.trim="config_value" style="margin-top:10px;height:300px" :resize="false"/>
 				<div style="display:flex;justify-content:center">
 					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" :disabled="!add_key_able()" gradient >Add</VaButton>
 					<VaButton style="width:80px;margin:10px 0 0 10px" @click="reset_add_key();ing=false" gradient>Cancel</VaButton>
@@ -946,10 +946,10 @@ function is_json_obj(str :string):boolean{
 				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
 					<VaCardContent style="font-size:20px"><b>Proxy Call</b></VaCardContent>
 				</VaCard>
-				<VaInput label="Method Path *" v-model.trim="proxy_path" style="margin-top:10px" :rules="[(v:string)=>v.length>0]" />
+				<VaInput label="Method Path *" v-model.trim="proxy_path" style="margin-top:10px" />
 				<div style="display:flex;justify-content:center;margin-top:10px">
-				  <VaTextarea label="Call Data *" v-model.trim="proxy_call_data" style="height:300px;flex:1;margin-right:5px" :resize="false" :rules="[is_json_obj]" />
-				  <VaTextarea label="Meta Data" v-model.trim="proxy_meta_data" style="height:300px;flex:1;margin:0px 5px" :resize="false" placeholder="each line is a key or value,key or value one by one,empty line will be ignored" :rules="[()=>parse_proxy_meta_data().length%2==0]" />
+				  <VaTextarea label="Call Data *" v-model.trim="proxy_call_data" style="height:300px;flex:1;margin-right:5px" :resize="false" />
+				  <VaTextarea label="Meta Data" v-model.trim="proxy_meta_data" style="height:300px;flex:1;margin:0px 5px" :resize="false" placeholder="each line is a key or value,key or value one by one,empty line will be ignored" />
 				  <VaTextarea label="Resp Data" v-model.trim="proxy_resp_data" style="height:300px;flex:1;margin-left:5px" :resize="false" readonly />
 				</div>
 				<div style="align-self:center;margin-top:10px;color:red">Can't Support Stream Method</div>

@@ -265,3 +265,26 @@ func (m *GetInstanceInfoReq) Validate() (errstr string) {
 	}
 	return ""
 }
+
+// return empty means pass
+func (m *ProxyCallReq) Validate() (errstr string) {
+	if len(m.GetProjectId()) != 2 {
+		return "field: project_id in object: ProxyCallReq check failed"
+	}
+	if len(m.GetGName()) == 0 {
+		return "field: g_name in object: ProxyCallReq check failed"
+	}
+	if len(m.GetAName()) == 0 {
+		return "field: a_name in object: ProxyCallReq check failed"
+	}
+	if len(m.GetAddr()) == 0 {
+		return "field: addr in object: ProxyCallReq check failed"
+	}
+	if len(m.GetPath()) == 0 {
+		return "field: path in object: ProxyCallReq check failed"
+	}
+	if len(m.GetCalldata()) == 0 {
+		return "field: calldata in object: ProxyCallReq check failed"
+	}
+	return ""
+}

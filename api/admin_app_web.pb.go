@@ -32,6 +32,7 @@ var _WebPathAppWatchConfig = "/admin.App/WatchConfig"
 var _WebPathAppWatchDiscover = "/admin.App/WatchDiscover"
 var _WebPathAppGetInstances = "/admin.App/GetInstances"
 var _WebPathAppGetInstanceInfo = "/admin.App/GetInstanceInfo"
+var _WebPathAppProxyCall = "/admin.App/ProxyCall"
 
 type AppWebClient interface {
 	GetApp(context.Context, *GetAppReq, http.Header) (*GetAppResp, error)
@@ -46,6 +47,7 @@ type AppWebClient interface {
 	WatchDiscover(context.Context, *WatchDiscoverReq, http.Header) (*WatchDiscoverResp, error)
 	GetInstances(context.Context, *GetInstancesReq, http.Header) (*GetInstancesResp, error)
 	GetInstanceInfo(context.Context, *GetInstanceInfoReq, http.Header) (*GetInstanceInfoResp, error)
+	ProxyCall(context.Context, *ProxyCallReq, http.Header) (*ProxyCallResp, error)
 }
 
 type appWebClient struct {
@@ -536,6 +538,46 @@ func (c *appWebClient) GetInstanceInfo(ctx context.Context, req *GetInstanceInfo
 	}
 	return resp, nil
 }
+func (c *appWebClient) ProxyCall(ctx context.Context, req *ProxyCallReq, header http.Header) (*ProxyCallResp, error) {
+	if req == nil {
+		return nil, cerror.ErrReq
+	}
+	if errstr := req.Validate(); errstr != "" {
+		slog.ErrorContext(ctx, "[/admin.App/ProxyCall] request validate failed", slog.String("error", errstr))
+		return nil, cerror.ErrReq
+	}
+	if header == nil {
+		header = make(http.Header)
+	}
+	header.Set("Content-Type", "application/x-protobuf")
+	header.Set("Accept", "application/x-protobuf")
+	reqd, _ := proto.Marshal(req)
+	r, e := c.cc.Post(ctx, _WebPathAppProxyCall, "", header, metadata.GetMetadata(ctx), reqd)
+	if e != nil {
+		slog.ErrorContext(ctx, "[/admin.App/ProxyCall] send request failed", slog.String("error", e.Error()))
+		return nil, e
+	}
+	data, e := io.ReadAll(r.Body)
+	r.Body.Close()
+	if e != nil {
+		slog.ErrorContext(ctx, "[/admin.App/ProxyCall] read response failed", slog.String("error", e.Error()))
+		return nil, cerror.Convert(e)
+	}
+	resp := new(ProxyCallResp)
+	if len(data) == 0 {
+		return resp, nil
+	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/x-protobuf") {
+		if e := proto.Unmarshal(data, resp); e != nil {
+			slog.ErrorContext(ctx, "[/admin.App/ProxyCall] decode response failed", slog.String("error", e.Error()))
+			return nil, cerror.ErrResp
+		}
+	} else if e := protojson.Unmarshal(data, resp); e != nil {
+		slog.ErrorContext(ctx, "[/admin.App/ProxyCall] decode response failed", slog.String("error", e.Error()))
+		return nil, cerror.ErrResp
+	}
+	return resp, nil
+}
 
 type AppWebServer interface {
 	// Context is web.NoStreamServerContext
@@ -562,6 +604,8 @@ type AppWebServer interface {
 	GetInstances(context.Context, *GetInstancesReq) (*GetInstancesResp, error)
 	// Context is web.NoStreamServerContext
 	GetInstanceInfo(context.Context, *GetInstanceInfoReq) (*GetInstanceInfoResp, error)
+	// Context is web.NoStreamServerContext
+	ProxyCall(context.Context, *ProxyCallReq) (*ProxyCallResp, error)
 }
 
 func _App_GetApp_WebHandler(handler func(context.Context, *GetAppReq) (*GetAppResp, error)) web.OutsideHandler {
@@ -1893,6 +1937,74 @@ func _App_GetInstanceInfo_WebHandler(handler func(context.Context, *GetInstanceI
 		}
 	}
 }
+func _App_ProxyCall_WebHandler(handler func(context.Context, *ProxyCallReq) (*ProxyCallResp, error)) web.OutsideHandler {
+	return func(ctx *web.ServerContext) {
+		req := new(ProxyCallReq)
+		if strings.HasPrefix(ctx.GetRequest().Header.Get("Content-Type"), "application/json") {
+			data, e := io.ReadAll(ctx.GetRequest().Body)
+			if e != nil {
+				slog.ErrorContext(ctx, "[/admin.App/ProxyCall] get body failed", slog.String("error", e.Error()))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := protojson.Unmarshal(data, req); e != nil {
+					slog.ErrorContext(ctx, "[/admin.App/ProxyCall] unmarshal json body failed", slog.String("error", e.Error()))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else if strings.HasPrefix(ctx.GetRequest().Header.Get("Content-Type"), "application/x-protobuf") {
+			data, e := io.ReadAll(ctx.GetRequest().Body)
+			if e != nil {
+				slog.ErrorContext(ctx, "[/admin.App/ProxyCall] get body failed", slog.String("error", e.Error()))
+				ctx.Abort(e)
+				return
+			}
+			if len(data) > 0 {
+				if e := proto.Unmarshal(data, req); e != nil {
+					slog.ErrorContext(ctx, "[/admin.App/ProxyCall] unmarshal proto body failed", slog.String("error", e.Error()))
+					ctx.Abort(cerror.ErrReq)
+					return
+				}
+			}
+		} else {
+			slog.ErrorContext(ctx, "[/admin.App/ProxyCall] request message contain nested message or map,Content-Type must be application/json or application/x-protobuf")
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		if errstr := req.Validate(); errstr != "" {
+			slog.ErrorContext(ctx, "[/admin.App/ProxyCall] request validate failed", slog.String("error", errstr))
+			ctx.Abort(cerror.ErrReq)
+			return
+		}
+		resp, e := handler(ctx, req)
+		ee := cerror.Convert(e)
+		if ee != nil {
+			ctx.Abort(ee)
+			return
+		}
+		if ctx.Responsed() {
+			return
+		}
+		if resp == nil {
+			resp = new(ProxyCallResp)
+		}
+		if strings.HasPrefix(ctx.GetRequest().Header.Get("Accept"), "application/x-protobuf") {
+			ctx.SetResponseHeader("Content-Type", "application/x-protobuf")
+			respd, _ := proto.Marshal(resp)
+			if _, e := ctx.Write(respd); e != nil {
+				slog.ErrorContext(ctx, "[/admin.App/ProxyCall] send response failed", slog.String("error", e.Error()))
+			}
+		} else {
+			ctx.SetResponseHeader("Content-Type", "application/json")
+			respd, _ := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true}.Marshal(resp)
+			if _, e := ctx.Write(respd); e != nil {
+				slog.ErrorContext(ctx, "[/admin.App/ProxyCall] send response failed", slog.String("error", e.Error()))
+			}
+		}
+	}
+}
 func RegisterAppWebServer(router *web.Router, svc AppWebServer, allmids map[string]web.OutsideHandler) {
 	// avoid lint
 	_ = allmids
@@ -2051,5 +2163,18 @@ func RegisterAppWebServer(router *web.Router, svc AppWebServer, allmids map[stri
 		}
 		mids = append(mids, _App_GetInstanceInfo_WebHandler(svc.GetInstanceInfo))
 		router.Post(_WebPathAppGetInstanceInfo, false, mids...)
+	}
+	{
+		requiredMids := []string{"token"}
+		mids := make([]web.OutsideHandler, 0, 2)
+		for _, v := range requiredMids {
+			if mid, ok := allmids[v]; ok {
+				mids = append(mids, mid)
+			} else {
+				panic("missing midware:" + v)
+			}
+		}
+		mids = append(mids, _App_ProxyCall_WebHandler(svc.ProxyCall))
+		router.Post(_WebPathAppProxyCall, false, mids...)
 	}
 }

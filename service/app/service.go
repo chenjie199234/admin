@@ -924,8 +924,48 @@ func (s *Service) WatchDiscover(ctx context.Context, req *api.WatchDiscoverReq) 
 
 func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*api.GetInstancesResp, error) {
 	md := metadata.GetMetadata(ctx)
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
+	if e != nil {
+		slog.ErrorContext(ctx, "[GetInstances] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
+		return nil, ecode.ErrToken
+	}
 
 	projectid := util.FormID(req.GetProjectId())
+
+	if !operator.IsZero() && req.GetWithInfo() {
+		//config control permission check
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GetGName(), req.GetAName())
+		if e != nil {
+			slog.ErrorContext(ctx, "[GetInstances] get app's permission nodeid failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("group", req.GetGName()),
+				slog.String("app", req.GetAName()),
+				slog.String("error", e.Error()))
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		nodeids := strings.Split(nodeid, ",")
+		if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "2" {
+			slog.ErrorContext(ctx, "[GetInstances] app's permission nodeid format wrong",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("group", req.GetGName()),
+				slog.String("app", req.GetAName()),
+				slog.String("nodeid", nodeid))
+			return nil, ecode.ErrDBDataBroken
+		}
+		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
+		if e != nil {
+			slog.ErrorContext(ctx, "[GetInstances] get operator's permission info failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("nodeid", nodeid),
+				slog.String("error", e.Error()))
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		if !canread && !admin {
+			return nil, ecode.ErrPermission
+		}
+	}
 
 	if e := s.appDao.MongoCheckSecret(ctx, projectid, req.GetGName(), req.GetAName(), req.GetSecret()); e != nil {
 		slog.ErrorContext(ctx, "[GetInstances] db op failed",
@@ -989,8 +1029,47 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 }
 func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoReq) (*api.GetInstanceInfoResp, error) {
 	md := metadata.GetMetadata(ctx)
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
+	if e != nil {
+		slog.ErrorContext(ctx, "[GetInstanceInfo] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
+		return nil, ecode.ErrToken
+	}
 
 	projectid := util.FormID(req.GetProjectId())
+	if !operator.IsZero() {
+		//config control permission check
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GetGName(), req.GetAName())
+		if e != nil {
+			slog.ErrorContext(ctx, "[GetInstanceInfo] get app's permission nodeid failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("group", req.GetGName()),
+				slog.String("app", req.GetAName()),
+				slog.String("error", e.Error()))
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		nodeids := strings.Split(nodeid, ",")
+		if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "2" {
+			slog.ErrorContext(ctx, "[GetInstanceInfo] app's permission nodeid format wrong",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("group", req.GetGName()),
+				slog.String("app", req.GetAName()),
+				slog.String("nodeid", nodeid))
+			return nil, ecode.ErrDBDataBroken
+		}
+		canread, _, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
+		if e != nil {
+			slog.ErrorContext(ctx, "[GetInstanceInfo] get operator's permission info failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("nodeid", nodeid),
+				slog.String("error", e.Error()))
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		if !canread && !admin {
+			return nil, ecode.ErrPermission
+		}
+	}
 
 	if e := s.appDao.MongoCheckSecret(ctx, projectid, req.GetGName(), req.GetAName(), req.GetSecret()); e != nil {
 		slog.ErrorContext(ctx, "[GetInstanceInfo] db op failed",
@@ -1022,6 +1101,71 @@ func (s *Service) GetInstanceInfo(ctx context.Context, req *api.GetInstanceInfoR
 	info.SetMemUsage(r.GetMemUsage())
 	info.SetMemType(r.GetMemType())
 	resp.SetInfo(info)
+	return resp, nil
+}
+
+func (s *Service) ProxyCall(ctx context.Context, req *api.ProxyCallReq) (*api.ProxyCallResp, error) {
+	md := metadata.GetMetadata(ctx)
+	operator, e := bson.ObjectIDFromHex(md["Token-User"])
+	if e != nil {
+		slog.ErrorContext(ctx, "[ProxyCall] operator's token format wrong", slog.String("operator", md["Token-User"]), slog.String("error", e.Error()))
+		return nil, ecode.ErrToken
+	}
+
+	projectid := util.FormID(req.GetProjectId())
+	if !operator.IsZero() {
+		//config control permission check
+		nodeid, e := s.appDao.MongoGetPermissionNodeID(ctx, projectid, req.GetGName(), req.GetAName())
+		if e != nil {
+			slog.ErrorContext(ctx, "[ProxyCall] get app's permission nodeid failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("group", req.GetGName()),
+				slog.String("app", req.GetAName()),
+				slog.String("error", e.Error()))
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		nodeids := strings.Split(nodeid, ",")
+		if len(nodeids) != 4 || nodeids[0] != "0" || nodeids[2] != "2" {
+			slog.ErrorContext(ctx, "[ProxyCall] app's permission nodeid format wrong",
+				slog.String("operator", md["Token-User"]),
+				slog.String("project_id", projectid),
+				slog.String("group", req.GetGName()),
+				slog.String("app", req.GetAName()),
+				slog.String("nodeid", nodeid))
+			return nil, ecode.ErrDBDataBroken
+		}
+		_, canwrite, admin, e := s.permissionDao.MongoGetUserPermission(ctx, operator, nodeid, true)
+		if e != nil {
+			slog.ErrorContext(ctx, "[ProxyCall] get operator's permission info failed",
+				slog.String("operator", md["Token-User"]),
+				slog.String("nodeid", nodeid),
+				slog.String("error", e.Error()))
+			return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+		}
+		if !canwrite && !admin {
+			return nil, ecode.ErrPermission
+		}
+	}
+
+	if e := s.appDao.MongoCheckSecret(ctx, projectid, req.GetGName(), req.GetAName(), req.GetSecret()); e != nil {
+		slog.ErrorContext(ctx, "[ProxyCall] db op failed",
+			slog.String("operator", md["Token-User"]),
+			slog.String("project_id", projectid),
+			slog.String("group", req.GetGName()),
+			slog.String("app", req.GetAName()),
+			slog.String("error", e.Error()))
+		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
+	}
+	if len(req.GetMetadata()) > 0 {
+		ctx = metadata.SetMetadata(ctx, req.GetMetadata())
+	}
+	rdata, e := config.Sdk.ProxyCallByProjectID(ctx, common.STB(req.GetCalldata()), req.GetPath(), projectid, req.GetGName(), req.GetAName(), req.GetAddr())
+	if e != nil {
+		return nil, e
+	}
+	resp := &api.ProxyCallResp{}
+	resp.SetData(common.BTS(rdata))
 	return resp, nil
 }
 

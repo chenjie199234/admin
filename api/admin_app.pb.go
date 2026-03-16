@@ -4945,6 +4945,355 @@ func (b0 GetInstanceInfoResp_builder) Build() *GetInstanceInfoResp {
 	return m0
 }
 
+type ProxyCallReq struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ProjectId   []uint32               `protobuf:"varint,1,rep,packed,name=project_id,json=projectId"`
+	xxx_hidden_GName       *string                `protobuf:"bytes,2,opt,name=g_name,json=gName"`
+	xxx_hidden_AName       *string                `protobuf:"bytes,3,opt,name=a_name,json=aName"`
+	xxx_hidden_Secret      *string                `protobuf:"bytes,4,opt,name=secret"`
+	xxx_hidden_Addr        *string                `protobuf:"bytes,5,opt,name=addr"`
+	xxx_hidden_Path        *string                `protobuf:"bytes,6,opt,name=path"`
+	xxx_hidden_Calldata    *string                `protobuf:"bytes,7,opt,name=calldata"`
+	xxx_hidden_Metadata    map[string]string      `protobuf:"bytes,8,rep,name=metadata" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ProxyCallReq) Reset() {
+	*x = ProxyCallReq{}
+	mi := &file_api_admin_app_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProxyCallReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProxyCallReq) ProtoMessage() {}
+
+func (x *ProxyCallReq) ProtoReflect() protoreflect.Message {
+	mi := &file_api_admin_app_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ProxyCallReq) GetProjectId() []uint32 {
+	if x != nil {
+		return x.xxx_hidden_ProjectId
+	}
+	return nil
+}
+
+func (x *ProxyCallReq) GetGName() string {
+	if x != nil {
+		if x.xxx_hidden_GName != nil {
+			return *x.xxx_hidden_GName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ProxyCallReq) GetAName() string {
+	if x != nil {
+		if x.xxx_hidden_AName != nil {
+			return *x.xxx_hidden_AName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ProxyCallReq) GetSecret() string {
+	if x != nil {
+		if x.xxx_hidden_Secret != nil {
+			return *x.xxx_hidden_Secret
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ProxyCallReq) GetAddr() string {
+	if x != nil {
+		if x.xxx_hidden_Addr != nil {
+			return *x.xxx_hidden_Addr
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ProxyCallReq) GetPath() string {
+	if x != nil {
+		if x.xxx_hidden_Path != nil {
+			return *x.xxx_hidden_Path
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ProxyCallReq) GetCalldata() string {
+	if x != nil {
+		if x.xxx_hidden_Calldata != nil {
+			return *x.xxx_hidden_Calldata
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ProxyCallReq) GetMetadata() map[string]string {
+	if x != nil {
+		return x.xxx_hidden_Metadata
+	}
+	return nil
+}
+
+func (x *ProxyCallReq) SetProjectId(v []uint32) {
+	x.xxx_hidden_ProjectId = v
+}
+
+func (x *ProxyCallReq) SetGName(v string) {
+	x.xxx_hidden_GName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 8)
+}
+
+func (x *ProxyCallReq) SetAName(v string) {
+	x.xxx_hidden_AName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 8)
+}
+
+func (x *ProxyCallReq) SetSecret(v string) {
+	x.xxx_hidden_Secret = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
+}
+
+func (x *ProxyCallReq) SetAddr(v string) {
+	x.xxx_hidden_Addr = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
+}
+
+func (x *ProxyCallReq) SetPath(v string) {
+	x.xxx_hidden_Path = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 8)
+}
+
+func (x *ProxyCallReq) SetCalldata(v string) {
+	x.xxx_hidden_Calldata = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 8)
+}
+
+func (x *ProxyCallReq) SetMetadata(v map[string]string) {
+	x.xxx_hidden_Metadata = v
+}
+
+func (x *ProxyCallReq) HasGName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *ProxyCallReq) HasAName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *ProxyCallReq) HasSecret() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
+func (x *ProxyCallReq) HasAddr() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
+}
+
+func (x *ProxyCallReq) HasPath() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
+}
+
+func (x *ProxyCallReq) HasCalldata() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
+}
+
+func (x *ProxyCallReq) ClearGName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_GName = nil
+}
+
+func (x *ProxyCallReq) ClearAName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_AName = nil
+}
+
+func (x *ProxyCallReq) ClearSecret() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_Secret = nil
+}
+
+func (x *ProxyCallReq) ClearAddr() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	x.xxx_hidden_Addr = nil
+}
+
+func (x *ProxyCallReq) ClearPath() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 5)
+	x.xxx_hidden_Path = nil
+}
+
+func (x *ProxyCallReq) ClearCalldata() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
+	x.xxx_hidden_Calldata = nil
+}
+
+type ProxyCallReq_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	ProjectId []uint32
+	GName     *string
+	AName     *string
+	Secret    *string
+	Addr      *string
+	Path      *string
+	Calldata  *string
+	Metadata  map[string]string
+}
+
+func (b0 ProxyCallReq_builder) Build() *ProxyCallReq {
+	m0 := &ProxyCallReq{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_ProjectId = b.ProjectId
+	if b.GName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 8)
+		x.xxx_hidden_GName = b.GName
+	}
+	if b.AName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 8)
+		x.xxx_hidden_AName = b.AName
+	}
+	if b.Secret != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
+		x.xxx_hidden_Secret = b.Secret
+	}
+	if b.Addr != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
+		x.xxx_hidden_Addr = b.Addr
+	}
+	if b.Path != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 8)
+		x.xxx_hidden_Path = b.Path
+	}
+	if b.Calldata != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 8)
+		x.xxx_hidden_Calldata = b.Calldata
+	}
+	x.xxx_hidden_Metadata = b.Metadata
+	return m0
+}
+
+type ProxyCallResp struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Data        *string                `protobuf:"bytes,1,opt,name=data"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ProxyCallResp) Reset() {
+	*x = ProxyCallResp{}
+	mi := &file_api_admin_app_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProxyCallResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProxyCallResp) ProtoMessage() {}
+
+func (x *ProxyCallResp) ProtoReflect() protoreflect.Message {
+	mi := &file_api_admin_app_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ProxyCallResp) GetData() string {
+	if x != nil {
+		if x.xxx_hidden_Data != nil {
+			return *x.xxx_hidden_Data
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ProxyCallResp) SetData(v string) {
+	x.xxx_hidden_Data = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 1)
+}
+
+func (x *ProxyCallResp) HasData() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *ProxyCallResp) ClearData() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Data = nil
+}
+
+type ProxyCallResp_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Data *string
+}
+
+func (b0 ProxyCallResp_builder) Build() *ProxyCallResp {
+	m0 := &ProxyCallResp{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Data != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 1)
+		x.xxx_hidden_Data = b.Data
+	}
+	return m0
+}
+
 var File_api_admin_app_proto protoreflect.FileDescriptor
 
 const file_api_admin_app_proto_rawDesc = "" +
@@ -5152,7 +5501,22 @@ const file_api_admin_app_proto_rawDesc = "" +
 	"\x06secret\x18\x04 \x01(\tR\x06secret\x12\x18\n" +
 	"\x04addr\x18\x05 \x01(\tB\x04\xf0\x90N\x00R\x04addr\">\n" +
 	"\x13GetInstanceInfoResp\x12'\n" +
-	"\x04info\x18\x01 \x01(\v2\x13.admin.InstanceInfoR\x04info2\xbb\a\n" +
+	"\x04info\x18\x01 \x01(\v2\x13.admin.InstanceInfoR\x04info\"\xd7\x02\n" +
+	"\fProxyCallReq\x12#\n" +
+	"\n" +
+	"project_id\x18\x01 \x03(\rB\x04\x88\x90N\x02R\tprojectId\x12\x1b\n" +
+	"\x06g_name\x18\x02 \x01(\tB\x04\xe8\x90N\x00R\x05gName\x12\x1b\n" +
+	"\x06a_name\x18\x03 \x01(\tB\x04\xe8\x90N\x00R\x05aName\x12\x16\n" +
+	"\x06secret\x18\x04 \x01(\tR\x06secret\x12\x18\n" +
+	"\x04addr\x18\x05 \x01(\tB\x04\xf0\x90N\x00R\x04addr\x12\x18\n" +
+	"\x04path\x18\x06 \x01(\tB\x04\xf0\x90N\x00R\x04path\x12 \n" +
+	"\bcalldata\x18\a \x01(\tB\x04\xf0\x90N\x00R\bcalldata\x12=\n" +
+	"\bmetadata\x18\b \x03(\v2!.admin.ProxyCallReq.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"#\n" +
+	"\rProxyCallResp\x12\x12\n" +
+	"\x04data\x18\x01 \x01(\tR\x04data2\x86\b\n" +
 	"\x03App\x12@\n" +
 	"\x06GetApp\x12\x10.admin.GetAppReq\x1a\x11.admin.GetAppResp\"\x11\x8a\x9fI\x04post\x92\x9fI\x05token\x12@\n" +
 	"\x06SetApp\x12\x10.admin.SetAppReq\x1a\x11.admin.SetAppResp\"\x11\x8a\x9fI\x04post\x92\x9fI\x05token\x12@\n" +
@@ -5165,9 +5529,10 @@ const file_api_admin_app_proto_rawDesc = "" +
 	"\vWatchConfig\x12\x15.admin.WatchConfigReq\x1a\x16.admin.WatchConfigResp\"\x15\x8a\x9fI\x04post\x92\x9fI\taccesskey\x12Y\n" +
 	"\rWatchDiscover\x12\x17.admin.WatchDiscoverReq\x1a\x18.admin.WatchDiscoverResp\"\x15\x8a\x9fI\x04post\x92\x9fI\taccesskey\x12R\n" +
 	"\fGetInstances\x12\x16.admin.GetInstancesReq\x1a\x17.admin.GetInstancesResp\"\x11\x8a\x9fI\x04post\x92\x9fI\x05token\x12[\n" +
-	"\x0fGetInstanceInfo\x12\x19.admin.GetInstanceInfoReq\x1a\x1a.admin.GetInstanceInfoResp\"\x11\x8a\x9fI\x04post\x92\x9fI\x05tokenB(Z&github.com/chenjie199234/admin/api;apib\beditionsp\xe9\az\x0fpbex/pbex.proto"
+	"\x0fGetInstanceInfo\x12\x19.admin.GetInstanceInfoReq\x1a\x1a.admin.GetInstanceInfoResp\"\x11\x8a\x9fI\x04post\x92\x9fI\x05token\x12I\n" +
+	"\tProxyCall\x12\x13.admin.ProxyCallReq\x1a\x14.admin.ProxyCallResp\"\x11\x8a\x9fI\x04post\x92\x9fI\x05tokenB(Z&github.com/chenjie199234/admin/api;apib\beditionsp\xe9\az\x0fpbex/pbex.proto"
 
-var file_api_admin_app_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
+var file_api_admin_app_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_api_admin_app_proto_goTypes = []any{
 	(*GetAppReq)(nil),           // 0: admin.GetAppReq
 	(*GetAppResp)(nil),          // 1: admin.GetAppResp
@@ -5196,49 +5561,55 @@ var file_api_admin_app_proto_goTypes = []any{
 	(*GetInstancesResp)(nil),    // 24: admin.GetInstancesResp
 	(*GetInstanceInfoReq)(nil),  // 25: admin.GetInstanceInfoReq
 	(*GetInstanceInfoResp)(nil), // 26: admin.GetInstanceInfoResp
-	nil,                         // 27: admin.GetAppResp.KeysEntry
-	nil,                         // 28: admin.WatchConfigReq.KeysEntry
-	nil,                         // 29: admin.WatchConfigResp.DatasEntry
-	nil,                         // 30: admin.GetInstancesResp.InstancesEntry
+	(*ProxyCallReq)(nil),        // 27: admin.ProxyCallReq
+	(*ProxyCallResp)(nil),       // 28: admin.ProxyCallResp
+	nil,                         // 29: admin.GetAppResp.KeysEntry
+	nil,                         // 30: admin.WatchConfigReq.KeysEntry
+	nil,                         // 31: admin.WatchConfigResp.DatasEntry
+	nil,                         // 32: admin.GetInstancesResp.InstancesEntry
+	nil,                         // 33: admin.ProxyCallReq.MetadataEntry
 }
 var file_api_admin_app_proto_depIdxs = []int32{
-	27, // 0: admin.GetAppResp.keys:type_name -> admin.GetAppResp.KeysEntry
-	28, // 1: admin.WatchConfigReq.keys:type_name -> admin.WatchConfigReq.KeysEntry
-	29, // 2: admin.WatchConfigResp.datas:type_name -> admin.WatchConfigResp.DatasEntry
-	30, // 3: admin.GetInstancesResp.instances:type_name -> admin.GetInstancesResp.InstancesEntry
+	29, // 0: admin.GetAppResp.keys:type_name -> admin.GetAppResp.KeysEntry
+	30, // 1: admin.WatchConfigReq.keys:type_name -> admin.WatchConfigReq.KeysEntry
+	31, // 2: admin.WatchConfigResp.datas:type_name -> admin.WatchConfigResp.DatasEntry
+	32, // 3: admin.GetInstancesResp.instances:type_name -> admin.GetInstancesResp.InstancesEntry
 	22, // 4: admin.GetInstanceInfoResp.info:type_name -> admin.InstanceInfo
-	2,  // 5: admin.GetAppResp.KeysEntry.value:type_name -> admin.KeyConfigInfo
-	19, // 6: admin.WatchConfigResp.DatasEntry.value:type_name -> admin.WatchData
-	22, // 7: admin.GetInstancesResp.InstancesEntry.value:type_name -> admin.InstanceInfo
-	0,  // 8: admin.App.GetApp:input_type -> admin.GetAppReq
-	3,  // 9: admin.App.SetApp:input_type -> admin.SetAppReq
-	5,  // 10: admin.App.DelApp:input_type -> admin.DelAppReq
-	7,  // 11: admin.App.UpdateAppSecret:input_type -> admin.UpdateAppSecretReq
-	9,  // 12: admin.App.DelKey:input_type -> admin.DelKeyReq
-	11, // 13: admin.App.GetKeyConfig:input_type -> admin.GetKeyConfigReq
-	13, // 14: admin.App.SetKeyConfig:input_type -> admin.SetKeyConfigReq
-	15, // 15: admin.App.Rollback:input_type -> admin.RollbackReq
-	17, // 16: admin.App.WatchConfig:input_type -> admin.WatchConfigReq
-	20, // 17: admin.App.WatchDiscover:input_type -> admin.WatchDiscoverReq
-	23, // 18: admin.App.GetInstances:input_type -> admin.GetInstancesReq
-	25, // 19: admin.App.GetInstanceInfo:input_type -> admin.GetInstanceInfoReq
-	1,  // 20: admin.App.GetApp:output_type -> admin.GetAppResp
-	4,  // 21: admin.App.SetApp:output_type -> admin.SetAppResp
-	6,  // 22: admin.App.DelApp:output_type -> admin.DelAppResp
-	8,  // 23: admin.App.UpdateAppSecret:output_type -> admin.UpdateAppSecretResp
-	10, // 24: admin.App.DelKey:output_type -> admin.DelKeyResp
-	12, // 25: admin.App.GetKeyConfig:output_type -> admin.GetKeyConfigResp
-	14, // 26: admin.App.SetKeyConfig:output_type -> admin.SetKeyConfigResp
-	16, // 27: admin.App.Rollback:output_type -> admin.RollbackResp
-	18, // 28: admin.App.WatchConfig:output_type -> admin.WatchConfigResp
-	21, // 29: admin.App.WatchDiscover:output_type -> admin.WatchDiscoverResp
-	24, // 30: admin.App.GetInstances:output_type -> admin.GetInstancesResp
-	26, // 31: admin.App.GetInstanceInfo:output_type -> admin.GetInstanceInfoResp
-	20, // [20:32] is the sub-list for method output_type
-	8,  // [8:20] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	33, // 5: admin.ProxyCallReq.metadata:type_name -> admin.ProxyCallReq.MetadataEntry
+	2,  // 6: admin.GetAppResp.KeysEntry.value:type_name -> admin.KeyConfigInfo
+	19, // 7: admin.WatchConfigResp.DatasEntry.value:type_name -> admin.WatchData
+	22, // 8: admin.GetInstancesResp.InstancesEntry.value:type_name -> admin.InstanceInfo
+	0,  // 9: admin.App.GetApp:input_type -> admin.GetAppReq
+	3,  // 10: admin.App.SetApp:input_type -> admin.SetAppReq
+	5,  // 11: admin.App.DelApp:input_type -> admin.DelAppReq
+	7,  // 12: admin.App.UpdateAppSecret:input_type -> admin.UpdateAppSecretReq
+	9,  // 13: admin.App.DelKey:input_type -> admin.DelKeyReq
+	11, // 14: admin.App.GetKeyConfig:input_type -> admin.GetKeyConfigReq
+	13, // 15: admin.App.SetKeyConfig:input_type -> admin.SetKeyConfigReq
+	15, // 16: admin.App.Rollback:input_type -> admin.RollbackReq
+	17, // 17: admin.App.WatchConfig:input_type -> admin.WatchConfigReq
+	20, // 18: admin.App.WatchDiscover:input_type -> admin.WatchDiscoverReq
+	23, // 19: admin.App.GetInstances:input_type -> admin.GetInstancesReq
+	25, // 20: admin.App.GetInstanceInfo:input_type -> admin.GetInstanceInfoReq
+	27, // 21: admin.App.ProxyCall:input_type -> admin.ProxyCallReq
+	1,  // 22: admin.App.GetApp:output_type -> admin.GetAppResp
+	4,  // 23: admin.App.SetApp:output_type -> admin.SetAppResp
+	6,  // 24: admin.App.DelApp:output_type -> admin.DelAppResp
+	8,  // 25: admin.App.UpdateAppSecret:output_type -> admin.UpdateAppSecretResp
+	10, // 26: admin.App.DelKey:output_type -> admin.DelKeyResp
+	12, // 27: admin.App.GetKeyConfig:output_type -> admin.GetKeyConfigResp
+	14, // 28: admin.App.SetKeyConfig:output_type -> admin.SetKeyConfigResp
+	16, // 29: admin.App.Rollback:output_type -> admin.RollbackResp
+	18, // 30: admin.App.WatchConfig:output_type -> admin.WatchConfigResp
+	21, // 31: admin.App.WatchDiscover:output_type -> admin.WatchDiscoverResp
+	24, // 32: admin.App.GetInstances:output_type -> admin.GetInstancesResp
+	26, // 33: admin.App.GetInstanceInfo:output_type -> admin.GetInstanceInfoResp
+	28, // 34: admin.App.ProxyCall:output_type -> admin.ProxyCallResp
+	22, // [22:35] is the sub-list for method output_type
+	9,  // [9:22] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_api_admin_app_proto_init() }
@@ -5252,7 +5623,7 @@ func file_api_admin_app_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_admin_app_proto_rawDesc), len(file_api_admin_app_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   31,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

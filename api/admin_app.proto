@@ -104,6 +104,10 @@ service App{
 		option (pbex.method)="post";
 		option (pbex.web_midwares)="token";
 	}
+	rpc ProxyCall(ProxyCallReq)returns(ProxyCallResp){
+		option (pbex.method)="post";
+		option (pbex.web_midwares)="token";
+	}
 }
 
 //req can be set with pbex extentions
@@ -307,4 +311,17 @@ message GetInstanceInfoReq{
 }
 message GetInstanceInfoResp{
 	InstanceInfo info=1;
+}
+message ProxyCallReq{
+	repeated uint32 project_id=1[(pbex.map_repeated_len_eq)=2];
+	string g_name=2[(pbex.string_bytes_len_not_eq)=0];
+	string a_name=3[(pbex.string_bytes_len_not_eq)=0];
+	string secret=4;
+	string addr=5[(pbex.string_bytes_len_gt)=0];
+	string path=6[(pbex.string_bytes_len_gt)=0];
+	string calldata=7[(pbex.string_bytes_len_gt)=0];//must be json encoded
+	map<string,string> metadata=8;
+}
+message ProxyCallResp{
+	string data=1;
 }

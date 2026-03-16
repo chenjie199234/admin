@@ -46,6 +46,10 @@ import {DelKeyReq} from '@api/browser_message_admin_DelKeyReq'
 import {DelKeyResp} from '@api/browser_message_admin_DelKeyResp'
 import {DelKey} from '@api/browser_method_admin_App_DelKey'
 
+import {ProxyCallReq} from '@api/browser_message_admin_ProxyCallReq'
+import {ProxyCallResp} from '@api/browser_message_admin_ProxyCallResp'
+import {ProxyCall} from '@api/browser_method_admin_App_ProxyCall'
+
 const all=computed(()=>{
   let tmp: {[k:string]: {[k:string]:NodeInfo}} = {}
   if(!state.page.node!.children){
@@ -76,14 +80,14 @@ const secret=ref<string>("")
 const tmpsecret=ref<string>("")
 const t_secret=ref<boolean>(false)
 function selfapp():boolean{
-	let nodeid=all.value[curg.value][cura.value].node_id
-	return nodeid![1]==1&&nodeid![2]==2&&nodeid![3]==1
+  let nodeid=all.value[curg.value][cura.value].node_id
+  return nodeid![1]==1&&nodeid![2]==2&&nodeid![3]==1
 }
 function canwrite():boolean{
-	return all.value[curg.value][cura.value].canwrite||all.value[curg.value][cura.value].admin!
+  return all.value[curg.value][cura.value].canwrite||all.value[curg.value][cura.value].admin!
 }
 function mustadmin():boolean{
-	return all.value[curg.value][cura.value].admin!
+  return all.value[curg.value][cura.value].admin!
 }
 
 const config_instance=ref<string>("")
@@ -109,134 +113,133 @@ const t_instances_hover=ref<boolean>(false)
 const get_app_status=ref<boolean>(false)
 
 function get_app(){
-	if(curg.value==""||cura.value==""){
+  if(curg.value==""||cura.value==""){
+	keys.value=new Map()
+	config_instance.value=""
+	discovermode.value=""
+	kubernetesns.value=""
+	kubernetesls.value=""
+	kubernetesfs.value=""
+	dnshost.value=""
+	dnsinterval.value=0
+	staticaddrs.value=[]
+	state.set_alert("error",-2,"Group and App must be selected!")
+	return
+  }
+  if(!all.value[curg.value][cura.value].node_id||all.value[curg.value][cura.value].node_id!.length!=4){
+	keys.value=new Map()
+	config_instance.value=""
+	discovermode.value=""
+	kubernetesns.value=""
+	kubernetesls.value=""
+	kubernetesfs.value=""
+	dnshost.value=""
+	dnsinterval.value=0
+	staticaddrs.value=[]
+	state.set_alert("error",-2,"Missing node_id on Group:"+curg.value+" App:"+cura.value)
+	return
+  }
+  if(!state.set_load()){
+	return
+  }
+  let req=new GetAppReq()
+  req.project_id=state.project.info!.project_id
+  req.g_name=curg.value
+  req.a_name=cura.value
+  req.secret=tmpsecret.value
+  GetApp(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+	if(resp instanceof GetAppResp){
+	  secret.value=tmpsecret.value
+	  tmpsecret.value=""
+	  if(resp.keys){
 		keys.value=new Map()
-		config_instance.value=""
-		discovermode.value=""
-		kubernetesns.value=""
-		kubernetesls.value=""
-		kubernetesfs.value=""
-		dnshost.value=""
-		dnsinterval.value=0
-		staticaddrs.value=[]
-		state.set_alert("error",-2,"Group and App must be selected!")
-		return
-	}
-	if(!all.value[curg.value][cura.value].node_id||all.value[curg.value][cura.value].node_id!.length!=4){
-		keys.value=new Map()
-		config_instance.value=""
-		discovermode.value=""
-		kubernetesns.value=""
-		kubernetesls.value=""
-		kubernetesfs.value=""
-		dnshost.value=""
-		dnsinterval.value=0
-		staticaddrs.value=[]
-		state.set_alert("error",-2,"Missing node_id on Group:"+curg.value+" App:"+cura.value)
-		return
-	}
-	if(!state.set_load()){
-		return
-	}
-	let req=new GetAppReq()
-	req.project_id=state.project.info!.project_id
-	req.g_name=curg.value
-	req.a_name=cura.value
-	req.secret=tmpsecret.value
-	GetApp(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
-	  if(resp instanceof GetAppResp){
-		secret.value=tmpsecret.value
-		tmpsecret.value=""
-		if(resp.keys){
-		  keys.value=new Map()
-		  let tmp = [...resp.keys.entries()].sort()
-		  for(let i=0;i<tmp.length;i++){
-			if(tmp[i][1]){
-			  keys.value.set(tmp[i][0],tmp[i][1]!)
-			}
+		let tmp = [...resp.keys.entries()].sort()
+		for(let i=0;i<tmp.length;i++){
+		  if(tmp[i][1]){
+			keys.value.set(tmp[i][0],tmp[i][1]!)
 		  }
-		}else{
-		  keys.value = new Map()
 		}
-		discovermode.value=resp.discover_mode!
-		kubernetesns.value=resp.kubernetes_namespace!
-		kubernetesls.value=resp.kubernetes_labelselector!
-		kubernetesfs.value=resp.kubernetes_fieldselector!
-		dnshost.value=resp.dns_host!
-		dnsinterval.value=resp.dns_interval!
-		if(resp.static_addrs){
-		  staticaddrs.value=resp.static_addrs
-		}else{
-		  staticaddrs.value=[]
-		}
-		crpc_port.value=resp.crpc_port!
-		cgrpc_port.value=resp.cgrpc_port!
-		web_port.value=resp.web_port!
-		get_app_status.value=true
-		state.clear_load()
 	  }else{
-		state.clear_load()
-		state.set_alert("error",resp.code,resp.msg)
+		keys.value = new Map()
 	  }
-	})
+	  discovermode.value=resp.discover_mode!
+	  kubernetesns.value=resp.kubernetes_namespace!
+	  kubernetesls.value=resp.kubernetes_labelselector!
+	  kubernetesfs.value=resp.kubernetes_fieldselector!
+	  dnshost.value=resp.dns_host!
+	  dnsinterval.value=resp.dns_interval!
+	  if(resp.static_addrs){
+		staticaddrs.value=resp.static_addrs
+	  }else{
+		staticaddrs.value=[]
+	  }
+	  crpc_port.value=resp.crpc_port!
+	  cgrpc_port.value=resp.cgrpc_port!
+	  web_port.value=resp.web_port!
+	  get_app_status.value=true
+	  state.clear_load()
+	}else{
+	  state.clear_load()
+	  state.set_alert("error",resp.code,resp.msg)
+	}
+  })
 }
 function get_instances(withinfo: boolean){
-	if(!state.set_load()){
-		return
-	}
-	let req=new GetInstancesReq()
-	req.project_id=state.project.info!.project_id
-	req.g_name=curg.value
-	req.a_name=cura.value
-	req.secret=secret.value
-	req.with_info=withinfo
-	GetInstances(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
-	  if(resp instanceof GetInstancesResp){
-		if(resp.instances){
-		  instances.value=new Map()
-		  let tmp = [...resp.instances.entries()].sort()
-		  for(let i=0;i<tmp.length;i++){
-			if(tmp[i][1]){
-			  instances.value.set(tmp[i][0],tmp[i][1]!)
-			}else{
-			  instances.value.set(tmp[i][0],null)
-			}
+  if(!state.set_load()){
+	return
+  }
+  let req=new GetInstancesReq()
+  req.project_id=state.project.info!.project_id
+  req.g_name=curg.value
+  req.a_name=cura.value
+  req.secret=secret.value
+  req.with_info=withinfo
+  GetInstances(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+	if(resp instanceof GetInstancesResp){
+	  if(resp.instances){
+		instances.value=new Map()
+		let tmp = [...resp.instances.entries()].sort()
+		for(let i=0;i<tmp.length;i++){
+		  if(tmp[i][1]){
+			instances.value.set(tmp[i][0],tmp[i][1]!)
+		  }else{
+			instances.value.set(tmp[i][0],null)
 		  }
-		}else{
-		  instances.value=new Map()
 		}
-		state.clear_load()
 	  }else{
-		state.clear_load()
-		state.set_alert("error",resp.code,resp.msg)
+		instances.value=new Map()
 	  }
-	})
-	
+	  state.clear_load()
+	}else{
+	  state.clear_load()
+	  state.set_alert("error",resp.code,resp.msg)
+	}
+  })
 }
 function get_instance(addr: string){
-	if(!state.set_load()){
-		return
-	}
-	let req=new GetInstanceInfoReq()
-	req.project_id=state.project.info!.project_id
-	req.g_name=curg.value
-	req.a_name=cura.value
-	req.secret=secret.value
-	req.addr=addr
-	GetInstanceInfo(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
-	  if(resp instanceof GetInstanceInfoResp){
-		if(resp.info){
-		  if(!instances.value){
-			instances.value=new Map()
-		  }
-		  instances.value.set(addr,resp.info)
+  if(!state.set_load()){
+	return
+  }
+  let req=new GetInstanceInfoReq()
+  req.project_id=state.project.info!.project_id
+  req.g_name=curg.value
+  req.a_name=cura.value
+  req.secret=secret.value
+  req.addr=addr
+  GetInstanceInfo(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+	if(resp instanceof GetInstanceInfoResp){
+	  if(resp.info){
+		if(!instances.value){
+		  instances.value=new Map()
 		}
-		state.clear_load()
-	  }else{
-		state.clear_load()
-		state.set_alert("error",resp.code,resp.msg)
+		instances.value.set(addr,resp.info)
 	  }
-	})
+	  state.clear_load()
+	}else{
+	  state.clear_load()
+	  state.set_alert("error",resp.code,resp.msg)
+	}
+  })
 }
 
 const ing=ref<boolean>(false)
@@ -410,6 +413,9 @@ function add_key_able():boolean{
 }
 
 const cur_key=ref<string>("")
+const cur_key_value = computed(()=>{
+	return JSON.stringify(JSON.parse(keys.value.get(cur_key.value)!.cur_value!),null,2)
+})
 
 //rollback
 const rollback_key_index=ref<number>(0)
@@ -427,6 +433,38 @@ function edit_commit_able():boolean{
 	return JSON.stringify(JSON.parse(edit_key_value.value),null,4)!=JSON.stringify(JSON.parse(keys.value.get(cur_key.value)!.cur_value!),null,4)
   }
   return edit_key_value.value!=keys.value.get(cur_key.value)!.cur_value
+}
+
+//proxy
+const proxy_addr=ref<string>("")
+const proxy_path=ref<string>("")
+const proxy_call_data=ref<string>("{}")
+const proxy_meta_data=ref<string>("")
+const proxy_resp_data=ref<string>("")
+function reset_proxy(addr:string){
+  proxy_addr.value=addr
+  proxy_path.value=''
+  proxy_call_data.value='{}'
+  proxy_meta_data.value=''
+  proxy_resp_data.value=''
+}
+function proxy_call_able():boolean{
+  if(proxy_addr.value==''){
+	return false
+  }
+  if(proxy_path.value==''){
+	return false
+  }
+  if(!is_json_obj(proxy_call_data.value)){
+	return false
+  }
+  if(parse_proxy_meta_data().length%2==1){
+	return false
+  }
+  return true
+}
+function parse_proxy_meta_data():string[]{
+  return proxy_meta_data.value.split('\n').map((l:string)=>l.trim()).filter((l:string)=>l.length>0)
 }
 
 function app_op(){
@@ -583,7 +621,11 @@ function app_op(){
 	  GetKeyConfig(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
 		if(resp instanceof GetKeyConfigResp){
 		  if(resp.value){
-			rollback_key_value.value=resp.value
+			if(resp.value_type==="json"){
+			  rollback_key_value.value=JSON.stringify(JSON.parse(resp.value),null,2)
+			}else{
+			  rollback_key_value.value=resp.value
+			}
 			rollback_key_value_type.value=resp.value_type!
 		  }else{
 			rollback_key_value.value="{}"
@@ -692,6 +734,31 @@ function app_op(){
 	  })
 	  break
 	}
+	case 'proxy_call':{
+	  let req=new ProxyCallReq()
+	  req.project_id=state.project.info!.project_id
+	  req.g_name=curg.value
+	  req.a_name=cura.value
+	  req.secret=secret.value
+	  req.addr=proxy_addr.value
+	  req.path=proxy_path.value
+	  req.calldata=proxy_call_data.value
+	  let tmp = parse_proxy_meta_data()
+	  req.metadata=new Map<string,string>()
+	  for(let i=0;i<tmp.length;i+=2){
+		req.metadata.set(tmp[i],tmp[i+1])
+	  }
+	  ProxyCall(state.baseurl,req,{"Token":state.user.token},state.expire).then(resp => {
+		if(resp instanceof ProxyCallResp){
+		  proxy_resp_data.value=JSON.stringify(JSON.parse(resp.data!),null,2)
+		  state.clear_load()
+		}else{
+		  state.clear_load()
+		  state.set_alert("error",resp.code,resp.msg)
+		}
+	  })
+	  break
+	}
 	default:{
 	  state.clear_load()
 	  state.set_alert("error",-2,"unknown operation")
@@ -714,8 +781,7 @@ function is_json_obj(str :string):boolean{
 }
 </script>
 <template>
-	<!-- <VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px" @beforeOpen="(el:HTMLElement)=>{el.querySelector('.va-modal__dialog').style.width='auto'}"> -->
-	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="800px" maxHeight="600px">
+	<VaModal v-model="ing" :mobileFullscreen="false" hideDefaultActions noDismiss blur :overlay="false" maxWidth="900px" maxHeight="600px">
 		<template #default>
 			<div v-if="optype=='del_app'" style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
@@ -840,16 +906,13 @@ function is_json_obj(str :string):boolean{
 				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
 					<VaCardContent style="font-size:20px"><b>Add Key Config</b></VaCardContent>
 				</VaCard>
-				<VaInput type="text" label="Key_Name*" style="margin-top:10px" v-model.trim="config_key" />
+				<VaInput type="text" label="Key Name *" style="margin-top:10px" v-model.trim="config_key" :rules="[(v:string)=>v.length>0]"/>
 				<VaRadio
 					style="margin-top:10px;display:flex;justify-content:space-evenly;align-items:center"
 					:options='["json","raw","yaml","toml"]'
 					v-model="config_value_type"
 					disabled />
-				<b style="font-size:13px;color:var(--va-primary)">CONTENT</b>
-				<textarea
-					style="border:1px solid var(--va-background-element);border-radius:5px;margin-top:10px;height:300px;resize:none"
-					v-model.trim="config_value" />
+				<VaTextarea label="Content *" v-model.trim="config_value" style="margin-top:10px;height:300px" :resize="false" :rules="[is_json_obj]" />
 				<div style="display:flex;justify-content:center">
 					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" :disabled="!add_key_able()" gradient >Add</VaButton>
 					<VaButton style="width:80px;margin:10px 0 0 10px" @click="reset_add_key();ing=false" gradient>Cancel</VaButton>
@@ -877,6 +940,23 @@ function is_json_obj(str :string):boolean{
 				<div style="display:flex;justify-content:center">
 					<VaButton style="width:80px;margin:10px 10px 0 0" @click="app_op" gradient>Rollback</VaButton>
 					<VaButton style="width:80px;margin:10px 0 0 10px" @click="ing=false" gradient>Cancel</VaButton>
+				</div>
+			</div>
+			<div v-else-if="optype=='proxy_call'" style="display:flex;flex-direction:column">
+				<VaCard style="min-width:350px;witdh:auto;text-align:center" color="primary" gradient>
+					<VaCardContent style="font-size:20px"><b>Proxy Call</b></VaCardContent>
+				</VaCard>
+				<VaInput label="Method Path *" v-model.trim="proxy_path" style="margin-top:10px" :rules="[(v:string)=>v.length>0]" />
+				<div style="display:flex;justify-content:center;margin-top:10px">
+				  <VaTextarea label="Call Data *" v-model.trim="proxy_call_data" style="height:300px;flex:1;margin-right:5px" :resize="false" :rules="[is_json_obj]" />
+				  <VaTextarea label="Meta Data" v-model.trim="proxy_meta_data" style="height:300px;flex:1;margin:0px 5px" :resize="false" placeholder="each line is a key or value,key or value one by one,empty line will be ignored" :rules="[()=>parse_proxy_meta_data().length%2==0]" />
+				  <VaTextarea label="Resp Data" v-model.trim="proxy_resp_data" style="height:300px;flex:1;margin-left:5px" :resize="false" readonly />
+				</div>
+				<div style="align-self:center;margin-top:10px;color:red">Can't Support Stream Method</div>
+				<div style="display:flex;justify-content:center">
+					<VaButton style="width:80px;margin-top:10px" @click="app_op" gradient :disabled="!proxy_call_able()">Call</VaButton>
+					<VaButton style="width:80px;margin:10px 10px 0 10px" @click="reset_proxy(proxy_addr)" gradient>Reset</VaButton>
+					<VaButton style="width:80px;margin-top:10px" @click="ing=false" gradient>Cancel</VaButton>
 				</div>
 			</div>
 		</template>
@@ -1027,9 +1107,7 @@ function is_json_obj(str :string):boolean{
 				</div>
 				<div v-if="cur_key==key" style="flex:1;display:flex;margin:1px 20px;overflow-y:auto">
 					<div style="flex:1;display:flex;flex-direction:column">
-						<textarea
-							style="border:1px solid var(--va-background-element);border-radius:5px;flex:1;overflow-y:auto;resize:none"
-							readonly>{{JSON.stringify(JSON.parse(keys.get(key)!.cur_value!),null,4)}}</textarea>
+					  <VaTextarea style="flex:1" :resize="false" v-model="cur_key_value" readonly/>
 						<div style="align-self:center;display:flex;align-items:center">
 							<b style="color:var(--va-primary);margin:2px 10px">Current Version:  {{ keys.get(key)!.cur_version}}</b>
 							<b style="color:var(--va-primary);margin:2px 10px">Current ID:  {{ keys.get(key)!.cur_index }}</b>
@@ -1092,14 +1170,8 @@ function is_json_obj(str :string):boolean{
 					</div>
 					<VaDivider v-if="rollback_key_index!=0||edit_key_value_type!=''" vertical style="margin:0 4px" />
 					<div v-if="rollback_key_index!=0||edit_key_value_type!=''" style="flex:1;display:flex;flex-direction:column">
-						<textarea 
-							v-if="rollback_key_index!=0"
-							style="border:1px solid var(--va-background-element);border-radius:5px;flex:1;overflow-y:auto;resize:none"
-							readonly>{{rollback_key_value_type=='json'?JSON.stringify(JSON.parse(rollback_key_value),null,4):rollback_key_value}}</textarea>
-						<textarea
-							v-if="edit_key_value_type!=''"
-							style="border:1px solid var(--va-background-element);border-radius:5px;flex:1;overflow-y:auto;resize:none"
-							v-model.trim="edit_key_value" />
+						<VaTextarea v-if="rollback_key_index!=0" style="flex:1" v-model="rollback_key_value" :resize="false" readonly/>
+						<VaTextarea v-if="edit_key_value_type!=''" style="flex:1" v-model.trim="edit_key_value" :resize="false" />
 						<div style="display:flex;align-items:center">
 							<VaRadio
 								v-if="rollback_key_index!=0"
@@ -1160,7 +1232,7 @@ function is_json_obj(str :string):boolean{
 				if(config_instance==''){
 					instances=new Map()
 					config_instance='instance'
-					get_instances(true)
+					get_instances(false)
 				}else{
 					config_instance=''
 				}
@@ -1177,7 +1249,7 @@ function is_json_obj(str :string):boolean{
 				gradient
 				@mouseover.stop=""
 				@mouseout.stop=""
-				@click.stop="get_instances(true)"
+				@click.stop="get_instances(false)"
 			>
 				refresh
 			</VaButton>
@@ -1236,6 +1308,9 @@ function is_json_obj(str :string):boolean{
 						<span>{{Number(instances.get(instanceaddr)!.mem_usage).toFixed(2)}}%</span>
 					</div>
 				</div>
+				<VaButton v-if="canwrite()" style="position:absolute;right:1px;bottom:1px" size="small" gradint @click="reset_proxy(instanceaddr);optype='proxy_call';ing=true">
+						proxy call
+				</VaButton>
 			</div>
 		</div>
 	</div>

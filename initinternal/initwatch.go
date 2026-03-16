@@ -651,153 +651,192 @@ func (s *InternalSdk) GetAppAddrsByProjectName(ctx context.Context, pname, g, a 
 	return addrs, nil
 }
 
-func (s *InternalSdk) PingByPrjoectID(ctx context.Context, pid, g, a string, forceaddr string) (*api.Pingresp, error) {
-	fullname := pid + "-" + g + "." + a
+func (s InternalSdk) getClient(pid, pname, g, a string) (*crpc.CrpcClient, uint32, error) {
+	if pid == "" && pname == "" {
+		//this is impossible
+		return nil, 0, ecode.ErrSystem
+	}
+	var exist *app
+	var ok bool
 	s.lker.RLock()
 	if s.closing {
 		s.lker.RUnlock()
-		return nil, ecode.ErrServerClosing
+		return nil, 0, ecode.ErrServerClosing
 	}
-	app, ok := s.appsIDIndex[fullname]
+	if pid != "" {
+		fullname := pid + "-" + g + "." + a
+		exist, ok = s.appsIDIndex[fullname]
+	} else {
+		fullname := pname + "-" + g + "." + a
+		exist, ok = s.appsNameIndex[fullname]
+	}
 	if !ok {
 		s.lker.RUnlock()
-		return nil, ecode.ErrAppNotExist
+		return nil, 0, ecode.ErrAppNotExist
 	}
-	app.Lock()
+	exist.Lock()
+	defer exist.Unlock()
 	s.lker.RUnlock()
-	if app.delstatus {
-		app.Unlock()
-		return nil, ecode.ErrAppNotExist
+	if exist.delstatus {
+		return nil, 0, ecode.ErrAppNotExist
 	}
-	if app.client == nil {
+	if exist.client == nil {
+		//create new client
 		var e error
-		if app.di == nil {
-			app.di, e = createdi(app.summary)
+		if exist.di == nil {
+			//create new di
+			exist.di, e = createdi(exist.summary)
 			if e != nil {
-				app.Unlock()
-				return nil, e
+				return nil, 0, e
 			}
 		}
-		app.client, e = crpc.NewCrpcClient(nil, app.di, app.summary.ProjectName, app.summary.Group, app.summary.App, nil)
+		exist.client, e = crpc.NewCrpcClient(nil, exist.di, exist.summary.ProjectName, exist.summary.Group, exist.summary.App, nil)
 		if e != nil {
-			app.Unlock()
-			return nil, e
+			return nil, 0, e
 		}
 	}
-	app.active = time.Now().UnixNano()
-	if forceaddr != "" && app.summary.CrpcPort != 0 {
+	//update the active timestamp
+	exist.active = time.Now().UnixNano()
+	return exist.client, exist.summary.CrpcPort, nil
+}
+
+func (s *InternalSdk) PingByPrjoectID(ctx context.Context, pid, g, a string, forceaddr string) (*api.Pingresp, error) {
+	client, port, e := s.getClient(pid, "", g, a)
+	if e != nil {
+		return nil, e
+	}
+	if forceaddr != "" && port != 0 {
 		if strings.Contains(forceaddr, ":") {
 			//ipv6
-			forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)
+			forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(port), 10)
 		} else {
 			//ipv4 or host
-			forceaddr = forceaddr + ":" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)
+			forceaddr = forceaddr + ":" + strconv.FormatUint(uint64(port), 10)
 		}
 	}
-	//copy the client pointer
-	client := app.client
-	app.Unlock()
 	req := &api.Pingreq{}
 	req.SetTimestamp(time.Now().UnixNano())
 	in, _ := proto.Marshal(req)
 	var resp *api.Pingresp
-	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".Status/Ping", in, crpc.Encoder_PROTOBUF, func(cctx *crpc.CallContext) error {
-		out, encoder, e := cctx.Recv()
-		if e != nil {
-			return e
-		}
-		switch encoder {
-		case crpc.Encoder_PROTOBUF:
-			resp = &api.Pingresp{}
-			if e := proto.Unmarshal(out, resp); e != nil {
+	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".Status/Ping", in, crpc.Encoder_PROTOBUF,
+		func(cctx *crpc.CallContext) error {
+			out, encoder, e := cctx.Recv()
+			if e != nil {
+				return e
+			}
+			switch encoder {
+			case crpc.Encoder_PROTOBUF:
+				resp = &api.Pingresp{}
+				if e := proto.Unmarshal(out, resp); e != nil {
+					return ecode.ErrResp
+				}
+			case crpc.Encoder_JSON:
+				resp = &api.Pingresp{}
+				if e := protojson.Unmarshal(out, resp); e != nil {
+					return ecode.ErrResp
+				}
+			default:
 				return ecode.ErrResp
 			}
-		case crpc.Encoder_JSON:
-			resp = &api.Pingresp{}
-			if e := protojson.Unmarshal(out, resp); e != nil {
-				return ecode.ErrResp
-			}
-		default:
-			return ecode.ErrResp
-		}
-		return nil
-	}); e != nil {
+			return nil
+		}); e != nil {
 		return nil, e
 	}
 	return resp, nil
 }
 
 func (s *InternalSdk) PingByPrjoectName(ctx context.Context, pname, g, a string, forceaddr string) (*api.Pingresp, error) {
-	fullname := pname + "-" + g + "." + a
-	s.lker.RLock()
-	if s.closing {
-		s.lker.RUnlock()
-		return nil, ecode.ErrServerClosing
+	client, port, e := s.getClient("", pname, g, a)
+	if e != nil {
+		return nil, e
 	}
-	app, ok := s.appsNameIndex[fullname]
-	if !ok {
-		s.lker.RUnlock()
-		return nil, ecode.ErrAppNotExist
-	}
-	app.Lock()
-	s.lker.RUnlock()
-	if app.delstatus {
-		app.Unlock()
-		return nil, ecode.ErrAppNotExist
-	}
-	if app.client == nil {
-		var e error
-		if app.di == nil {
-			app.di, e = createdi(app.summary)
-			if e != nil {
-				app.Unlock()
-				return nil, e
-			}
-		}
-		app.client, e = crpc.NewCrpcClient(nil, app.di, app.summary.ProjectName, app.summary.Group, app.summary.App, nil)
-		if e != nil {
-			app.Unlock()
-			return nil, e
-		}
-	}
-	app.active = time.Now().UnixNano()
-	if forceaddr != "" && app.summary.CrpcPort != 0 {
+	if forceaddr != "" && port != 0 {
 		if strings.Contains(forceaddr, ":") {
 			//ipv6
-			forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)
+			forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(port), 10)
 		} else {
 			//ipv4 or host
-			forceaddr = forceaddr + ":" + strconv.FormatUint(uint64(app.summary.CrpcPort), 10)
+			forceaddr = forceaddr + ":" + strconv.FormatUint(uint64(port), 10)
 		}
 	}
-	//copy the client pointer
-	client := app.client
-	app.Unlock()
 	req := &api.Pingreq{}
 	req.SetTimestamp(time.Now().UnixNano())
 	in, _ := proto.Marshal(req)
 	var resp *api.Pingresp
-	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".Status/Ping", in, crpc.Encoder_PROTOBUF, func(cctx *crpc.CallContext) error {
-		out, encoder, e := cctx.Recv()
-		if e != nil {
+	if e := client.Call(crpc.WithForceAddr(ctx, forceaddr), "/"+a+".Status/Ping", in, crpc.Encoder_PROTOBUF,
+		func(cctx *crpc.CallContext) error {
+			out, encoder, e := cctx.Recv()
+			if e != nil {
+				return e
+			}
+			switch encoder {
+			case crpc.Encoder_PROTOBUF:
+				resp = &api.Pingresp{}
+				if e := proto.Unmarshal(out, resp); e != nil {
+					return ecode.ErrResp
+				}
+			case crpc.Encoder_JSON:
+				resp = &api.Pingresp{}
+				if e := protojson.Unmarshal(out, resp); e != nil {
+					return ecode.ErrResp
+				}
+			default:
+				return ecode.ErrResp
+			}
+			return nil
+		}); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+
+// can't support stream
+func (s *InternalSdk) ProxyCallByProjectID(ctx context.Context, in []byte, path, pid, g, a string, forceaddr string) ([]byte, error) {
+	client, port, e := s.getClient(pid, "", g, a)
+	if e != nil {
+		return nil, e
+	}
+	if forceaddr != "" && port != 0 {
+		if strings.Contains(forceaddr, ":") {
+			//ipv6
+			forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(port), 10)
+		} else {
+			//ipv4 or host
+			forceaddr = forceaddr + ":" + strconv.FormatUint(uint64(port), 10)
+		}
+	}
+	var resp []byte
+	if e := client.Call(ctx, path, in, crpc.Encoder_JSON,
+		func(ctx *crpc.CallContext) error {
+			resp, _, e = ctx.Recv()
 			return e
+		}); e != nil {
+		return nil, e
+	}
+	return resp, nil
+}
+
+// can't support stream
+func (s *InternalSdk) ProxyCallByProjectName(ctx context.Context, in []byte, path, pname, g, a string, forceaddr string) ([]byte, error) {
+	client, port, e := s.getClient("", pname, g, a)
+	if e != nil {
+		return nil, e
+	}
+	if forceaddr != "" && port != 0 {
+		if strings.Contains(forceaddr, ":") {
+			//ipv6
+			forceaddr = "[" + forceaddr + "]:" + strconv.FormatUint(uint64(port), 10)
+		} else {
+			//ipv4 or host
+			forceaddr = forceaddr + ":" + strconv.FormatUint(uint64(port), 10)
 		}
-		switch encoder {
-		case crpc.Encoder_PROTOBUF:
-			resp = &api.Pingresp{}
-			if e := proto.Unmarshal(out, resp); e != nil {
-				return ecode.ErrResp
-			}
-		case crpc.Encoder_JSON:
-			resp = &api.Pingresp{}
-			if e := protojson.Unmarshal(out, resp); e != nil {
-				return ecode.ErrResp
-			}
-		default:
-			return ecode.ErrResp
-		}
-		return nil
-	}); e != nil {
+	}
+	var resp []byte
+	if e := client.Call(ctx, path, in, crpc.Encoder_JSON,
+		func(ctx *crpc.CallContext) error {
+			resp, _, e = ctx.Recv()
+			return e
+		}); e != nil {
 		return nil, e
 	}
 	return resp, nil

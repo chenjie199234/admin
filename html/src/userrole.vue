@@ -630,7 +630,7 @@ function parsetime(timestamp :number):string{
 					<VaCardContent style="font-size:20px"><b>Create Role</b></VaCardContent>
 				</VaCard>
 				<VaInput v-model.trim="create_role_name" label="New Role Name*" style="margin-top:10px" />
-				<VaInput v-model.trim="create_role_comment" label="New Role Comment" style="margin-top:10px" />
+				<VaTextarea v-model.trim="create_role_comment" label="New Role Comment" style="margin-top:10px" :resize="false" />
 				<div style="display:flex;justify-content:center">
 					<VaButton style="width:80px;margin:10px 10px 0 0" @click="op" gradient :disabled="create_role_name==''">Create</VaButton>
 					<VaButton style="width:80px;margin:10px 0 0 10px" @click="create_role_name='';create_role_comment='';ing=false" gradient>Cancel</VaButton>
@@ -1050,11 +1050,7 @@ function parsetime(timestamp :number):string{
 						Del
 					</VaButton>
 				</div>
-				<textarea
-					v-if="cur_role==role"
-					style="border:1px solid var(--va-background-element);border-radius:5px;margin:1px 10px;resize:none"
-					readonly
-					v-model="role.comment" />
+				<VaTextarea v-if="cur_role==role" v-model="role.comment" style="margin:1px 10px" :readonly="true" :resize="false" />
 				<div v-if="cur_role==role&&role_node&&role_node.children&&role_node.children.length>0"
 					style="flex:1;margin:2px 10px;display:flex;background-color:var(--va-background-element);color:var(--va-primary);overflow:auto">
 					<template v-for="child of role_node.children">

@@ -698,7 +698,7 @@ function parsetime(timestamp :number):string{
 			</div>
 			<div v-else-if="optype=='add_user_role_missinguser'" style="display:flex;flex-direction:column">
 				<VaCard style="min-width:350px;width:auto;text-align:center" color="primary" gradient>
-					<VaCardContent style="font-size:20px"><b>Assign role: {{add_user_role_role!.role_name}} to a user</b></VaCardContent>
+					<VaCardContent style="font-size:20px"><b>Assign role: {{add_user_role_role!.role_name}} to a user(in this project)</b></VaCardContent>
 				</VaCard>
 				<VaInput
 					placeholder="User Name*"
@@ -877,7 +877,7 @@ function parsetime(timestamp :number):string{
 					<span style="width:40px;padding:12px 20px;color:var(--va-primary)">{{cur_user==user?'-':invited(user)?'+':' ' }}</span>
 					<span v-if="user.feishu_user_name" style="padding:12px 0px 12px 20px;color:var(--va-primary)">{{user.feishu_user_name}}(feishu)</span>
 					<span v-if="user.dingding_user_name" style="padding:12px 0px 12px 20px;color:var(--va-primary)">{{user.dingding_user_name}}(dingding)</span>
-					<span v-if="user.wxwork_user_name" style="padding:12px 0px 12px 20px;color:var(--pa-primary)">{{user.wxwork_user_name}}(wxwork)</span>
+					<span v-if="user.wxwork_user_name" style="padding:12px 0px 12px 20px;color:var(--va-primary)">{{user.wxwork_user_name}}(wxwork)</span>
 					<span style="padding:12px 20px;color:green">{{user.user_id}}</span>
 					<span style="flex:1"></span>
 					<span style="padding:12px;color:green">Create Time: {{parsetime(user.ctime!)}}</span>

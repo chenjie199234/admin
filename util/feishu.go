@@ -14,15 +14,15 @@ import (
 )
 
 type getFeiShuUserTokenReq struct {
-	GrantType string `json:"grant_type"`
-	Code      string `json:"code"`
+	GrantType    string `json:"grant_type"`
+	Code         string `json:"code"`
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	Scope        string `json:"scope"`
 }
 type getFeiShuUserTokenResp struct {
-	Code int32                   `json:"code"`
-	Msg  string                  `json:"msg"`
-	Data *getFeiShuUserTokenData `json:"data"`
-}
-type getFeiShuUserTokenData struct {
+	Code            int32  `json:"code"`
+	Msg             string `json:"error_description"`
 	UserAccessToken string `json:"access_token"`
 }
 type getFeiShuUserInfoResp struct {
@@ -32,24 +32,25 @@ type getFeiShuUserInfoResp struct {
 }
 type getFeiShuUserInfoData struct {
 	UserName string `json:"name"`
-	UserID   string `json:"user_id"`
 	Mobile   string `json:"mobile"`
 }
 
-func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile string, e error) {
+func GetFeiShuOAuth2(ctx context.Context, clientid, clientsecret, code string) (username string, mobile string, e error) {
 	//step1 get user token
-	//https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/authen-v1/oidc-access_token/create?appId=cli_a596bbd826b8100d
+	//https://open.feishu.cn/document/authentication-management/access-token/get-user-access-token
 	var usertoken string
 	{
 		header := make(http.Header)
 		header.Set("Content-Type", "application/json; charset=utf-8")
-		header.Set("Authorization", "Bearer "+dao.FeiShuAppToken)
 		req := &getFeiShuUserTokenReq{
-			GrantType: "authorization_code",
-			Code:      code,
+			GrantType:    "authorization_code",
+			Code:         code,
+			ClientID:     clientid,
+			ClientSecret: clientsecret,
+			Scope:        "contact:user.phone:readonly",
 		}
 		reqbody, _ := json.Marshal(req)
-		resp, err := dao.FeiShuWebClient.Post(ctx, "/open-apis/authen/v1/oidc/access_token", "", header, nil, reqbody)
+		resp, err := dao.FeiShuWebClient.Post(ctx, "open-apis/authen/v2/oauth/token", "", header, nil, reqbody)
 		if err != nil {
 			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
@@ -73,7 +74,7 @@ func GetFeiShuOAuth2(ctx context.Context, code string) (username string, mobile 
 			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] failed", slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
-		usertoken = r.Data.UserAccessToken
+		usertoken = r.UserAccessToken
 	}
 	//step2 get user info
 	//https://open.feishu.cn/document/server-docs/authentication-management/login-state-management/get

@@ -106,8 +106,8 @@
 		"dingding_client_id":"",
 		"dingding_client_secret":"",
 		"feishu_oauth2":"",
-		"feishu_app_id":"",
-		"feishu_app_secret":"",
+		"feishu_client_id":"",
+		"feishu_client_secret":"",
 		"wxwork_oauth2":"",
 		"wxwork_corp_id":"",
 		"wxwork_corp_secret":""

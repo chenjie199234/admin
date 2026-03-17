@@ -27,10 +27,10 @@ type ServiceConfig struct {
 	DingDingClientID     string `json:"dingding_client_id"`
 	DingDingClientSecret string `json:"dingding_client_secret"`
 
-	//https://open.feishu.cn/open-apis/authen/v1/authorize?redirect_uri={REDIRECT_URI}&app_id={APPID}&state=FeiShu&scope=contact:user.employee_id:readonly%20contact:user.phone:readonly
-	FeiShuOauth2    string `json:"feishu_oauth2"`
-	FeiShuAppID     string `json:"feishu_app_id"`
-	FeiShuAppSecret string `json:"feishu_app_secret"`
+	//https://accounts.feishu.cn/open-apis/authen/v1/authorize?redirect_uri={REDIRECT_URI}&response_type=code&client_id={CLIENT_ID}&state=FeiShu&scope=contact:user.phone:readonly
+	FeiShuOauth2       string `json:"feishu_oauth2"`
+	FeiShuClientID     string `json:"feishu_client_id"`
+	FeiShuClientSecret string `json:"feishu_client_secret"`
 
 	//https://open.weixin.qq.com/connect/oauth2/authorize?redirect_uri={REDIRECT_URI}&appid={CORPID}&response_type=code&scope=snsapi_privateinfo&state=WXWork&agentid={AGENTID}#wechat_redirect
 	WXWorkOauth2     string `json:"wxwork_oauth2"`
@@ -47,8 +47,8 @@ func validateAppConfig(ac *AppConfig) {
 		slog.Error("[config.validateAppConfig] missing dingding_client_id or dingding_client_secret")
 		os.Exit(1)
 	}
-	if ac.Service.FeiShuOauth2 != "" && (ac.Service.FeiShuAppID == "" || ac.Service.FeiShuAppSecret == "") {
-		slog.Error("[config.validateAppConfig] missing feishu_app_id or feishu_app_secret")
+	if ac.Service.FeiShuOauth2 != "" && (ac.Service.FeiShuClientID == "" || ac.Service.FeiShuClientSecret == "") {
+		slog.Error("[config.validateAppConfig] missing feishu_client_id or feishu_client_secret")
 		os.Exit(1)
 	}
 	if ac.Service.WXWorkOauth2 != "" && (ac.Service.WXWorkCorpID == "" || ac.Service.WXWorkCorpSecret == "") {

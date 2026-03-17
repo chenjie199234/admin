@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/chenjie199234/admin/config"
 	"github.com/chenjie199234/admin/dao"
 	"github.com/chenjie199234/admin/ecode"
 )
@@ -24,22 +23,21 @@ type getDingDingUserTokenResp struct {
 	CorpID      string `json:"corpId"`
 }
 type getDingDingUserInfoResp struct {
-	UnionID         string `json:"unionId"`
 	UserName        string `json:"nick"`
 	Mobile          string `json:"mobile"`
 	MobileStateCode string `json:"stateCode"`
 }
 
-func GetDingDingOAuth2(ctx context.Context, code string) (username, mobile string, e error) {
+func GetDingDingOAuth2(ctx context.Context, clientid, clientsecret, code string) (username, mobile string, e error) {
 	//step1 get user token
-	//https://open.dingtalk.com/document/orgapp/obtain-user-token
+	//https://open.dingtalk.com/document/development/obtain-user-token
 	var usertoken string
 	{
 		header := make(http.Header)
 		header.Set("Content-Type", "application/json")
 		req := &getDingDingUserTokenReq{
-			ClientID:     config.AC.Service.DingDingClientID,
-			ClientSecret: config.AC.Service.DingDingClientSecret,
+			ClientID:     clientid,
+			ClientSecret: clientsecret,
 			Code:         code,
 			GrantType:    "authorization_code",
 		}
@@ -67,10 +65,9 @@ func GetDingDingOAuth2(ctx context.Context, code string) (username, mobile strin
 	}
 
 	//step2 get user info
-	//https://open.dingtalk.com/document/orgapp/dingtalk-retrieve-user-information
+	//https://open.dingtalk.com/document/development/dingtalk-retrieve-user-information
 	{
 		header := make(http.Header)
-		header.Set("Content-Type", "application/json")
 		header.Set("x-acs-dingtalk-access-token", usertoken)
 		resp, err := dao.DingDingWebClient.Get(ctx, "/v1.0/contact/users/me", "", header, nil)
 		if err != nil {

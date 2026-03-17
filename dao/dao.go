@@ -1,10 +1,16 @@
 package dao
 
 import (
+	"context"
 	"crypto/tls"
+	"encoding/json"
+	"io"
+	"log/slog"
+	"time"
 
 	"github.com/chenjie199234/admin/config"
 
+	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/Corelib/discover"
 	"github.com/chenjie199234/Corelib/web"
 	// "github.com/chenjie199234/Corelib/cgrpc"
@@ -80,7 +86,6 @@ func NewApi() error {
 	if e != nil {
 		return e
 	}
-	initDingDing()
 
 	//FeiShu
 	FeiShuStaticDiscover, e := discover.NewStaticDiscover("bytedance", "feishu", "oauth2", []string{"open.feishu.cn"}, 0, 0, 0)
@@ -91,7 +96,6 @@ func NewApi() error {
 	if e != nil {
 		return e
 	}
-	initFeiShu()
 
 	//WXWork
 	WXWorkStaticDiscover, e := discover.NewStaticDiscover("tencent", "wxwork", "oauth2", []string{"qyapi.weixin.qq.com"}, 0, 0, 0)
@@ -108,7 +112,86 @@ func NewApi() error {
 }
 
 func UpdateAppConfig(ac *config.AppConfig) {
-	RefreshDingDingToken()
-	RefreshFeiShuToken()
 	RefreshWXWorkToken()
+}
+
+var WXWorkAccessToken string
+var curIdSecret string
+var trigerWXWork chan *struct{}
+
+// https://developer.work.weixin.qq.com/document/path/91039
+func initWXWork() {
+	trigerWXWork = make(chan *struct{}, 1)
+	go func() {
+		tmer := time.NewTimer(0)
+		for {
+			select {
+			case <-tmer.C:
+			case <-trigerWXWork:
+			}
+			tmer.Stop()
+			r, e := getWXWorkAccessToken()
+			if e != nil {
+				tmer.Reset(time.Millisecond * 500)
+			} else if r == nil {
+				WXWorkAccessToken = ""
+				continue
+			} else {
+				WXWorkAccessToken = r.AccessToken
+				tmer.Reset(time.Duration(r.ExpireIn) * time.Second)
+			}
+			select {
+			case <-trigerWXWork:
+			default:
+			}
+		}
+	}()
+}
+
+type getWXWorkAccessTokenResp struct {
+	Code        int32  `json:"errcode"`
+	Msg         string `json:"errmsg"`
+	AccessToken string `json:"access_token"`
+	ExpireIn    int64  `json:"expires_in"`
+}
+
+func getWXWorkAccessToken() (*getWXWorkAccessTokenResp, error) {
+	c := config.AC.Service
+	if c.WXWorkOauth2 == "" || c.WXWorkCorpID == "" || c.WXWorkCorpSecret == "" {
+		return nil, nil
+	}
+	query := "corpid=" + c.WXWorkCorpID + "&corpsecret=" + c.WXWorkCorpSecret
+	resp, e := WXWorkWebClient.Get(context.Background(), "/cgi-bin/gettoken", query, nil, nil)
+	if e != nil {
+		slog.Error("[getWXWorkAccessToken] call failed", slog.String("error", e.Error()))
+		return nil, e
+	}
+	defer resp.Body.Close()
+	respbody, e := io.ReadAll(resp.Body)
+	if e != nil {
+		slog.Error("[getWXWorkAccessToken] read response body failed", slog.String("error", e.Error()))
+		return nil, e
+	}
+	r := &getWXWorkAccessTokenResp{}
+	if e = json.Unmarshal(respbody, r); e != nil {
+		slog.Error("[getWXWorkAccessToken] response body decode failed", slog.String("error", e.Error()))
+		return nil, e
+	}
+	if r.Code != 0 {
+		e = cerror.MakeCError(r.Code, 500, r.Msg)
+		slog.Error("[getWXWorkAccessToken] failed", slog.String("error", e.Error()))
+		return nil, e
+	}
+	curIdSecret = c.WXWorkCorpID + c.WXWorkCorpSecret
+	return r, nil
+}
+func RefreshWXWorkToken() {
+	c := config.AC.Service
+	if curIdSecret == c.WXWorkCorpID+c.WXWorkCorpSecret {
+		return
+	}
+	select {
+	case trigerWXWork <- nil:
+	default:
+	}
 }

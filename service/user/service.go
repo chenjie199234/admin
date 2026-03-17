@@ -74,9 +74,11 @@ func (s *Service) UserLogin(ctx context.Context, req *api.UserLoginReq) (*api.Us
 	var oauth2username, oauth2mobile string
 	switch req.GetSrcType() {
 	case "DingDing":
-		oauth2username, oauth2mobile, e = util.GetDingDingOAuth2(ctx, req.GetCode())
+		c := config.AC.Service
+		oauth2username, oauth2mobile, e = util.GetDingDingOAuth2(ctx, c.DingDingClientID, c.DingDingClientSecret, req.GetCode())
 	case "FeiShu":
-		oauth2username, oauth2mobile, e = util.GetFeiShuOAuth2(ctx, req.GetCode())
+		c := config.AC.Service
+		oauth2username, oauth2mobile, e = util.GetFeiShuOAuth2(ctx, c.FeiShuClientID, c.FeiShuClientSecret, req.GetCode())
 	case "WXWork":
 		oauth2username, oauth2mobile, e = util.GetWXWorkOAuth2(ctx, req.GetCode())
 	}

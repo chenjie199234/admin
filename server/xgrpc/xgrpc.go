@@ -48,10 +48,6 @@ func StartCGrpcServer() {
 	//api.RegisterExampleCGrpcServer(server, service.SvcExample, mids.AllMids())
 	//you need to register your service here
 	api.RegisterStatusCGrpcServer(server, service.SvcStatus, mids.AllMids())
-	// api.RegisterAppCGrpcServer(server, service.SvcApp, mids.AllMids())
-	// api.RegisterUserCGrpcServer(server, service.SvcUser, mids.AllMids())
-	// api.RegisterPermissionCGrpcServer(server, service.SvcPermission, mids.AllMids())
-	// api.RegisterInitializeCGrpcServer(server, service.SvcInitialize, mids.AllMids())
 
 	if e = server.StartCGrpcServer(":10000"); e != nil && e != cgrpc.ErrServerClosed {
 		slog.Error("[xgrpc] start server failed", slog.String("error", e.Error()))

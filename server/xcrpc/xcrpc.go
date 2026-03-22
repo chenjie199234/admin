@@ -17,7 +17,6 @@ import (
 
 var s *crpc.CrpcServer
 
-// StartCrpcServer -
 func StartCrpcServer() {
 	c := config.GetCrpcServerConfig()
 	var tlsc *tls.Config
@@ -45,14 +44,10 @@ func StartCrpcServer() {
 	//this place can register global midwares
 	//server.Use(globalmidwares)
 
-	//you just need to register your service here
-	api.RegisterStatusCrpcServer(server, service.SvcStatus, mids.AllMids())
-	// api.RegisterAppCrpcServer(s, service.SvcApp, mids.AllMids())
-	// api.RegisterUserCrpcServer(s, service.SvcUser, mids.AllMids())
-	// api.RegisterPermissionCrpcServer(s, service.SvcPermission, mids.AllMids())
-	// api.RegisterInitializeCrpcServer(s, service.SvcInitialize, mids.AllMids())
 	//example
 	//api.RegisterExampleCrpcServer(server, service.SvcExample,mids.AllMids())
+	//you need to register your service here
+	api.RegisterStatusCrpcServer(server, service.SvcStatus, mids.AllMids())
 
 	if e = server.StartCrpcServer(":9000"); e != nil && e != crpc.ErrServerClosed {
 		slog.Error("[xcrpc] start server failed", slog.String("error", e.Error()))
@@ -61,8 +56,7 @@ func StartCrpcServer() {
 	slog.Info("[xcrpc] server closed")
 }
 
-// UpdateHandlerTimeout -
-// first key path,second key method,value timeout duration
+// first key:path,second key:method
 func UpdateHandlerTimeout(timeout map[string]map[string]ctime.Duration) {
 	//avoid race when build/run in -race mode
 	tmps := (*crpc.CrpcServer)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&s))))
@@ -71,7 +65,6 @@ func UpdateHandlerTimeout(timeout map[string]map[string]ctime.Duration) {
 	}
 }
 
-// StopCrpcServer force - false(graceful),true(not graceful)
 func StopCrpcServer(force bool) {
 	//avoid race when build/run in -race mode
 	tmps := (*crpc.CrpcServer)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&s))))

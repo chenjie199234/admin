@@ -1,9 +1,5 @@
 package service
 
-//Warning!!Don't add comments in this file
-//this file will be updated automaticly when create sub service
-//however,golang's ast package can't handle ast tree with comments well(checked 1.26.0)
-
 import (
 	"github.com/chenjie199234/admin/dao"
 	"github.com/chenjie199234/admin/service/app"
@@ -31,10 +27,10 @@ func StartService() error {
 	if e = dao.NewApi(); e != nil {
 		return e
 	}
-	if SvcStatus, e = status.Start(); e != nil {
+	if SvcRaw, e = raw.Start(); e != nil {
 		return e
 	}
-	if SvcRaw, e = raw.Start(); e != nil {
+	if SvcStatus, e = status.Start(); e != nil {
 		return e
 	}
 	if SvcInitialize, e = initialize.Start(); e != nil {
@@ -53,10 +49,10 @@ func StartService() error {
 }
 
 func StopService() {
+	SvcApp.Stop()
+	SvcUser.Stop()
+	SvcPermission.Stop()
+	SvcInitialize.Stop()
 	SvcStatus.Stop()
 	SvcRaw.Stop()
-	SvcInitialize.Stop()
-	SvcPermission.Stop()
-	SvcUser.Stop()
-	SvcApp.Stop()
 }

@@ -35,7 +35,7 @@ func GetWXWorkOAuth2(ctx context.Context, code string) (username string, mobile 
 	var userticket string
 	{
 		query := "access_token=" + dao.WXWorkAccessToken + "&code=" + code
-		resp, err := dao.WXWorkWebClient.Get(ctx, "/cgi-bin/auth/getuserinfo", query, nil, nil)
+		resp, err := dao.WXWorkWebClient.Get(ctx, "/cgi-bin/auth/getuserinfo", query, nil, nil, nil)
 		if err != nil {
 			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
@@ -77,7 +77,7 @@ func GetWXWorkOAuth2(ctx context.Context, code string) (username string, mobile 
 	eg.Go(func(gctx context.Context) error {
 		//https://developer.work.weixin.qq.com/document/path/90196
 		query := "access_token=" + dao.WXWorkAccessToken + "&userid=" + userid
-		resp, err := dao.WXWorkWebClient.Get(ctx, "/cgi-bin/user/get", query, nil, nil)
+		resp, err := dao.WXWorkWebClient.Get(ctx, "/cgi-bin/user/get", query, nil, nil, nil)
 		if err != nil {
 			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.username] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			return err
@@ -110,7 +110,7 @@ func GetWXWorkOAuth2(ctx context.Context, code string) (username string, mobile 
 		header := make(http.Header)
 		header.Set("Content-Type", "application/json")
 		body := "{\"user_ticket\":\"" + userticket + "\"}"
-		resp, err := dao.WXWorkWebClient.Post(ctx, "/cgi-bin/auth/getuserdetail", "access_token="+dao.WXWorkAccessToken, header, nil, common.STB(body))
+		resp, err := dao.WXWorkWebClient.Post(ctx, "/cgi-bin/auth/getuserdetail", "access_token="+dao.WXWorkAccessToken, header, nil, common.STB(body), nil)
 		if err != nil {
 			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.usermobile] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			return err

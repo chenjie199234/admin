@@ -42,7 +42,7 @@ func GetDingDingOAuth2(ctx context.Context, clientid, clientsecret, code string)
 			GrantType:    "authorization_code",
 		}
 		reqbody, _ := json.Marshal(req)
-		resp, err := dao.DingDingWebClient.Post(ctx, "/v1.0/oauth2/userAccessToken", "", header, nil, reqbody)
+		resp, err := dao.DingDingWebClient.Post(ctx, "/v1.0/oauth2/userAccessToken", "", header, nil, reqbody, nil)
 		if err != nil {
 			slog.ErrorContext(ctx, "[GetDingDingOAuth2.usertoken] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
@@ -69,7 +69,7 @@ func GetDingDingOAuth2(ctx context.Context, clientid, clientsecret, code string)
 	{
 		header := make(http.Header)
 		header.Set("x-acs-dingtalk-access-token", usertoken)
-		resp, err := dao.DingDingWebClient.Get(ctx, "/v1.0/contact/users/me", "", header, nil)
+		resp, err := dao.DingDingWebClient.Get(ctx, "/v1.0/contact/users/me", "", header, nil, nil)
 		if err != nil {
 			slog.ErrorContext(ctx, "[GetDingDingOAuth2.userinfo] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err

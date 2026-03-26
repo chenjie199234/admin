@@ -66,7 +66,7 @@ func (c *initializeWebClient) InitStatus(ctx context.Context, req *InitStatusReq
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathInitializeInitStatus, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathInitializeInitStatus, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.Initialize/InitStatus] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -106,7 +106,7 @@ func (c *initializeWebClient) Init(ctx context.Context, req *InitReq, header htt
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathInitializeInit, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathInitializeInit, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.Initialize/Init] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -146,7 +146,7 @@ func (c *initializeWebClient) RootLogin(ctx context.Context, req *RootLoginReq, 
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathInitializeRootLogin, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathInitializeRootLogin, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.Initialize/RootLogin] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -186,7 +186,7 @@ func (c *initializeWebClient) UpdateRootPassword(ctx context.Context, req *Updat
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathInitializeUpdateRootPassword, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathInitializeUpdateRootPassword, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.Initialize/UpdateRootPassword] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -226,7 +226,7 @@ func (c *initializeWebClient) CreateProject(ctx context.Context, req *CreateProj
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathInitializeCreateProject, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathInitializeCreateProject, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.Initialize/CreateProject] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -266,7 +266,7 @@ func (c *initializeWebClient) UpdateProject(ctx context.Context, req *UpdateProj
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathInitializeUpdateProject, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathInitializeUpdateProject, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.Initialize/UpdateProject] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -302,7 +302,7 @@ func (c *initializeWebClient) ListProject(ctx context.Context, req *ListProjectR
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathInitializeListProject, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathInitializeListProject, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.Initialize/ListProject] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -342,7 +342,7 @@ func (c *initializeWebClient) DeleteProject(ctx context.Context, req *DeleteProj
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathInitializeDeleteProject, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathInitializeDeleteProject, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.Initialize/DeleteProject] send request failed", slog.String("error", e.Error()))
 		return nil, e

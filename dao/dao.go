@@ -161,7 +161,7 @@ func getWXWorkAccessToken() (*getWXWorkAccessTokenResp, error) {
 		return nil, nil
 	}
 	query := "corpid=" + c.WXWorkCorpID + "&corpsecret=" + c.WXWorkCorpSecret
-	resp, e := WXWorkWebClient.Get(context.Background(), "/cgi-bin/gettoken", query, nil, nil)
+	resp, e := WXWorkWebClient.Get(context.Background(), "/cgi-bin/gettoken", query, nil, nil, nil)
 	if e != nil {
 		slog.Error("[getWXWorkAccessToken] call failed", slog.String("error", e.Error()))
 		return nil, e

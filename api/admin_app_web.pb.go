@@ -72,7 +72,7 @@ func (c *appWebClient) GetApp(ctx context.Context, req *GetAppReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetApp, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppGetApp, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/GetApp] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -112,7 +112,7 @@ func (c *appWebClient) SetApp(ctx context.Context, req *SetAppReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppSetApp, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppSetApp, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/SetApp] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -152,7 +152,7 @@ func (c *appWebClient) DelApp(ctx context.Context, req *DelAppReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppDelApp, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppDelApp, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/DelApp] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -192,7 +192,7 @@ func (c *appWebClient) UpdateAppSecret(ctx context.Context, req *UpdateAppSecret
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppUpdateAppSecret, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppUpdateAppSecret, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/UpdateAppSecret] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -232,7 +232,7 @@ func (c *appWebClient) DelKey(ctx context.Context, req *DelKeyReq, header http.H
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppDelKey, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppDelKey, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/DelKey] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -272,7 +272,7 @@ func (c *appWebClient) GetKeyConfig(ctx context.Context, req *GetKeyConfigReq, h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppGetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/GetKeyConfig] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -312,7 +312,7 @@ func (c *appWebClient) SetKeyConfig(ctx context.Context, req *SetKeyConfigReq, h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppSetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppSetKeyConfig, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/SetKeyConfig] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -352,7 +352,7 @@ func (c *appWebClient) Rollback(ctx context.Context, req *RollbackReq, header ht
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppRollback, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppRollback, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/Rollback] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -392,7 +392,7 @@ func (c *appWebClient) WatchConfig(ctx context.Context, req *WatchConfigReq, hea
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppWatchConfig, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppWatchConfig, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/WatchConfig] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -432,7 +432,7 @@ func (c *appWebClient) WatchDiscover(ctx context.Context, req *WatchDiscoverReq,
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppWatchDiscover, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppWatchDiscover, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/WatchDiscover] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -472,7 +472,7 @@ func (c *appWebClient) GetInstances(ctx context.Context, req *GetInstancesReq, h
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetInstances, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppGetInstances, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/GetInstances] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -512,7 +512,7 @@ func (c *appWebClient) GetInstanceInfo(ctx context.Context, req *GetInstanceInfo
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppGetInstanceInfo, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppGetInstanceInfo, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/GetInstanceInfo] send request failed", slog.String("error", e.Error()))
 		return nil, e
@@ -552,7 +552,7 @@ func (c *appWebClient) ProxyCall(ctx context.Context, req *ProxyCallReq, header 
 	header.Set("Content-Type", "application/x-protobuf")
 	header.Set("Accept", "application/x-protobuf")
 	reqd, _ := proto.Marshal(req)
-	r, e := c.cc.Post(ctx, _WebPathAppProxyCall, "", header, metadata.GetMetadata(ctx), reqd)
+	r, e := c.cc.Post(ctx, _WebPathAppProxyCall, "", header, metadata.GetMetadata(ctx), reqd, nil)
 	if e != nil {
 		slog.ErrorContext(ctx, "[/admin.App/ProxyCall] send request failed", slog.String("error", e.Error()))
 		return nil, e

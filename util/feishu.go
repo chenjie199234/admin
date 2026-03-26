@@ -50,7 +50,7 @@ func GetFeiShuOAuth2(ctx context.Context, clientid, clientsecret, code string) (
 			Scope:        "contact:user.phone:readonly",
 		}
 		reqbody, _ := json.Marshal(req)
-		resp, err := dao.FeiShuWebClient.Post(ctx, "open-apis/authen/v2/oauth/token", "", header, nil, reqbody)
+		resp, err := dao.FeiShuWebClient.Post(ctx, "open-apis/authen/v2/oauth/token", "", header, nil, reqbody, nil)
 		if err != nil {
 			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
@@ -81,7 +81,7 @@ func GetFeiShuOAuth2(ctx context.Context, clientid, clientsecret, code string) (
 	{
 		header := make(http.Header)
 		header.Set("Authorization", "Bearer "+usertoken)
-		resp, err := dao.FeiShuWebClient.Get(ctx, "/open-apis/authen/v1/user_info", "", header, nil)
+		resp, err := dao.FeiShuWebClient.Get(ctx, "/open-apis/authen/v1/user_info", "", header, nil, nil)
 		if err != nil {
 			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] call failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err

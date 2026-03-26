@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/chenjie199234/Corelib/cerror"
 	"github.com/chenjie199234/admin/dao"
 	"github.com/chenjie199234/admin/ecode"
 )
@@ -18,11 +19,15 @@ type getDingDingUserTokenReq struct {
 	GrantType    string `json:"grantType"`
 }
 type getDingDingUserTokenResp struct {
+	ErrCode     int32  `json:"errcode"`
+	ErrMsg      string `json:"errmsg"`
 	AccessToken string `json:"accessToken"`
 	ExpireIn    int64  `json:"expireIn"`
 	CorpID      string `json:"corpId"`
 }
 type getDingDingUserInfoResp struct {
+	ErrCode         int32  `json:"errcode"`
+	ErrMsg          string `json:"errmsg"`
 	UserName        string `json:"nick"`
 	Mobile          string `json:"mobile"`
 	MobileStateCode string `json:"stateCode"`
@@ -61,6 +66,11 @@ func GetDingDingOAuth2(ctx context.Context, clientid, clientsecret, code string)
 			e = err
 			return
 		}
+		if r.ErrCode != 0 {
+			e = cerror.MakeCError(r.ErrCode, 500, r.ErrMsg)
+			slog.ErrorContext(ctx, "[GetDingDingOAuth2.usertoken] failed", slog.String("code", code), slog.String("error", e.Error()))
+			return "", "", e
+		}
 		usertoken = r.AccessToken
 	}
 
@@ -87,6 +97,11 @@ func GetDingDingOAuth2(ctx context.Context, clientid, clientsecret, code string)
 			slog.ErrorContext(ctx, "[GetDingDingOAuth2.userinfo] response body deocde failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
+		}
+		if r.ErrCode != 0 {
+			e = cerror.MakeCError(r.ErrCode, 500, r.ErrMsg)
+			slog.ErrorContext(ctx, "[GetDingDingOAuth2.userinfo] failed", slog.String("code", code), slog.String("error", e.Error()))
+			return "", "", e
 		}
 		username = r.UserName
 		if r.MobileStateCode == "" || r.Mobile == "" {

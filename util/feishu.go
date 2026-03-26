@@ -59,19 +59,20 @@ func GetFeiShuOAuth2(ctx context.Context, clientid, clientsecret, code string) (
 		defer resp.Body.Close()
 		respbody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] read response body failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] read response failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		r := &getFeiShuUserTokenResp{}
 		if err = json.Unmarshal(respbody, r); err != nil {
-			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] response body decode failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] decode response failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		if r.Code != 0 {
 			e = cerror.MakeCError(r.Code, 500, r.Msg)
-			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] failed", slog.String("code", code), slog.String("error", e.Error()))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.usertoken] oauth2 service provider return error",
+				slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
 		usertoken = r.UserAccessToken
@@ -90,19 +91,20 @@ func GetFeiShuOAuth2(ctx context.Context, clientid, clientsecret, code string) (
 		defer resp.Body.Close()
 		respbody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] read response body failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] read response failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		r := &getFeiShuUserInfoResp{}
 		if err = json.Unmarshal(respbody, r); err != nil {
-			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] response body decode failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] decode response failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		if r.Code != 0 {
 			e = cerror.MakeCError(r.Code, 500, r.Msg)
-			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] failed", slog.String("code", code), slog.String("error", e.Error()))
+			slog.ErrorContext(ctx, "[GetFeiShuOAuth2.userinfo] oauth2 service provider return error",
+				slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
 		username = r.Data.UserName

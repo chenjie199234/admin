@@ -169,17 +169,17 @@ func getWXWorkAccessToken() (*getWXWorkAccessTokenResp, error) {
 	defer resp.Body.Close()
 	respbody, e := io.ReadAll(resp.Body)
 	if e != nil {
-		slog.Error("[getWXWorkAccessToken] read response body failed", slog.String("error", e.Error()))
+		slog.Error("[getWXWorkAccessToken] read response failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	r := &getWXWorkAccessTokenResp{}
 	if e = json.Unmarshal(respbody, r); e != nil {
-		slog.Error("[getWXWorkAccessToken] response body decode failed", slog.String("error", e.Error()))
+		slog.Error("[getWXWorkAccessToken] decode response failed", slog.String("error", e.Error()))
 		return nil, e
 	}
 	if r.Code != 0 {
 		e = cerror.MakeCError(r.Code, 500, r.Msg)
-		slog.Error("[getWXWorkAccessToken] failed", slog.String("error", e.Error()))
+		slog.Error("[getWXWorkAccessToken] oauth2 service provider return error", slog.String("error", e.Error()))
 		return nil, e
 	}
 	curIdSecret = c.WXWorkCorpID + c.WXWorkCorpSecret

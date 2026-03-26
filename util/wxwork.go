@@ -44,29 +44,32 @@ func GetWXWorkOAuth2(ctx context.Context, code string) (username string, mobile 
 		defer resp.Body.Close()
 		respbody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] read response body failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] read response failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		r := &getWXWorkUserBaseInfoResp{}
 		if err = json.Unmarshal(respbody, r); err != nil {
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] response body decode failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] decode response failed", slog.String("code", code), slog.String("error", err.Error()))
 			e = err
 			return
 		}
 		if r.Code != 0 {
 			e = cerror.MakeCError(r.Code, 500, r.Msg)
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] failed", slog.String("code", code), slog.String("error", e.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] oauth2 service provider return error",
+				slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
 		if r.UserID == "" {
 			e = ecode.ErrPermission
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] doesn't delong to this corp", slog.String("code", code), slog.String("error", e.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] doesn't delong to this corp",
+				slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
 		if r.UserTicket == "" {
 			e = ecode.ErrPermission
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] can't get user ticket in wxwork", slog.String("code", code), slog.String("error", e.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.baseinfo] can't get user ticket(token) in wxwork",
+				slog.String("code", code), slog.String("error", e.Error()))
 			return
 		}
 		userid = r.UserID
@@ -85,17 +88,18 @@ func GetWXWorkOAuth2(ctx context.Context, code string) (username string, mobile 
 		defer resp.Body.Close()
 		respbody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.username] read response body failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.username] read response failed", slog.String("code", code), slog.String("error", err.Error()))
 			return err
 		}
 		r := &getWXWorkUserMoreInfoResp{}
 		if err = json.Unmarshal(respbody, r); err != nil {
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.username] response body decode failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.username] decode response failed", slog.String("code", code), slog.String("error", err.Error()))
 			return err
 		}
 		if r.Code != 0 {
 			err = cerror.MakeCError(r.Code, 500, r.Msg)
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.username] failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.username] oauth2 service provider return error",
+				slog.String("code", code), slog.String("error", err.Error()))
 			return err
 		}
 		if r.UserName == "" || r.UserName == userid {
@@ -118,17 +122,18 @@ func GetWXWorkOAuth2(ctx context.Context, code string) (username string, mobile 
 		defer resp.Body.Close()
 		respbody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.usermobile] read response body failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.usermobile] read response failed", slog.String("code", code), slog.String("error", err.Error()))
 			return err
 		}
 		r := &getWXWorkUserMoreInfoResp{}
 		if err = json.Unmarshal(respbody, r); err != nil {
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.usermobile] response body decode failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.usermobile] decode response failed", slog.String("code", code), slog.String("error", err.Error()))
 			return err
 		}
 		if r.Code != 0 {
 			err = cerror.MakeCError(r.Code, 500, r.Msg)
-			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.usermobile] failed", slog.String("code", code), slog.String("error", err.Error()))
+			slog.ErrorContext(ctx, "[GetWXWorkOAuth2.usermobile] oauth2 service provider return error",
+				slog.String("code", code), slog.String("error", err.Error()))
 			return err
 		}
 		if r.Mobile == "" {

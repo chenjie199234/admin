@@ -131,7 +131,7 @@ func Init(notice func(c *AppConfig)) {
 					slog.Error("[config.Init] key: SourceConfig data format wrong", slog.String("error", e.Error()))
 					continue
 				}
-				slog.Info("[config.remote.source] update source config success", slog.Any("config", c))
+				slog.Info("[config.Init] update source config success", slog.Any("config", c))
 				sc = c
 				sourceversion = sourcekey.CurVersion
 				initsource()

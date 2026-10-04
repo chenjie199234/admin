@@ -44,8 +44,6 @@ func StartWebServer() {
 		return
 	}
 	r.Store(router)
-	UpdateHandlerTimeout(config.AC.HandlerTimeout)
-	UpdateWebPathRewrite(config.AC.WebPathRewrite)
 
 	//this place can register global midwares
 	//r.Use(globalmidwares)
@@ -60,6 +58,11 @@ func StartWebServer() {
 	api.RegisterInitializeWebServer(router, service.SvcInitialize, mids.AllMids())
 
 	server.SetRouter(router)
+
+	//path must be registered before this
+	UpdateHandlerTimeout(config.AC.HandlerTimeout)
+	UpdateWebPathRewrite(config.AC.WebPathRewrite)
+
 	if e = server.StartWebServer(":8000"); e != nil && e != web.ErrServerClosed {
 		slog.Error("[xweb] start server failed", slog.String("error", e.Error()))
 		return

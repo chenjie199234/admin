@@ -455,7 +455,7 @@ func (s *InternalSdk) watch(ctx context.Context) {
 				exist.Unlock()
 			}
 		}
-		if stream.Err() != nil {
+		if stream.Err() != nil && stream.Err() != context.Canceled {
 			slog.Error("[InitWatch] stream disconnected", slog.String("error", stream.Err().Error()))
 		}
 		stream.Close(context.Background())

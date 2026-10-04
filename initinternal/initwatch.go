@@ -62,7 +62,7 @@ func InitWatch(secret string, db *mongo.Client) (*InternalSdk, error) {
 		return nil, e
 	}
 	var ctx context.Context
-	ctx, sdk.stopwatch = context.WithCancel(context.Background())
+	ctx, sdk.stopwatch = context.WithTimeout(context.Background(), time.Hour*24*365*100)
 	go sdk.watch(ctx)
 	go sdk.timeout()
 	return sdk, nil

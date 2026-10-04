@@ -34,7 +34,7 @@ type DiscoverSdk struct {
 	status int32 //0 idle,1 discovering
 
 	lker        *sync.RWMutex
-	notices     map[chan *struct{}]*struct{}
+	notices     map[chan struct{}]struct{}
 	di          cdiscover.DI
 	noportaddrs map[string]*cdiscover.RegisterData
 	version     cdiscover.Version
@@ -90,7 +90,7 @@ func NewAdminDiscover(targetproject, targetgroup, targetapp string, tlsc *tls.Co
 		status: 1,
 
 		lker:    &sync.RWMutex{},
-		notices: make(map[chan *struct{}]*struct{}, 10),
+		notices: make(map[chan struct{}]struct{}, 10),
 
 		client:    api.NewAppWebClient(tmpclient),
 		accesskey: accesskey,
@@ -266,7 +266,7 @@ func (s *DiscoverSdk) run(project, group, app string, once chan *struct{}) {
 			atomic.StoreInt32(&s.status, 0)
 			for notice := range s.notices {
 				select {
-				case notice <- nil:
+				case notice <- struct{}{}:
 				default:
 				}
 			}
@@ -278,18 +278,18 @@ func (s *DiscoverSdk) run(project, group, app string, once chan *struct{}) {
 // don't close the returned channel,it will be closed in cases:
 // 1.the cancel function be called
 // 2.this discover stopped
-func (s *DiscoverSdk) GetNotice() (notice <-chan *struct{}, cancel func()) {
-	ch := make(chan *struct{}, 1)
+func (s *DiscoverSdk) GetNotice() (notice <-chan struct{}, cancel func()) {
+	ch := make(chan struct{}, 1)
 	s.lker.Lock()
 	if s.status == 0 {
-		ch <- nil
-		s.notices[ch] = nil
+		ch <- struct{}{}
+		s.notices[ch] = struct{}{}
 	} else {
 		select {
 		case <-s.ctx.Done():
 			close(ch)
 		default:
-			s.notices[ch] = nil
+			s.notices[ch] = struct{}{}
 		}
 	}
 	s.lker.Unlock()

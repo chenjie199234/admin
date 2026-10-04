@@ -34,7 +34,7 @@ func (d *Dao) MongoInit(ctx context.Context, password string) (e error) {
 			s.AbortTransaction(sctx)
 		}
 	}()
-	sign, _ := secure.SignMake(password)
+	sign, _ := secure.SignPassword(password)
 	if _, e = d.mongo.Database("user").Collection("user").InsertOne(sctx, bson.M{"_id": bson.NilObjectID, "password": sign, "projects": map[string][]string{}}); e != nil && !mongo.IsDuplicateKeyError(e) {
 		return
 	} else if e != nil {
@@ -86,7 +86,7 @@ func (d *Dao) MongoUpdateRootPassword(ctx context.Context, oldpassword, newpassw
 	rand.Read(nonce)
 	user := &model.User{}
 	filter := bson.M{"_id": bson.NilObjectID}
-	sign, _ := secure.SignMake(newpassword)
+	sign, _ := secure.SignPassword(newpassword)
 	updater := bson.M{"password": sign}
 	if e = d.mongo.Database("user").Collection("user").FindOneAndUpdate(sctx, filter, bson.M{"$set": updater}).Decode(user); e != nil {
 		if e == mongo.ErrNoDocuments {
@@ -94,7 +94,7 @@ func (d *Dao) MongoUpdateRootPassword(ctx context.Context, oldpassword, newpassw
 		}
 		return
 	}
-	e = secure.SignCheck(oldpassword, user.Password)
+	e = secure.CheckPasswordSign(oldpassword, user.Password)
 	return
 }
 func (d *Dao) MongoCreateProject(ctx context.Context, projectname, projectdata string) (projectid string, e error) {

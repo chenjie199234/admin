@@ -997,6 +997,9 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 		return resp, nil
 	}
 	eg := egroup.GetGroup(ctx)
+	for _, addr := range addrs {
+		instances[addr] = &api.InstanceInfo{}
+	}
 	for _, v := range addrs {
 		addr := v
 		eg.Go(func(gctx context.Context) error {
@@ -1011,7 +1014,7 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 					slog.String("error", e.Error()))
 				return nil
 			}
-			info := &api.InstanceInfo{}
+			info := instances[addr]
 			info.SetName(r.GetHost())
 			info.SetCpuNum(r.GetCpuNum())
 			info.SetCpuUsage(r.GetCpuUsage())
@@ -1020,11 +1023,18 @@ func (s *Service) GetInstances(ctx context.Context, req *api.GetInstancesReq) (*
 			info.SetMemUsage(r.GetMemUsage())
 			info.SetMemType(r.GetMemType())
 			info.SetVersion(r.GetVersion())
-			instances[addr] = info
 			return nil
 		})
 	}
 	egroup.PutGroup(eg)
+	for _, addr := range addrs {
+		info := instances[addr]
+		if info.GetName() == "" {
+			//if the instance exists,the name will not be empty,"unknown" will be the default name
+			//this will only happened when the instance already closed,the PingByPrjoectID failed
+			delete(instances, addr)
+		}
+	}
 	resp.SetInstances(instances)
 	return resp, nil
 }

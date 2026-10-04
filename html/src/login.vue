@@ -87,7 +87,7 @@ onMounted(()=>{
 const password = ref<string>("")
 const t_password = ref<boolean>(false)
 function login_root_able():boolean{
-  return password.value.length>=10&&password.value.length<=32
+  return password.value.length>=10
 }
 function do_login_root(){
   if(!state.set_load()){
@@ -186,7 +186,7 @@ function do_login_user(){
 				<VaCardContent style="font-size:20px"><b>Root User Login</b></VaCardContent>
 			</VaCard>
 			<div style="display:flex;align-items:end;margin-top:20px">
-				<VaInput :type="t_password?'text':'password'" style="flex:1" label="Root Password*" v-model="password" :max-length="32">
+				<VaInput :type="t_password?'text':'password'" style="flex:1" label="Root Password*" v-model="password">
 					<template #appendInner>
 						<VaIcon :name="t_password?'◎':'◉'" size="small" color="var(--va-primary)" @click="t_password=!t_password" />
 					</template>

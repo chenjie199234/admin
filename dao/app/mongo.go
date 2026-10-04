@@ -27,7 +27,7 @@ func (d *Dao) MongoCheckSecret(ctx context.Context, projectid, gname, aname, sec
 		return e
 	}
 	// check sign
-	return secure.SignCheck(secret, appsummary.Value)
+	return secure.CheckPasswordSign(secret, appsummary.Value)
 }
 func (d *Dao) MongoGetApp(ctx context.Context, projectid, gname, aname, secret string) (*model.AppSummary, error) {
 	appsummary := &model.AppSummary{}
@@ -39,7 +39,7 @@ func (d *Dao) MongoGetApp(ctx context.Context, projectid, gname, aname, secret s
 		return nil, e
 	}
 	// check sign
-	if e := secure.SignCheck(secret, appsummary.Value); e != nil {
+	if e := secure.CheckPasswordSign(secret, appsummary.Value); e != nil {
 		return nil, e
 	}
 	if secret != "" {
@@ -93,7 +93,7 @@ func (d *Dao) MongoCreateApp(
 	cgrpcport,
 	webport uint32) (nodeid string, e error) {
 	var sign string
-	if sign, e = secure.SignMake(secret); e != nil {
+	if sign, e = secure.SignPassword(secret); e != nil {
 		return
 	}
 	var s *mongo.Session
@@ -228,7 +228,7 @@ func (d *Dao) MongoDelApp(ctx context.Context, projectid, gname, aname, secret s
 		}
 		return
 	}
-	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
+	if e = secure.CheckPasswordSign(secret, appsummary.Value); e != nil {
 		return
 	}
 	if _, e = d.mongo.Database("app").Collection("config").DeleteMany(sctx, bson.M{"project_id": projectid, "group": gname, "app": aname}); e != nil {
@@ -249,7 +249,7 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 		return
 	}
 	var sign string
-	sign, e = secure.SignMake(newsecret)
+	sign, e = secure.SignPassword(newsecret)
 	if e != nil {
 		return
 	}
@@ -279,7 +279,7 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 		return
 	}
 	//check oldsecret
-	if e = secure.SignCheck(oldsecret, appsummary.Value); e != nil {
+	if e = secure.CheckPasswordSign(oldsecret, appsummary.Value); e != nil {
 		return
 	}
 	//deal log
@@ -371,7 +371,7 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 			return nil, nil, ecode.ErrKeyNotExist
 		}
 		//check secret
-		if e := secure.SignCheck(secret, appsummary.Value); e != nil {
+		if e := secure.CheckPasswordSign(secret, appsummary.Value); e != nil {
 			return nil, nil, e
 		}
 		if secret != "" {
@@ -429,7 +429,7 @@ func (d *Dao) MongoGetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 		return nil, nil, ecode.ErrIndexNotExist
 	}
 	//check secret
-	if e := secure.SignCheck(secret, appsummary.Value); e != nil {
+	if e := secure.CheckPasswordSign(secret, appsummary.Value); e != nil {
 		return nil, nil, e
 	}
 	if secret != "" {
@@ -473,7 +473,7 @@ func (d *Dao) MongoSetKeyConfig(ctx context.Context, projectid, gname, aname, ke
 		return
 	}
 	//check secret
-	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
+	if e = secure.CheckPasswordSign(secret, appsummary.Value); e != nil {
 		return
 	}
 	if secret != "" {
@@ -538,7 +538,7 @@ func (d *Dao) MongoDelKey(ctx context.Context, projectid, gname, aname, key, sec
 		}
 		return
 	}
-	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
+	if e = secure.CheckPasswordSign(secret, appsummary.Value); e != nil {
 		return
 	}
 	delfilter := bson.M{"project_id": projectid, "group": gname, "app": aname, "key": key}
@@ -570,7 +570,7 @@ func (d *Dao) MongoRollbackKeyConfig(ctx context.Context, projectid, gname, anam
 		}
 		return
 	}
-	if e = secure.SignCheck(secret, appsummary.Value); e != nil {
+	if e = secure.CheckPasswordSign(secret, appsummary.Value); e != nil {
 		return
 	}
 	if len(appsummary.Keys) == 0 {

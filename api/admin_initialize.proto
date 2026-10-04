@@ -105,20 +105,20 @@ message InitStatusResp{
 	bool status=1;//true-already inited,false-not inited
 }
 message InitReq{
-	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
+	string password=1[(pbex.string_bytes_len_gte)=10];
 }
 message InitResp{
 
 }
 message RootLoginReq{
-	string password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
+	string password=1[(pbex.string_bytes_len_gte)=10];
 }
 message RootLoginResp{
 	string token=1;
 }
 message UpdateRootPasswordReq{
-	string old_password=1[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
-	string new_password=2[(pbex.string_bytes_len_gte)=10,(pbex.string_bytes_len_lte)=32];
+	string old_password=1[(pbex.string_bytes_len_gte)=10];
+	string new_password=2[(pbex.string_bytes_len_gte)=10];
 }
 message UpdateRootPasswordResp{
 }

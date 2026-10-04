@@ -195,7 +195,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	if existProjectIndex.ProjectName != "" {
 		//project exist,the app should exist too
 		//check secret
-		if e = secure.SignCheck(secret, existAppSummary.Value); e != nil {
+		if e = secure.CheckPasswordSign(secret, existAppSummary.Value); e != nil {
 			slog.Error("[InitDatabase] secret check failed",
 				slog.String("project_id", model.AdminProjectID),
 				slog.String("group", model.Group),
@@ -273,7 +273,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	}
 	//init app
 	docs = docs[0:0]
-	sign, _ := secure.SignMake(secret)
+	sign, _ := secure.SignPassword(secret)
 	//summary
 	docs = append(docs, &model.AppSummary{
 		ProjectID:    model.AdminProjectID,

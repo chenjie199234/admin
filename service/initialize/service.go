@@ -74,7 +74,7 @@ func (s *Service) RootLogin(ctx context.Context, req *api.RootLoginReq) (*api.Ro
 		slog.ErrorContext(ctx, "[RootLogin] db op failed", slog.String("error", e.Error()))
 		return nil, ecode.ReturnEcode(e, ecode.ErrSystem)
 	}
-	if e := secure.SignCheck(req.GetPassword(), user.Password); e != nil {
+	if e := secure.CheckPasswordSign(req.GetPassword(), user.Password); e != nil {
 		if e == ecode.ErrDataBroken {
 			e = ecode.ErrDBDataBroken
 		}

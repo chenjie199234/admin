@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@api': path.resolve(__dirname, '../api') // 根据实际 api 目录调整
+      '@api': path.resolve(import.meta.dirname, '../api') // 根据实际 api 目录调整
     }
   },
   server:{

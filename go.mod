@@ -3,7 +3,7 @@ module github.com/chenjie199234/admin
 go 1.26.8
 
 require (
-	github.com/chenjie199234/Corelib v0.0.142-0.20261004234831-cf712ef87925
+	github.com/chenjie199234/Corelib v0.0.142-0.20261005012004-6d16350adc34
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/redis/go-redis/v9 v9.22.0
 	go.mongodb.org/mongo-driver/v2 v2.8.2

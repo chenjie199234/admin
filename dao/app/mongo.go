@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/chenjie199234/admin/ecode"
 	"github.com/chenjie199234/admin/model"
@@ -73,6 +74,9 @@ func (d *Dao) MongoGetPermissionNodeID(ctx context.Context, projectid, gname, an
 			e = ecode.ErrAppNotExist
 		}
 		return "", e
+	}
+	if appsummary.PermissionNodeID == "" || strings.Count(appsummary.PermissionNodeID, ",") != 3 {
+		return "", ecode.ErrDBDataBroken
 	}
 	return appsummary.PermissionNodeID, nil
 }
@@ -195,6 +199,10 @@ func (d *Dao) MongoUpdateApp(
 		}
 		return
 	}
+	if app.PermissionNodeID == "" || strings.Count(app.PermissionNodeID, ",") != 3 {
+		e = ecode.ErrDBDataBroken
+		return
+	}
 	nodeid = app.PermissionNodeID
 	return
 }
@@ -228,6 +236,10 @@ func (d *Dao) MongoDelApp(ctx context.Context, projectid, gname, aname, secret s
 		return
 	}
 	if _, e = d.mongo.Database("app").Collection("config").DeleteMany(sctx, bson.M{"project_id": projectid, "group": gname, "app": aname}); e != nil {
+		return
+	}
+	if appsummary.PermissionNodeID == "" || strings.Count(appsummary.PermissionNodeID, ",") != 3 {
+		e = ecode.ErrDBDataBroken
 		return
 	}
 	delfilter := bson.M{"node_id": bson.M{"$regex": "^" + appsummary.PermissionNodeID}}

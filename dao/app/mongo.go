@@ -92,10 +92,6 @@ func (d *Dao) MongoCreateApp(
 	crpcport,
 	cgrpcport,
 	webport uint32) (nodeid string, e error) {
-	var sign string
-	if sign, e = secure.SignPassword(secret); e != nil {
-		return
-	}
 	var s *mongo.Session
 	if s, e = d.mongo.StartSession(); e != nil {
 		return
@@ -153,7 +149,7 @@ func (d *Dao) MongoCreateApp(
 		CGrpcPort:        cgrpcport,
 		WebPort:          webport,
 		Keys:             map[string]*model.KeySummary{},
-		Value:            sign,
+		Value:            secure.SignPassword(secret),
 		PermissionNodeID: nodeid,
 	}); e != nil && mongo.IsDuplicateKeyError(e) {
 		e = ecode.ErrAppAlreadyExist
@@ -248,11 +244,6 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 	if oldsecret == newsecret {
 		return
 	}
-	var sign string
-	sign, e = secure.SignPassword(newsecret)
-	if e != nil {
-		return
-	}
 	var s *mongo.Session
 	if s, e = d.mongo.StartSession(); e != nil {
 		return
@@ -320,7 +311,7 @@ func (d *Dao) MongoUpdateAppSecret(ctx context.Context, projectid, gname, aname,
 	}
 	//deal summary
 	updater := bson.M{
-		"value": sign,
+		"value": secure.SignPassword(newsecret),
 	}
 	for key, summary := range appsummary.Keys {
 		if newvalue, ok := tmp[key]; ok {

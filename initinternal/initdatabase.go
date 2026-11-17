@@ -273,7 +273,6 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 	}
 	//init app
 	docs = docs[0:0]
-	sign, _ := secure.SignPassword(secret)
 	//summary
 	docs = append(docs, &model.AppSummary{
 		ProjectID:    model.AdminProjectID,
@@ -305,7 +304,7 @@ func InitDatabase(secret string, db *mongo.Client) (e error) {
 				CurValueType: "json",
 			},
 		},
-		Value:            sign,
+		Value:            secure.SignPassword(secret),
 		PermissionNodeID: model.AdminProjectID + model.AppControl + ",1",
 	})
 	//AppConfig

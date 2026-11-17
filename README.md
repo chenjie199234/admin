@@ -76,7 +76,7 @@ collection: config
             "cur_value":"xxx"
         }
     },
-    "value":"",//this is a random str + it's sha512 sign,this is used to check the secret
+    "value":"",//this is a random str + it's sha256 sign,this is used to check the secret
     "permission_node_id":"",
 }//summary
 {

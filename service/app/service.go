@@ -3,7 +3,7 @@ package app
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"log/slog"
 	"slices"
 	"strings"
